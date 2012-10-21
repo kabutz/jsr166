@@ -5,8 +5,8 @@
  */
 
 package java.util.concurrent.locks;
-import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.Collection;
 
 /**
  * A reentrant mutual exclusion {@link Lock} with the same basic
@@ -409,7 +409,6 @@ public class ReentrantLock implements Lock, java.io.Serializable {
      *         the lock could be acquired
      * @throws InterruptedException if the current thread is interrupted
      * @throws NullPointerException if the time unit is null
-     *
      */
     public boolean tryLock(long timeout, TimeUnit unit)
             throws InterruptedException {
