@@ -486,7 +486,6 @@ public class JSR166TestCase extends TestCase {
                 // give thread some time to terminate
                 thread.join(LONG_DELAY_MS);
                 if (!thread.isAlive()) continue;
-                thread.stop();
                 throw new AssertionFailedError
                     (String.format("Found leaked ForkJoinPool thread test=%s thread=%s%n",
                                    toString(), name));
