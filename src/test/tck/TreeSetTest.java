@@ -903,18 +903,18 @@ public class TreeSetTest extends JSR166TestCase {
                 else if (element > max)
                     return -1;
                 int result = bs.nextSetBit(element);
-                return result > max ? -1 : result;
+                return (result > max) ? -1 : result;
             }
             int higherAscending(int element) {
                 return ceilingAscending(element + 1);
             }
             private int firstAscending() {
                 int result = ceilingAscending(min);
-                return result > max ? -1 : result;
+                return (result > max) ? -1 : result;
             }
             private int lastAscending() {
                 int result = floorAscending(max);
-                return result < min ? -1 : result;
+                return (result < min) ? -1 : result;
             }
         }
         ReferenceSet rs = new ReferenceSet();
@@ -975,7 +975,7 @@ public class TreeSetTest extends JSR166TestCase {
     }
 
     static boolean eq(Integer i, int j) {
-        return i == null ? j == -1 : i == j;
+        return (i == null) ? j == -1 : i == j;
     }
 
 }

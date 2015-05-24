@@ -974,7 +974,7 @@ public class ConcurrentSkipListSetTest extends JSR166TestCase {
     }
 
     static boolean eq(Integer i, int j) {
-        return i == null ? j == -1 : i == j;
+        return (i == null) ? j == -1 : i == j;
     }
 
 }

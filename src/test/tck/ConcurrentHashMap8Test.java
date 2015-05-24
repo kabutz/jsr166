@@ -516,7 +516,7 @@ public class ConcurrentHashMap8Test extends JSR166TestCase {
         a = new Integer[0];
         assertSame(a, empty.toArray(a));
 
-        a = new Integer[size/2];
+        a = new Integer[size / 2];
         Arrays.fill(a, 42);
         assertSame(a, empty.toArray(a));
         assertNull(a[0]);

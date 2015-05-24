@@ -660,13 +660,13 @@ public class ArrayDequeTest extends JSR166TestCase {
 
     void checkToArray2(ArrayDeque q) {
         int size = q.size();
-        Integer[] a1 = size == 0 ? null : new Integer[size-1];
+        Integer[] a1 = (size == 0) ? null : new Integer[size - 1];
         Integer[] a2 = new Integer[size];
-        Integer[] a3 = new Integer[size+2];
+        Integer[] a3 = new Integer[size + 2];
         if (size > 0) Arrays.fill(a1, 42);
         Arrays.fill(a2, 42);
         Arrays.fill(a3, 42);
-        Integer[] b1 = size == 0 ? null : (Integer[]) q.toArray(a1);
+        Integer[] b1 = (size == 0) ? null : (Integer[]) q.toArray(a1);
         Integer[] b2 = (Integer[]) q.toArray(a2);
         Integer[] b3 = (Integer[]) q.toArray(a3);
         assertSame(a2, b2);
@@ -680,7 +680,7 @@ public class ArrayDequeTest extends JSR166TestCase {
             assertSame(b3[i], x);
         }
         assertNull(a3[size]);
-        assertEquals(42, (int) a3[size+1]);
+        assertEquals(42, (int) a3[size + 1]);
         if (size > 0) {
             assertNotSame(a1, b1);
             assertEquals(size, b1.length);

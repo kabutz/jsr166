@@ -355,7 +355,7 @@ public abstract class BlockingQueueTest extends JSR166TestCase {
         }
         if (size > 0)
             assertTrue(q.contains(elts[0]));
-        for (int i = size-2; i >= 0; i -= 2) {
+        for (int i = size - 2; i >= 0; i -= 2) {
             assertTrue(q.contains(elts[i]));
             assertFalse(q.contains(elts[i+1]));
             assertTrue(q.remove(elts[i]));

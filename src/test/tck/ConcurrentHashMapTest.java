@@ -45,7 +45,9 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
     }
 
     /** Re-implement Integer.compare for old java versions */
-    static int compare(int x, int y) { return x < y ? -1 : x > y ? 1 : 0; }
+    static int compare(int x, int y) {
+        return (x < y) ? -1 : (x > y) ? 1 : 0;
+    }
 
     // classes for testing Comparable fallbacks
     static class BI implements Comparable<BI> {
