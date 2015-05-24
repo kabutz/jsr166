@@ -625,11 +625,11 @@ public class PhaserTest extends JSR166TestCase {
             threads.add(newStartedThread(new CheckedRunnable() {
                 public void realRun() {
                     for (int k = 0; k < 3; k++) {
-                        assertEquals(2*k+1, phaser.arriveAndAwaitAdvance());
+                        assertEquals(2 * k + 1, phaser.arriveAndAwaitAdvance());
                         count.incrementAndGet();
-                        assertEquals(2*k+1, phaser.arrive());
-                        assertEquals(2*k+2, phaser.awaitAdvance(2*k+1));
-                        assertEquals(4*(k+1), count.get());
+                        assertEquals(2 * k + 1, phaser.arrive());
+                        assertEquals(2 * k + 2, phaser.awaitAdvance(2 * k + 1));
+                        assertEquals(4 * (k + 1), count.get());
                     }}}));
 
         for (Thread thread : threads)

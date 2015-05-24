@@ -286,7 +286,7 @@ public class AtomicIntegerArrayTest extends JSR166TestCase {
                     assertTrue(v >= 0);
                     if (v != 0) {
                         done = false;
-                        if (aa.compareAndSet(i, v, v-1))
+                        if (aa.compareAndSet(i, v, v - 1))
                             ++counts;
                     }
                 }

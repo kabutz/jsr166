@@ -236,7 +236,7 @@ public class ReentrantReadWriteLockTest extends JSR166TestCase {
         }
         for (int i = SIZE; i > 0; i--) {
             lock.writeLock().unlock();
-            assertEquals(i-1,lock.getWriteHoldCount());
+            assertEquals(i - 1,lock.getWriteHoldCount());
         }
     }
 
@@ -253,7 +253,7 @@ public class ReentrantReadWriteLockTest extends JSR166TestCase {
         }
         for (int i = SIZE; i > 0; i--) {
             lock.writeLock().unlock();
-            assertEquals(i-1,lock.writeLock().getHoldCount());
+            assertEquals(i - 1,lock.writeLock().getHoldCount());
         }
     }
 
@@ -270,7 +270,7 @@ public class ReentrantReadWriteLockTest extends JSR166TestCase {
         }
         for (int i = SIZE; i > 0; i--) {
             lock.readLock().unlock();
-            assertEquals(i-1,lock.getReadHoldCount());
+            assertEquals(i - 1,lock.getReadHoldCount());
         }
     }
 

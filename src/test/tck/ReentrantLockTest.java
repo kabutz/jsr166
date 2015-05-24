@@ -424,7 +424,7 @@ public class ReentrantLockTest extends JSR166TestCase {
         }
         for (int i = SIZE; i > 0; i--) {
             lock.unlock();
-            assertEquals(i-1, lock.getHoldCount());
+            assertEquals(i - 1, lock.getHoldCount());
         }
     }
 

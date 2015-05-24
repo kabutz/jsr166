@@ -338,7 +338,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
         ListIterator i = full.listIterator(1);
         int j;
         for (j = 0; i.hasNext(); j++)
-            assertEquals(j+1, i.next());
+            assertEquals(j + 1, i.next());
         assertEquals(2, j);
     }
 

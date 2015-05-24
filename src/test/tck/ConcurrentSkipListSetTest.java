@@ -41,7 +41,7 @@ public class ConcurrentSkipListSetTest extends JSR166TestCase {
         ConcurrentSkipListSet<Integer> q =
             new ConcurrentSkipListSet<Integer>();
         assertTrue(q.isEmpty());
-        for (int i = n-1; i >= 0; i -= 2)
+        for (int i = n - 1; i >= 0; i -= 2)
             assertTrue(q.add(new Integer(i)));
         for (int i = (n & 1); i < n; i += 2)
             assertTrue(q.add(new Integer(i)));
@@ -286,14 +286,14 @@ public class ConcurrentSkipListSetTest extends JSR166TestCase {
             assertTrue(q.contains(i));
             assertTrue(q.remove(i));
             assertFalse(q.contains(i));
-            assertTrue(q.contains(i-1));
+            assertTrue(q.contains(i - 1));
         }
         for (int i = 0; i < SIZE; i += 2) {
             assertTrue(q.contains(i));
             assertTrue(q.remove(i));
             assertFalse(q.contains(i));
-            assertFalse(q.remove(i+1));
-            assertFalse(q.contains(i+1));
+            assertFalse(q.remove(i + 1));
+            assertFalse(q.contains(i + 1));
         }
         assertTrue(q.isEmpty());
     }
