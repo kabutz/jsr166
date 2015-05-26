@@ -814,8 +814,9 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                 if (i > 0) {
                     batch = i;
                     return Spliterators.spliterator
-                        (a, 0, i, Spliterator.ORDERED | Spliterator.NONNULL |
-                         Spliterator.CONCURRENT);
+                        (a, 0, i, (Spliterator.ORDERED |
+                                   Spliterator.NONNULL |
+                                   Spliterator.CONCURRENT));
                 }
             }
             return null;
