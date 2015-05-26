@@ -244,7 +244,44 @@ public class CopyOnWriteArraySet<E> extends AbstractSet<E>
      * @see #contains(Object)
      */
     public boolean containsAll(Collection<?> c) {
-        return al.containsAll(c);
+        return (c instanceof Set)
+            ? compareSets(al.getArray(), (Set<?>) c) >= 0
+            : al.containsAll(c);
+    }
+
+    /**
+     * Tells whether the objects in snapshot (regarded as a set) are a
+     * superset of the given set.
+     *
+     * @return -1 if snapshot is not a superset, 0 if the two sets
+     * contain precisely the same elements, and 1 if snapshot is a
+     * proper superset of the given set
+     */
+    private static int compareSets(Object[] snapshot, Set<?> set) {
+        // Uses O(n^2) algorithm, that is only appropriate for small
+        // sets, which CopyOnWriteArraySets should be.
+        //
+        // Optimize up to O(n) if the two sets share a long common prefix,
+        // as might happen if one set was created as a copy of the other set.
+
+        final int len = snapshot.length;
+        // Mark matched elements to avoid re-checking
+        final boolean[] matched = new boolean[len];
+
+        // j is the largest int with matched[i] true for { i | 0 <= i < j }
+        int j = 0;
+        outer: for (Object x : set) {
+            for (int i = j; i < len; i++) {
+                if (!matched[i] && Objects.equals(x, snapshot[i])) {
+                    matched[i] = true;
+                    if (i == j)
+                        do { j++; } while (j < len && matched[j]);
+                    continue outer;
+                }
+            }
+            return -1;
+        }
+        return (j == len) ? 0 : 1;
     }
 
     /**
@@ -336,35 +373,9 @@ public class CopyOnWriteArraySet<E> extends AbstractSet<E>
      * @return {@code true} if the specified object is equal to this set
      */
     public boolean equals(Object o) {
-        if (o == this)
-            return true;
-        if (!(o instanceof Set))
-            return false;
-        Set<?> set = (Set<?>)o;
-        Iterator<?> it = set.iterator();
-
-        // Uses O(n^2) algorithm that is only appropriate
-        // for small sets, which CopyOnWriteArraySets should be.
-
-        //  Use a single snapshot of underlying array
-        Object[] elements = al.getArray();
-        int len = elements.length;
-        // Mark matched elements to avoid re-checking
-        boolean[] matched = new boolean[len];
-        int k = 0;
-        outer: while (it.hasNext()) {
-            if (++k > len)
-                return false;
-            Object x = it.next();
-            for (int i = 0; i < len; ++i) {
-                if (!matched[i] && Objects.equals(x, elements[i])) {
-                    matched[i] = true;
-                    continue outer;
-                }
-            }
-            return false;
-        }
-        return k == len;
+        return (o == this)
+            || ((o instanceof Set)
+                && compareSets(al.getArray(), (Set<?>) o) == 0);
     }
 
     public boolean removeIf(Predicate<? super E> filter) {

@@ -177,18 +177,26 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
         CopyOnWriteArrayList b = populatedArray(3);
         assertTrue(a.equals(b));
         assertTrue(b.equals(a));
+        assertTrue(a.containsAll(b));
+        assertTrue(b.containsAll(a));
         assertEquals(a.hashCode(), b.hashCode());
         a.add(m1);
         assertFalse(a.equals(b));
         assertFalse(b.equals(a));
+        assertTrue(a.containsAll(b));
+        assertFalse(b.containsAll(a));
         b.add(m1);
         assertTrue(a.equals(b));
         assertTrue(b.equals(a));
+        assertTrue(a.containsAll(b));
+        assertTrue(b.containsAll(a));
         assertEquals(a.hashCode(), b.hashCode());
+
+        assertFalse(a.equals(null));
     }
 
     /**
-     * containsAll returns true for collection with subset of elements
+     * containsAll returns true for collections with subset of elements
      */
     public void testContainsAll() {
         CopyOnWriteArrayList full = populatedArray(3);
@@ -197,6 +205,11 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
         assertTrue(full.containsAll(Arrays.asList(one, two)));
         assertFalse(full.containsAll(Arrays.asList(one, two, six)));
         assertFalse(full.containsAll(Arrays.asList(six)));
+
+        try {
+            full.containsAll(null);
+            shouldThrow();
+        } catch (NullPointerException success) {}
     }
 
     /**

@@ -134,14 +134,46 @@ public class CopyOnWriteArraySetTest extends JSR166TestCase {
         CopyOnWriteArraySet b = populatedSet(3);
         assertTrue(a.equals(b));
         assertTrue(b.equals(a));
+        assertTrue(a.containsAll(b));
+        assertTrue(b.containsAll(a));
         assertEquals(a.hashCode(), b.hashCode());
+        assertEquals(a.size(), b.size());
+
         a.add(m1);
         assertFalse(a.equals(b));
         assertFalse(b.equals(a));
+        assertTrue(a.containsAll(b));
+        assertFalse(b.containsAll(a));
         b.add(m1);
         assertTrue(a.equals(b));
         assertTrue(b.equals(a));
+        assertTrue(a.containsAll(b));
+        assertTrue(b.containsAll(a));
         assertEquals(a.hashCode(), b.hashCode());
+
+        Object x = a.iterator().next();
+        a.remove(x);
+        assertFalse(a.equals(b));
+        assertFalse(b.equals(a));
+        assertFalse(a.containsAll(b));
+        assertTrue(b.containsAll(a));
+        a.add(x);
+        assertTrue(a.equals(b));
+        assertTrue(b.equals(a));
+        assertTrue(a.containsAll(b));
+        assertTrue(b.containsAll(a));
+        assertEquals(a.hashCode(), b.hashCode());
+        assertEquals(a.size(), b.size());
+
+        CopyOnWriteArraySet empty1 = new CopyOnWriteArraySet(Arrays.asList());
+        CopyOnWriteArraySet empty2 = new CopyOnWriteArraySet(Arrays.asList());
+        assertTrue(empty1.equals(empty1));
+        assertTrue(empty1.equals(empty2));
+
+        assertFalse(empty1.equals(a));
+        assertFalse(a.equals(empty1));
+
+        assertFalse(a.equals(null));
     }
 
     /**
@@ -149,11 +181,24 @@ public class CopyOnWriteArraySetTest extends JSR166TestCase {
      */
     public void testContainsAll() {
         Collection full = populatedSet(3);
+        assertTrue(full.containsAll(full));
         assertTrue(full.containsAll(Arrays.asList()));
         assertTrue(full.containsAll(Arrays.asList(one)));
         assertTrue(full.containsAll(Arrays.asList(one, two)));
         assertFalse(full.containsAll(Arrays.asList(one, two, six)));
         assertFalse(full.containsAll(Arrays.asList(six)));
+
+        CopyOnWriteArraySet empty1 = new CopyOnWriteArraySet(Arrays.asList());
+        CopyOnWriteArraySet empty2 = new CopyOnWriteArraySet(Arrays.asList());
+        assertTrue(empty1.containsAll(empty2));
+        assertTrue(empty1.containsAll(empty1));
+        assertFalse(empty1.containsAll(full));
+        assertTrue(full.containsAll(empty1));
+
+        try {
+            full.containsAll(null);
+            shouldThrow();
+        } catch (NullPointerException success) {}
     }
 
     /**
