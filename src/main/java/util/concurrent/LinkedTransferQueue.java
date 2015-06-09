@@ -744,7 +744,9 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Version of firstOfMode used by Spliterator
+     * Version of firstOfMode used by Spliterator. Callers must
+     * recheck if the returned node's item field is null or
+     * self-linked before using.
      */
     final Node firstDataNode() {
         for (Node p = head; p != null;) {
@@ -1037,7 +1039,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 Object[] a = new Object[n];
                 int i = 0;
                 do {
-                    if ((a[i] = p.item) != null)
+                    Object e = p.item;
+                    if (e != p && (a[i] = e) != null)
                         ++i;
                     if (p == (p = p.next))
                         p = q.firstDataNode();
@@ -1065,10 +1068,10 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 exhausted = true;
                 do {
                     Object e = p.item;
+                    if (e != null && e != p)
+                        action.accept((E)e);
                     if (p == (p = p.next))
                         p = q.firstDataNode();
-                    if (e != null)
-                        action.accept((E)e);
                 } while (p != null);
             }
         }
@@ -1082,7 +1085,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 ((p = current) != null || (p = q.firstDataNode()) != null)) {
                 Object e;
                 do {
-                    e = p.item;
+                    if ((e = p.item) == p)
+                        e = null;
                     if (p == (p = p.next))
                         p = q.firstDataNode();
                 } while (e == null && p != null);
