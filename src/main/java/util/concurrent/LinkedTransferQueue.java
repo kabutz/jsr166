@@ -1019,7 +1019,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     static final class LTQSpliterator<E> implements Spliterator<E> {
         static final int MAX_BATCH = 1 << 25;  // max batch array size;
         final LinkedTransferQueue<E> queue;
-        Node current;    // current node; null until initialized
+        Node current;       // current node; null until initialized
         int batch;          // batch size for splits
         boolean exhausted;  // true when no more nodes
         LTQSpliterator(LinkedTransferQueue<E> queue) {
