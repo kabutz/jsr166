@@ -590,10 +590,12 @@ public class SynchronousQueueTest extends JSR166TestCase {
             }});
 
         ArrayList l = new ArrayList();
-        delay(SHORT_DELAY_MS);
-        q.drainTo(l, 1);
+        int drained;
+        while ((drained = q.drainTo(l, 1)) == 0) Thread.yield();
+        assertEquals(1, drained);
         assertEquals(1, l.size());
-        q.drainTo(l, 1);
+        while ((drained = q.drainTo(l, 1)) == 0) Thread.yield();
+        assertEquals(1, drained);
         assertEquals(2, l.size());
         assertTrue(l.contains(one));
         assertTrue(l.contains(two));
