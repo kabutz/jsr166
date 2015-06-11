@@ -1044,7 +1044,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                         ++i;
                     if (p == (p = p.next))
                         p = q.firstDataNode();
-                } while (p != null && i < n);
+                } while (p != null && i < n && p.isData);
                 if ((current = p) == null)
                     exhausted = true;
                 if (i > 0) {
@@ -1072,7 +1072,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                         action.accept((E)e);
                     if (p == (p = p.next))
                         p = q.firstDataNode();
-                } while (p != null);
+                } while (p != null && p.isData);
             }
         }
 
@@ -1089,7 +1089,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                         e = null;
                     if (p == (p = p.next))
                         p = q.firstDataNode();
-                } while (e == null && p != null);
+                } while (e == null && p != null && p.isData);
                 if ((current = p) == null)
                     exhausted = true;
                 if (e != null) {
