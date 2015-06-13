@@ -732,21 +732,9 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Returns the first unmatched node of the given mode, or null if
-     * none.  Used by hasWaitingConsumer.
-     */
-    private Node firstOfMode(boolean isData) {
-        for (Node p = head; p != null; p = succ(p)) {
-            if (!p.isMatched())
-                return (p.isData == isData) ? p : null;
-        }
-        return null;
-    }
-
-    /**
-     * Version of firstOfMode used by Spliterator. Callers must
-     * recheck if the returned node's item field is null or
-     * self-linked before using.
+     * Returns the first unmatched data node, or null if none.
+     * Callers must recheck if the returned node's item field is null
+     * or self-linked before using.
      */
     final Node firstDataNode() {
         restartFromHead: for (;;) {
@@ -1428,7 +1416,20 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     public boolean hasWaitingConsumer() {
-        return firstOfMode(false) != null;
+        restartFromHead: for (;;) {
+            for (Node p = head; p != null;) {
+                Object item = p.item;
+                if (p.isData) {
+                    if (item != null && item != p)
+                        break;
+                }
+                else if (item == null)
+                    return true;
+                if (p == (p = p.next))
+                    continue restartFromHead;
+            }
+            return false;
+        }
     }
 
     /**
