@@ -766,25 +766,6 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Returns the item in the first unmatched node with isData; or
-     * null if none.  Used by peek.
-     */
-    private E firstDataItem() {
-        for (Node p = head; p != null; p = succ(p)) {
-            Object item = p.item;
-            if (p.isData) {
-                if (item != null && item != p) {
-                    @SuppressWarnings("unchecked") E itemE = (E) item;
-                    return itemE;
-                }
-            }
-            else if (item == null)
-                return null;
-        }
-        return null;
-    }
-
-    /**
      * Traverses and counts unmatched nodes of the given mode.
      * Used by methods size and getWaitingConsumerCount.
      */
@@ -1419,7 +1400,22 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     public E peek() {
-        return firstDataItem();
+        restartFromHead: for (;;) {
+            for (Node p = head; p != null;) {
+                Object item = p.item;
+                if (p.isData) {
+                    if (item != null && item != p) {
+                        @SuppressWarnings("unchecked") E e = (E) item;
+                        return e;
+                    }
+                }
+                else if (item == null)
+                    break;
+                if (p == (p = p.next))
+                    continue restartFromHead;
+            }
+            return null;
+        }
     }
 
     /**
