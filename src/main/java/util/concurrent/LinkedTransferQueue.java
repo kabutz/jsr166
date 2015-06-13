@@ -733,7 +733,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
 
     /**
      * Returns the first unmatched node of the given mode, or null if
-     * none.  Used by methods isEmpty, hasWaitingConsumer.
+     * none.  Used by hasWaitingConsumer.
      */
     private Node firstOfMode(boolean isData) {
         for (Node p = head; p != null; p = succ(p)) {
@@ -1426,11 +1426,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @return {@code true} if this queue contains no elements
      */
     public boolean isEmpty() {
-        for (Node p = head; p != null; p = succ(p)) {
-            if (!p.isMatched())
-                return !p.isData;
-        }
-        return true;
+        return firstDataNode() == null;
     }
 
     public boolean hasWaitingConsumer() {
