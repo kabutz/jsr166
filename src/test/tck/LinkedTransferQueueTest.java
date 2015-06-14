@@ -24,6 +24,13 @@ import junit.framework.Test;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class LinkedTransferQueueTest extends JSR166TestCase {
+    static class Implementation implements CollectionImplementation {
+        public Class<?> klazz() { return LinkedTransferQueue.class; }
+        public Collection emptyCollection() { return new LinkedTransferQueue(); }
+        public Object makeElement(int i) { return i; }
+        public boolean isConcurrent() { return true; }
+        public boolean permitsNulls() { return false; }
+    }
 
     public static class Generic extends BlockingQueueTest {
         protected BlockingQueue emptyCollection() {
@@ -37,7 +44,8 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
 
     public static Test suite() {
         return newTestSuite(LinkedTransferQueueTest.class,
-                            new Generic().testSuite());
+                            new Generic().testSuite(),
+                            CollectionTest.testSuite(new Implementation()));
     }
 
     /**

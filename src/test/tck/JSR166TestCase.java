@@ -15,7 +15,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.security.CodeSource;
 import java.security.Permission;
 import java.security.PermissionCollection;
@@ -165,6 +167,9 @@ public class JSR166TestCase extends TestCase {
      */
     private static final int suiteRuns =
         Integer.getInteger("jsr166.suiteRuns", 1);
+
+    public JSR166TestCase() { super(); }
+    public JSR166TestCase(String name) { super(name); }
 
     /**
      * A filter for tests to run, matching strings of the form
@@ -378,6 +383,68 @@ public class JSR166TestCase extends TestCase {
         }
 
         return suite;
+    }
+
+    /** Returns list of junit-style test method names in given class. */
+    public static ArrayList<String> testMethodNames(Class<?> testClass) {
+        Method[] methods = testClass.getDeclaredMethods();
+        ArrayList<String> names = new ArrayList<String>(methods.length);
+        for (Method method : methods) {
+            if (method.getName().startsWith("test")
+                && Modifier.isPublic(method.getModifiers())
+                // method.getParameterCount() requires jdk8+
+                && method.getParameterTypes().length == 0) {
+                names.add(method.getName());
+            }
+        }
+        return names;
+    }
+
+    /**
+     * Returns junit-style testSuite for the given test class, but
+     * parameterized by passing extra data to each test.
+     */
+    public static <ExtraData> Test parameterizedTestSuite
+        (Class<? extends JSR166TestCase> testClass,
+         Class<ExtraData> dataClass,
+         ExtraData data) {
+        try {
+            TestSuite suite = new TestSuite();
+            Constructor c =
+                testClass.getDeclaredConstructor(dataClass, String.class);
+            for (String methodName : testMethodNames(testClass))
+                suite.addTest((Test) c.newInstance(data, methodName));
+            return suite;
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+    }
+
+    /**
+     * Returns junit-style testSuite for the jdk8 extension of the
+     * given test class, but parameterized by passing extra data to
+     * each test.  Uses reflection to allow compilation in jdk7.
+     */
+    public static <ExtraData> Test jdk8ParameterizedTestSuite
+        (Class<? extends JSR166TestCase> testClass,
+         Class<ExtraData> dataClass,
+         ExtraData data) {
+        if (atLeastJava8()) {
+            String name = testClass.getName();
+            String name8 = name.replaceAll("Test$", "8Test");
+            if (name.equals(name8)) throw new Error(name);
+            try {
+                return (Test)
+                    Class.forName(name8)
+                    .getMethod("testSuite", new Class[] { dataClass })
+                    .invoke(null, data);
+            } catch (Exception e) {
+                throw new Error(e);
+            }
+        } else {
+            return new TestSuite();
+        }
+
     }
 
     // Delays for timing-dependent tests, in milliseconds.
