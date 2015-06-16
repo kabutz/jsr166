@@ -1,4 +1,11 @@
+util/Collection/CollectionDefaults.java
+util/List/ListDefaults.java
+util/Spliterator/SpliteratorCharacteristics.java
+util/Spliterator/SpliteratorLateBindingFailFastTest.java
+util/Spliterator/SpliteratorCollisions.java
+util/Spliterator/SpliteratorTraversingAndSplittingTest.java
 util/concurrent/CompletableFuture/Basic.java
 util/concurrent/CompletableFuture/ThenComposeAsyncTest.java
 util/concurrent/CompletableFuture/ThenComposeExceptionTest.java
+util/concurrent/forkjoin/SubmissionTest.java
 util/concurrent/locks/StampedLock/Basic.java
