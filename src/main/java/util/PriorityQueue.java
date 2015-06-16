@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2012, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -111,7 +111,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * The number of times this priority queue has been
      * <i>structurally modified</i>.  See AbstractList for gory details.
      */
-    transient int modCount;     // non-private for nested class access
+    transient int modCount;     // non-private to simplify nested class access
 
     /**
      * Creates a {@code PriorityQueue} with the default initial
@@ -133,6 +133,19 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      */
     public PriorityQueue(int initialCapacity) {
         this(initialCapacity, null);
+    }
+
+    /**
+     * Creates a {@code PriorityQueue} with the default initial capacity and
+     * whose elements are ordered according to the specified comparator.
+     *
+     * @param  comparator the comparator that will be used to order this
+     *         priority queue.  If {@code null}, the {@linkplain Comparable
+     *         natural ordering} of the elements will be used.
+     * @since 1.8
+     */
+    public PriorityQueue(Comparator<? super E> comparator) {
+        this(DEFAULT_INITIAL_CAPACITY, comparator);
     }
 
     /**
@@ -245,8 +258,8 @@ public class PriorityQueue<E> extends AbstractQueue<E>
             a = Arrays.copyOf(a, a.length, Object[].class);
         int len = a.length;
         if (len == 1 || this.comparator != null)
-            for (int i = 0; i < len; i++)
-                if (a[i] == null)
+            for (Object e : a)
+                if (e == null)
                     throw new NullPointerException();
         this.queue = a;
         this.size = a.length;
@@ -786,15 +799,28 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         heapify();
     }
 
-    public Spliterator<E> spliterator() {
-        return new PriorityQueueSpliterator<E>(this, 0, -1, 0);
+    /**
+     * Creates a <em><a href="Spliterator.html#binding">late-binding</a></em>
+     * and <em>fail-fast</em> {@link Spliterator} over the elements in this
+     * queue.
+     *
+     * <p>The {@code Spliterator} reports {@link Spliterator#SIZED},
+     * {@link Spliterator#SUBSIZED}, and {@link Spliterator#NONNULL}.
+     * Overriding implementations should document the reporting of additional
+     * characteristic values.
+     *
+     * @return a {@code Spliterator} over the elements in this queue
+     * @since 1.8
+     */
+    public final Spliterator<E> spliterator() {
+        return new PriorityQueueSpliterator<>(this, 0, -1, 0);
     }
 
-    /**
-     * This is very similar to ArrayList Spliterator, except for extra
-     * null checks.
-     */
     static final class PriorityQueueSpliterator<E> implements Spliterator<E> {
+        /*
+         * This is very similar to ArrayList Spliterator, except for
+         * extra null checks.
+         */
         private final PriorityQueue<E> pq;
         private int index;            // current index, modified on advance/split
         private int fence;            // -1 until first use
@@ -818,11 +844,11 @@ public class PriorityQueue<E> extends AbstractQueue<E>
             return hi;
         }
 
-        public Spliterator<E> trySplit() {
+        public PriorityQueueSpliterator<E> trySplit() {
             int hi = getFence(), lo = index, mid = (lo + hi) >>> 1;
             return (lo >= mid) ? null :
-                new PriorityQueueSpliterator<E>(pq, lo, index = mid,
-                                                expectedModCount);
+                new PriorityQueueSpliterator<>(pq, lo, index = mid,
+                                               expectedModCount);
         }
 
         @SuppressWarnings("unchecked")
@@ -856,6 +882,8 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         }
 
         public boolean tryAdvance(Consumer<? super E> action) {
+            if (action == null)
+                throw new NullPointerException();
             int hi = getFence(), lo = index;
             if (lo >= 0 && lo < hi) {
                 index = lo + 1;
