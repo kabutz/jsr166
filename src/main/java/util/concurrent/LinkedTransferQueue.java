@@ -989,23 +989,19 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /** A customized variant of Spliterators.IteratorSpliterator */
-    static final class LTQSpliterator<E> implements Spliterator<E> {
+    final class LTQSpliterator<E> implements Spliterator<E> {
         static final int MAX_BATCH = 1 << 25;  // max batch array size;
-        final LinkedTransferQueue<E> queue;
         Node current;       // current node; null until initialized
         int batch;          // batch size for splits
         boolean exhausted;  // true when no more nodes
-        LTQSpliterator(LinkedTransferQueue<E> queue) {
-            this.queue = queue;
-        }
+        LTQSpliterator() {}
 
         public Spliterator<E> trySplit() {
             Node p;
-            final LinkedTransferQueue<E> q = this.queue;
             int b = batch;
             int n = (b <= 0) ? 1 : (b >= MAX_BATCH) ? MAX_BATCH : b + 1;
             if (!exhausted &&
-                ((p = current) != null || (p = q.firstDataNode()) != null) &&
+                ((p = current) != null || (p = firstDataNode()) != null) &&
                 p.next != null) {
                 Object[] a = new Object[n];
                 int i = 0;
@@ -1014,7 +1010,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                     if (e != p && (a[i] = e) != null)
                         ++i;
                     if (p == (p = p.next))
-                        p = q.firstDataNode();
+                        p = firstDataNode();
                 } while (p != null && i < n && p.isData);
                 if ((current = p) == null)
                     exhausted = true;
@@ -1033,16 +1029,15 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         public void forEachRemaining(Consumer<? super E> action) {
             Node p;
             if (action == null) throw new NullPointerException();
-            final LinkedTransferQueue<E> q = this.queue;
             if (!exhausted &&
-                ((p = current) != null || (p = q.firstDataNode()) != null)) {
+                ((p = current) != null || (p = firstDataNode()) != null)) {
                 exhausted = true;
                 do {
                     Object e = p.item;
                     if (e != null && e != p)
                         action.accept((E)e);
                     if (p == (p = p.next))
-                        p = q.firstDataNode();
+                        p = firstDataNode();
                 } while (p != null && p.isData);
             }
         }
@@ -1051,15 +1046,14 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         public boolean tryAdvance(Consumer<? super E> action) {
             Node p;
             if (action == null) throw new NullPointerException();
-            final LinkedTransferQueue<E> q = this.queue;
             if (!exhausted &&
-                ((p = current) != null || (p = q.firstDataNode()) != null)) {
+                ((p = current) != null || (p = firstDataNode()) != null)) {
                 Object e;
                 do {
                     if ((e = p.item) == p)
                         e = null;
                     if (p == (p = p.next))
-                        p = q.firstDataNode();
+                        p = firstDataNode();
                 } while (e == null && p != null && p.isData);
                 if ((current = p) == null)
                     exhausted = true;
@@ -1096,7 +1090,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @since 1.8
      */
     public Spliterator<E> spliterator() {
-        return new LTQSpliterator<E>(this);
+        return new LTQSpliterator<E>();
     }
 
     /* -------------- Removal methods -------------- */
