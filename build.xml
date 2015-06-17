@@ -251,6 +251,32 @@
     </sequential>
   </macrodef>
 
+  <!-- Define jtreg test sets for different jdk versions -->
+  <fileset dir="${jtreg.src.dir}">
+    <patternset id="jdk9.jtreg.tests">
+      <include name="**/*.java"/>
+    </patternset>
+  </fileset>
+
+  <fileset dir="${jtreg.src.dir}">
+    <patternset id="jdk8.jtreg.tests">
+      <include name="**/*.java"/>
+      <exclude name="util/Spliterator/SpliteratorCharacteristics.java"/>
+    </patternset>
+  </fileset>
+
+  <fileset dir="${jtreg.src.dir}">
+    <patternset id="jdk7.jtreg.tests">
+      <include name="**/*.java"/>
+      <exclude name="util/Collection/CollectionDefaults.java"/>
+      <exclude name="util/List/ListDefaults.java"/>
+      <exclude name="util/Spliterator/**/*.java"/>
+      <exclude name="util/concurrent/CompletableFuture/**/*.java"/>
+      <exclude name="util/concurrent/forkjoin/SubmissionTest.java"/>
+      <exclude name="util/concurrent/locks/StampedLock/**/*.java"/>
+    </patternset>
+  </fileset>
+
   <macrodef name="run-jtreg-tests">
     <!-- ant -Djtreg.src.dir=src/test/jtreg/util/concurrent/CompletableFuture test-jtreg -->
     <attribute name="jtreg.src.dir" default="${jtreg.src.dir}"/>
@@ -268,7 +294,7 @@
            jdk="${jdk@{target}.home}"
            workDir="@{workdir}/JTwork"
            reportDir="@{workdir}/JTreport">
-
+      <patternset refid="jdk@{target}.jtreg.tests"/>
       <arg value="-Xbootclasspath/p:@{classes}"/>
       <arg value="-agentvm"/>
       <arg value="-v:nopass,fail"/>
@@ -470,6 +496,7 @@
     <antcall target="test">
       <param name="build.main.java.version" value="8"/>
       <param name="build.main.javac" value="${javac8}"/>
+      <param name="jtreg.exclude.file" value="${jtreg.src.dir}/jdk9tests"/>
     </antcall>
 
     <antcall target="clean"/>
@@ -659,8 +686,7 @@
     <run-jtreg-tests
        target="7"
        workdir="${build.4jdk7.dir}"
-       classes="${4jdk7product.jar}"
-       jtregflags="-exclude:${jtreg.src.dir}/jdk8tests"/>
+       classes="${4jdk7product.jar}"/>
   </target>
 
 
