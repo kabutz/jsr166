@@ -7,8 +7,8 @@
 package java.util.concurrent;
 
 import java.lang.ref.WeakReference;
-import java.util.Arrays;
 import java.util.AbstractQueue;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
