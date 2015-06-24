@@ -273,6 +273,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 
     /**
      * Returns the value of this {@code AtomicInteger} as an {@code int}.
+     * Equivalent to {@link #get()}.
      */
     public int intValue() {
         return get();

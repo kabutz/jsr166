@@ -298,6 +298,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
 
     /**
      * Returns the value of this {@code AtomicLong} as a {@code long}.
+     * Equivalent to {@link #get()}.
      */
     public long longValue() {
         return get();
