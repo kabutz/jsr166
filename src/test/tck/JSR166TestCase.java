@@ -481,11 +481,12 @@ public class JSR166TestCase extends TestCase {
     }
 
     /**
-     * Returns a new Date instance representing a time delayMillis
-     * milliseconds in the future.
+     * Returns a new Date instance representing a time at least
+     * delayMillis milliseconds in the future.
      */
     Date delayedDate(long delayMillis) {
-        return new Date(System.currentTimeMillis() + delayMillis);
+        // Add 1 because currentTimeMillis is known to round into the past.
+        return new Date(System.currentTimeMillis() + delayMillis + 1);
     }
 
     /**

@@ -565,9 +565,11 @@ public class ReentrantLockTest extends JSR166TestCase {
             final ReentrantLock lock = new ReentrantLock(fair);
             final Condition c = lock.newCondition();
             lock.lock();
-            long startTime = System.nanoTime();
-            assertFalse(c.awaitUntil(delayedDate(timeoutMillis())));
-            assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
+            // We shouldn't assume that nanoTime and currentTimeMillis
+            // use the same time source, so don't use nanoTime here.
+            java.util.Date delayedDate = delayedDate(timeoutMillis());
+            assertFalse(c.awaitUntil(delayedDate));
+            assertTrue(new java.util.Date().getTime() >= delayedDate.getTime());
             lock.unlock();
         } catch (InterruptedException fail) { threadUnexpectedException(fail); }
     }
