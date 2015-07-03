@@ -970,10 +970,8 @@ public class ReentrantReadWriteLockTest extends JSR166TestCase {
             final Condition c = lock.writeLock().newCondition();
             lock.writeLock().lock();
             long startTime = System.nanoTime();
-            long timeoutMillis = 10;
-            java.util.Date d = new java.util.Date();
-            assertFalse(c.awaitUntil(new java.util.Date(d.getTime() + timeoutMillis)));
-            assertTrue(millisElapsedSince(startTime) >= timeoutMillis);
+            assertFalse(c.awaitUntil(delayedDate(timeoutMillis())));
+            assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
             lock.writeLock().unlock();
         } catch (InterruptedException fail) { threadUnexpectedException(fail); }
     }
