@@ -1865,7 +1865,7 @@ public abstract class AbstractQueuedLongSynchronizer
             boolean timedout = false;
             int interruptMode = 0;
             while (!isOnSyncQueue(node)) {
-                if (System.currentTimeMillis() > abstime) {
+                if (System.currentTimeMillis() >= abstime) {
                     timedout = transferAfterCancelledWait(node);
                     break;
                 }
