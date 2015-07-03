@@ -170,7 +170,7 @@ public class ReentrantReadWriteLockTest extends JSR166TestCase {
         case awaitNanos:
             long timeoutNanos = MILLISECONDS.toNanos(timeoutMillis);
             long nanosRemaining = c.awaitNanos(timeoutNanos);
-            assertTrue(nanosRemaining > 0);
+            assertTrue(nanosRemaining > timeoutNanos / 2);
             assertTrue(nanosRemaining <= timeoutNanos);
             break;
         case awaitUntil:

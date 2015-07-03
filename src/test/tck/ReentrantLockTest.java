@@ -146,7 +146,7 @@ public class ReentrantLockTest extends JSR166TestCase {
     enum AwaitMethod { await, awaitTimed, awaitNanos, awaitUntil }
 
     /**
-     * Awaits condition using the specified AwaitMethod.
+     * Awaits condition "indefinitely" using the specified AwaitMethod.
      */
     void await(Condition c, AwaitMethod awaitMethod)
             throws InterruptedException {
@@ -159,9 +159,10 @@ public class ReentrantLockTest extends JSR166TestCase {
             assertTrue(c.await(timeoutMillis, MILLISECONDS));
             break;
         case awaitNanos:
-            long nanosTimeout = MILLISECONDS.toNanos(timeoutMillis);
-            long nanosRemaining = c.awaitNanos(nanosTimeout);
+            long timeoutNanos = MILLISECONDS.toNanos(timeoutMillis);
+            long nanosRemaining = c.awaitNanos(timeoutNanos);
             assertTrue(nanosRemaining > 0);
+            assertTrue(nanosRemaining <= timeoutNanos);
             break;
         case awaitUntil:
             assertTrue(c.awaitUntil(delayedDate(timeoutMillis)));
