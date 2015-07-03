@@ -155,24 +155,26 @@ public class ReentrantReadWriteLockTest extends JSR166TestCase {
     enum AwaitMethod { await, awaitTimed, awaitNanos, awaitUntil }
 
     /**
-     * Awaits condition using the specified AwaitMethod.
+     * Awaits condition "indefinitely" using the specified AwaitMethod.
      */
     void await(Condition c, AwaitMethod awaitMethod)
             throws InterruptedException {
+        long timeoutMillis = 2 * LONG_DELAY_MS;
         switch (awaitMethod) {
         case await:
             c.await();
             break;
         case awaitTimed:
-            assertTrue(c.await(2 * LONG_DELAY_MS, MILLISECONDS));
+            assertTrue(c.await(timeoutMillis, MILLISECONDS));
             break;
         case awaitNanos:
-            long nanosRemaining = c.awaitNanos(MILLISECONDS.toNanos(2 * LONG_DELAY_MS));
+            long timeoutNanos = MILLISECONDS.toNanos(timeoutMillis);
+            long nanosRemaining = c.awaitNanos(timeoutNanos);
             assertTrue(nanosRemaining > 0);
+            assertTrue(nanosRemaining <= timeoutNanos);
             break;
         case awaitUntil:
-            java.util.Date d = new java.util.Date();
-            assertTrue(c.awaitUntil(new java.util.Date(d.getTime() + 2 * LONG_DELAY_MS)));
+            assertTrue(c.awaitUntil(delayedDate(timeoutMillis)));
             break;
         default:
             throw new AssertionError();
