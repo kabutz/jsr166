@@ -1435,13 +1435,12 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         final ReentrantLock mainLock = this.mainLock;
         mainLock.lock();
         try {
-            for (;;) {
-                if (runStateAtLeast(ctl.get(), TERMINATED))
-                    return true;
+            while (!runStateAtLeast(ctl.get(), TERMINATED)) {
                 if (nanos <= 0)
                     return false;
                 nanos = termination.awaitNanos(nanos);
             }
+            return true;
         } finally {
             mainLock.unlock();
         }
