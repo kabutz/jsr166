@@ -478,8 +478,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
         final ReentrantLock takeLock = this.takeLock;
         takeLock.lock();
         try {
-            Node<E> first = head.next;
-            return (first == null) ? null : first.item;
+            return (count.get() > 0) ? head.next.item : null;
         } finally {
             takeLock.unlock();
         }
