@@ -753,13 +753,14 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
     /**
      * A bounded (ring) buffer with integrated control to start a
      * consumer task whenever items are available.  The buffer
-     * algorithm is similar to one used inside ForkJoinPool,
-     * specialized for the case of at most one concurrent producer and
-     * consumer, and power of two buffer sizes. This allows methods to
-     * operate without locks even while supporting resizing, blocking,
-     * task-triggering, and garbage-free buffers (nulling out elements
-     * when consumed), although supporting these does impose a bit of
-     * overhead compared to plain fixed-size ring buffers.
+     * algorithm is similar to one used inside ForkJoinPool (see its
+     * internal documentation for details) specialized for the case of
+     * at most one concurrent producer and consumer, and power of two
+     * buffer sizes. This allows methods to operate without locks even
+     * while supporting resizing, blocking, task-triggering, and
+     * garbage-free buffers (nulling out elements when consumed),
+     * although supporting these does impose a bit of overhead
+     * compared to plain fixed-size ring buffers.
      *
      * The publisher guarantees a single producer via its lock.  We
      * ensure in this class that there is at most one consumer.  The
@@ -818,7 +819,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         int helpDepth;                     // nested helping depth (at most 1)
         volatile int ctl;                  // atomic run state flags
         volatile int head;                 // next position to take
-        volatile int tail;                 // next position to put
+        int tail;                          // next position to put
         Object[] array;                    // buffer: null if disabled
         Flow.Subscriber<? super T> subscriber; // null if disabled
         Executor executor;                 // null if disabled
@@ -841,7 +842,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         /**
          * Initial/Minimum buffer capacity. Must be a power of two, at least 2.
          */
-        static final int MINCAP = 8;
+        static final int MINCAP = 16;
 
         BufferedSubscription(Flow.Subscriber<? super T> subscriber,
                              Executor executor, int maxBufferCapacity) {
@@ -868,15 +869,16 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
          * @return -1 if disabled, 0 if dropped, else estimated lag
          */
         final int offer(T item) {
+            int h = head, t = tail, cap, size, stat;
             Object[] a = array;
-            int t = tail, size = t + 1 - head, stat, cap, i;
-            if (a == null || (cap = a.length) < size || (i = t & (cap - 1)) < 0)
-                stat = growAndAdd(a, item);
-            else {
-                a[i] = item;
-                U.putOrderedInt(this, TAIL, t + 1);
+            if (a != null && (cap = a.length) > 0 && cap > (size = t + 1 - h)) {
+                a[(cap - 1) & t] = item;    // relaxed writes OK
+                tail = t + 1;
+                U.storeFence();             // ensure fields written
                 stat = size;
             }
+            else
+                stat = growAndAdd(a, item);
             return (stat > 0 &&
                     (ctl & (ACTIVE | CONSUME)) != (ACTIVE | CONSUME)) ?
                 startOnOffer(stat) : stat;
@@ -886,20 +888,38 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
          * Tries to create or expand buffer, then adds item if possible.
          */
         private int growAndAdd(Object[] a, T item) {
+            boolean alloc;
             int cap, stat;
             if ((ctl & (ERROR | DISABLED)) != 0) {
                 cap = 0;
                 stat = -1;
+                alloc = false;
             }
-            else if (a == null) {
+            else if (a == null || (cap = a.length) <= 0) {
                 cap = 0;
                 stat = 1;
+                alloc = true;
             }
-            else if ((cap = a.length) >= maxCapacity)
-                stat = 0;                       // cannot grow
-            else
-                stat = cap + 1;
-            if (stat > 0) {
+            else {
+                U.fullFence();                   // recheck
+                int h = head, t = tail, size = t + 1 - h;
+                if (cap > size) {
+                    a[(cap - 1) & t] = item;
+                    tail = t + 1;
+                    U.storeFence();
+                    stat = size;
+                    alloc = false;
+                }
+                else if (cap >= maxCapacity) {
+                    stat = 0;                    // cannot grow
+                    alloc = false;
+                }
+                else {
+                    stat = cap + 1;
+                    alloc = true;
+                }
+            }
+            if (alloc) {
                 int newCap = (cap > 0 ? cap << 1 :
                               maxCapacity >= MINCAP ? MINCAP :
                               maxCapacity >= 2 ? maxCapacity : 2);
@@ -923,52 +943,38 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                         if (a != null && cap > 0) {
                             int mask = cap - 1;
                             for (int j = head; j != t; ++j) {
-                                Object x;  // races with consumer
-                                int k = j & mask;
-                                if ((x = a[k]) != null &&
-                                    U.compareAndSwapObject(
-                                        a, (((long)k) << ASHIFT) + ABASE,
-                                        x, null))
+                                long k = ((long)(j & mask) << ASHIFT) + ABASE;
+                                Object x = U.getObjectVolatile(a, k);
+                                if (x != null && // races with consumer
+                                    U.compareAndSwapObject(a, k, x, null))
                                     newArray[j & newMask] = x;
                             }
                         }
                         newArray[t & newMask] = item;
                         tail = t + 1;
+                        U.storeFence();
                     }
                 }
             }
             return stat;
         }
 
+
         /**
          * Spins/helps/blocks while offer returns 0.  Called only if
          * initial offer return 0.
          */
         final int submit(T item) {
-            int stat = 0;
-            Executor e = executor;
-            if (helpDepth == 0 && (e instanceof ForkJoinPool)) {
+            int stat; Executor e; ForkJoinWorkerThread w;
+            if ((stat = offer(item)) == 0 && helpDepth == 0 &&
+                ((e = executor) instanceof ForkJoinPool)) {
                 Thread thread = Thread.currentThread();
-                // split cases to help compiler specialization
                 if ((thread instanceof ForkJoinWorkerThread) &&
-                    ((ForkJoinWorkerThread)thread).getPool() == e) {
-                    ForkJoinTask<?> t;
-                    while ((t = ForkJoinTask.peekNextLocalTask()) != null &&
-                           (t instanceof ConsumerTask)) {
-                        if ((stat = offer(item)) != 0 || !t.tryUnfork())
-                            break;
-                        ((ConsumerTask<?>)t).consumer.helpConsume();
-                    }
-                }
-                else if (e == ForkJoinPool.commonPool()) {
-                    ForkJoinTask<?> t;
-                    while ((t = ForkJoinTask.peekNextLocalTask()) != null &&
-                           (t instanceof ConsumerTask)) {
-                        if ((stat = offer(item)) != 0 || !t.tryUnfork())
-                            break;
-                        ((ConsumerTask<?>)t).consumer.helpConsume();
-                    }
-                }
+                    ((w = (ForkJoinWorkerThread)thread)).getPool() == e)
+                    stat = internalHelpConsume(w.workQueue, item);
+                else if (e == ForkJoinPool.commonPool())
+                    stat = externalHelpConsume
+                        (ForkJoinPool.commonSubmitterQueue(), item);
             }
             if (stat == 0 && (stat = offer(item)) == 0) {
                 putItem = item;
@@ -986,12 +992,44 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         }
 
         /**
+         * Tries helping for FJ submitter
+         */
+        private int internalHelpConsume(ForkJoinPool.WorkQueue w, T item) {
+            ForkJoinTask<?> t;
+            int stat = 0;
+            if (w != null) {
+                while ((t = w.peek()) != null && (t instanceof ConsumerTask)) {
+                    if ((stat = offer(item)) != 0 || !w.tryUnpush(t))
+                        break;
+                    ((ConsumerTask<?>)t).consumer.helpConsume();
+                }
+            }
+            return stat;
+        }
+
+        /**
+         * Tries helping for non-FJ submitter
+         */
+        private int externalHelpConsume(ForkJoinPool.WorkQueue w, T item) {
+            ForkJoinTask<?> t;
+            int stat = 0;
+            if (w != null) {
+                while ((t = w.peek()) != null && (t instanceof ConsumerTask)) {
+                    if ((stat = offer(item)) != 0 || !w.trySharedUnpush(t))
+                        break;
+                    ((ConsumerTask<?>)t).consumer.helpConsume();
+                }
+            }
+            return stat;
+        }
+
+        /**
          * Timeout version; similar to submit
          */
         final int timedOffer(T item, long nanos) {
-            int stat = 0;
-            Executor e = executor;
-            if (helpDepth == 0 && (e instanceof ForkJoinPool)) {
+            int stat; Executor e;
+            if ((stat = offer(item)) == 0 && helpDepth == 0 &&
+                ((e = executor) instanceof ForkJoinPool)) {
                 Thread thread = Thread.currentThread();
                 if (((thread instanceof ForkJoinWorkerThread) &&
                      ((ForkJoinWorkerThread)thread).getPool() == e) ||
@@ -1066,6 +1104,11 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
             return stat;
         }
 
+        private void signalWaiter(Thread w) {
+            waiter = null;
+            LockSupport.unpark(w);    // release producer
+        }
+
         /**
          * Nulls out most fields, mainly to avoid garbage retention
          * until publisher unsubscribes, but also to help cleanly stop
@@ -1073,13 +1116,10 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
          */
         private void detach() {
             Thread w = waiter;
-            array = null;
             executor = null;
             subscriber = null;
             pendingError = null;
-            waiter = null;
-            if (w != null)
-                LockSupport.unpark(w); // force wakeup
+            signalWaiter(w);
         }
 
         /**
@@ -1220,20 +1260,10 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
 
         public final boolean isReleasable() { // for ManagedBlocker
             T item = putItem;
-            if (item != null) { // A few randomized spins
-                for (int spins = MINCAP, r = 0;;) {
-                    if ((putStat = offer(item)) != 0) {
-                        putItem = null;
-                        break;
-                    }
-                    else if (r == 0)
-                        r = ThreadLocalRandom.nextSecondarySeed();
-                    else {
-                        r ^= r << 6; r ^= r >>> 21; r ^= r << 7; // xorshift
-                        if (r >= 0 && --spins <= 0)
-                            return false;
-                    }
-                }
+            if (item != null) {
+                if ((putStat = offer(item)) == 0)
+                    return false;
+                putItem = null;
             }
             return true;
         }
@@ -1268,89 +1298,127 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
             return true;
         }
 
+
         /**
          * Consumer loop, called from ConsumerTask, or indirectly
          * via helpConsume when helping during submit.
          */
         final void consume() {
             Flow.Subscriber<? super T> s;
+            int h = head;
             if ((s = subscriber) != null) {           // else disabled
-                for (int h = head;;) {
+                for (;;) {
                     long d = demand;
-                    int c, n, i; Object[] a; Object x; Thread w;
+                    int c; Object[] a; int n; long i; Object x; Thread w;
                     if (((c = ctl) & (ERROR | SUBSCRIBE | DISABLED)) != 0) {
-                        if ((c & ERROR) != 0) {
-                            Throwable ex = pendingError;
-                            ctl = DISABLED;           // no need for CAS
-                            if (ex != null) {         // null if errorless cancel
-                                try {
-                                    s.onError(ex);
-                                } catch (Throwable ignore) {
-                                }
-                            }
-                        }
-                        else if ((c & SUBSCRIBE) != 0) {
-                            if (U.compareAndSwapInt(this, CTL, c,
-                                                    c & ~SUBSCRIBE)) {
-                                try {
-                                    s.onSubscribe(this);
-                                } catch (Throwable ex) {
-                                    onError(ex);
-                                }
-                            }
-                        }
-                        else {
-                            detach();
-                            break;
-                        }
-                    }
-                    else if (h == tail) {             // apparently empty
-                        if ((c & CONSUME) != 0)       // recheck
-                            U.compareAndSwapInt(this, CTL, c, c & ~CONSUME);
-                        else if ((c & COMPLETE) != 0) {
-                            if (U.compareAndSwapInt(this, CTL, c, DISABLED)) {
-                                try {
-                                    s.onComplete();
-                                } catch (Throwable ignore) {
-                                }
-                            }
-                        }
-                        else if (U.compareAndSwapInt(this, CTL, c,
-                                                     c & ~ACTIVE))
+                        if (!checkControl(s, c))
                             break;
                     }
-                    else if (d == 0L) {               // can't consume
-                        if (demand == 0L) {           // recheck
-                            if ((c & CONSUME) != 0)
-                                U.compareAndSwapInt(this, CTL, c,
-                                                    c & ~CONSUME);
-                            else if (U.compareAndSwapInt(this, CTL, c,
-                                                         c & ~ACTIVE))
-                                break;
-                        }
+                    else if ((a = array) == null || h == tail ||
+                             (n = a.length) == 0 ||
+                             (x = U.getObjectVolatile
+                              (a, (i = ((long)((n - 1) & h) << ASHIFT) + ABASE)))
+                             == null) {
+                        if (!checkEmpty(s, c))
+                            break;
                     }
-                    else if ((a = array) == null || (n = a.length) == 0 ||
-                             (x = a[i = h & (n - 1)]) == null)
-                        ;                             // stale; retry
-                    else if ((c & CONSUME) == 0)
-                        U.compareAndSwapInt(this, CTL, c, c | CONSUME);
-                    else if (U.compareAndSwapObject(
-                                 a, (((long)i) << ASHIFT) + ABASE, x, null)) {
+                    else if (d == 0L) {
+                        if (!checkDemand(c))
+                            break;
+                    }
+                    else if (((c & CONSUME) != 0 ||
+                              U.compareAndSwapInt(this, CTL, c, c | CONSUME)) &&
+                             U.compareAndSwapObject(a, i, x, null)) {
                         U.putOrderedInt(this, HEAD, ++h);
-                        while (!U.compareAndSwapLong(this, DEMAND, d, d - 1L))
-                            d = demand;               // almost never fails
-                        if ((w = waiter) != null) {
-                            waiter = null;
-                            LockSupport.unpark(w);    // release producer
-                        }
+                        U.getAndAddLong(this, DEMAND, -1L);
+                        if ((w = waiter) != null)
+                            signalWaiter(w);
+                        consumeItem(s, x);
+                    }
+                }
+            }
+        }
+
+        /**
+         * Respond to control events in consume()
+         */
+        private boolean checkControl(Flow.Subscriber<? super T> s, int c) {
+            boolean stat = true;
+            if ((c & ERROR) != 0) {
+                Throwable ex = pendingError;
+                ctl = DISABLED;           // no need for CAS
+                if (ex != null) {         // null if errorless cancel
+                    try {
+                        if (s != null)
+                            s.onError(ex);
+                    } catch (Throwable ignore) {
+                    }
+                }
+            }
+            else if ((c & SUBSCRIBE) != 0) {
+                if (U.compareAndSwapInt(this, CTL, c, c & ~SUBSCRIBE)) {
+                    try {
+                        if (s != null)
+                            s.onSubscribe(this);
+                    } catch (Throwable ex) {
+                        onError(ex);
+                    }
+                }
+            }
+            else {
+                detach();
+                stat = false;
+            }
+            return stat;
+        }
+
+        /**
+         * Respond to apparent emptiness in consume()
+         */
+        private boolean checkEmpty(Flow.Subscriber<? super T> s, int c) {
+            boolean stat = true;
+            if (head == tail) {
+                if ((c & CONSUME) != 0)
+                    U.compareAndSwapInt(this, CTL, c, c & ~CONSUME);
+                else if ((c & COMPLETE) != 0) {
+                    if (U.compareAndSwapInt(this, CTL, c, DISABLED)) {
                         try {
-                            @SuppressWarnings("unchecked") T y = (T) x;
-                            s.onNext(y);
-                        } catch (Throwable ex) {
-                            onError(ex);
+                            if (s != null)
+                                s.onComplete();
+                        } catch (Throwable ignore) {
                         }
                     }
                 }
+                else if (U.compareAndSwapInt(this, CTL, c, c & ~ACTIVE))
+                    stat = false;
+            }
+            return stat;
+        }
+
+        /**
+         * Respond to apparent zero demand in consume()
+         */
+        private boolean checkDemand(int c) {
+            boolean stat = true;
+            if (demand == 0L) {
+                if ((c & CONSUME) != 0)
+                    U.compareAndSwapInt(this, CTL, c, c & ~CONSUME);
+                else if (U.compareAndSwapInt(this, CTL, c, c & ~ACTIVE))
+                    stat = false;
+            }
+            return stat;
+        }
+
+        /**
+         * Process item in consume()
+         */
+        private void consumeItem(Flow.Subscriber<? super T> s, Object item) {
+            try {
+                @SuppressWarnings("unchecked") T y = (T) item;
+                if (s != null)
+                    s.onNext(y);
+            } catch (Throwable ex) {
+                onError(ex);
             }
         }
 
