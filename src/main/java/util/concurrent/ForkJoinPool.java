@@ -2342,7 +2342,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     /**
      * Constructs and tries to install a new external queue,
      * failing if the workQueues array already has a queue at
-     * the give index.
+     * the given index.
      *
      * @param index the index of the new queue
      */
