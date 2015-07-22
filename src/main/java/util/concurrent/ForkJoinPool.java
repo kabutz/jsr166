@@ -2438,7 +2438,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     /**
-     * Performs tryUnpush for an external submitter
+     * Performs tryUnpush for an external submitter.
      */
     final boolean tryExternalUnpush(ForkJoinTask<?> task) {
         int r = ThreadLocalRandom.getProbe();
