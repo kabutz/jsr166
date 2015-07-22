@@ -1358,11 +1358,11 @@ public class ForkJoinPool extends AbstractExecutorService {
                 workQueues = new WorkQueue[n];
                 while (!U.compareAndSwapInt(this, RUNSTATE, rs, rs | STARTED))
                     rs = runState;
-                synchronized(sc) { sc.notifyAll(); }
+                synchronized (sc) { sc.notifyAll(); }
                 break;
             }
             else if ((sc = stealCounter) != null) { // wait for initialization
-                synchronized(sc) {
+                synchronized (sc) {
                     try {
                         if ((runState & STARTED) == 0)
                             sc.wait();
@@ -1372,10 +1372,10 @@ public class ForkJoinPool extends AbstractExecutorService {
                 }
             }
         }
-	if ((rs = runState) < 0) {
-	    tryTerminate(false, false); // help terminate
-	    throw new RejectedExecutionException();
-	}
+        if ((rs = runState) < 0) {
+            tryTerminate(false, false); // help terminate
+            throw new RejectedExecutionException();
+        }
     }
 
     // Creating, registering and deregistering workers
@@ -1443,7 +1443,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         int i = 0;                                    // assign a pool index
         int mode = config & MODE_MASK;
         if (lock != null) {
-            synchronized(lock) {
+            synchronized (lock) {
                 WorkQueue[] ws = workQueues;
                 int s = indexSeed += SEED_INCREMENT, n, m;
                 if (ws != null && (n = ws.length) > 0) {
@@ -1485,7 +1485,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             Object lock; WorkQueue[] ws;              // remove index from array
             int idx = w.config & SMASK;
             if ((lock = stealCounter) != null) {
-                synchronized(lock) {
+                synchronized (lock) {
                     if ((ws = workQueues) != null && ws.length > idx &&
                         ws[idx] == w)
                         ws[idx] = null;
@@ -1693,7 +1693,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                     !Thread.interrupted() && (int)c == ss &&
                     (lock = stealCounter) != null && ctl == c &&
                     deadline - System.currentTimeMillis() <= TIMEOUT_SLOP_MS) {
-                    synchronized(lock) {           // pre-deregister
+                    synchronized (lock) {          // pre-deregister
                         WorkQueue[] ws;
                         int cfg = w.config, idx = cfg & SMASK;
                         long nc = ((UC_MASK & (c - TC_UNIT)) |
@@ -2352,7 +2352,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             WorkQueue q = new WorkQueue(this, null);
             q.config = index;
             q.scanState = ~UNSIGNALLED;
-            synchronized(lock) {           // lock to install
+            synchronized (lock) {          // lock to install
                 WorkQueue[] ws;
                 if ((ws = workQueues) != null && index < ws.length &&
                     ws[index] == null) {
@@ -2382,7 +2382,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             int rs = runState;
             WorkQueue[] ws = workQueues;
             if (rs <= 0 || ws == null || (wl = ws.length) <= 0)
-		tryInitialize();
+                tryInitialize();
             else if ((q = ws[k = (wl - 1) & r & SQMASK]) == null)
                 tryCreateExternalQueue(k);
             else if (U.compareAndSwapInt(q, QLOCK, 0, 1)) {
