@@ -394,7 +394,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * equivalently prefacing signalWork when called by a task
      * producer with a "fullFence".
      *
-     * Amost always, too many signals are issued. A task producer
+     * Almost always, too many signals are issued. A task producer
      * cannot in general tell if some existing worker is in the midst
      * of finishing one task (or already scanning) and ready to take
      * another without being signalled. So the producer might instead
