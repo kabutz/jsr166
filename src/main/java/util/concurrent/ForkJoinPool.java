@@ -185,7 +185,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      *    q.array[q.top++ % length] = task;
      *
      * (The actual code needs to null-check and size-check the array,
-     * uses masking not mod for indexing a pawer-of-two-sized array,
+     * uses masking, not mod, for indexing a power-of-two-sized array,
      * properly fences accesses, and possibly signals waiting workers
      * to start scanning -- see below.)  Both a successful pop and
      * poll mainly entail a CAS of a slot from non-null to null.
@@ -201,7 +201,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      *           increment base and return task;
      *
      * There are several variants of each of these; for example most
-     * versions of poll prescreen the CAS by rechecking that the base
+     * versions of poll pre-screen the CAS by rechecking that the base
      * has not changed since reading the slot, and most methods only
      * attempt the CAS if base appears not to be equal to top.
      *
@@ -217,7 +217,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * subject to compiler and processor reorderings. However, the
      * volatile "base" index also serves as a basis for memory
      * ordering: Slot accesses are preceded by a read of base,
-     * ensuring happens-before ordering with repect to stealers (so
+     * ensuring happens-before ordering with respect to stealers (so
      * the slots themselves can be read via plain array reads.)  The
      * only other memory orderings relied on are maintained in the
      * course of signalling and activation (see below).  A check that
@@ -261,7 +261,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * creating and registering new queues. Because it is used only as
      * a spinlock, unlocking requires only a "releasing" store (using
      * putOrderedInt).  The qlock is also used during termination
-     * de3tection, in which case it is forced to a negative
+     * detection, in which case it is forced to a negative
      * nonlockable value.
      *
      * Management
@@ -384,7 +384,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * synchronization surrounding activation. This uses a more
      * efficient version of a Dekker-like rule that task producers and
      * consumers sync with each other by both writing/CASing ctl (even
-     * if to its current value).  This would be extemely costly. So we
+     * if to its current value).  This would be extremely costly. So we
      * relax it in several ways: (1) Producers only signal when their
      * queue is empty. Other workers propagate this signal (in method
      * scan) when they find tasks. (2) Workers only enqueue after
@@ -401,7 +401,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * activate a different worker that does not find any work, and
      * then inactivates. This scarcely matters in steady-state
      * computations involving all workers, but can create contention
-     * and bookeeping bottlenecks during ramp-up, ramp-down, and small
+     * and bookkeeping bottlenecks during ramp-up, ramp-down, and small
      * computations involving only a few workers.
      *
      * Scanning. Method scan() performs top-level scanning for tasks.
@@ -549,7 +549,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * Spare threads are removed as soon as they notice that the
      * target parallelism level has been exceeded, in method
      * tryDropSpare. (Method scan arranges returns for rechecks upon
-     * each probe via the "bound" paramter.)
+     * each probe via the "bound" parameter.)
      *
      * The compensation mechanism may be bounded.  Bounds for the
      * commonPool (see commonMaxSpares) better enable JVMs to cope
@@ -949,7 +949,7 @@ public class ForkJoinPool extends AbstractExecutorService {
 
         /**
          * Shared version of pop
-        */
+         */
         final boolean trySharedUnpush(ForkJoinTask<?> task) {
             ForkJoinTask<?> t;
             boolean popped = false;
@@ -989,7 +989,7 @@ public class ForkJoinPool extends AbstractExecutorService {
 
         /**
          * Executes the given task and any remaining local tasks if in
-         * LIFO mode
+         * LIFO mode.
          */
         final void runTask(ForkJoinTask<?> task) {
             if (task != null) {
