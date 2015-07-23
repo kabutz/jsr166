@@ -1715,7 +1715,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     /**
      * If the given worker is a spare with no queued tasks, and there
      * are enough existing workers, drops it from ctl counts and sets
-     * it state to terminated.
+     * its state to terminated.
      *
      * @param w the calling worker -- must be a spare
      * @return true if dropped (in which case it must not process more tasks)
