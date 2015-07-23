@@ -30,9 +30,9 @@ public class SubmissionPublisherLoops4 {
         if (args.length > 0)
             reps = Integer.parseInt(args[0]);
 
-        System.out.println("ITEMS: " + ITEMS + 
-                           " PRODUCERS: " + PRODUCERS + 
-                           " PROCESSORS: " + PROCESSORS + 
+        System.out.println("ITEMS: " + ITEMS +
+                           " PRODUCERS: " + PRODUCERS +
+                           " PROCESSORS: " + PROCESSORS +
                            " CONSUMERS: " + CONSUMERS +
                            " CAP: " + CAP);
         for (int rep = 0; rep < reps; ++rep) {
@@ -52,17 +52,17 @@ public class SubmissionPublisherLoops4 {
     static final class Sub implements Flow.Subscriber<Boolean> {
         int count;
         Flow.Subscription subscription;
-        public void onSubscribe(Flow.Subscription s) { 
-            (subscription = s).request(CAP); 
+        public void onSubscribe(Flow.Subscription s) {
+            (subscription = s).request(CAP);
         }
-        public void onNext(Boolean b) { 
+        public void onNext(Boolean b) {
             if (b && (++count & ((CAP >>> 1) - 1)) == 0)
                 subscription.request(CAP >>> 1);
         }
-        public void onComplete() { 
+        public void onComplete() {
             if (count != ITEMS)
                 System.out.println("Error: remaining " + (ITEMS - count));
-            phaser.arrive(); 
+            phaser.arrive();
         }
         public void onError(Throwable t) { t.printStackTrace(); }
     }
@@ -87,7 +87,7 @@ public class SubmissionPublisherLoops4 {
     }
 
     static final class Pub extends RecursiveAction {
-        final SubmissionPublisher<Boolean> pub = 
+        final SubmissionPublisher<Boolean> pub =
             new SubmissionPublisher<Boolean>(ForkJoinPool.commonPool(), CAP);
         public void compute() {
             SubmissionPublisher<Boolean> p = pub;
@@ -97,7 +97,7 @@ public class SubmissionPublisherLoops4 {
                     t.subscribe(new Sub());
                 p.subscribe(t);
             }
-            for (int i = 0; i < ITEMS; ++i) 
+            for (int i = 0; i < ITEMS; ++i)
                 p.submit(Boolean.TRUE);
             p.close();
         }

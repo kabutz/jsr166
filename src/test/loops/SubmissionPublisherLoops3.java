@@ -24,9 +24,9 @@ public class SubmissionPublisherLoops3 {
         int reps = REPS;
         if (args.length > 0)
             reps = Integer.parseInt(args[0]);
-        
-        System.out.println("ITEMS: " + ITEMS + 
-                           " PRODUCERS: " + PRODUCERS + 
+
+        System.out.println("ITEMS: " + ITEMS +
+                           " PRODUCERS: " + PRODUCERS +
                            " CONSUMERS: " + CONSUMERS +
                            " CAP: " + CAP);
         long nitems = (long)ITEMS * PRODUCERS * CONSUMERS;
@@ -47,29 +47,29 @@ public class SubmissionPublisherLoops3 {
     static final class Sub implements Flow.Subscriber<Boolean> {
         int count;
         Flow.Subscription subscription;
-        public void onSubscribe(Flow.Subscription s) { 
-            (subscription = s).request(CAP); 
+        public void onSubscribe(Flow.Subscription s) {
+            (subscription = s).request(CAP);
         }
-        public void onNext(Boolean b) { 
+        public void onNext(Boolean b) {
             if (b && (++count & ((CAP >>> 1) - 1)) == 0)
                 subscription.request(CAP >>> 1);
         }
-        public void onComplete() { 
+        public void onComplete() {
             if (count != ITEMS)
                 System.out.println("Error: remaining " + (ITEMS - count));
-            phaser.arrive(); 
+            phaser.arrive();
         }
         public void onError(Throwable t) { t.printStackTrace(); }
     }
 
     static final class Pub extends RecursiveAction {
-        final SubmissionPublisher<Boolean> pub = 
+        final SubmissionPublisher<Boolean> pub =
             new SubmissionPublisher<Boolean>(ForkJoinPool.commonPool(), CAP);
         public void compute() {
             SubmissionPublisher<Boolean> p = pub;
             for (int i = 0; i < CONSUMERS; ++i)
                 p.subscribe(new Sub());
-            for (int i = 0; i < ITEMS; ++i) 
+            for (int i = 0; i < ITEMS; ++i)
                 p.submit(Boolean.TRUE);
             p.close();
         }

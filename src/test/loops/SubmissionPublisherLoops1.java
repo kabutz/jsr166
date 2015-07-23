@@ -21,18 +21,18 @@ public class SubmissionPublisherLoops1 {
     static class Sub implements Flow.Subscriber<Boolean> {
         Flow.Subscription sn;
         int count;
-        public void onSubscribe(Flow.Subscription s) { 
-            (sn = s).request(CAP); 
+        public void onSubscribe(Flow.Subscription s) {
+            (sn = s).request(CAP);
         }
-        public void onNext(Boolean t) { 
+        public void onNext(Boolean t) {
             if ((++count & (CAP - 1)) == (CAP >>> 1))
                 sn.request(CAP);
         }
         public void onError(Throwable t) { t.printStackTrace(); }
-        public void onComplete() { 
+        public void onComplete() {
             if (count != ITEMS)
                 System.out.println("Error: remaining " + (ITEMS - count));
-            phaser.arrive(); 
+            phaser.arrive();
         }
     }
 
@@ -42,14 +42,14 @@ public class SubmissionPublisherLoops1 {
         int reps = REPS;
         if (args.length > 0)
             reps = Integer.parseInt(args[0]);
-        
-        System.out.println("ITEMS: " + ITEMS + 
+
+        System.out.println("ITEMS: " + ITEMS +
                            " CONSUMERS: " + CONSUMERS +
                            " CAP: " + CAP);
         ExecutorService exec = ForkJoinPool.commonPool();
         for (int rep = 0; rep < reps; ++reps) {
             long startTime = System.nanoTime();
-            final SubmissionPublisher<Boolean> pub = 
+            final SubmissionPublisher<Boolean> pub =
                 new SubmissionPublisher<Boolean>(exec, CAP);
             for (int i = 0; i < CONSUMERS; ++i)
                 pub.subscribe(new Sub());
