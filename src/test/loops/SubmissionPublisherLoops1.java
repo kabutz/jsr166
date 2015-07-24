@@ -47,7 +47,7 @@ public class SubmissionPublisherLoops1 {
                            " CONSUMERS: " + CONSUMERS +
                            " CAP: " + CAP);
         ExecutorService exec = ForkJoinPool.commonPool();
-        for (int rep = 0; rep < reps; ++reps) {
+        for (int rep = 0; rep < reps; ++rep) {
             long startTime = System.nanoTime();
             final SubmissionPublisher<Boolean> pub =
                 new SubmissionPublisher<Boolean>(exec, CAP);
