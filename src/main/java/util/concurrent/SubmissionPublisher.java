@@ -61,7 +61,7 @@ import java.util.function.Supplier;
  * that generate items, and use the methods in this class to publish
  * them.  For example here is a class that periodically publishes the
  * items generated from a supplier. (In practice you might add methods
- * to independently start and stop generation, to share schedulers
+ * to independently start and stop generation, to share Executors
  * among publishers, and so on, or use a SubmissionPublisher as a
  * component rather than a superclass.)
  *

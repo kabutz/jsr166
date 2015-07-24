@@ -40,8 +40,8 @@ import java.util.stream.Stream;
  *
  * <pre> {@code
  * class OneShotPublisher implements Publisher<Boolean> {
- *   final ExecutorService executor = ForkJoinPool.commonPool(); // daemon-based
- *   boolean subscribed = false; // true after first subscribe
+ *   private final ExecutorService executor = ForkJoinPool.commonPool(); // daemon-based
+ *   private boolean subscribed = false; // true after first subscribe
  *   public synchronized void subscribe(Subscriber<? super Boolean> subscriber) {
  *     if (subscribed)
  *        subscriber.onError(new IllegalStateException()); // only one allowed
@@ -51,10 +51,10 @@ import java.util.stream.Stream;
  *     }
  *   }
  *   static class OneShotSubscription implements Subscription {
- *     final Subscriber<? super Boolean> subscriber;
- *     final ExecutorService executor;
- *     Future<?> future; // to allow cancellation
- *     boolean completed = false;
+ *     private final Subscriber<? super Boolean> subscriber;
+ *     private final ExecutorService executor;
+ *     private Future<?> future; // to allow cancellation
+ *     private boolean completed = false;
  *     OneShotSubscription(Subscriber<? super Boolean> subscriber,
  *                         ExecutorService executor) {
  *       this.subscriber = subscriber;
@@ -108,8 +108,9 @@ import java.util.stream.Stream;
  *     this.consumer = consumer;
  *   }
  *   public void onSubscribe(Subscription subscription) {
- *     (this.subscription = subscription).request(bufferSize);
+ *     long initialRequestSize = bufferSize;
  *     count = bufferSize - bufferSize / 2; // re-request when half consumed
+ *     (this.subscription = subscription).request(initialRequestSize);
  *   }
  *   public void onNext(T item) {
  *     if (--count <= 0)
@@ -308,8 +309,9 @@ public final class Flow {
             this.requestSize = bufferSize;
         }
         public final void onSubscribe(Subscription subscription) {
-            (this.subscription = subscription).request(requestSize);
-            count = requestSize -= (requestSize >>> 1);
+            long rs = requestSize;
+            count = requestSize -= (rs >>> 1);
+            (this.subscription = subscription).request(rs);
         }
         public final void onError(Throwable ex) {
             status.completeExceptionally(ex);
@@ -320,6 +322,7 @@ public final class Flow {
                     subscription.request(count = requestSize);
                 accept(item);
             } catch (Throwable ex) {
+                subscription.cancel();
                 status.completeExceptionally(ex);
             }
         }
@@ -345,6 +348,8 @@ public final class Flow {
      * signals {@code onComplete}, or completed exceptionally upon any
      * error, including an exception thrown by the Consumer (in which
      * case the subscription is cancelled if not already terminated).
+     * Other attempts to cancel the CompletableFuture need not
+     * cause the computation to terminate.
      *
      * @param <T> the published item type
      * @param bufferSize the request size for subscriptions
@@ -409,7 +414,8 @@ public final class Flow {
      * buffering. Returns a CompletableFuture that is completed
      * normally with the result of this function when the publisher
      * signals {@code onComplete}, or is completed exceptionally upon
-     * any error.
+     * any error. Other attempts to cancel the CompletableFuture need
+     * not cause the computation to terminate.
      *
      * <p><b>Preliminary release note:</b> Currently, this method
      * collects all items before executing the stream
