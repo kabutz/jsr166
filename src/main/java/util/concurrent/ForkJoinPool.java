@@ -419,9 +419,9 @@ public class ForkJoinPool extends AbstractExecutorService {
      * explicitly take into account core affinities, loads, cache
      * localities, etc, However, they do exploit temporal locality
      * (which usually approximates these) by probabilistically
-     * preferring to re-poll from the same queue after a successful
-     * poll on average #workers times before trying others.
-     * Restricted forms of scanning occur in methods helpComplete and
+     * (bounded by POLL_LIMIT) preferring to re-poll from the same
+     * queue after a successful poll before trying others.  Restricted
+     * forms of scanning occur in methods helpComplete and
      * findNonEmptyStealQueue, and take similar but simpler forms.
      *
      * Deactivation and waiting. Queuing encounters several intrinsic
@@ -1275,8 +1275,8 @@ public class ForkJoinPool extends AbstractExecutorService {
     private static final int DEFAULT_COMMON_MAX_SPARES = 256;
 
     /**
-     * The maximum number of repolls or rescans per scan.
-     * Must be a power of two minus 1.
+     * The maximum number of extra repolls per scan, bounding
+     * unfairness.  Must be a power of two minus 1.
      */
     private static final int POLL_LIMIT = 255;
 
@@ -1794,22 +1794,20 @@ public class ForkJoinPool extends AbstractExecutorService {
      * pseudorandom permutation. Upon finding a non-empty queue, makes
      * on average #workers attempts to re-poll (fewer if contended) on
      * the same queue before returning (impossible scanState value) 0
-     * to restart scan. Else returns after at least one full scan and
-     * at most the given step limit.
+     * to restart scan. Else returns after at least 1 and at most 32
+     * full scans.
      *
      * @param w the worker (via its WorkQueue)
-     * @param limit scan/repoll limit as bitmask (0 if spare)
+     * @param limit repoll limit as bitmask (0 if spare)
      * @param step (circular) index increment per iteration (must be odd)
      * @param r a random seed for origin index
      * @return negative if should await signal
      */
     private int scan(WorkQueue w, int limit, int step, int r) {
         int stat = 0, wl; WorkQueue[] ws;
-        if ((ws = workQueues) != null && (wl = ws.length) > 0) {
+        if ((ws = workQueues) != null && w != null && (wl = ws.length) > 0) {
             for (int m = wl - 1,
-                     idx = m & r,                  // origin index
-                     nsteps = m | limit,           // at least one full scan
-                     maxPolls = m & limit,         // mean <= m/2 unless spare
+                     origin = m & r, idx = origin,
                      npolls = 0,
                      ss = w.scanState;;) {         // negative if inactive
                 WorkQueue q; ForkJoinTask<?>[] a; int b, d, al;
@@ -1835,18 +1833,23 @@ public class ForkJoinPool extends AbstractExecutorService {
                         else
                             break;                 // contention
                     }
-                    if (npolls > maxPolls)
+                    if (npolls > limit)
                         break;
                 }
                 else if (npolls != 0)              // rescan
                     break;
-                else if (--nsteps < 0) {           // inactivate or wait
-                    if ((stat = ss) >= 0)
+                else if ((idx = (idx + step) & m) == origin) {
+                    if (ss < 0) {                  // await signal
+                        stat = ss;
+                        break;
+                    }
+                    else if (r >= 0) {
                         inactivate(w, ss);
-                    break;
+                        break;
+                    }
+                    else
+                        r <<= 1;                   // at most 31 rescans
                 }
-                else                               // circularly traverse
-                    idx = (idx + step) & m;
             }
         }
         return stat;
