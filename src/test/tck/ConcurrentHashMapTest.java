@@ -535,7 +535,7 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
     /**
      * Constructor (initialCapacity, loadFactor) throws
      * IllegalArgumentException if either argument is negative
-      */
+     */
     public void testConstructor2() {
         try {
             new ConcurrentHashMap(-1, .75f);
