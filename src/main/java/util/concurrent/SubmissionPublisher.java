@@ -9,6 +9,7 @@ package java.util.concurrent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.LockSupport;
+import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -49,7 +50,11 @@ import java.util.function.Supplier;
  * handler and then retry.
  *
  * <p>If any Subscriber method throws an exception, its subscription
- * is cancelled.  If the supplied Executor throws {@link
+ * is cancelled.  If a handler is supplied as a constructor argument,
+ * it is invoked before cancellation upon an exception in method
+ * {@code onNext}, but exceptions in methods {@code onSubscribe}
+ * {@code onError} and {@code onComplete} are not recorded or handled
+ * before cancellation.  If the supplied Executor throws {@link
  * RejectedExecutionException} (or any other RuntimeException or
  * Error) when attempting to execute a task, or a drop handler throws
  * an exception when processing a dropped item, then the exception is
@@ -157,15 +162,49 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
 
     /** Run status, updated only within locks */
     volatile boolean closed;
+    /** If non-null, the exception in closeExceptionally */
+    Throwable closeException;
 
     // Parameters for constructing BufferedSubscriptions
     final Executor executor;
+    final BiConsumer<? super Flow.Subscriber<? super T>, ? super Throwable> onNextHandler;
     final int maxBufferCapacity;
 
     /**
      * Creates a new SubmissionPublisher using the given Executor for
-     * async delivery to subscribers, and with the given maximum
-     * buffer size for each subscriber.
+     * async delivery to subscribers, with the given maximum
+     * buffer size for each subscriber, and, if non-null, the given handler
+     * invoked when any Subscriber throws an exception in method {@code onNext}.
+     *
+     * @param executor the executor to use for async delivery,
+     * supporting creation of at least one independent thread
+     * @param maxBufferCapacity the maximum capacity for each
+     * subscriber's buffer (the enforced capacity may be rounded up to
+     * the nearest power of two and/or bounded by the largest value
+     * supported by this implementation; method {@link #getMaxBufferCapacity}
+     * returns the actual value)
+     * @param handler if non-null, procedure to invoke upon exception
+     * thrown in method {@code onNext}.
+     * @throws NullPointerException if executor is null
+     * @throws IllegalArgumentException if maxBufferCapacity not
+     * positive
+     */
+    public SubmissionPublisher(Executor executor, int maxBufferCapacity,
+                               BiConsumer<? super Flow.Subscriber<? super T>, ? super Throwable> handler) {
+        if (executor == null)
+            throw new NullPointerException();
+        if (maxBufferCapacity <= 0)
+            throw new IllegalArgumentException("capacity must be positive");
+        this.executor = executor;
+        this.onNextHandler = handler;
+        this.maxBufferCapacity = roundCapacity(maxBufferCapacity);
+    }
+
+    /**
+     * Creates a new SubmissionPublisher using the given Executor for
+     * async delivery to subscribers, with the given maximum
+     * buffer size for each subscriber, and no handler for Subscriber
+     * exceptions in method {@code onNext}.
      *
      * @param executor the executor to use for async delivery,
      * supporting creation of at least one independent thread
@@ -179,22 +218,18 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
      * positive
      */
     public SubmissionPublisher(Executor executor, int maxBufferCapacity) {
-        if (executor == null)
-            throw new NullPointerException();
-        if (maxBufferCapacity <= 0)
-            throw new IllegalArgumentException("capacity must be positive");
-        this.executor = executor;
-        this.maxBufferCapacity = roundCapacity(maxBufferCapacity);
+        this(executor, maxBufferCapacity, null);
     }
 
     /**
      * Creates a new SubmissionPublisher using the {@link
      * ForkJoinPool#commonPool()} for async delivery to subscribers,
-     * and with maximum buffer capacity of {@link
-     * Flow#defaultBufferSize}.
+     * with maximum buffer capacity of {@link Flow#defaultBufferSize},
+     * and no handler for Subscriber exceptions in method {@code
+     * onNext}.
      */
     public SubmissionPublisher() {
-        this(ForkJoinPool.commonPool(), Flow.defaultBufferSize());
+        this(ForkJoinPool.commonPool(), Flow.defaultBufferSize(), null);
     }
 
     /**
@@ -205,11 +240,13 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
      * Subscriber's {@code onSubscribe} method is invoked
      * asynchronously with a new {@link Flow.Subscription}. If {@code
      * onSubscribe} throws an exception, the subscription is
-     * cancelled. Otherwise, if this SubmissionPublisher is closed,
-     * the subscriber's {@code onComplete} method is then invoked.
-     * Subscribers may enable receiving items by invoking the {@code
-     * request} method of the new Subscription, and may unsubscribe by
-     * invoking its {@code cancel} method.
+     * cancelled. Otherwise, if this SubmissionPublisher was closed
+     * exceptionally, then the subscriber's {@code onError} method is
+     * invoked with the corresponding exception, or if closed without
+     * exception, the subscriber's {@code onComplete} method is
+     * invoked.  Subscribers may enable receiving items by invoking
+     * the {@code request} method of the new Subscription, and may
+     * unsubscribe by invoking its {@code cancel} method.
      *
      * @param subscriber the subscriber
      * @throws NullPointerException if subscriber is null
@@ -217,12 +254,16 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
     public void subscribe(Flow.Subscriber<? super T> subscriber) {
         if (subscriber == null) throw new NullPointerException();
         BufferedSubscription<T> subscription =
-            new BufferedSubscription<T>(subscriber, executor, maxBufferCapacity);
+            new BufferedSubscription<T>(subscriber, executor,
+                                        onNextHandler, maxBufferCapacity);
         synchronized (this) {
             for (BufferedSubscription<T> b = clients, pred = null;;) {
                 if (b == null) {
+                    Throwable ex;
                     subscription.onSubscribe();
-                    if (closed)
+                    if ((ex = closeException) != null)
+                        subscription.onError(ex);
+                    else if (closed)
                         subscription.onComplete();
                     else if (pred == null)
                         clients = subscription;
@@ -501,9 +542,9 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
     /**
      * Unless already closed, issues {@link Flow.Subscriber#onError}
      * signals to current subscribers with the given error, and
-     * disallows subsequent attempts to publish. Upon return, this
-     * method does <em>NOT</em> guarantee that all subscribers have
-     * yet completed.
+     * disallows subsequent attempts to publish.  Future subscribers
+     * also receive the given error. Upon return, this method does
+     * <em>NOT</em> guarantee that all subscribers have yet completed.
      *
      * @param error the {@code onError} argument sent to subscribers
      * @throws NullPointerException if error is null
@@ -517,6 +558,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                 b = clients;
                 clients = null;
                 closed = true;
+                closeException = error;
             }
             while (b != null) {
                 BufferedSubscription<T> next = b.next;
@@ -823,6 +865,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         Object[] array;                    // buffer: null if disabled
         Flow.Subscriber<? super T> subscriber; // null if disabled
         Executor executor;                 // null if disabled
+        BiConsumer<? super Flow.Subscriber<? super T>, ? super Throwable> onNextHandler;
         volatile Throwable pendingError;   // holds until onError issued
         volatile Thread waiter;            // blocked producer thread
         T putItem;                         // for offer within ManagedBlocker
@@ -845,9 +888,13 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         static final int MINCAP = 16;
 
         BufferedSubscription(Flow.Subscriber<? super T> subscriber,
-                             Executor executor, int maxBufferCapacity) {
+                             Executor executor,
+                             BiConsumer<? super Flow.Subscriber<? super T>,
+                             ? super Throwable> onNextHandler,
+                             int maxBufferCapacity) {
             this.subscriber = subscriber;
             this.executor = executor;
+            this.onNextHandler = onNextHandler;
             this.maxCapacity = maxBufferCapacity;
         }
 
@@ -1333,7 +1380,12 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                         U.getAndAddLong(this, DEMAND, -1L);
                         if ((w = waiter) != null)
                             signalWaiter(w);
-                        consumeItem(s, x);
+                        try {
+                            @SuppressWarnings("unchecked") T y = (T) x;
+                            s.onNext(y);
+                        } catch (Throwable ex) {
+                            handleOnNext(s, ex);
+                        }
                     }
                 }
             }
@@ -1410,16 +1462,17 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         }
 
         /**
-         * Process item in consume()
+         * Process exception in Subscriber.onNext
          */
-        private void consumeItem(Flow.Subscriber<? super T> s, Object item) {
-            try {
-                @SuppressWarnings("unchecked") T y = (T) item;
-                if (s != null)
-                    s.onNext(y);
-            } catch (Throwable ex) {
-                onError(ex);
+        private void handleOnNext(Flow.Subscriber<? super T> s, Throwable ex) {
+            BiConsumer<? super Flow.Subscriber<? super T>, ? super Throwable> h;
+            if ((h = onNextHandler) != null) {
+                try {
+                    h.accept(s, ex);
+                } catch (Throwable ignore) {
+                }
             }
+            onError(ex);
         }
 
         // Unsafe mechanics
