@@ -1816,12 +1816,12 @@ public class ForkJoinPool extends AbstractExecutorService {
                     long offset = (((al - 1) & b) << ASHIFT) + ABASE;
                     ForkJoinTask<?> t = (ForkJoinTask<?>)
                         U.getObjectVolatile(a, offset);
-                    ++npolls;
-                    if (t != null && b++ == q.base) {
-                        if (ss < 0) {
+                    if (b++ == q.base) {
+                        if (t == null)
+                            break;                 // empty or busy
+                        else if (ss < 0) {
                             tryReactivate(w, ws, r);
-                            if ((ss = w.scanState) < 0)
-                                break;             // retry upon rescan
+                            break;                 // retry upon rescan
                         }
                         else if (U.compareAndSwapObject(a, offset, t, null)) {
                             q.base = b;
@@ -1829,12 +1829,12 @@ public class ForkJoinPool extends AbstractExecutorService {
                             if (d != -1)           // propagate signal
                                 signalWork(false);
                             w.runTask(t);
+                            if (++npolls > limit)
+                                break;
                         }
                         else
                             break;                 // contention
                     }
-                    if (npolls > limit)
-                        break;
                 }
                 else if (npolls != 0)              // rescan
                     break;
