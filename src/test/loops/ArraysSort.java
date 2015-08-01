@@ -36,7 +36,7 @@ class ArraysSort {
             numbers[i] = Long.valueOf(i);
 
         int thr = ((n + 7) >>> 3) / ForkJoinPool.getCommonPoolParallelism();
-        THRESHOLD = (thr <= 1 << 13)? 1 << 13 : thr;
+        THRESHOLD = (thr <= 1 << 13) ? 1 << 13 : thr;
 
         System.out.println("Threshold = " + THRESHOLD);
 
@@ -153,7 +153,7 @@ class ArraysSort {
             }
             ThreadLocalRandom rng = ThreadLocalRandom.current();
             Long dl = d[l];
-            int m = (dl == null)? h : rng.nextInt(l, h);
+            int m = (dl == null) ? h : rng.nextInt(l, h);
             for (int i = l; i < m; ++i)
                 d[i] = s[rng.nextInt(n)];
             if (dl != null) {
