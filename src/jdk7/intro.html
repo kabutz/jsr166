@@ -16,16 +16,16 @@ HREF="http://altair.cs.oswego.edu/mailman/listinfo/concurrency-interest">
 http://altair.cs.oswego.edu/mailman/listinfo/concurrency-interest</A>.
 
 <p><em>Note: The javadocs here do <em>not</em> include pre-existing
-java classes (for example <tt>java.lang.Thread</tt>) that were changed
+java classes (for example <code>java.lang.Thread</code>) that were changed
 as part of the JSR166 spec.  On the other hand, the javadocs here do
 include some existing java.util Collection interfaces and classes that
 are not part of the spec, but are included because some new methods
 implement or inherit from their specifications.
 </em>
 
-<p>JSR-166 introduces package <tt>java.util.concurrent</tt>
+<p>JSR-166 introduces package <code>java.util.concurrent</code>
 containing utility classes commonly useful in concurrent
-programming. Like package <tt>java.util</tt>, it includes a few small
+programming. Like package <code>java.util</code>, it includes a few small
 standardized extensible frameworks, as well as other classes that
 provide useful functionality and are otherwise tedious or difficult to
 implement.
@@ -50,7 +50,7 @@ java.util.concurrent.  Here are brief descriptions.
 
 A basic (nonblocking) {@link java.util.Queue} interface extending
 {@link java.util.Collection} is introduced into
-<tt>java.util</tt>. Existing class {@link java.util.LinkedList} is
+<code>java.util</code>. Existing class {@link java.util.LinkedList} is
 adapted to support Queue, and a new non-thread-safe {@link
 java.util.PriorityQueue} is added.
 
@@ -66,14 +66,14 @@ class:
   most programs. Perhaps they will eventually be deprecated.)
 
   <li> Access checks are no longer required when a Thread interrupts
-  <em>itself</em>.  The <tt>interrupt</tt> method is the only way to
+  <em>itself</em>.  The <code>interrupt</code> method is the only way to
   re-assert a thread's interruption status (and in the case of
   self-interruption has no other effect than this).  The check here
   previously caused unjustifiable and uncontrollable failures when
   restricted code invoked library code that must reassert interruption
   to correctly propagate status when encountering some
-  <tt>InterruptedExceptions</tt>.
-  <li> The <tt>destroy</tt> method, which has never been implemented,
+  <code>InterruptedExceptions</code>.
+  <li> The <code>destroy</code> method, which has never been implemented,
   has finally been deprecated. This is just a spec change, reflecting
   the fact that that the reason it has never been implemented is that
   it was undesirable and unworkable.
@@ -81,9 +81,9 @@ class:
 
 <h2>Timing</h2>
 
-Method <tt>nanoTime</tt> is added to {@link java.lang.System}. It
+Method <code>nanoTime</code> is added to {@link java.lang.System}. It
 provides a high-precision timing facility that is distinct from and
-uncoordinated with <tt>System.currentTimeMillis</tt>.
+uncoordinated with <code>System.currentTimeMillis</code>.
 
 <h2>Removing ThreadLocals</h2>
 
