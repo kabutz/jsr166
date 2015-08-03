@@ -163,7 +163,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
     /** Run status, updated only within locks */
     volatile boolean closed;
     /** If non-null, the exception in closeExceptionally */
-    Throwable closeException;
+    volatile Throwable closedException;
 
     // Parameters for constructing BufferedSubscriptions
     final Executor executor;
@@ -261,7 +261,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                 if (b == null) {
                     Throwable ex;
                     subscription.onSubscribe();
-                    if ((ex = closeException) != null)
+                    if ((ex = closedException) != null)
                         subscription.onError(ex);
                     else if (closed)
                         subscription.onComplete();
@@ -558,7 +558,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                 b = clients;
                 clients = null;
                 closed = true;
-                closeException = error;
+                closedException = error;
             }
             while (b != null) {
                 BufferedSubscription<T> next = b.next;
@@ -576,6 +576,17 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
      */
     public boolean isClosed() {
         return closed;
+    }
+
+
+    /**
+     * Returns the exception associated with {@link #closeExceptionally},
+     * or null if not closed or if closed normally.
+     *
+     * @return the exception, or null if none
+     */
+    public Throwable getClosedException() {
+        return closedException;
     }
 
     /**
