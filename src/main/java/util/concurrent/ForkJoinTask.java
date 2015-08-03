@@ -1262,6 +1262,24 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             null;
     }
 
+    /**
+     * If the current thread is operating in a ForkJoinPool,
+     * unschedules and returns, without executing, a task externally
+     * submitted to the pool, if one is available. Availability may be
+     * transient, so a {@code null} result does not necessarily imply
+     * quiescence of the pool.  This method is designed primarily to
+     * support extensions, and is unlikely to be useful otherwise.
+     *
+     * @return a task, or {@code null} if none are available
+     * @since 1.9
+     */
+    protected static ForkJoinTask<?> pollSubmission() {
+        Thread t; ForkJoinWorkerThread wt;
+        return ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread) ?
+            (wt = (ForkJoinWorkerThread)t).pool.pollSubmission() :
+            null;
+    }
+
     // tag operations
 
     /**
