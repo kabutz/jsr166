@@ -998,7 +998,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         // Specialized execution methods
 
         /**
-         * Pops and executes up to POLL_LIMIT tasks or until empty
+         * Pops and executes up to POLL_LIMIT tasks or until empty.
          */
         final void localPopAndExec() {
             for (int nexec = 0;;) {
@@ -1022,7 +1022,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
 
         /**
-         * Polls and executes up to POLL_LIMIT tasks or until empty
+         * Polls and executes up to POLL_LIMIT tasks or until empty.
          */
         final void localPollAndExec() {
             for (int nexec = 0;;) {
