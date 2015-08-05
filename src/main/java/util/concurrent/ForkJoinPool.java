@@ -759,6 +759,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         static final int MAXIMUM_QUEUE_CAPACITY = 1 << 26; // 64M
 
         // Instance fields
+
         volatile int scanState;    // versioned, negative if inactive
         int stackPred;             // pool stack (ctl) predecessor
         int nsteals;               // number of steals
@@ -772,7 +773,8 @@ public class ForkJoinPool extends AbstractExecutorService {
         final ForkJoinWorkerThread owner; // owning thread or null if shared
         volatile Thread parker;    // == owner during call to park; else null
         volatile ForkJoinTask<?> currentJoin;  // task being joined in awaitJoin
-        volatile ForkJoinTask<?> currentSteal; // mainly used by helpStealer
+        @sun.misc.Contended("group2") // separate from other fields
+        volatile ForkJoinTask<?> currentSteal; // nonnull when running some task
 
         WorkQueue(ForkJoinPool pool, ForkJoinWorkerThread owner) {
             this.pool = pool;
@@ -1033,7 +1035,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                         U.getAndSetObject(a, offset, null);
                     if (t != null) {
                         base = b;
-                        (currentSteal = t).doExec();
+                        t.doExec();
                         if (++nexec > POLL_LIMIT)
                             break;
                     }
@@ -1647,7 +1649,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         long c; int sp, wl, m; WorkQueue v;
         if ((sp = (int)(c = ctl)) != 0 && w != null &&
             ws != null && (wl = ws.length) > 0 &&
-            ((m = wl - 1) & ((sp ^ r) >>> 16)) == 0 &&
+            ((m = wl - 1) & ((sp ^ r) >>> 16)) <= 1 &&
             (v = ws[m & sp]) != null) {
             long nc = (v.stackPred & SP_MASK) | (UC_MASK & (c + AC_UNIT));
             int ns = sp & ~UNSIGNALLED;
@@ -1864,8 +1866,11 @@ public class ForkJoinPool extends AbstractExecutorService {
                     if (t == null || b++ != q.base)
                         break;                     // busy or empty
                     else if (ss < 0) {
-                        tryReactivate(w, ws, r);
-                        break;                     // retry upon rescan
+                        if ((ss = w.scanState) >= 0) {
+                            tryReactivate(w, ws, r);
+                            break;                 // retry upon rescan
+                        }
+                        r |= (1 << 31);            // ensure full scan
                     }
                     else if (!U.compareAndSwapObject(a, offset, t, null))
                         break;                     // contended
