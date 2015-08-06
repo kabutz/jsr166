@@ -393,10 +393,9 @@ public class ForkJoinPool extends AbstractExecutorService {
      * where no action is required, we reduce write contention by
      * equivalently prefacing signalWork when called by an external
      * task producer using a memory access with full-volatile
-     * semantics (alternatively, a "fullFence" could be used). (4) For
-     * internal task producers we rely on the fact that even if no
-     * other workers awaken, the producer itself will eventually see
-     * the task and execute it.
+     * semantics or a "fullFence". (4) For internal task producers we
+     * rely on the fact that even if no other workers awaken, the
+     * producer itself will eventually see the task and execute it.
      *
      * Almost always, too many signals are issued. A task producer
      * cannot in general tell if some existing worker is in the midst
@@ -812,8 +811,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
 
         /**
-         * Pushes a task. Call only by owner in unshared queues.  (The
-         * shared-queue version is embedded in method externalPush.)
+         * Pushes a task. Call only by owner in unshared queues.
          *
          * @param task the task. Caller must ensure non-null.
          * @throws RejectedExecutionException if array cannot be resized
@@ -848,7 +846,8 @@ public class ForkJoinPool extends AbstractExecutorService {
                 (t = top) - (b = base) > 0) {
                 int mask = size - 1;
                 do { // emulate poll from old array, push to new array
-                    long offset = ((b & oldMask) << ASHIFT) + ABASE;
+                    int index = b & oldMask;
+                    long offset = ((long)index << ASHIFT) + ABASE;
                     ForkJoinTask<?> x = (ForkJoinTask<?>)
                         U.getObjectVolatile(oldA, offset);
                     if (x != null &&
@@ -866,11 +865,12 @@ public class ForkJoinPool extends AbstractExecutorService {
          */
         final ForkJoinTask<?> pop() {
             int b = base, s = top, al, i; ForkJoinTask<?>[] a;
-            if ((a = array) != null && s != b && (al = a.length) > 0) {
-                long offset = (((al - 1) & (s - 1)) << ASHIFT) + ABASE;
+            if ((a = array) != null && b != s && (al = a.length) > 0) {
+                int index = (al - 1) & --s;
+                long offset = ((long)index << ASHIFT) + ABASE;
                 ForkJoinTask<?> t = (ForkJoinTask<?>)U.getObject(a, offset);
                 if (t != null && U.compareAndSwapObject(a, offset, t, null)) {
-                    top = s - 1;
+                    top = s;
                     U.storeFence();
                     return t;
                 }
@@ -886,7 +886,8 @@ public class ForkJoinPool extends AbstractExecutorService {
         final ForkJoinTask<?> pollAt(int b) {
             ForkJoinTask<?>[] a; int al;
             if ((a = array) != null && (al = a.length) > 0) {
-                long offset = (((al - 1) & b) << ASHIFT) + ABASE;
+                int index = (al - 1) & b;
+                long offset = ((long)index << ASHIFT) + ABASE;
                 ForkJoinTask<?> t = (ForkJoinTask<?>)
                     U.getObjectVolatile(a, offset);
                 if (t != null && b++ == base &&
@@ -906,7 +907,8 @@ public class ForkJoinPool extends AbstractExecutorService {
                 int b = base, s = top, d, al; ForkJoinTask<?>[] a;
                 if ((a = array) != null && (d = b - s) < 0 &&
                     (al = a.length) > 0) {
-                    long offset = (((al - 1) & b) << ASHIFT) + ABASE;
+                    int index = (al - 1) & b;
+                    long offset = ((long)index << ASHIFT) + ABASE;
                     ForkJoinTask<?> t = (ForkJoinTask<?>)
                         U.getObjectVolatile(a, offset);
                     if (b++ == base) {
@@ -946,11 +948,11 @@ public class ForkJoinPool extends AbstractExecutorService {
          * Pops the given task only if it is at the current top.
          */
         final boolean tryUnpush(ForkJoinTask<?> task) {
-            int s = top - 1, al; ForkJoinTask<?>[] a;
-            if ((a = array) != null && (al = a.length) > 0) {
-                long offset = (((al - 1) & s) << ASHIFT) + ABASE;
-                if (U.getObject(a, offset) == task &&
-                    U.compareAndSwapObject(a, offset, task, null)) {
+            int b = base, s = top, al; ForkJoinTask<?>[] a;
+            if ((a = array) != null && b != s && (al = a.length) > 0) {
+                int index = (al - 1) & --s;
+                long offset = ((long)index << ASHIFT) + ABASE;
+                if (U.compareAndSwapObject(a, offset, task, null)) {
                     top = s;
                     U.storeFence();
                     return true;
@@ -960,15 +962,64 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
 
         /**
+         * Shared version of push. Fails if already locked.
+         *
+         * @return status: > 0 locked, 0 was empty, < 0 was nonempty
+         */
+        final int sharedPush(ForkJoinTask<?> task) {
+            int stat;
+            if (U.compareAndSwapInt(this, QLOCK, 0, 1)) {
+                int b = base, s = top, al, d; ForkJoinTask<?>[] a;
+                if ((a = array) != null && (al = a.length) > 0 &&
+                    al - 1 + (d = b - s) > 0) {
+                    a[(al - 1) & s] = task;
+                    top = s + 1;                 // relaxed writes OK here
+                    U.putOrderedInt(this, QLOCK, 0);
+                    if (d < 0)
+                        stat = d;
+                    else {
+                        U.fullFence();           // sync with signallees
+                        stat = 0;
+                    }
+                }
+                else {
+                    growAndSharedPush(task);
+                    stat = 0;
+                }
+            }
+            else
+                stat = 1;
+            return stat;
+        }
+
+        /*
+         * Helper for sharedPush; called only when locked and resize
+         * needed.
+         */
+        private void growAndSharedPush(ForkJoinTask<?> task) {
+            try {
+                growArray();
+                int s = top, al; ForkJoinTask<?>[] a;
+                if ((a = array) != null && (al = a.length) > 0) {
+                    a[(al - 1) & s] = task;
+                    top = s + 1;
+                }
+            } finally {
+                qlock = 0;
+            }
+        }
+
+        /**
          * Shared version of pop
          */
         final boolean trySharedUnpush(ForkJoinTask<?> task) {
-            ForkJoinTask<?> t;
             boolean popped = false;
             int s = top - 1, al;  ForkJoinTask<?>[] a;
             if ((a = array) != null && (al = a.length) > 0) {
-                long offset = (((al - 1) & s) << ASHIFT) + ABASE;
-                if (U.getObject(a, offset) == task &&
+                int index = (al - 1) & s;
+                long offset = ((long)index << ASHIFT) + ABASE;
+                ForkJoinTask<?> t = (ForkJoinTask<?>)U.getObject(a, offset);
+                if (t == task &&
                     U.compareAndSwapInt(this, QLOCK, 0, 1)) {
                     if (U.compareAndSwapObject(a, offset, task, null)) {
                         popped = true;
@@ -1006,7 +1057,8 @@ public class ForkJoinPool extends AbstractExecutorService {
             for (int nexec = 0;;) {
                 int b = base, s = top, al; ForkJoinTask<?>[] a;
                 if ((a = array) != null && b != s && (al = a.length) > 0) {
-                    long offset = (((al - 1) & --s) << ASHIFT) + ABASE;
+                    int index = (al - 1) & --s;
+                    long offset = ((long)index << ASHIFT) + ABASE;
                     ForkJoinTask<?> t = (ForkJoinTask<?>)
                         U.getAndSetObject(a, offset, null);
                     if (t != null) {
@@ -1030,7 +1082,8 @@ public class ForkJoinPool extends AbstractExecutorService {
             for (int nexec = 0;;) {
                 int b = base, s = top, al; ForkJoinTask<?>[] a;
                 if ((a = array) != null && b != s && (al = a.length) > 0) {
-                    long offset = (((al - 1) & b++) << ASHIFT) + ABASE;
+                    int index = (al - 1) & b++;
+                    long offset = ((long)index << ASHIFT) + ABASE;
                     ForkJoinTask<?> t = (ForkJoinTask<?>)
                         U.getAndSetObject(a, offset, null);
                     if (t != null) {
@@ -1089,8 +1142,8 @@ public class ForkJoinPool extends AbstractExecutorService {
                 while ((d = (b = base) - (s = top)) < 0 &&
                        (a = array) != null && (al = a.length) > 0) {
                     for (;;) {      // traverse from s to b
-                        int i = --s & (al - 1);
-                        long offset = (i << ASHIFT) + ABASE;
+                        int index = --s & (al - 1);
+                        long offset = (index << ASHIFT) + ABASE;
                         ForkJoinTask<?> t = (ForkJoinTask<?>)
                             U.getObjectVolatile(a, offset);
                         if (t == null)
@@ -1142,8 +1195,10 @@ public class ForkJoinPool extends AbstractExecutorService {
         final CountedCompleter<?> popCC(CountedCompleter<?> task, int mode) {
             int b = base, s = top, al; ForkJoinTask<?>[] a;
             if ((a = array) != null && b != s && (al = a.length) > 0) {
-                long offset = (((al - 1) & (s - 1)) << ASHIFT) + ABASE;
-                Object o = U.getObjectVolatile(a, offset);
+                int index = (al - 1) & (s - 1);
+                long offset = ((long)index << ASHIFT) + ABASE;
+                ForkJoinTask<?> o = (ForkJoinTask<?>)
+                    U.getObjectVolatile(a, offset);
                 if (o instanceof CountedCompleter) {
                     CountedCompleter<?> t = (CountedCompleter<?>)o;
                     for (CountedCompleter<?> r = t;;) {
@@ -1190,8 +1245,10 @@ public class ForkJoinPool extends AbstractExecutorService {
             ForkJoinTask<?>[] a;
             int b = base, s = top, al, h;
             if ((a = array) != null && b != s && (al = a.length) > 0) {
-                long offset = (((al - 1) & b) << ASHIFT) + ABASE;
-                Object o = U.getObjectVolatile(a, offset);
+                int index = (al - 1) & b;
+                long offset = ((long)index << ASHIFT) + ABASE;
+                ForkJoinTask<?> o = (ForkJoinTask<?>)
+                    U.getObjectVolatile(a, offset);
                 if (o == null)
                     h = 2;                      // retryable
                 else if (!(o instanceof CountedCompleter))
@@ -1265,7 +1322,7 @@ public class ForkJoinPool extends AbstractExecutorService {
 
     /**
      * Permission required for callers of methods that may start or
-     * kill threads.
+     * kill threads. Also used as a private static lock in tryInitialize.
      */
     private static final RuntimePermission modifyThreadPermission;
 
@@ -1386,44 +1443,34 @@ public class ForkJoinPool extends AbstractExecutorService {
     volatile int runState;
     final int config;                    // parallelism, mode
     int indexSeed;                       // to generate worker index
+    volatile AtomicLong stealCounter;    // also used as sync monitor
     volatile WorkQueue[] workQueues;     // main registry
+    final String workerNamePrefix;       // to create worker name string
     final ForkJoinWorkerThreadFactory factory;
     final UncaughtExceptionHandler ueh;  // per-worker UEH
-    final String workerNamePrefix;       // to create worker name string
-    volatile AtomicLong stealCounter;    // also used as sync monitor
 
     /**
      * Instantiates fields upon first submission, and/or throws
      * exception if terminating. Called only by externalPush.
      */
     private void tryInitialize() {
-        int rs;
-        while (((rs = runState) & STARTED) == 0) {
-            AtomicLong sc = new AtomicLong();
-            if (U.compareAndSwapObject(this, STEALCOUNTER, null, sc)) {
-                // create workQueues array with size a power of two
-                int p = config & SMASK; // ensure at least 2 slots
-                int n = (p > 1) ? p - 1 : 1;
-                n |= n >>> 1; n |= n >>> 2;  n |= n >>> 4;
-                n |= n >>> 8; n |= n >>> 16; n = (n + 1) << 1;
-                workQueues = new WorkQueue[n];
-                while (!U.compareAndSwapInt(this, RUNSTATE, rs, rs | STARTED))
-                    rs = runState;
-                synchronized (sc) { sc.notifyAll(); }
-                break;
-            }
-            else if ((sc = stealCounter) != null) { // wait for initialization
-                synchronized (sc) {
-                    try {
-                        if ((runState & STARTED) == 0)
-                            sc.wait();
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                    }
+        if ((runState & STARTED) == 0) { // bootstrap by locking static field
+            int rs; // create workQueues array with size a power of two
+            int p = config & SMASK; // ensure at least 2 slots
+            int n = (p > 1) ? p - 1 : 1;
+            n |= n >>> 1; n |= n >>> 2;  n |= n >>> 4;
+            n |= n >>> 8; n |= n >>> 16; n = (n + 1) << 1;
+            synchronized(modifyThreadPermission) {
+                if ((runState & STARTED) == 0) {
+                    stealCounter = new AtomicLong();
+                    workQueues = new WorkQueue[n];
+                    do {} while (!U.compareAndSwapInt(this, RUNSTATE,
+                                                      rs = runState,
+                                                      rs | STARTED));
                 }
             }
         }
-        if ((rs = runState) < 0) {
+        if (runState < 0) {
             tryTerminate(false, false); // help terminate
             throw new RejectedExecutionException();
         }
@@ -1860,7 +1907,8 @@ public class ForkJoinPool extends AbstractExecutorService {
                 WorkQueue q; ForkJoinTask<?>[] a; int b, d, al;
                 if ((q = ws[idx]) != null && (d = (b = q.base) - q.top) < 0 &&
                     (a = q.array) != null && (al = a.length) > 0) {
-                    long offset = (((al - 1) & b) << ASHIFT) + ABASE;
+                    int index = (al - 1) & b;
+                    long offset = ((long)index << ASHIFT) + ABASE;
                     ForkJoinTask<?> t = (ForkJoinTask<?>)
                         U.getObjectVolatile(a, offset);
                     if (t == null || b++ != q.base)
@@ -2010,7 +2058,8 @@ public class ForkJoinPool extends AbstractExecutorService {
                         ForkJoinTask<?> next = v.currentJoin;
                         ForkJoinTask<?> t = null;
                         if ((a = v.array) != null && (al = a.length) > 0) {
-                            long offset = (((al - 1) & b) << ASHIFT) + ABASE;
+                            int index = (al - 1) & b;
+                            long offset = ((long)index << ASHIFT) + ABASE;
                             t = (ForkJoinTask<?>)U.getObjectVolatile(a, offset);
                             if (t != null && b++ == v.base) {
                                 if (j.currentJoin != subtask ||
@@ -2403,11 +2452,21 @@ public class ForkJoinPool extends AbstractExecutorService {
             WorkQueue q = new WorkQueue(this, null);
             q.config = index;
             q.scanState = ~UNSIGNALLED;
-            synchronized (lock) {          // lock to install
+            q.qlock = 1;                   // lock queue
+            boolean installed = false;
+            synchronized (lock) {          // lock pool to install
                 WorkQueue[] ws;
                 if ((ws = workQueues) != null && index < ws.length &&
                     ws[index] == null) {
-                    ws[index] = q;             // else throw away
+                    ws[index] = q;         // else throw away
+                    installed = true;
+                }
+            }
+            if (installed) {
+                try {
+                    q.growArray();
+                } finally {
+                    q.qlock = 0;
                 }
             }
         }
@@ -2423,42 +2482,26 @@ public class ForkJoinPool extends AbstractExecutorService {
      * @param task the task. Caller must ensure non-null.
      */
     final void externalPush(ForkJoinTask<?> task) {
-        int r;                                    // initialize caller's probe
+        int r;                            // initialize caller's probe
         if ((r = ThreadLocalRandom.getProbe()) == 0) {
             ThreadLocalRandom.localInit();
             r = ThreadLocalRandom.getProbe();
         }
         for (;;) {
-            WorkQueue q; int wl, k;
+            WorkQueue q; int wl, k, stat;
             int rs = runState;
             WorkQueue[] ws = workQueues;
             if (rs <= 0 || ws == null || (wl = ws.length) <= 0)
                 tryInitialize();
             else if ((q = ws[k = (wl - 1) & r & SQMASK]) == null)
                 tryCreateExternalQueue(k);
-            else if (U.compareAndSwapInt(q, QLOCK, 0, 1)) {
-                int b = q.base, s = q.top, al, d; ForkJoinTask<?>[] a;
-                if ((a = q.array) != null && (al = a.length) > 0 &&
-                    al - 1 + (d = b - s) > 0) {
-                    a[(al - 1) & s] = task;        // push
-                    q.top = s + 1;                 // relaxed writes OK here
-                    if (d != 0)
-                        U.putOrderedInt(q, QLOCK, 0);
-                    else {                         // sync with signallees
-                        U.putIntVolatile(q, QLOCK, 0);
-                        signalWork();
-                    }
-                    break;
-                }
-                else {                             // grow then retry
-                    try {
-                        q.growArray();
-                    } finally {
-                        q.qlock = 0;
-                    }
-                }
+            else if ((stat = q.sharedPush(task)) < 0)
+                break;
+            else if (stat == 0) {
+                signalWork();
+                break;
             }
-            else                                   // move if cannot lock
+            else                          // move if busy
                 r = ThreadLocalRandom.advanceProbe(r);
         }
     }
@@ -2502,6 +2545,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 (w = ws[(wl - 1) & r & SQMASK]) != null &&
                 w.trySharedUnpush(task));
     }
+
 
     /**
      * Performs helpComplete for an external submitter.
@@ -3375,8 +3419,6 @@ public class ForkJoinPool extends AbstractExecutorService {
     private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
     private static final long CTL;
     private static final long RUNSTATE;
-    private static final long STEALCOUNTER;
-    private static final long QLOCK;
     private static final int  ABASE;
     private static final int  ASHIFT;
 
@@ -3386,18 +3428,12 @@ public class ForkJoinPool extends AbstractExecutorService {
                 (ForkJoinPool.class.getDeclaredField("ctl"));
             RUNSTATE = U.objectFieldOffset
                 (ForkJoinPool.class.getDeclaredField("runState"));
-            STEALCOUNTER = U.objectFieldOffset
-                (ForkJoinPool.class.getDeclaredField("stealCounter"));
-
-            QLOCK = U.objectFieldOffset
-                (WorkQueue.class.getDeclaredField("qlock"));
 
             ABASE = U.arrayBaseOffset(ForkJoinTask[].class);
             int scale = U.arrayIndexScale(ForkJoinTask[].class);
             if ((scale & (scale - 1)) != 0)
                 throw new Error("array index scale not a power of two");
             ASHIFT = 31 - Integer.numberOfLeadingZeros(scale);
-
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }
