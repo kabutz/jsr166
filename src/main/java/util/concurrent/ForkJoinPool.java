@@ -289,16 +289,16 @@ public class ForkJoinPool extends AbstractExecutorService {
      * and their negations (used for thresholding) to fit into 16bit
      * subfields.
      *
-     * Field "runState" holds CASed state bits (STARTED, STOP, etc).
+     * Field "runState" holds state bits (STARTED, STOP, etc).  After
+     * starting, the field is updated under a lock (only during
+     * shutdown); opportunistically using the "stealCounter" object as
+     * a monitor. However stealCounter is itself lazily initialized,
+     * so tryInitialize bootstraps this using a private static lock.
      *
-     * Field "workQueues" holds references to WorkQueues.  We need a
-     * lock to create, resize, and install workers in this array. We
-     * opportunistically use the "stealCounter" object as a monitor
-     * protecting access; although it too is lazily initialized (see
-     * tryInitialize) and only exists when runstate is STARTED.  The
-     * workQueues array is otherwise concurrently readable, and
-     * accessed directly. We also ensure that reads of the array
-     * reference itself never become too stale (for example,
+     * Field "workQueues" holds references to WorkQueues.  It is
+     * updated only under the lock, but is otherwise concurrently
+     * readable, and accessed directly. We also ensure that reads of
+     * the array reference itself never become too stale (for example,
      * re-reading before each scan). To simplify index-based
      * operations, the array size is always a power of two, and all
      * readers must tolerate null slots. Worker queues are at odd
@@ -1158,9 +1158,8 @@ public class ForkJoinPool extends AbstractExecutorService {
                                 }
                             }
                             else if (base == b)      // replace with proxy
-                                removed =
-                                    U.compareAndSwapObject(a, offset, t,
-                                                           new EmptyTask());
+                                removed = U.compareAndSwapObject(a, offset, t,
+                                                                 new EmptyTask());
                             if (removed) {
                                 ForkJoinTask<?> ps = currentSteal;
                                 (currentSteal = task).doExec();
@@ -1450,27 +1449,28 @@ public class ForkJoinPool extends AbstractExecutorService {
     final UncaughtExceptionHandler ueh;  // per-worker UEH
 
     /**
-     * Instantiates fields upon first submission, and/or throws
-     * exception if terminating. Called only by externalPush.
+     * Instantiates fields upon first submission, or upon shutdown if
+     * no submissions. If checkTermination true, also responds to
+     * termination by external calls submitting tasks.
      */
-    private void tryInitialize() {
+    private void tryInitialize(boolean checkTermination) {
         if ((runState & STARTED) == 0) { // bootstrap by locking static field
             int rs; // create workQueues array with size a power of two
             int p = config & SMASK; // ensure at least 2 slots
             int n = (p > 1) ? p - 1 : 1;
             n |= n >>> 1; n |= n >>> 2;  n |= n >>> 4;
-            n |= n >>> 8; n |= n >>> 16; n = (n + 1) << 1;
-            synchronized (modifyThreadPermission) {
-                if ((runState & STARTED) == 0) {
-                    stealCounter = new AtomicLong();
-                    workQueues = new WorkQueue[n];
-                    do {} while (!U.compareAndSwapInt(this, RUNSTATE,
-                                                      rs = runState,
-                                                      rs | STARTED));
+            n |= n >>> 8; n |= n >>> 16; n = ((n + 1) << 1) & SMASK;
+            AtomicLong sc = new AtomicLong();
+            WorkQueue[] ws = new WorkQueue[n];
+            synchronized(modifyThreadPermission) { // double-check
+                if (((rs = runState) & STARTED) == 0) {
+                    workQueues = ws;
+                    runState = rs | STARTED;
+                    stealCounter = sc;
                 }
             }
         }
-        if (runState < 0) {
+        if (checkTermination && runState < 0) {
             tryTerminate(false, false); // help terminate
             throw new RejectedExecutionException();
         }
@@ -1533,7 +1533,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      */
     final WorkQueue registerWorker(ForkJoinWorkerThread wt) {
         UncaughtExceptionHandler handler;
-        Object lock = stealCounter;
+        AtomicLong lock = stealCounter;
         wt.setDaemon(true);                           // configure thread
         if ((handler = ueh) != null)
             wt.setUncaughtExceptionHandler(handler);
@@ -1580,7 +1580,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     final void deregisterWorker(ForkJoinWorkerThread wt, Throwable ex) {
         WorkQueue w = null;
         if (wt != null && (w = wt.workQueue) != null) {
-            Object lock; WorkQueue[] ws;              // remove index from array
+            AtomicLong lock; WorkQueue[] ws;          // remove index from array
             int idx = w.config & SMASK;
             if ((lock = stealCounter) != null) {
                 synchronized (lock) {
@@ -1775,7 +1775,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         long deadline = (((scale <= 0) ? 1 : scale) * IDLE_TIMEOUT_MS +
                          System.currentTimeMillis());
         if (w != null && w.scanState < 0) {
-            int ss; Object lock;
+            int ss; AtomicLong lock;
             if (runState < 0 && tryTerminate(false, false))
                 stat = w.qlock = -1;               // help terminate
             else if ((stat = w.qlock) >= 0 && w.scanState < 0) {
@@ -1914,11 +1914,8 @@ public class ForkJoinPool extends AbstractExecutorService {
                     if (t == null || b++ != q.base)
                         break;                     // busy or empty
                     else if (ss < 0) {
-                        if ((ss = w.scanState) >= 0) {
-                            tryReactivate(w, ws, r);
-                            break;                 // retry upon rescan
-                        }
-                        r |= (1 << 31);            // ensure full scan
+                        tryReactivate(w, ws, r);
+                        break;                     // retry upon rescan
                     }
                     else if (!U.compareAndSwapObject(a, offset, t, null))
                         break;                     // contended
@@ -2346,14 +2343,13 @@ public class ForkJoinPool extends AbstractExecutorService {
      * @return true if now terminating or terminated
      */
     private boolean tryTerminate(boolean now, boolean enable) {
-        int rs;
-        for (;;) {
-            if ((rs = runState) < 0)              // already shut down
-                break;
-            if (!enable || this == common)
-                return false;
-            if (U.compareAndSwapInt(this, RUNSTATE, rs, rs | SHUTDOWN))
-                break;
+        AtomicLong lock; int rs;
+        if ((rs = runState) >= 0 && (!enable || this == common))
+            return false;
+        while ((lock = stealCounter) == null)
+            tryInitialize(false);
+        synchronized(lock) {
+            rs = runState = runState | SHUTDOWN;
         }
 
         if ((rs & STOP) == 0) {
@@ -2383,8 +2379,9 @@ public class ForkJoinPool extends AbstractExecutorService {
                         break;
                 }
             }
-            while (((rs = runState) & STOP) == 0) // enter STOP phase
-                U.compareAndSwapInt(this, RUNSTATE, rs, rs | STOP);
+            synchronized(lock) {
+                rs = runState = runState | STOP;
+            }
         }
 
         int pass = 0;                             // 3 passes to help terminate
@@ -2393,14 +2390,11 @@ public class ForkJoinPool extends AbstractExecutorService {
             long checkSum = ctl;
             if ((short)(checkSum >>> TC_SHIFT) + (config & SMASK) <= 0 ||
                 (ws = workQueues) == null || (m = ws.length - 1) < 0) {
-                while (((rs = runState) & TERMINATED) == 0) {
-                    if (U.compareAndSwapInt(this, RUNSTATE, rs,
-                                            rs | TERMINATED)) {
-                        synchronized (this) {
-                            notifyAll();           // for awaitTermination
-                        }
-                        break;
-                    }
+                synchronized(lock) {
+                    rs = runState = runState | TERMINATED;
+                }
+                synchronized (this) {
+                    notifyAll();                   // for awaitTermination
                 }
                 break;
             }
@@ -2447,7 +2441,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * @param index the index of the new queue
      */
     private void tryCreateExternalQueue(int index) {
-        Object lock;
+        AtomicLong lock;
         if ((lock = stealCounter) != null && index >= 0) {
             WorkQueue q = new WorkQueue(this, null);
             q.config = index;
@@ -2492,7 +2486,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             int rs = runState;
             WorkQueue[] ws = workQueues;
             if (rs <= 0 || ws == null || (wl = ws.length) <= 0)
-                tryInitialize();
+                tryInitialize(true);
             else if ((q = ws[k = (wl - 1) & r & SQMASK]) == null)
                 tryCreateExternalQueue(k);
             else if ((stat = q.sharedPush(task)) < 0)
@@ -3418,7 +3412,6 @@ public class ForkJoinPool extends AbstractExecutorService {
     // Unsafe mechanics
     private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
     private static final long CTL;
-    private static final long RUNSTATE;
     private static final int  ABASE;
     private static final int  ASHIFT;
 
@@ -3426,9 +3419,6 @@ public class ForkJoinPool extends AbstractExecutorService {
         try {
             CTL = U.objectFieldOffset
                 (ForkJoinPool.class.getDeclaredField("ctl"));
-            RUNSTATE = U.objectFieldOffset
-                (ForkJoinPool.class.getDeclaredField("runState"));
-
             ABASE = U.arrayBaseOffset(ForkJoinTask[].class);
             int scale = U.arrayIndexScale(ForkJoinTask[].class);
             if ((scale & (scale - 1)) != 0)
