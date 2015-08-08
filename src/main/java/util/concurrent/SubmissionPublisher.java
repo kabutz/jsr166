@@ -578,7 +578,6 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         return closed;
     }
 
-
     /**
      * Returns the exception associated with {@link #closeExceptionally},
      * or null if not closed or if closed normally.
@@ -1017,7 +1016,6 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
             return stat;
         }
 
-
         /**
          * Spins/helps/blocks while offer returns 0.  Called only if
          * initial offer return 0.
@@ -1355,7 +1353,6 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
             waiter = null;
             return true;
         }
-
 
         /**
          * Consumer loop, called from ConsumerTask, or indirectly

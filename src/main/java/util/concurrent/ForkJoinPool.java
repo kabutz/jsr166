@@ -2540,7 +2540,6 @@ public class ForkJoinPool extends AbstractExecutorService {
                 w.trySharedUnpush(task));
     }
 
-
     /**
      * Performs helpComplete for an external submitter.
      */
