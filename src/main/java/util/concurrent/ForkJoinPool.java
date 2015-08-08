@@ -2394,7 +2394,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                     rs = runState = runState | TERMINATED;
                 }
                 synchronized (this) {
-                    notifyAll();                   // for awaitTermination
+                    notifyAll();                  // for awaitTermination
                 }
                 break;
             }
