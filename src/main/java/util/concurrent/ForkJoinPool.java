@@ -1462,7 +1462,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             n |= n >>> 8; n |= n >>> 16; n = ((n + 1) << 1) & SMASK;
             AtomicLong sc = new AtomicLong();
             WorkQueue[] ws = new WorkQueue[n];
-            synchronized(modifyThreadPermission) { // double-check
+            synchronized (modifyThreadPermission) { // double-check
                 if (((rs = runState) & STARTED) == 0) {
                     workQueues = ws;
                     runState = rs | STARTED;
@@ -2348,7 +2348,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             return false;
         while ((lock = stealCounter) == null)
             tryInitialize(false);
-        synchronized(lock) {
+        synchronized (lock) {
             rs = runState = runState | SHUTDOWN;
         }
 
@@ -2379,7 +2379,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                         break;
                 }
             }
-            synchronized(lock) {
+            synchronized (lock) {
                 rs = runState = runState | STOP;
             }
         }
@@ -2390,7 +2390,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             long checkSum = ctl;
             if ((short)(checkSum >>> TC_SHIFT) + (config & SMASK) <= 0 ||
                 (ws = workQueues) == null || (m = ws.length - 1) < 0) {
-                synchronized(lock) {
+                synchronized (lock) {
                     rs = runState = runState | TERMINATED;
                 }
                 synchronized (this) {
