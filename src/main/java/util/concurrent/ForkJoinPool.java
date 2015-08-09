@@ -298,7 +298,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * only when locked.  It is mainly used to lock (infrequent)
      * updates to runState and workQueues.  The auxState instance is
      * itself lazily constructed (see tryInitialize), requiring a
-     * double-check-style boostrapping use of field runState, and
+     * double-check-style bootstrapping use of field runState, and
      * locking a private static.
      *
      * Field "workQueues" holds references to WorkQueues.  It is
