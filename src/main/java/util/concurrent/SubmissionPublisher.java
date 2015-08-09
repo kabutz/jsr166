@@ -906,6 +906,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
             this.executor = executor;
             this.onNextHandler = onNextHandler;
             this.maxCapacity = maxBufferCapacity;
+            this.array = new Object[MINCAP];
         }
 
         final boolean isDisabled() {
@@ -1024,6 +1025,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
             int stat; Executor e; ForkJoinWorkerThread w;
             if ((stat = offer(item)) == 0 && helpDepth == 0 &&
                 ((e = executor) instanceof ForkJoinPool)) {
+                helpDepth = 1;
                 Thread thread = Thread.currentThread();
                 if ((thread instanceof ForkJoinWorkerThread) &&
                     ((w = (ForkJoinWorkerThread)thread)).getPool() == e)
@@ -1031,6 +1033,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                 else if (e == ForkJoinPool.commonPool())
                     stat = externalHelpConsume
                         (ForkJoinPool.commonSubmitterQueue(), item);
+                helpDepth = 0;
             }
             if (stat == 0 && (stat = offer(item)) == 0) {
                 putItem = item;
@@ -1051,13 +1054,13 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
          * Tries helping for FJ submitter
          */
         private int internalHelpConsume(ForkJoinPool.WorkQueue w, T item) {
-            ForkJoinTask<?> t;
             int stat = 0;
             if (w != null) {
+                ForkJoinTask<?> t;
                 while ((t = w.peek()) != null && (t instanceof ConsumerTask)) {
                     if ((stat = offer(item)) != 0 || !w.tryUnpush(t))
                         break;
-                    ((ConsumerTask<?>)t).consumer.helpConsume();
+                    ((ConsumerTask<?>)t).consumer.consume();
                 }
             }
             return stat;
@@ -1067,13 +1070,13 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
          * Tries helping for non-FJ submitter
          */
         private int externalHelpConsume(ForkJoinPool.WorkQueue w, T item) {
-            ForkJoinTask<?> t;
             int stat = 0;
             if (w != null) {
+                ForkJoinTask<?> t;
                 while ((t = w.peek()) != null && (t instanceof ConsumerTask)) {
                     if ((stat = offer(item)) != 0 || !w.trySharedUnpush(t))
                         break;
-                    ((ConsumerTask<?>)t).consumer.helpConsume();
+                    ((ConsumerTask<?>)t).consumer.consume();
                 }
             }
             return stat;
@@ -1090,6 +1093,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                 if (((thread instanceof ForkJoinWorkerThread) &&
                      ((ForkJoinWorkerThread)thread).getPool() == e) ||
                     e == ForkJoinPool.commonPool()) {
+                    helpDepth = 1;
                     ForkJoinTask<?> t;
                     long deadline = System.nanoTime() + nanos;
                     while ((t = ForkJoinTask.peekNextLocalTask()) != null &&
@@ -1098,8 +1102,9 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                             (nanos = deadline - System.nanoTime()) <= 0L ||
                             !t.tryUnfork())
                             break;
-                        ((ConsumerTask<?>)t).consumer.helpConsume();
+                        ((ConsumerTask<?>)t).consumer.consume();
                     }
+                    helpDepth = 0;
                 }
             }
             if (stat == 0 && (stat = offer(item)) == 0 &&
@@ -1115,13 +1120,6 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                     Thread.currentThread().interrupt();
             }
             return stat;
-        }
-
-        /** Version of consume called when helping in submit or timedOffer */
-        private void helpConsume() {
-            helpDepth = 1; // only one level allowed
-            consume();
-            helpDepth = 0;
         }
 
         /**
@@ -1356,7 +1354,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
 
         /**
          * Consumer loop, called from ConsumerTask, or indirectly
-         * via helpConsume when helping during submit.
+         * when helping during submit.
          */
         final void consume() {
             Flow.Subscriber<? super T> s;
