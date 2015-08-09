@@ -318,7 +318,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * submissions, replacement of terminated workers, and/or
      * compensation for blocked workers. However, all other support
      * code is set up to work with other policies.  To ensure that we
-     * do not hold on to worker references that would prevent GC, All
+     * do not hold on to worker references that would prevent GC, all
      * accesses to workQueues are via indices into the workQueues
      * array (which is one source of some of the messy code
      * constructions here). In essence, the workQueues array serves as
