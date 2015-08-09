@@ -2054,7 +2054,7 @@ public class ForkJoinPool extends AbstractExecutorService {
 
     /**
      * Tries to locate and execute tasks for a stealer of the given
-     * task, or in turn one of its stealers, Traces currentSteal ->
+     * task, or in turn one of its stealers. Traces currentSteal ->
      * currentJoin links looking for a thread working on a descendant
      * of the given task and with a non-empty queue to steal back and
      * execute tasks from. The first call to this method upon a
