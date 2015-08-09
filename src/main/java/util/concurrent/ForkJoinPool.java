@@ -358,9 +358,9 @@ public class ForkJoinPool extends AbstractExecutorService {
      * ForkJoinWorkerThread via its factory. Upon construction, the
      * new thread invokes registerWorker, where it constructs a
      * WorkQueue and is assigned an index in the workQueues array
-     * (expanding the array if necessary). The thread is then
-     * started. Upon any exception across these steps, or null return
-     * from factory, deregisterWorker adjusts counts and records
+     * (expanding the array if necessary). The thread is then started.
+     * Upon any exception across these steps, or null return from
+     * factory, deregisterWorker adjusts counts and records
      * accordingly.  If a null return, the pool continues running with
      * fewer than the target number workers. If exceptional, the
      * exception is propagated, generally to some external caller.
