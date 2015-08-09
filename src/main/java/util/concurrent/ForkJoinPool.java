@@ -451,8 +451,9 @@ public class ForkJoinPool extends AbstractExecutorService {
      * Trimming workers. To release resources after periods of lack of
      * use, a worker starting to wait when the pool is quiescent will
      * time out and terminate (see awaitWork) if the pool has remained
-     * quiescent for period IDLE_TIMEOUT, increasing the period as the
-     * number of threads decreases, eventually removing all workers.
+     * quiescent for period given by IDLE_TIMEOUT_MS, increasing the
+     * period as the number of threads decreases, eventually removing
+     * all workers.
      *
      * Shutdown and Termination. A call to shutdownNow invokes
      * tryTerminate to atomically set a runState bit. The calling
@@ -1390,10 +1391,9 @@ public class ForkJoinPool extends AbstractExecutorService {
     /**
      * Initial timeout value (in milliseconds) for the thread
      * triggering quiescence to park waiting for new work. On timeout,
-     * the thread will instead try to shrink the number of
-     * workers. The value should be large enough to avoid overly
-     * aggressive shrinkage during most transient stalls (long GCs
-     * etc).
+     * the thread will instead try to shrink the number of workers.
+     * The value should be large enough to avoid overly aggressive
+     * shrinkage during most transient stalls (long GCs etc).
      */
     private static final long IDLE_TIMEOUT_MS = 2000L; // 2sec
 
