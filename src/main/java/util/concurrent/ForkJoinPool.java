@@ -435,7 +435,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * similar but simpler forms.
      *
      * Deactivation and waiting. Queuing encounters several intrinsic
-     * races; most notably that a inactivating scanning worker can
+     * races; most notably that an inactivating scanning worker can
      * miss seeing a task produced during a scan.  So when a worker
      * cannot find a task to steal, it inactivates and enqueues, and
      * then rescans to ensure that it didn't miss one, reactivating
