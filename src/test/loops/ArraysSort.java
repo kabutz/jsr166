@@ -122,9 +122,9 @@ class ArraysSort {
 
     static void checkSorted(Long[] a) {
         int n = a.length;
-        long x = ((Long)a[0]).longValue(), y;
+        long x = a[0].longValue(), y;
         for (int i = 0; i < n - 1; i++) {
-            if (x > (y = ((Long)a[i+1]).longValue()))
+            if (x > (y = a[i+1].longValue()))
                 throw new Error("Unsorted at " + i + ": " + x + " / " + y);
             x = y;
         }
@@ -185,9 +185,9 @@ class ArraysSort {
             }
             int bound = h < n ? h : n - 1;
             int i = l;
-            long x = ((Long)a[i]).longValue(), y;
+            long x = a[i].longValue(), y;
             while (i < bound) {
-                if (x > (y = ((Long)a[++i]).longValue()))
+                if (x > (y = a[++i].longValue()))
                     throw new Error("Unsorted " + x + " / " + y);
                 x = y;
             }
