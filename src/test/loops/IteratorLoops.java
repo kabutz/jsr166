@@ -32,7 +32,7 @@ public final class IteratorLoops {
         System.out.println();
 
         Collection<Integer>[] colls =
-            (Collection<Integer>[])new Collection[NC];
+            (Collection<Integer>[])new Collection<?>[NC];
 
         for (int k = 0; k < colls.length; ++k) {
             Object x = klass.newInstance();
@@ -86,8 +86,8 @@ public final class IteratorLoops {
     int counts() {
         int count = 0;
         for (int k = 0; k < cs.length; ++k) {
-            for (Iterator it = cs[k].iterator(); it.hasNext();) {
-                if (it.next() != null)
+            for (Integer x : cs[k]) {
+                if (x != null)
                     ++count;
             }
         }
