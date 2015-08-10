@@ -556,6 +556,32 @@
   </target>
 
 
+  <target name="compile-test-loops" depends="jar"
+          description="compile all the perf tests in src/test/loops">
+
+    <mkdir dir="${build.dir}/test/loops"/>
+
+    <javac srcdir="${basedir}/src/test/loops"
+           destdir="${build.dir}/test/loops"
+           debug="${build.debug}"
+           debuglevel="${build.debuglevel}"
+           deprecation="${build.deprecation}"
+           includeAntRuntime="false"
+           includeJavaRuntime="false"
+           executable="${javac9}"
+           fork="true">
+
+      <include name="*.java"/>
+      <compilerarg value="-XDignore.symbol.file=true"/>
+      <compilerarg value="-Xlint:all,-unchecked,-rawtypes,-serial,-deprecation"/>
+      <compilerarg value="-Xbootclasspath/p:${product.jar}"/>
+      <compilerarg line="${build.args}"/>
+
+    </javac>
+
+  </target>
+
+
   <!-- jsr166 4jdk7 -->
 
   <target name="4jdk7compile"
