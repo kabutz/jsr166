@@ -21,7 +21,6 @@ class Sync100M {
         time = System.nanoTime() - start;
         secs = (double) time / 1000000000.0;
         System.out.println("time: " + secs);
-
     }
 
     static final Object obj = new Object();

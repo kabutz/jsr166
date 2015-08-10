@@ -80,7 +80,6 @@ public final class NoopLockLoops {
                     sum += x;
                     if ((x += readBarrier) == 0)
                         ++readBarrier;
-
                 }
                 barrier.await();
                 result += sum;

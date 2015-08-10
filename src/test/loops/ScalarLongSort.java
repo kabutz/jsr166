@@ -174,7 +174,6 @@ class ScalarLongSort {
             merge(nleft, nright);
             if (rights != null)
                 collectRights(rights);
-
         }
 
         final void merge(int nleft, int nright) {

@@ -176,7 +176,6 @@ public class CCJacobi {
             q2.fork();
             q1.compute();
         }
-
     }
 
     static final class Driver extends RecursiveAction {
@@ -202,7 +201,6 @@ public class CCJacobi {
             this.leafs = leafs;
             mat = build(null, A, B, firstRow, lastRow, firstCol, lastCol, leafs);
             System.out.println("Using " + nleaf + " segments");
-
         }
 
         MatrixTree build(MatrixTree p,

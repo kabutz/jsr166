@@ -56,7 +56,6 @@ public final class ContextSwitchTest {
             LockSupport.unpark(other);
             nparks = p;
             System.out.println("parks: " + p);
-
         }
     }
 }

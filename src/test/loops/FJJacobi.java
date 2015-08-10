@@ -94,7 +94,6 @@ public class FJJacobi {
             double m = maxDiff;
             return (md > m) ? md : m;
         }
-
     }
 
     static final class LeafNode extends MatrixTree {

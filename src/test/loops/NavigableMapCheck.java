@@ -62,7 +62,6 @@ public class NavigableMapCheck {
         }
 
         TestTimer.printStats();
-
     }
 
     static NavigableMap newMap(Class<?> cl) {
@@ -481,9 +480,7 @@ public class NavigableMapCheck {
                     if (timePerOp < stats.least) stats.least = timePerOp;
                 }
             }
-
         }
-
     }
 
     static class Stats {

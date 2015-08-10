@@ -62,7 +62,6 @@ public class NavigableSetCheck {
         }
 
         TestTimer.printStats();
-
     }
 
     static NavigableSet newSet(Class<?> cl) {

@@ -184,7 +184,6 @@ public class Heat {
                     nv[b] = cell
                         + dtdysq * (prev    - twoc + next)
                         + dtdxsq * (east[b] - twoc + west[b]);
-
                 }
             }
 
@@ -205,7 +204,6 @@ public class Heat {
                     newMat[a][b] = cell
                         + dtdxsq * (oldMat[a+1][b] - twoc + oldMat[a-1][b])
                         + dtdysq * (oldMat[a][b+1] - twoc + oldMat[a][b-1]);
-
                 }
             }
 
@@ -229,7 +227,6 @@ public class Heat {
             }
 
             edges(oldm, llb, lub, 0);
-
         }
 
         /** Fills in edges with boundary values. */

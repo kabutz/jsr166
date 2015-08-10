@@ -93,7 +93,6 @@ public final class LockLoops {
                 System.out.print("ReentrantReadWriteLock");
             new ReentrantReadWriteLockLoop().test(v, nthreads, iters);
             Thread.sleep(10);
-
         }
 
         if (doSemaphore) {
@@ -106,7 +105,6 @@ public final class LockLoops {
                 System.out.print("FairSemaphore         ");
             new FairSemaphoreLoop().test(v, nthreads, iters);
             Thread.sleep(10);
-
         }
 
         if (doFair) {
@@ -126,9 +124,7 @@ public final class LockLoops {
                 new FairReentrantReadWriteLockLoop().test(v, nthreads, iters);
                 Thread.sleep(10);
             }
-
         }
-
     }
 
     abstract static class LockLoop implements Runnable {

@@ -52,7 +52,6 @@ public class DequeBash {
             System.out.printf("Time: %d ms%n", elapsedTimeMillis);
             if (deque.isEmpty()) System.out.print(" ");
         }
-
     }
 
     static void mainTest(Deque<Integer> deque, int n) throws Exception {
@@ -79,7 +78,6 @@ public class DequeBash {
             // Test fancy removal stuff once in a blue moon
             if ((i & 8191) == 0)
                 testRemove(deque);
-
         }
 
         // Stupid tests for clear, toString

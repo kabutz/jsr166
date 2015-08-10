@@ -49,7 +49,6 @@ public final class UncheckedLockLoops {
             oneTest(i, iters / i);
             Thread.sleep(100);
         }
-
     }
 
     static void oneTest(int nthreads, int iters) throws Exception {
@@ -118,7 +117,6 @@ public final class UncheckedLockLoops {
             System.out.print("FairRReadWriteLock     ");
         new FairReentrantReadWriteLockLoop().test(v, nthreads, fairIters);
         Thread.sleep(10);
-
     }
 
     abstract static class LockLoop implements Runnable {

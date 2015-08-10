@@ -140,6 +140,5 @@ public class ConcurrentDequeLoops {
             System.out.println(LoopHelpers.rightJustify(time / (items * n)) + " ns per item");
         if (total == 0) // avoid overoptimization
             System.out.println("useless result: " + total);
-
     }
 }

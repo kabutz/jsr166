@@ -104,7 +104,6 @@ public class TimeoutProducerConsumerLoops {
         if (print)
             System.out.print("ArrayBlockingQueue(fair) ");
         oneRun(new ArrayBlockingQueue<Integer>(POOL_SIZE, true), n, iters/16);
-
     }
 
     abstract static class Stage implements Runnable {

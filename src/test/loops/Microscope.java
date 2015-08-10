@@ -174,7 +174,6 @@ public class Microscope extends JPanel {
                 public synchronized void actionPerformed(ActionEvent e) {
                     toggleDemoMode();
                     updateStatus();
-
                 }});
 
         undoButton.addActionListener(new ActionListener() {

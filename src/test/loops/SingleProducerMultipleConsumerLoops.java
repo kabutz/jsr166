@@ -127,7 +127,6 @@ public class SingleProducerMultipleConsumerLoops {
         if (print)
             System.out.print("ArrayBlockingQueue(fair)");
         oneRun(new ArrayBlockingQueue<Integer>(POOL_SIZE, true), n, fairIters);
-
     }
 
     abstract static class Stage implements Runnable {
@@ -169,7 +168,6 @@ public class SingleProducerMultipleConsumerLoops {
     static class Consumer extends Stage {
         Consumer(BlockingQueue<Integer> q, CyclicBarrier b, int iters) {
             super(q, b, iters);
-
         }
 
         public void run() {

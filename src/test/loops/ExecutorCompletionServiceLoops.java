@@ -74,7 +74,6 @@ public class ExecutorCompletionServiceLoops {
 
         if (r == 0) // avoid overoptimization
             System.out.println("useless result: " + r);
-
     }
 
 }

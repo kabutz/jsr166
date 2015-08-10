@@ -37,7 +37,6 @@ public class CollectionWordLoops {
 
         for (int s = WORDS_FILES.length-1; s >= 0; --s)
             tests(collectionClass, numTests, s);
-
     }
 
     static void tests(Class<?> collectionClass, int numTests, int sizeIndex) {

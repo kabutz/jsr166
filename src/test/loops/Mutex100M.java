@@ -25,7 +25,6 @@ class Mutex100M {
         time = System.nanoTime() - start;
         secs = (double) time / 1000000000.0;
         System.out.println("time: " + secs);
-
     }
 
     static final Mutex100M.Mutex lock = new Mutex100M.Mutex();

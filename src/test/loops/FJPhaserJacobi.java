@@ -62,9 +62,7 @@ public class FJPhaserJacobi {
 
             System.out.println("Compute Time: " + secs);
             System.out.println(fjp);
-
         }
-
     }
 
     static class Segment extends CyclicAction {

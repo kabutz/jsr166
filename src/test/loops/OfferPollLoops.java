@@ -134,7 +134,6 @@ public class OfferPollLoops {
         if (print)
             System.out.print("ArrayBlockingQueue(fair)");
         oneRun(new ArrayBlockingQueue<Integer>(POOL_SIZE, true), n, fairIters);
-
     }
 
     abstract static class Stage implements Runnable {

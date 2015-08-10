@@ -39,7 +39,6 @@ public class MapWordLoops {
 
         for (int s = WORDS_FILES.length-1; s >= 0; --s)
             tests(mapClass, numTests, s);
-
     }
 
     static void tests(Class<?> mapClass, int numTests, int sizeIndex) {
