@@ -44,7 +44,7 @@ public final class CancelledFutureLoops {
         pool.shutdown();
     }
 
-    static final class FutureLoop implements Callable {
+    static final class FutureLoop implements Callable<Object> {
         private int v = rng.next();
         private final ReentrantLock lock = new ReentrantLock();
         private final LoopHelpers.BarrierTimer timer = new LoopHelpers.BarrierTimer();
