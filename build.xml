@@ -573,7 +573,7 @@
 
       <include name="*.java"/>
       <compilerarg value="-XDignore.symbol.file=true"/>
-      <compilerarg value="-Xlint:all,-unchecked,-rawtypes,-serial,-deprecation"/>
+      <compilerarg value="-Xlint:all,-unchecked,-rawtypes,-serial"/>
       <compilerarg value="-Xbootclasspath/p:${product.jar}"/>
       <compilerarg line="${build.args}"/>
 
