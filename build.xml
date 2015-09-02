@@ -276,6 +276,7 @@
       <exclude name="util/concurrent/CompletableFuture/**/*.java"/>
       <exclude name="util/concurrent/forkjoin/SubmissionTest.java"/>
       <exclude name="util/concurrent/locks/StampedLock/**/*.java"/>
+      <exclude name="util/concurrent/atomic/Serial.java"/>
     </patternset>
   </fileset>
 
