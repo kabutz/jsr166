@@ -274,6 +274,12 @@
       <exclude name="util/List/ListDefaults.java"/>
       <exclude name="util/Spliterator/**/*.java"/>
       <exclude name="**/CompletableFuture/**/*.java"/>
+      <exclude name="**/ConcurrentAssociateTest.java"/>
+      <exclude name="**/ConcurrentContainsKeyTest.java"/>
+      <exclude name="**/ConcurrentHashMap/ToArray.java"/>
+      <exclude name="**/ConcurrentRemoveIf.java"/>
+      <exclude name="**/COWSubList.java"/>
+      <exclude name="**/FutureTask/NegativeTimeout.java"/>
       <exclude name="util/concurrent/forkjoin/SubmissionTest.java"/>
       <exclude name="**/StampedLock/**/*.java"/>
       <exclude name="**/AtomicReferenceTest.java"/>
