@@ -262,6 +262,8 @@
     <patternset id="jdk8.jtreg.tests">
       <include name="**/*.java"/>
       <exclude name="util/Spliterator/SpliteratorCharacteristics.java"/>
+      <!-- https://bugs.openjdk.java.net/browse/JDK-6842353 -->
+      <exclude name="util/WeakHashMap/GCDuringIteration.java"/>
     </patternset>
   </fileset>
 
@@ -489,6 +491,15 @@
           description="Runs tck and jtreg tests for main">
   </target>
 
+  <target name="jtreg8" description="Runs jtreg tests with jdk8">
+
+    <antcall target="jtreg">
+      <param name="build.main.java.version" value="8"/>
+      <param name="build.main.javac" value="${javac8}"/>
+    </antcall>
+
+  </target>
+
   <target name="test89"
           description="Runs tck and jtreg tests for main for multiple java versions">
 
@@ -496,7 +507,6 @@
     <antcall target="test">
       <param name="build.main.java.version" value="8"/>
       <param name="build.main.javac" value="${javac8}"/>
-      <param name="jtreg.exclude.file" value="${jtreg.src.dir}/jdk9tests"/>
     </antcall>
 
     <antcall target="clean"/>
