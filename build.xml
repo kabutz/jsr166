@@ -280,7 +280,8 @@
       <exclude name="**/ConcurrentRemoveIf.java"/>
       <exclude name="**/COWSubList.java"/>
       <exclude name="**/FutureTask/NegativeTimeout.java"/>
-      <exclude name="util/concurrent/forkjoin/SubmissionTest.java"/>
+      <exclude name="**/LinkedTransferQueue/SpliteratorTraverseAddRemoveTest.java"/>
+      <exclude name="**/forkjoin/SubmissionTest.java"/>
       <exclude name="**/StampedLock/**/*.java"/>
       <exclude name="**/AtomicReferenceTest.java"/>
       <exclude name="util/concurrent/atomic/Serial.java"/>
