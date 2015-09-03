@@ -21,7 +21,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -45,7 +47,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     void checkIncomplete(CompletableFuture<?> f) {
         assertFalse(f.isDone());
         assertFalse(f.isCancelled());
-        assertTrue(f.toString().contains("[Not completed]"));
+        assertTrue(f.toString().contains("Not completed"));
         try {
             assertNull(f.getNow(null));
         } catch (Throwable fail) { threadUnexpectedException(fail); }
@@ -138,6 +140,43 @@ public class CompletableFutureTest extends JSR166TestCase {
             shouldThrow();
         } catch (ExecutionException success) {
             assertSame(ex, success.getCause());
+        } catch (Throwable fail) { threadUnexpectedException(fail); }
+
+        assertTrue(f.isDone());
+        assertFalse(f.isCancelled());
+        assertTrue(f.toString().contains("[Completed exceptionally]"));
+    }
+
+    <U> void checkCompletedExceptionallyWithTimeout(CompletableFuture<U> f) {
+        long startTime = System.nanoTime();
+        long timeoutMillis = LONG_DELAY_MS;
+        try {
+            f.get(timeoutMillis, MILLISECONDS);
+            shouldThrow();
+        } catch (ExecutionException ex) {
+            assertTrue(ex.getCause() instanceof TimeoutException);
+        } catch (Throwable fail) { threadUnexpectedException(fail); }
+        assertTrue(millisElapsedSince(startTime) < timeoutMillis/2);
+
+        try {
+            f.join();
+            shouldThrow();
+        } catch (Throwable ex) {
+            assertTrue(ex.getCause() instanceof TimeoutException);
+        }
+
+        try {
+            f.getNow(null);
+            shouldThrow();
+        } catch (Throwable ex) {
+            assertTrue(ex.getCause() instanceof TimeoutException);
+        }
+
+        try {
+            f.get();
+            shouldThrow();
+        } catch (ExecutionException ex) {
+            assertTrue(ex.getCause() instanceof TimeoutException);
         } catch (Throwable fail) { threadUnexpectedException(fail); }
 
         assertTrue(f.isDone());
@@ -3294,7 +3333,6 @@ public class CompletableFutureTest extends JSR166TestCase {
             () -> f.exceptionally(null),
 
             () -> f.handle(null),
-
             () -> CompletableFuture.allOf((CompletableFuture<?>)null),
             () -> CompletableFuture.allOf((CompletableFuture<?>[])null),
             () -> CompletableFuture.allOf(f, null),
@@ -3318,6 +3356,266 @@ public class CompletableFutureTest extends JSR166TestCase {
     public void testToCompletableFuture() {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         assertSame(f, f.toCompletableFuture());
+    }
+
+    // jdk9
+    
+    /**
+     * newIncompleteFuture returns an incomplete CompletableFuture
+     */
+    public void testNewIncompleteFuture() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        CompletableFuture<Integer> g = f.newIncompleteFuture();
+        checkIncomplete(f);
+        checkIncomplete(g);
+    }
+
+    /**
+     * completedStage returns a completed CompletionStage
+     */
+    public void testCompletedStage() {
+        AtomicInteger x = new AtomicInteger();
+        AtomicReference<Throwable> r = new AtomicReference<Throwable>();
+        CompletionStage<Integer> f = CompletableFuture.completedStage(1);
+        f.whenComplete((v, e) -> {if (e != null) r.set(e); else x.set(v);});
+        assertEquals(x.get(), 1);
+        assertNull(r.get());
+    }
+
+    /**
+     * defaultExecutor by default returns the commonPool if
+     * it supports at least one thread.
+     */
+    public void testDefaultExecutor() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        Executor e = f.defaultExecutor();
+        Executor c =  ForkJoinPool.commonPool();
+        if (ForkJoinPool.getCommonPoolParallelism() > 0)
+            assertSame(e, c);
+    }
+
+    /**
+     * failedFuture returns a CompletableFuture completed
+     * exceptionally with the given Exception
+     */
+    public void testFailedFuture() {
+        CFException ex = new CFException();
+        CompletableFuture<Integer> f = CompletableFuture.failedFuture(ex);
+        checkCompletedExceptionallyWithRootCause(f, ex);
+    }
+
+    /**
+     * failedFuture(null) throws NPE
+     */
+    public void testFailedFuture2() {
+        try {
+            CompletableFuture<Integer> f = CompletableFuture.failedFuture(null);
+        } catch(NullPointerException success) {
+        }
+    }
+
+    /**
+     * copy returns a CompletableFuture that is completed normally,
+     * with the same value, when source is.
+     */
+    public void testCopy() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        CompletableFuture<Integer> g = f.copy();
+        checkIncomplete(f);
+        checkIncomplete(g);
+        f.complete(1);
+        checkCompletedNormally(f, 1);
+        checkCompletedNormally(g, 1);
+    }
+
+    /**
+     * copy returns a CompletableFuture that is completed exceptionally
+     * when source is.
+     */
+    public void testCopy2() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        CompletableFuture<Integer> g = f.copy();
+        checkIncomplete(f);
+        checkIncomplete(g);
+        CFException ex = new CFException();
+        f.completeExceptionally(ex);
+        checkCompletedExceptionally(f, ex);
+        checkCompletedWithWrappedCFException(g);
+    }
+
+    /**
+     * minimalCompletionStage returns a CompletableFuture that is
+     * completed normally, with the same value, when source is.
+     */
+    public void testMinimalCompletionStage() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        CompletionStage<Integer> g = f.minimalCompletionStage();
+        AtomicInteger x = new AtomicInteger();
+        AtomicReference<Throwable> r = new AtomicReference<Throwable>();
+        checkIncomplete(f);
+        g.whenComplete((v, e) -> {if (e != null) r.set(e); else x.set(v);});
+        f.complete(1);
+        checkCompletedNormally(f, 1);
+        assertEquals(x.get(), 1);
+        assertNull(r.get());
+    }
+
+    /**
+     * minimalCompletionStage returns a CompletableFuture that is
+     * completed exceptionally when source is.
+     */
+    public void testMinimalCompletionStage2() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        CompletionStage<Integer> g = f.minimalCompletionStage();
+        AtomicInteger x = new AtomicInteger();
+        AtomicReference<Throwable> r = new AtomicReference<Throwable>();
+        g.whenComplete((v, e) -> {if (e != null) r.set(e); else x.set(v);});
+        checkIncomplete(f);
+        CFException ex = new CFException();
+        f.completeExceptionally(ex);
+        checkCompletedExceptionally(f, ex);
+        assertEquals(x.get(), 0);
+        assertEquals(r.get().getCause(), ex);
+    }
+
+    /**
+     * failedStage returns a Completionstage completed
+     * exceptionally with the given Exception
+     */
+    public void testFailedStage() {
+        CFException ex = new CFException();
+        CompletionStage<Integer> f = CompletableFuture.failedStage(ex);
+        AtomicInteger x = new AtomicInteger();
+        AtomicReference<Throwable> r = new AtomicReference<Throwable>();
+        f.whenComplete((v, e) -> {if (e != null) r.set(e); else x.set(v);});
+        assertEquals(x.get(), 0);
+        assertEquals(r.get().getCause(), ex);
+    }
+
+    /**
+     * completeAsync completes with value of given supplier
+     */
+    public void testCompleteAsync() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        f.completeAsync(() -> 1);
+        f.join();
+        checkCompletedNormally(f, 1);
+    }
+
+    /**
+     * completeAsync completes exceptionally if given supplier throws
+     */
+    public void testCompleteAsync2() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        CFException ex = new CFException();
+        f.completeAsync(() -> {if (true) throw ex; return 1;});
+        try {
+            f.join();
+            shouldThrow();
+        } catch(Exception success) {
+        }
+        checkCompletedWithWrappedCFException(f);
+    }
+
+    /**
+     * completeAsync with given executor completes with value of given supplier
+     */
+    public void testCompleteAsync3() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        f.completeAsync(() -> 1, new ThreadExecutor());
+        f.join();
+        checkCompletedNormally(f, 1);
+    }
+
+    /**
+     * completeAsync with given executor completes exceptionally if
+     * given supplier throws
+     */
+    public void testCompleteAsync4() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        CFException ex = new CFException();
+        f.completeAsync(() -> {if (true) throw ex; return 1;}, new ThreadExecutor());
+        try {
+            f.join();
+            shouldThrow();
+        } catch(Exception success) {
+        }
+        checkCompletedWithWrappedCFException(f);
+    }
+
+    /**
+     *  orTimeout completes with TimeoutException if not complete
+     */
+    public void testOrTimeout() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        f.orTimeout(SHORT_DELAY_MS, TimeUnit.MILLISECONDS);
+        checkCompletedExceptionallyWithTimeout(f);
+    }
+
+    /**
+     *  orTimeout completes normally if completed before timeout
+     */
+    public void testOrTimeout2() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        f.complete(1);
+        f.orTimeout(SHORT_DELAY_MS, TimeUnit.MILLISECONDS);
+        checkCompletedNormally(f, 1);
+    }
+
+    /**
+     *  completeOnTimeout completes with given value if not complete
+     */
+    public void testCompleteOnTimeout() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        f.completeOnTimeout(-1, SHORT_DELAY_MS, TimeUnit.MILLISECONDS);
+        f.join();
+        checkCompletedNormally(f, -1);
+    }
+
+    /**
+     *  completeOnTimeout has no effect if completed within timeout
+     */
+    public void testCompleteOnTimeout2() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        f.complete(1);
+        f.completeOnTimeout(-1, SHORT_DELAY_MS, TimeUnit.MILLISECONDS);
+        checkCompletedNormally(f, 1);
+    }
+
+    /**
+     * delayedExecutor returns an executor that delays submission
+     */
+    public void testDelayedExecutor() {
+        long timeoutMillis = SMALL_DELAY_MS;
+        Executor d = CompletableFuture.delayedExecutor(timeoutMillis,
+                                                       MILLISECONDS);
+        long startTime = System.nanoTime();
+        CompletableFuture<Integer> f = CompletableFuture.supplyAsync(() -> 1, d);
+        assertNull(f.getNow(null));
+        try {
+            f.get(LONG_DELAY_MS, MILLISECONDS);
+        } catch (Throwable fail) { threadUnexpectedException(fail); }
+        assertTrue(millisElapsedSince(startTime) > timeoutMillis/2);
+        checkCompletedNormally(f, 1);
+    }
+
+    /**
+     * delayedExecutor for a given executor returns an executor that
+     * delays submission
+     */
+    public void testDelayedExecutor2() {
+        long timeoutMillis = SMALL_DELAY_MS;
+        Executor d = CompletableFuture.delayedExecutor(timeoutMillis,
+                                                       MILLISECONDS,
+                                                       new ThreadExecutor());
+        long startTime = System.nanoTime();
+        CompletableFuture<Integer> f = CompletableFuture.supplyAsync(() -> 1, d);
+        assertNull(f.getNow(null));
+        try {
+            f.get(LONG_DELAY_MS, MILLISECONDS);
+        } catch (Throwable fail) { threadUnexpectedException(fail); }
+        assertTrue(millisElapsedSince(startTime) > timeoutMillis/2);
+        checkCompletedNormally(f, 1);
     }
 
     //--- tests of implementation details; not part of official tck ---
