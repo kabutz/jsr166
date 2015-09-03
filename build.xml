@@ -52,9 +52,9 @@
 
   <!-- Tck options; see JSR166TestCase.java
    To profile a single tck test class:
-   ant -Djsr166.profileTests=true -Djsr166.profileThreshold=100 -Djsr166.tckTestClass=CompletableFutureTest test-tck
+   ant -Djsr166.profileTests=true -Djsr166.profileThreshold=100 -Djsr166.tckTestClass=CompletableFutureTest tck
    To stress test a single tck test class:
-   ant -Djsr166.tckTestClass=CountedCompleterTest -Djsr166.runsPerTest=100 test-tck
+   ant -Djsr166.tckTestClass=CountedCompleterTest -Djsr166.runsPerTest=100 tck
   -->
   <property name="jsr166.profileTests"     value="false"/>
   <property name="jsr166.profileThreshold" value="100"/>
@@ -237,7 +237,7 @@
 	<jvmarg value="-Xbootclasspath/p:@{classes}"/>
 	<jvmarg line="@{jvmflags}"/>
 
-        <!-- ant -Djava.util.concurrent.ForkJoinPool.common.parallelism=1 test-tck -->
+        <!-- ant -Djava.util.concurrent.ForkJoinPool.common.parallelism=1 tck -->
 	<syspropertyset id="java.util.concurrent.ForkJoinPool-properties">
 	  <propertyref prefix="java.util.concurrent.ForkJoinPool"/>
 	</syspropertyset>
@@ -277,7 +277,7 @@
   </fileset>
 
   <macrodef name="run-jtreg-tests">
-    <!-- ant -Djtreg9.src.dir=src/test/jtreg/util/concurrent/CompletableFuture test-jtreg -->
+    <!-- ant -Djtreg9.src.dir=src/test/jtreg/util/concurrent/CompletableFuture jtreg -->
     <attribute name="source" default="7"/>
     <attribute name="target"/>
     <attribute name="workdir"/>
@@ -447,8 +447,7 @@
     <mirror-dir src="${docs.dir}" dst="${dist.docs.dir}"/>
   </target>
 
-  <target name="tck" depends="test-tck" description="alias for test-tck"/>
-  <target name="test-tck"
+  <target name="tck"
 	  depends="jar"
           description="Runs tck tests for main directly">
 
@@ -458,22 +457,21 @@
       classes="${product.jar}"/>
   </target>
 
-  <target name="test-tck-parallelism-1"
-          description="Runs test-tck with given common pool parallelism">
-    <antcall target="test-tck">
+  <target name="tck-parallelism-1"
+          description="Runs tck with given common pool parallelism">
+    <antcall target="tck">
       <param name="java.util.concurrent.ForkJoinPool.common.parallelism" value="1"/>
     </antcall>
   </target>
 
-  <target name="test-tck-parallelism-0"
-          description="Runs test-tck with given common pool parallelism">
-    <antcall target="test-tck">
+  <target name="tck-parallelism-0"
+          description="Runs tck with given common pool parallelism">
+    <antcall target="tck">
       <param name="java.util.concurrent.ForkJoinPool.common.parallelism" value="0"/>
     </antcall>
   </target>
 
-  <target name="jtreg" depends="test-jtreg" description="alias for test-jtreg"/>
-  <target name="test-jtreg"
+  <target name="jtreg"
 	  depends="jar"
           description="Runs jtreg tests for main using the jtreg ant task">
     <run-jtreg-tests
@@ -483,7 +481,7 @@
   </target>
 
   <target name="test"
-          depends="test-tck, test-tck-parallelism-1, test-jtreg"
+          depends="tck, tck-parallelism-1, jtreg"
           description="Runs tck and jtreg tests for main">
   </target>
 
@@ -660,7 +658,7 @@
   </target>
 
 
-  <target name="4jdk7-test-tck"
+  <target name="4jdk7-tck"
 	  depends="4jdk7jar"
           description="Runs tck tests for jsr166-4jdk7 directly">
 
@@ -684,7 +682,7 @@
   </target>
 
 
-  <target name="4jdk7-test-tck-junit"
+  <target name="4jdk7-tck-junit"
           depends="4jdk7compile"
           description="Runs tck tests for jsr166-4jdk7 via junit task (experimental)">
 
@@ -712,7 +710,7 @@
     </junit>
   </target>
 
-  <target name="4jdk7-test-jtreg"
+  <target name="4jdk7-jtreg"
 	  depends="4jdk7jar"
           description="Runs jtreg tests for jsr166-4jdk7 using the jtreg ant task">
     <run-jtreg-tests
@@ -723,7 +721,7 @@
 
 
   <target name="4jdk7-test"
-	  depends="4jdk7-test-tck, 4jdk7-test-jtreg"
+	  depends="4jdk7-tck, 4jdk7-jtreg"
           description="Runs tck and jtreg tests for jsr166-4jdk7">
   </target>
 
@@ -1128,7 +1126,7 @@
   </target>
 
 
-  <target name="jsr166e-test-tck-one-java-version"
+  <target name="jsr166e-tck-one-java-version"
 	  depends="jsr166ejar">
 
     <echo message="Testing with jdk${build.jsr166e.java.version} ..."/>
@@ -1140,23 +1138,23 @@
       classes="${jsr166e.jar}"/>
   </target>
 
-  <target name="jsr166e-test-tck"
+  <target name="jsr166e-tck"
           description="Runs tck tests for jsr166e for multiple java versions">
 
 <!--     <antcall target="clean"/> -->
-<!--     <antcall target="jsr166e-test-tck-one-java-version"> -->
+<!--     <antcall target="jsr166e-tck-one-java-version"> -->
 <!--       <param name="build.jsr166e.java.version" value="8"/> -->
 <!--       <param name="build.jsr166e.javac" value="${javac8}"/> -->
 <!--     </antcall> -->
 
     <antcall target="clean"/>
-    <antcall target="jsr166e-test-tck-one-java-version">
+    <antcall target="jsr166e-tck-one-java-version">
       <param name="build.jsr166e.java.version" value="7"/>
       <param name="build.jsr166e.javac" value="${javac7}"/>
     </antcall>
 
     <antcall target="clean"/>
-    <antcall target="jsr166e-test-tck-one-java-version">
+    <antcall target="jsr166e-tck-one-java-version">
       <param name="build.jsr166e.java.version" value="6"/>
       <param name="build.jsr166e.javac" value="${javac6}"/>
     </antcall>
@@ -1164,7 +1162,7 @@
 
 
   <target name="jsr166e-test"
-	  depends="jsr166e-test-tck"
+	  depends="jsr166e-tck"
           description="Runs all tests for jsr166e">
   </target>
 
