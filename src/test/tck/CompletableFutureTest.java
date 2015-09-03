@@ -3390,7 +3390,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         Executor e = f.defaultExecutor();
         Executor c =  ForkJoinPool.commonPool();
-        if (ForkJoinPool.getCommonPoolParallelism() > 0)
+        if (ForkJoinPool.getCommonPoolParallelism() > 1)
             assertSame(e, c);
     }
 
