@@ -3333,6 +3333,7 @@ public class CompletableFutureTest extends JSR166TestCase {
             () -> f.exceptionally(null),
 
             () -> f.handle(null),
+
             () -> CompletableFuture.allOf((CompletableFuture<?>)null),
             () -> CompletableFuture.allOf((CompletableFuture<?>[])null),
             () -> CompletableFuture.allOf(f, null),
