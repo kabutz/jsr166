@@ -3359,7 +3359,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     }
 
     // jdk9
-    
+
     /**
      * newIncompleteFuture returns an incomplete CompletableFuture
      */
@@ -3410,8 +3410,8 @@ public class CompletableFutureTest extends JSR166TestCase {
     public void testFailedFuture2() {
         try {
             CompletableFuture<Integer> f = CompletableFuture.failedFuture(null);
-        } catch(NullPointerException success) {
-        }
+            shouldThrow();
+        } catch (NullPointerException success) {}
     }
 
     /**
@@ -3512,8 +3512,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         try {
             f.join();
             shouldThrow();
-        } catch(Exception success) {
-        }
+        } catch (Exception success) {}
         checkCompletedWithWrappedCFException(f);
     }
 
@@ -3538,8 +3537,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         try {
             f.join();
             shouldThrow();
-        } catch(Exception success) {
-        }
+        } catch (Exception success) {}
         checkCompletedWithWrappedCFException(f);
     }
 
