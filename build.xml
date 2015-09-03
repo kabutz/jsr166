@@ -129,7 +129,10 @@
   <property name="test.src.dir"         location="${basedir}/src/test"/>
   <property name="loops.src.dir"        location="${basedir}/src/loops"/>
   <property name="tck.src.dir"          location="${test.src.dir}/tck"/>
-  <property name="jtreg.src.dir"        location="${test.src.dir}/jtreg"/>
+  <property name="jtreg7.src.dir"       location="${test.src.dir}/jtreg-jdk7"/>
+  <property name="jtreg8.src.dir"       location="${test.src.dir}/jtreg"/>
+  <property name="jtreg9.src.dir"       location="${test.src.dir}/jtreg"/>
+  <property name="jtreg.src.dir"        location="${jtreg9.src.dir}"/>
   <property name="lib.dir"              location="${basedir}/lib"/>
   <property name="dist.dir"             location="${basedir}/dist"/>
   <property name="topsrc.dir"           location="${basedir}/src"/>
@@ -252,45 +255,29 @@
   </macrodef>
 
   <!-- Define jtreg test sets for different jdk versions -->
-  <fileset dir="${jtreg.src.dir}">
+  <fileset dir="${jtreg9.src.dir}">
     <patternset id="jdk9.jtreg.tests">
       <include name="**/*.java"/>
     </patternset>
   </fileset>
 
-  <fileset dir="${jtreg.src.dir}">
+  <fileset dir="${jtreg8.src.dir}">
     <patternset id="jdk8.jtreg.tests">
       <include name="**/*.java"/>
-      <exclude name="util/Spliterator/SpliteratorCharacteristics.java"/>
+      <exclude name="**/SpliteratorCharacteristics.java"/>
       <!-- https://bugs.openjdk.java.net/browse/JDK-6842353 -->
-      <exclude name="util/WeakHashMap/GCDuringIteration.java"/>
+      <exclude name="**/GCDuringIteration.java"/>
     </patternset>
   </fileset>
 
-  <fileset dir="${jtreg.src.dir}">
+  <fileset dir="${jtreg7.src.dir}">
     <patternset id="jdk7.jtreg.tests">
       <include name="**/*.java"/>
-      <exclude name="util/Collection/CollectionDefaults.java"/>
-      <exclude name="util/List/ListDefaults.java"/>
-      <exclude name="util/Spliterator/**/*.java"/>
-      <exclude name="**/CompletableFuture/**/*.java"/>
-      <exclude name="**/ConcurrentAssociateTest.java"/>
-      <exclude name="**/ConcurrentContainsKeyTest.java"/>
-      <exclude name="**/ConcurrentHashMap/ToArray.java"/>
-      <exclude name="**/ConcurrentRemoveIf.java"/>
-      <exclude name="**/COWSubList.java"/>
-      <exclude name="**/FutureTask/NegativeTimeout.java"/>
-      <exclude name="**/LinkedTransferQueue/SpliteratorTraverseAddRemoveTest.java"/>
-      <exclude name="**/forkjoin/SubmissionTest.java"/>
-      <exclude name="**/StampedLock/**/*.java"/>
-      <exclude name="**/AtomicReferenceTest.java"/>
-      <exclude name="util/concurrent/atomic/Serial.java"/>
     </patternset>
   </fileset>
 
   <macrodef name="run-jtreg-tests">
-    <!-- ant -Djtreg.src.dir=src/test/jtreg/util/concurrent/CompletableFuture test-jtreg -->
-    <attribute name="jtreg.src.dir" default="${jtreg.src.dir}"/>
+    <!-- ant -Djtreg9.src.dir=src/test/jtreg/util/concurrent/CompletableFuture test-jtreg -->
     <attribute name="source" default="7"/>
     <attribute name="target"/>
     <attribute name="workdir"/>
@@ -301,7 +288,7 @@
     <delete dir="@{workdir}/JTreport" quiet="true"/>
     <mkdir dir="@{workdir}/JTwork/scratch"/>
     <mkdir dir="@{workdir}/JTreport"/>
-    <jtreg dir="@{jtreg.src.dir}"
+    <jtreg dir="${jtreg@{target}.src.dir}"
            jdk="${jdk@{target}.home}"
            workDir="@{workdir}/JTwork"
            reportDir="@{workdir}/JTreport">
