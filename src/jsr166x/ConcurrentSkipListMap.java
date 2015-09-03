@@ -1728,7 +1728,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
          * distinct because readObject calls can't be nicely adapted
          * as the kind of iterator needed by buildFromSorted. (They
          * can be, but doing so requires type cheats and/or creation
-         * of adaptor classes.) It is simpler to just adapt the code.
+         * of adapter classes.) It is simpler to just adapt the code.
          */
 
         HeadIndex<K,V> h = head;

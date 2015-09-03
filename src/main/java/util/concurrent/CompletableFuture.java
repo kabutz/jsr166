@@ -42,7 +42,7 @@ import java.util.function.Supplier;
  * {@link #defaultExecutor()}. To simplify monitoring, debugging,
  * and tracking, all generated asynchronous tasks are instances of the
  * marker interface {@link AsynchronousCompletionTask}.  Operations
- * with time-delays can use adaptor methods defined in this class, for
+ * with time-delays can use adapter methods defined in this class, for
  * example: {@code supplyAsync(supplier, delayedExecutor(timeout,
  * timeUnit))}.  To support methods with delays and timeouts, this
  * class maintains at most one daemon thread for triggering and
@@ -145,7 +145,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      *   fields for source(s), actions, and dependent. They are
      *   boringly similar, differing from others only with respect to
      *   underlying functional forms. We do this so that users don't
-     *   encounter layers of adaptors in common usages.
+     *   encounter layers of adapters in common usages.
      *
      * * Boolean CompletableFuture method x(...) (for example
      *   uniApply) takes all of the arguments needed to check that an
