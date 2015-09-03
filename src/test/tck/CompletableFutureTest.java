@@ -3542,7 +3542,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     }
 
     /**
-     *  orTimeout completes with TimeoutException if not complete
+     * orTimeout completes with TimeoutException if not complete
      */
     public void testOrTimeout() {
         CompletableFuture<Integer> f = new CompletableFuture<>();
@@ -3551,7 +3551,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     }
 
     /**
-     *  orTimeout completes normally if completed before timeout
+     * orTimeout completes normally if completed before timeout
      */
     public void testOrTimeout2() {
         CompletableFuture<Integer> f = new CompletableFuture<>();
@@ -3561,7 +3561,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     }
 
     /**
-     *  completeOnTimeout completes with given value if not complete
+     * completeOnTimeout completes with given value if not complete
      */
     public void testCompleteOnTimeout() {
         CompletableFuture<Integer> f = new CompletableFuture<>();
@@ -3571,7 +3571,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     }
 
     /**
-     *  completeOnTimeout has no effect if completed within timeout
+     * completeOnTimeout has no effect if completed within timeout
      */
     public void testCompleteOnTimeout2() {
         CompletableFuture<Integer> f = new CompletableFuture<>();
