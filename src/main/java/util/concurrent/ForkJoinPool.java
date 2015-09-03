@@ -262,7 +262,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * a spinlock, unlocking requires only a "releasing" store (using
      * putOrderedInt).  The qlock is also used during termination
      * detection, in which case it is forced to a negative
-     * nonlockable value.
+     * non-lockable value.
      *
      * Management
      * ==========
