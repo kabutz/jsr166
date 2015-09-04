@@ -385,7 +385,7 @@ public class JSR166TestCase extends TestCase {
         // Java9+ test classes
         if (atLeastJava9()) {
             String[] java9TestClassNames = {
-                "ThreadPoolExecutor9Test",
+                // Currently empty
             };
             addNamedTestClasses(suite, java9TestClassNames);
         }

@@ -1331,6 +1331,34 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
     }
 
     /**
+     * Configuration changes that allow core pool size greater than
+     * max pool size result in IllegalArgumentException.
+     */
+    public void testPoolSizeInvariants() {
+        ThreadPoolExecutor p =
+            new ThreadPoolExecutor(1, 1,
+                                   LONG_DELAY_MS, MILLISECONDS,
+                                   new ArrayBlockingQueue<Runnable>(10));
+        for (int s = 1; s < 5; s++) {
+            p.setMaximumPoolSize(s);
+            p.setCorePoolSize(s);
+            try {
+                p.setMaximumPoolSize(s - 1);
+                shouldThrow();
+            } catch (IllegalArgumentException success) {}
+            assertEquals(s, p.getCorePoolSize());
+            assertEquals(s, p.getMaximumPoolSize());
+            try {
+                p.setCorePoolSize(s + 1);
+                shouldThrow();
+            } catch (IllegalArgumentException success) {}
+            assertEquals(s, p.getCorePoolSize());
+            assertEquals(s, p.getMaximumPoolSize());
+        }
+        joinPool(p);
+    }
+
+    /**
      * setKeepAliveTime throws IllegalArgumentException
      * when given a negative value
      */
