@@ -3393,6 +3393,8 @@ public class CompletableFutureTest extends JSR166TestCase {
         Executor c = ForkJoinPool.commonPool();
         if (ForkJoinPool.getCommonPoolParallelism() > 1)
             assertSame(e, c);
+        else
+            assertNotSame(e, c);
     }
 
     /**
