@@ -3549,7 +3549,7 @@ public class CompletableFutureTest extends JSR166TestCase {
      */
     public void testOrTimeout() {
         CompletableFuture<Integer> f = new CompletableFuture<>();
-        f.orTimeout(SHORT_DELAY_MS, TimeUnit.MILLISECONDS);
+        f.orTimeout(SHORT_DELAY_MS, MILLISECONDS);
         checkCompletedExceptionallyWithTimeout(f);
     }
 
@@ -3559,7 +3559,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     public void testOrTimeout2() {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         f.complete(1);
-        f.orTimeout(SHORT_DELAY_MS, TimeUnit.MILLISECONDS);
+        f.orTimeout(SHORT_DELAY_MS, MILLISECONDS);
         checkCompletedNormally(f, 1);
     }
 
@@ -3568,7 +3568,7 @@ public class CompletableFutureTest extends JSR166TestCase {
      */
     public void testCompleteOnTimeout() {
         CompletableFuture<Integer> f = new CompletableFuture<>();
-        f.completeOnTimeout(-1, SHORT_DELAY_MS, TimeUnit.MILLISECONDS);
+        f.completeOnTimeout(-1, SHORT_DELAY_MS, MILLISECONDS);
         f.join();
         checkCompletedNormally(f, -1);
     }
@@ -3579,7 +3579,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     public void testCompleteOnTimeout2() {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         f.complete(1);
-        f.completeOnTimeout(-1, SHORT_DELAY_MS, TimeUnit.MILLISECONDS);
+        f.completeOnTimeout(-1, SHORT_DELAY_MS, MILLISECONDS);
         checkCompletedNormally(f, 1);
     }
 
