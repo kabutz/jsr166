@@ -3594,7 +3594,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         CompletableFuture<Integer> f = CompletableFuture.supplyAsync(() -> 1, d);
         assertNull(f.getNow(null));
         try {
-            f.get(LONG_DELAY_MS, MILLISECONDS);
+            assertEquals(1, (int) f.get(LONG_DELAY_MS, MILLISECONDS));
         } catch (Throwable fail) { threadUnexpectedException(fail); }
         assertTrue(millisElapsedSince(startTime) > timeoutMillis/2);
         checkCompletedNormally(f, 1);
@@ -3613,7 +3613,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         CompletableFuture<Integer> f = CompletableFuture.supplyAsync(() -> 1, d);
         assertNull(f.getNow(null));
         try {
-            f.get(LONG_DELAY_MS, MILLISECONDS);
+            assertEquals(1, (int) f.get(LONG_DELAY_MS, MILLISECONDS));
         } catch (Throwable fail) { threadUnexpectedException(fail); }
         assertTrue(millisElapsedSince(startTime) > timeoutMillis/2);
         checkCompletedNormally(f, 1);
