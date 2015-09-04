@@ -2558,7 +2558,8 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * @since 1.9
      */
     public static Executor delayedExecutor(long delay, TimeUnit unit) {
-        if (unit == null) throw new NullPointerException();
+        if (unit == null)
+            throw new NullPointerException();
         return new DelayedExecutor(delay, unit, asyncPool);
     }
 
