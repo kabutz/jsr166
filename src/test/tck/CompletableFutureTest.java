@@ -3586,16 +3586,14 @@ public class CompletableFutureTest extends JSR166TestCase {
     /**
      * delayedExecutor returns an executor that delays submission
      */
-    public void testDelayedExecutor() {
+    public void testDelayedExecutor() throws Exception {
         long timeoutMillis = SMALL_DELAY_MS;
         Executor d = CompletableFuture.delayedExecutor(timeoutMillis,
                                                        MILLISECONDS);
         long startTime = System.nanoTime();
         CompletableFuture<Integer> f = CompletableFuture.supplyAsync(() -> 1, d);
         assertNull(f.getNow(null));
-        try {
-            assertEquals(1, (int) f.get(LONG_DELAY_MS, MILLISECONDS));
-        } catch (Throwable fail) { threadUnexpectedException(fail); }
+        assertEquals(1, (int) f.get(LONG_DELAY_MS, MILLISECONDS));
         assertTrue(millisElapsedSince(startTime) > timeoutMillis/2);
         checkCompletedNormally(f, 1);
     }
@@ -3604,7 +3602,7 @@ public class CompletableFutureTest extends JSR166TestCase {
      * delayedExecutor for a given executor returns an executor that
      * delays submission
      */
-    public void testDelayedExecutor2() {
+    public void testDelayedExecutor2() throws Exception {
         long timeoutMillis = SMALL_DELAY_MS;
         Executor d = CompletableFuture.delayedExecutor(timeoutMillis,
                                                        MILLISECONDS,
@@ -3612,9 +3610,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         long startTime = System.nanoTime();
         CompletableFuture<Integer> f = CompletableFuture.supplyAsync(() -> 1, d);
         assertNull(f.getNow(null));
-        try {
-            assertEquals(1, (int) f.get(LONG_DELAY_MS, MILLISECONDS));
-        } catch (Throwable fail) { threadUnexpectedException(fail); }
+        assertEquals(1, (int) f.get(LONG_DELAY_MS, MILLISECONDS));
         assertTrue(millisElapsedSince(startTime) > timeoutMillis/2);
         checkCompletedNormally(f, 1);
     }
