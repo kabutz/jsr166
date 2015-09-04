@@ -3480,7 +3480,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     }
 
     /**
-     * failedStage returns a Completionstage completed
+     * failedStage returns a CompletionStage completed
      * exceptionally with the given Exception
      */
     public void testFailedStage() {
