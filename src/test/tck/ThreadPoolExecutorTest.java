@@ -215,7 +215,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(2, 2,
                                    1000, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        assertEquals(1, p.getKeepAliveTime(TimeUnit.SECONDS));
+        assertEquals(1, p.getKeepAliveTime(SECONDS));
         joinPool(p);
     }
 
@@ -990,7 +990,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
     public void testInterruptedSubmit() throws InterruptedException {
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
-                                   60, TimeUnit.SECONDS,
+                                   60, SECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
 
         final CountDownLatch threadStarted = new CountDownLatch(1);
@@ -2010,7 +2010,8 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                 done.countDown();
             }};
         final ThreadPoolExecutor p =
-            new ThreadPoolExecutor(1, 30, 60, TimeUnit.SECONDS,
+            new ThreadPoolExecutor(1, 30,
+                                   60, SECONDS,
                                    new ArrayBlockingQueue(30));
         try {
             for (int i = 0; i < nTasks; ++i) {

@@ -345,7 +345,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      */
     public void testGetKeepAliveTime() {
         ThreadPoolExecutor p = new CustomTPE(2, 2, 1000, MILLISECONDS, new ArrayBlockingQueue<Runnable>(10));
-        assertEquals(1, p.getKeepAliveTime(TimeUnit.SECONDS));
+        assertEquals(1, p.getKeepAliveTime(SECONDS));
         joinPool(p);
     }
 
