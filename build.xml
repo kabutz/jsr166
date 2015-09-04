@@ -52,7 +52,7 @@
 
   <!-- Tck options; see JSR166TestCase.java
    To profile a single tck test class:
-   ant -Djsr166.profileTests=true -Djsr166.profileThreshold=100 -Djsr166.tckTestClass=CompletableFutureTest tck
+   ant -Djsr166.profileTests=true -Djsr166.profileThreshold=10 -Djsr166.tckTestClass=CompletableFutureTest tck
    To stress test a single tck test class:
    ant -Djsr166.tckTestClass=CountedCompleterTest -Djsr166.runsPerTest=100 tck
   -->
