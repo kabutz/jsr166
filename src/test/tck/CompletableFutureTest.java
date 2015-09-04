@@ -3349,6 +3349,9 @@ public class CompletableFutureTest extends JSR166TestCase {
             () -> CompletableFuture.delayedExecutor(1L, SECONDS, null),
             () -> CompletableFuture.delayedExecutor(1L, null, new ThreadExecutor()),
             () -> CompletableFuture.delayedExecutor(1L, null),
+
+            () -> f.orTimeout(1L, null),
+            () -> f.completeOnTimeout(42, 1L, null),
         };
 
         assertThrows(NullPointerException.class, throwingActions);
