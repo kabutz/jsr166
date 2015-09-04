@@ -3385,7 +3385,7 @@ public class CompletableFutureTest extends JSR166TestCase {
 
     /**
      * defaultExecutor by default returns the commonPool if
-     * it supports at least one thread.
+     * it supports more than one thread.
      */
     public void testDefaultExecutor() {
         CompletableFuture<Integer> f = new CompletableFuture<>();

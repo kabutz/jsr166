@@ -2405,8 +2405,10 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     /**
      * Returns the default Executor used for async methods that do not
      * specify an Executor. This class uses the {@link
-     * ForkJoinPool#commonPool()}, but may be overridden in subclasses
-     * with an Executor that provides at least one independent thread.
+     * ForkJoinPool#commonPool()} if it supports more than one
+     * parallel thread, or else an Executor using one thread per async
+     * task.  This method may be be overridden in subclasses to return
+     * an Executor that provides at least one independent thread.
      *
      * @return the executor
      * @since 1.9
