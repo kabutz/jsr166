@@ -3372,11 +3372,19 @@ public class CompletableFutureTest extends JSR166TestCase {
      * newIncompleteFuture returns an incomplete CompletableFuture
      */
     public void testNewIncompleteFuture() {
+        for (Integer v1 : new Integer[] { 1, null })
+    {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         CompletableFuture<Integer> g = f.newIncompleteFuture();
         checkIncomplete(f);
         checkIncomplete(g);
-    }
+        f.complete(v1);
+        checkCompletedNormally(f, v1);
+        checkIncomplete(g);
+        g.complete(v1);
+        checkCompletedNormally(g, v1);
+        assertSame(g.getClass(), CompletableFuture.class);
+    }}
 
     /**
      * completedStage returns a completed CompletionStage
