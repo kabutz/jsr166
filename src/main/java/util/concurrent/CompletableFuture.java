@@ -77,6 +77,11 @@ import java.util.function.Supplier;
  * {@link #getNow} that instead throw the CompletionException directly
  * in these cases.</li> </ul>
  *
+ * <p>Arguments used to pass a completion result (that is, for
+ * parameters of type {@code T}) for methods accepting them may be
+ * null, but passing a null value for any other parameter will result
+ * in a {@link NullPointerException} being thrown.
+ *
  * <p>Subclasses of this class should normally override the "virtual
  * constructor" method {@link #newIncompleteFuture}, which establishes
  * the concrete type returned by CompletionStage methods. For example,
@@ -2530,8 +2535,10 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     }
 
     /**
-     * Returns a new Executor that submits a task to the given base
-     * executor after the given delay.
+     * Returns a new Executor that submits a task to the give base
+     * executor after the given delay (or no delay if non-positive).
+     * Each delay commences upon invocation of this Executor's {@code
+     * execute} method,
      *
      * @param delay how long to delay, in units of {@code unit}
      * @param unit a {@code TimeUnit} determining how to interpret the
@@ -2549,7 +2556,9 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
     /**
      * Returns a new Executor that submits a task to the default
-     * executor after the given delay.
+     * executor after the given delay (or no delay if non-positive).
+     * Each delay commences upon invocation of this Executor's {@code
+     * execute} method,
      *
      * @param delay how long to delay, in units of {@code unit}
      * @param unit a {@code TimeUnit} determining how to interpret the
