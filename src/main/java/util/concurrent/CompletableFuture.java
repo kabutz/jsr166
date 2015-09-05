@@ -2412,7 +2412,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * specify an Executor. This class uses the {@link
      * ForkJoinPool#commonPool()} if it supports more than one
      * parallel thread, or else an Executor using one thread per async
-     * task.  This method may be be overridden in subclasses to return
+     * task.  This method may be overridden in subclasses to return
      * an Executor that provides at least one independent thread.
      *
      * @return the executor
