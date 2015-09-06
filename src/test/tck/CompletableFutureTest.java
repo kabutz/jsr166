@@ -3425,7 +3425,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     /**
      * failedFuture(null) throws NPE
      */
-    public void testFailedFuture2() {
+    public void testFailedFuture_null() {
         try {
             CompletableFuture<Integer> f = CompletableFuture.failedFuture(null);
             shouldThrow();
