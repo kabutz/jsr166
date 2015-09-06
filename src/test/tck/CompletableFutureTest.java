@@ -3419,7 +3419,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     public void testFailedFuture() {
         CFException ex = new CFException();
         CompletableFuture<Integer> f = CompletableFuture.failedFuture(ex);
-        checkCompletedExceptionallyWithRootCause(f, ex);
+        checkCompletedExceptionally(f, ex);
     }
 
     /**
@@ -3507,7 +3507,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         AtomicReference<Throwable> r = new AtomicReference<Throwable>();
         f.whenComplete((v, e) -> {if (e != null) r.set(e); else x.set(v);});
         assertEquals(x.get(), 0);
-        assertEquals(r.get().getCause(), ex);
+        assertEquals(r.get(), ex);
     }
 
     /**
