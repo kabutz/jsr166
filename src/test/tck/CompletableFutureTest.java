@@ -3567,9 +3567,6 @@ public class CompletableFutureTest extends JSR166TestCase {
                        () -> testDelayedExecutor(new ThreadExecutor(), 1));
     }
 
-    /**
-     * delayedExecutor returns an executor that delays submission
-     */
     public void testDelayedExecutor(Executor executor, Integer v) throws Exception {
         long timeoutMillis = timeoutMillis();
         // Use an "unreasonably long" long timeout to catch lingering threads
