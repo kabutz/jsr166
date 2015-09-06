@@ -2597,7 +2597,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      */
     public static <U> CompletableFuture<U> failedFuture(Throwable ex) {
         if (ex == null) throw new NullPointerException();
-        return new CompletableFuture<U>(encodeThrowable(ex));
+        return new CompletableFuture<U>(new AltResult(ex));
     }
 
     /**
@@ -2612,7 +2612,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      */
     public static <U> CompletionStage<U> failedStage(Throwable ex) {
         if (ex == null) throw new NullPointerException();
-        return new MinimalStage<U>(encodeThrowable(ex));
+        return new MinimalStage<U>(new AltResult(ex));
     }
 
     /**
@@ -2682,7 +2682,10 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         final CompletableFuture<U> f;
         final U u;
         DelayedCompleter(CompletableFuture<U> f, U u) { this.f = f; this.u = u; }
-        public void run() { f.complete(u); }
+        public void run() {
+            if (f != null)
+                f.complete(u);
+        }
     }
 
     /** Action to cancel unneeded timeouts */
