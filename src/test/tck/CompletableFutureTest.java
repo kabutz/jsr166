@@ -3390,7 +3390,7 @@ public class CompletableFutureTest extends JSR166TestCase {
      * completedStage returns a completed CompletionStage
      */
     public void testCompletedStage() {
-        AtomicInteger x = new AtomicInteger();
+        AtomicInteger x = new AtomicInteger(0);
         AtomicReference<Throwable> r = new AtomicReference<Throwable>();
         CompletionStage<Integer> f = CompletableFuture.completedStage(1);
         f.whenComplete((v, e) -> {if (e != null) r.set(e); else x.set(v);});
@@ -3468,7 +3468,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     public void testMinimalCompletionStage() {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         CompletionStage<Integer> g = f.minimalCompletionStage();
-        AtomicInteger x = new AtomicInteger();
+        AtomicInteger x = new AtomicInteger(0);
         AtomicReference<Throwable> r = new AtomicReference<Throwable>();
         checkIncomplete(f);
         g.whenComplete((v, e) -> {if (e != null) r.set(e); else x.set(v);});
@@ -3485,7 +3485,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     public void testMinimalCompletionStage2() {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         CompletionStage<Integer> g = f.minimalCompletionStage();
-        AtomicInteger x = new AtomicInteger();
+        AtomicInteger x = new AtomicInteger(0);
         AtomicReference<Throwable> r = new AtomicReference<Throwable>();
         g.whenComplete((v, e) -> {if (e != null) r.set(e); else x.set(v);});
         checkIncomplete(f);
@@ -3503,7 +3503,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     public void testFailedStage() {
         CFException ex = new CFException();
         CompletionStage<Integer> f = CompletableFuture.failedStage(ex);
-        AtomicInteger x = new AtomicInteger();
+        AtomicInteger x = new AtomicInteger(0);
         AtomicReference<Throwable> r = new AtomicReference<Throwable>();
         f.whenComplete((v, e) -> {if (e != null) r.set(e); else x.set(v);});
         assertEquals(x.get(), 0);
