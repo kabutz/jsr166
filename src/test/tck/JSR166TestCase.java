@@ -37,6 +37,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.RecursiveAction;
@@ -727,16 +729,44 @@ public class JSR166TestCase extends TestCase {
     /**
      * Waits out termination of a thread pool or fails doing so.
      */
-    void joinPool(ExecutorService exec) {
+    void joinPool(ExecutorService pool) {
         try {
-            exec.shutdown();
-            if (!exec.awaitTermination(2 * LONG_DELAY_MS, MILLISECONDS))
-                fail("ExecutorService " + exec +
+            pool.shutdown();
+            if (!pool.awaitTermination(2 * LONG_DELAY_MS, MILLISECONDS))
+                fail("ExecutorService " + pool +
                      " did not terminate in a timely manner");
         } catch (SecurityException ok) {
             // Allowed in case test doesn't have privs
         } catch (InterruptedException fail) {
             fail("Unexpected InterruptedException");
+        }
+    }
+
+    /** Like Runnable, but with the freedom to throw anything */
+    interface Thunk { public void run() throws Throwable; }
+
+    /**
+     * Runs all the given tasks in parallel, failing if any fail.
+     * Useful for running multiple variants of tests that are
+     * necessarily individually slow because they must block.
+     */
+    void testInParallel(Thunk ... thunks) {
+        ExecutorService pool = Executors.newCachedThreadPool();
+        try {
+            ArrayList<Future<?>> futures = new ArrayList<>(thunks.length);
+            for (final Thunk thunk : thunks)
+                futures.add(pool.submit(new CheckedRunnable() {
+                    public void realRun() throws Throwable { thunk.run();}}));
+            for (Future<?> future : futures)
+                try {
+                    assertNull(future.get(LONG_DELAY_MS, MILLISECONDS));
+                } catch (ExecutionException ex) {
+                    threadUnexpectedException(ex.getCause());
+                } catch (Exception ex) {
+                    threadUnexpectedException(ex);
+                }
+        } finally {
+            joinPool(pool);
         }
     }
 
