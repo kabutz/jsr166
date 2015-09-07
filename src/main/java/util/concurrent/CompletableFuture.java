@@ -2730,6 +2730,16 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
             throw new UnsupportedOperationException(); }
         public int getNumberOfDependents() {
             throw new UnsupportedOperationException(); }
+        public CompletableFuture<T> completeAsync(Supplier<? extends T> supplier,
+                                                  Executor executor) {
+            throw new UnsupportedOperationException(); }
+        public CompletableFuture<T> completeAsync(Supplier<? extends T> supplier) {
+            throw new UnsupportedOperationException(); }
+        public CompletableFuture<T> orTimeout(long timeout, TimeUnit unit) {
+            throw new UnsupportedOperationException(); }
+        public CompletableFuture<T> completeOnTimeout(T value, long timeout,
+                                                      TimeUnit unit) {
+            throw new UnsupportedOperationException(); }
     }
 
     // Unsafe mechanics
