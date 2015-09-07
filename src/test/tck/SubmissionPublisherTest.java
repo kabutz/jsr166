@@ -806,7 +806,9 @@ public class SubmissionPublisherTest extends JSR166TestCase {
      */
     public void testEmptyTimedOffer() {
         SubmissionPublisher<Integer> p = basicPublisher();
+        long startTime = System.nanoTime();
         assertEquals(0, p.offer(1, LONG_DELAY_MS, MILLISECONDS, null));
+        assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS / 2);
     }
 
     /**
@@ -814,14 +816,16 @@ public class SubmissionPublisherTest extends JSR166TestCase {
      */
     public void testNullTimedOffer() {
         SubmissionPublisher<Integer> p = basicPublisher();
+        long startTime = System.nanoTime();
         try {
-            p.offer(null, SHORT_DELAY_MS, MILLISECONDS, null);
+            p.offer(null, LONG_DELAY_MS, MILLISECONDS, null);
             shouldThrow();
         } catch (NullPointerException success) {}
         try {
-            p.offer(1, SHORT_DELAY_MS, null, null);
+            p.offer(1, LONG_DELAY_MS, null, null);
             shouldThrow();
         } catch (NullPointerException success) {}
+        assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS / 2);
     }
 
     /**
@@ -837,17 +841,19 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.subscribe(s2);
         s2.awaitSubscribe();
         s1.awaitSubscribe();
-        assertTrue(p.offer(1, SHORT_DELAY_MS, MILLISECONDS, null) >= 1);
-        assertTrue(p.offer(2, SHORT_DELAY_MS, MILLISECONDS, null) >= 2);
+        long startTime = System.nanoTime();
+        assertTrue(p.offer(1, LONG_DELAY_MS, MILLISECONDS, null) >= 1);
+        assertTrue(p.offer(2, LONG_DELAY_MS, MILLISECONDS, null) >= 2);
         s1.sn.request(4);
-        assertTrue(p.offer(3, SHORT_DELAY_MS, MILLISECONDS, null) >= 3);
+        assertTrue(p.offer(3, LONG_DELAY_MS, MILLISECONDS, null) >= 3);
         s2.sn.request(4);
-        p.offer(4, SHORT_DELAY_MS, MILLISECONDS, null);
+        p.offer(4, LONG_DELAY_MS, MILLISECONDS, null);
         p.close();
         s2.awaitComplete();
         assertEquals(4, s2.nexts);
         s1.awaitComplete();
         assertEquals(4, s2.nexts);
+        assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS / 2);
     }
 
     /**
