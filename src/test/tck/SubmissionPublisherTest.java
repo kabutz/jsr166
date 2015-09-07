@@ -591,7 +591,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     /**
-     * Submit to a publisher with no subscribers returns lag 0
+     * submit to a publisher with no subscribers returns lag 0
      */
     public void testEmptySubmit() {
         SubmissionPublisher<Integer> p = basicPublisher();
@@ -599,7 +599,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     /**
-     * Submit(null) throws NPE
+     * submit(null) throws NPE
      */
     public void testNullSubmit() {
         SubmissionPublisher<Integer> p = basicPublisher();
@@ -610,7 +610,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     /**
-     * Submit returns number of lagged items, compatible with result
+     * submit returns number of lagged items, compatible with result
      * of estimateMaximumLag.
      */
     public void testLaggedSubmit() {
@@ -674,15 +674,15 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     /**
-     * Offer to a publisher with no subscribers returns lag 0
+     * offer to a publisher with no subscribers returns lag 0
      */
     public void testEmptyOffer() {
         SubmissionPublisher<Integer> p = basicPublisher();
-        assertEquals(p.offer(1, null), 0);
+        assertEquals(0, p.offer(1, null));
     }
 
     /**
-     * Offer(null) throws NPE
+     * offer(null) throws NPE
      */
     public void testNullOffer() {
         SubmissionPublisher<Integer> p = basicPublisher();
@@ -693,7 +693,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     /**
-     * Offer returns number of lagged items if not saturated
+     * offer returns number of lagged items if not saturated
      */
     public void testLaggedOffer() {
         SubmissionPublisher<Integer> p = basicPublisher();
@@ -719,7 +719,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     /**
-     * Offer reports drops if saturated
+     * offer reports drops if saturated
      */
     public void testDroppedOffer() {
         SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>(
@@ -747,7 +747,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     /**
-     * Offer invokes drop handler if saturated
+     * offer invokes drop handler if saturated
      */
     public void testHandledDroppedOffer() {
         AtomicInteger calls = new AtomicInteger();
@@ -776,7 +776,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
 
 
     /**
-     * Offer succeeds if drop handler forces request
+     * offer succeeds if drop handler forces request
      */
     public void testRecoveredHandledDroppedOffer() {
         AtomicInteger calls = new AtomicInteger();
@@ -812,7 +812,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     /**
-     * Timed Offer with null item or TimeUnit throws NPE
+     * Timed offer with null item or TimeUnit throws NPE
      */
     public void testNullTimedOffer() {
         SubmissionPublisher<Integer> p = basicPublisher();
@@ -827,7 +827,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     /**
-     * Timed Offer returns number of lagged items if not saturated
+     * Timed offer returns number of lagged items if not saturated
      */
     public void testLaggedTimedOffer() {
         SubmissionPublisher<Integer> p = basicPublisher();
@@ -853,7 +853,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     /**
-     * Timed Offer reports drops if saturated
+     * Timed offer reports drops if saturated
      */
     public void testDroppedTimedOffer() {
         SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>(
@@ -881,7 +881,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     /**
-     * Timed Offer invokes drop handler if saturated
+     * Timed offer invokes drop handler if saturated
      */
     public void testHandledDroppedTimedOffer() {
         AtomicInteger calls = new AtomicInteger();
@@ -909,7 +909,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     /**
-     * Timed Offer succeeds if drop handler forces request
+     * Timed offer succeeds if drop handler forces request
      */
     public void testRecoveredHandledDroppedTimedOffer() {
         AtomicInteger calls = new AtomicInteger();
