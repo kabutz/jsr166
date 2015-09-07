@@ -52,15 +52,17 @@ import java.util.function.Supplier;
  * <p>If any Subscriber method throws an exception, its subscription
  * is cancelled.  If a handler is supplied as a constructor argument,
  * it is invoked before cancellation upon an exception in method
- * {@code onNext}, but exceptions in methods {@code onSubscribe}
- * {@code onError} and {@code onComplete} are not recorded or handled
- * before cancellation.  If the supplied Executor throws {@link
- * RejectedExecutionException} (or any other RuntimeException or
- * Error) when attempting to execute a task, or a drop handler throws
- * an exception when processing a dropped item, then the exception is
- * rethrown. In these cases, not all subscribers will have been issued
- * the published item. It is usually good practice to {@link
- * #closeExceptionally closeExceptionally} in these cases.
+ * {@link Flow.Subscriber#onNext onNext}, but exceptions in methods
+ * {@link Flow.Subscriber#onSubscribe onSubscribe},
+ * {@link Flow.Subscriber#onError #onError} and
+ * {@link Flow.Subscriber#onComplete #onComplete} are not recorded or
+ * handled before cancellation.  If the supplied Executor throws
+ * {@link RejectedExecutionException} (or any other RuntimeException
+ * or Error) when attempting to execute a task, or a drop handler
+ * throws an exception when processing a dropped item, then the
+ * exception is rethrown. In these cases, not all subscribers will
+ * have been issued the published item. It is usually good practice to
+ * {@link #closeExceptionally closeExceptionally} in these cases.
  *
  * <p>This class may also serve as a convenient base for subclasses
  * that generate items, and use the methods in this class to publish
