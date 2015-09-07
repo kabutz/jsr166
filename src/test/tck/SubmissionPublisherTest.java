@@ -804,11 +804,11 @@ public class SubmissionPublisherTest extends JSR166TestCase {
 
 
     /**
-     * TimedOffer to a publisher with no subscribers returns lag 0
+     * Timed offer to a publisher with no subscribers returns lag 0
      */
     public void testEmptyTimedOffer() {
         SubmissionPublisher<Integer> p = basicPublisher();
-        assertEquals(p.offer(1, null), 0);
+        assertEquals(0, p.offer(1, LONG_DELAY_MS, MILLISECONDS, null));
     }
 
     /**
