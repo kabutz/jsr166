@@ -45,19 +45,19 @@ public class SubmissionPublisherTest extends JSR166TestCase {
             return t;
         }
     }
-    
+
     static final Executor basicExecutor =
         (ForkJoinPool.getCommonPoolParallelism() > 0) ?
         ForkJoinPool.commonPool() :
         new ThreadPoolExecutor(1, 1, 60, SECONDS,
                                new LinkedBlockingQueue<Runnable>(),
                                new DaemonThreadFactory());
-        
+
     static SubmissionPublisher<Integer> basicPublisher() {
         return new SubmissionPublisher<Integer>(basicExecutor,
                                                 Flow.defaultBufferSize());
     }
-    
+
     static class SPException extends RuntimeException {}
 
     class TestSubscriber implements Subscriber<Integer> {
@@ -193,10 +193,9 @@ public class SubmissionPublisherTest extends JSR166TestCase {
      */
     public void testConstructor3() {
         try {
-            SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>(null, 8);
+            new SubmissionPublisher<Integer>(null, 8);
             shouldThrow();
-        } catch (NullPointerException success) {
-        }
+        } catch (NullPointerException success) {}
     }
 
     /**
@@ -206,10 +205,9 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     public void testConstructor4() {
         Executor e = Executors.newFixedThreadPool(1);
         try {
-            SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>(e, -1);
+            new SubmissionPublisher<Integer>(e, -1);
             shouldThrow();
-        } catch (IllegalArgumentException success) {
-        }
+        } catch (IllegalArgumentException success) {}
     }
 
     /**
@@ -226,9 +224,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         try {
             p.submit(1);
             shouldThrow();
-        }
-        catch(IllegalStateException success) {
-        }
+        } catch (IllegalStateException success) {}
         Throwable ex = new SPException();
         p.closeExceptionally(ex);
         assertTrue(p.isClosed());
@@ -251,9 +247,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         try {
             p.submit(1);
             shouldThrow();
-        }
-        catch(IllegalStateException success) {
-        }
+        } catch (IllegalStateException success) {}
         p.close();
         assertTrue(p.isClosed());
         assertSame(p.getClosedException(), ex);
@@ -358,8 +352,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         s.throwOnCall = true;
         try {
             p.subscribe(s);
-        } catch(Exception ok) {
-        }
+        } catch (Exception ok) {}
         s.awaitError();
         assertEquals(s.nexts, 0);
         assertEquals(s.errors, 1);
@@ -373,8 +366,8 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         SubmissionPublisher<Integer> p = basicPublisher();
         try {
             p.subscribe(null);
-        } catch(NullPointerException success) {
-        }
+            shouldThrow();
+        } catch (NullPointerException success) {}
         checkInitialState(p);
     }
 
@@ -612,8 +605,8 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         SubmissionPublisher<Integer> p = basicPublisher();
         try {
             p.submit(null);
-        } catch (NullPointerException success) {
-        }
+            shouldThrow();
+        } catch (NullPointerException success) {}
     }
 
     /**
@@ -668,7 +661,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         assertEquals(s1.nexts, 20);
         assertEquals(s1.completes, 1);
     }
-    
+
     static boolean noopHandle(AtomicInteger count) {
         count.getAndIncrement();
         return false;
@@ -695,8 +688,8 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         SubmissionPublisher<Integer> p = basicPublisher();
         try {
             p.offer(null, null);
-        } catch (NullPointerException success) {
-        }
+            shouldThrow();
+        } catch (NullPointerException success) {}
     }
 
     /**
@@ -825,12 +818,12 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         SubmissionPublisher<Integer> p = basicPublisher();
         try {
             p.offer(null, SHORT_DELAY_MS, MILLISECONDS, null);
-        } catch (NullPointerException success) {
-        }
+            shouldThrow();
+        } catch (NullPointerException success) {}
         try {
             p.offer(1, SHORT_DELAY_MS, null, null);
-        } catch (NullPointerException success) {
-        }
+            shouldThrow();
+        } catch (NullPointerException success) {}
     }
 
     /**
