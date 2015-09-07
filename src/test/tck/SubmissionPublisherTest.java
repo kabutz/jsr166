@@ -360,7 +360,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     /**
-     * subscribe(null) thows NPE
+     * subscribe(null) throws NPE
      */
     public void testSubscribe6() {
         SubmissionPublisher<Integer> p = basicPublisher();
@@ -455,7 +455,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     /**
-     * If a handler is supplied in conctructor, it is invoked when
+     * If a handler is supplied in constructor, it is invoked when
      * subscriber throws an exception in onNext
      */
     public void testThrowOnNextHandler() {
