@@ -1,0 +1,946 @@
+/*
+ * Written by Doug Lea and Martin Buchholz with assistance from
+ * members of JCP JSR-166 Expert Group and released to the public
+ * domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
+ */
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Flow;
+import static java.util.concurrent.Flow.Publisher;
+import static java.util.concurrent.Flow.Subscriber;
+import static java.util.concurrent.Flow.Subscription;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.SubmissionPublisher;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
+import java.util.function.BiFunction;
+
+import junit.framework.Test;
+import junit.framework.TestSuite;
+
+public class SubmissionPublisherTest extends JSR166TestCase {
+
+    public static void main(String[] args) {
+        main(suite(), args);
+    }
+    public static Test suite() {
+        return new TestSuite(SubmissionPublisherTest.class);
+    }
+
+    // Factory for single thread pool in case commonPool parallelism is zero
+    static final class DaemonThreadFactory implements ThreadFactory {
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(r);
+            t.setDaemon(true);
+            return t;
+        }
+    }
+    
+    static final Executor basicExecutor =
+        (ForkJoinPool.getCommonPoolParallelism() > 0) ?
+        ForkJoinPool.commonPool() :
+        new ThreadPoolExecutor(1, 1, 60, SECONDS,
+                               new LinkedBlockingQueue<Runnable>(),
+                               new DaemonThreadFactory());
+        
+    static SubmissionPublisher<Integer> basicPublisher() {
+        return new SubmissionPublisher<Integer>(basicExecutor,
+                                                Flow.defaultBufferSize());
+    }
+    
+    static class SPException extends RuntimeException {}
+
+    class TestSubscriber implements Subscriber<Integer> {
+        volatile Subscription sn;
+        int last;  // Requires that onNexts are in numeric order
+        volatile int nexts;
+        volatile int errors;
+        volatile int completes;
+        volatile boolean throwOnCall = false;
+        volatile boolean request = true;
+        volatile Throwable lastError;
+
+        public synchronized void onSubscribe(Subscription s) {
+            threadAssertTrue(sn == null);
+            sn = s;
+            notifyAll();
+            if (throwOnCall)
+                throw new SPException();
+            if (request)
+                sn.request(1L);
+        }
+        public synchronized void onNext(Integer t) {
+            ++nexts;
+            notifyAll();
+            int current = t.intValue();
+            threadAssertTrue(current >= last);
+            last = current;
+            if (request)
+                sn.request(1L);
+            if (throwOnCall)
+                throw new SPException();
+        }
+        public synchronized void onError(Throwable t) {
+            threadAssertTrue(completes == 0);
+            threadAssertTrue(errors == 0);
+            lastError = t;
+            ++errors;
+            notifyAll();
+        }
+        public synchronized void onComplete() {
+            threadAssertTrue(completes == 0);
+            ++completes;
+            notifyAll();
+        }
+
+        synchronized void awaitSubscribe() {
+            while (sn == null) {
+                try {
+                    wait();
+                } catch (Exception ex) {
+                    threadUnexpectedException(ex);
+                    break;
+                }
+            }
+        }
+        synchronized void awaitNext(int n) {
+            while (nexts < n) {
+                try {
+                    wait();
+                } catch (Exception ex) {
+                    threadUnexpectedException(ex);
+                    break;
+                }
+            }
+        }
+        synchronized void awaitComplete() {
+            while (completes == 0 && errors == 0) {
+                try {
+                    wait();
+                } catch (Exception ex) {
+                    threadUnexpectedException(ex);
+                    break;
+                }
+            }
+        }
+        synchronized void awaitError() {
+            while (errors == 0) {
+                try {
+                    wait();
+                } catch (Exception ex) {
+                    threadUnexpectedException(ex);
+                    break;
+                }
+            }
+        }
+
+    }
+
+    /**
+     * A new SubmissionPublisher has no subscribers, a non-null
+     * executor, a power-of-two capacity, is not closed, and reports
+     * zero demand and lag
+     */
+    void checkInitialState(SubmissionPublisher<?> p) {
+        assertFalse(p.hasSubscribers());
+        assertEquals(p.getNumberOfSubscribers(), 0);
+        assertTrue(p.getSubscribers().isEmpty());
+        assertFalse(p.isClosed());
+        assertNull(p.getClosedException());
+        int n = p.getMaxBufferCapacity();
+        assertTrue((n & (n - 1)) == 0); // power of two
+        assertNotNull(p.getExecutor());
+        assertEquals(p.estimateMinimumDemand(), 0);
+        assertEquals(p.estimateMaximumLag(), 0);
+    }
+
+    /**
+     * A default-constructed SubmissionPublisher has no subscribers,
+     * is not closed, has default buffer size, and uses the
+     * ForkJoinPool.commonPool executor
+     */
+    public void testConstructor1() {
+        SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>();
+        checkInitialState(p);
+        assertSame(p.getExecutor(), ForkJoinPool.commonPool());
+        assertEquals(p.getMaxBufferCapacity(), Flow.defaultBufferSize());
+    }
+
+    /**
+     * A new SubmissionPublisher has no subscribers, is not closed,
+     * has the given buffer size, and uses the given executor
+     */
+    public void testConstructor2() {
+        Executor e = Executors.newFixedThreadPool(1);
+        SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>(e, 8);
+        checkInitialState(p);
+        assertSame(p.getExecutor(), e);
+        assertEquals(p.getMaxBufferCapacity(), 8);
+    }
+
+    /**
+     * A null Executor argument to SubmissionPublisher constructor throws NPE
+     */
+    public void testConstructor3() {
+        try {
+            SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>(null, 8);
+            shouldThrow();
+        } catch (NullPointerException success) {
+        }
+    }
+
+    /**
+     * A negative capacity argument to SubmissionPublisher constructor
+     * throws IAE
+     */
+    public void testConstructor4() {
+        Executor e = Executors.newFixedThreadPool(1);
+        try {
+            SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>(e, -1);
+            shouldThrow();
+        } catch (IllegalArgumentException success) {
+        }
+    }
+
+    /**
+     * A closed publisher reports isClosed with no closedException and
+     * throws ISE upon attempted submission; a subsequent close or
+     * closeExceptionally has no additional effect.
+     */
+    public void testClose() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        checkInitialState(p);
+        p.close();
+        assertTrue(p.isClosed());
+        assertNull(p.getClosedException());
+        try {
+            p.submit(1);
+            shouldThrow();
+        }
+        catch(IllegalStateException success) {
+        }
+        Throwable ex = new SPException();
+        p.closeExceptionally(ex);
+        assertTrue(p.isClosed());
+        assertNull(p.getClosedException());
+    }
+
+    /**
+     * A publisher closedExceptionally reports isClosed with the
+     * closedException and throws ISE upon attempted submission; a
+     * subsequent close or closeExceptionally has no additional
+     * effect.
+     */
+    public void testCloseExceptionally() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        checkInitialState(p);
+        Throwable ex = new SPException();
+        p.closeExceptionally(ex);
+        assertTrue(p.isClosed());
+        assertSame(p.getClosedException(), ex);
+        try {
+            p.submit(1);
+            shouldThrow();
+        }
+        catch(IllegalStateException success) {
+        }
+        p.close();
+        assertTrue(p.isClosed());
+        assertSame(p.getClosedException(), ex);
+    }
+
+    /**
+     * Upon subscription, the subscriber's onSubscribe is called, no
+     * other Subscriber methods are invoked, the publisher
+     * hasSubscribers, isSubscribed is true, and existing
+     * subscriptions are unaffected.
+     */
+    public void testSubscribe1() {
+        TestSubscriber s = new TestSubscriber();
+        SubmissionPublisher<Integer> p = basicPublisher();
+        p.subscribe(s);
+        assertTrue(p.hasSubscribers());
+        assertEquals(p.getNumberOfSubscribers(), 1);
+        assertTrue(p.getSubscribers().contains(s));
+        assertTrue(p.isSubscribed(s));
+        s.awaitSubscribe();
+        assertNotNull(s.sn);
+        assertEquals(s.nexts, 0);
+        assertEquals(s.errors, 0);
+        assertEquals(s.completes, 0);
+        TestSubscriber s2 = new TestSubscriber();
+        p.subscribe(s2);
+        assertTrue(p.hasSubscribers());
+        assertEquals(p.getNumberOfSubscribers(), 2);
+        assertTrue(p.getSubscribers().contains(s));
+        assertTrue(p.getSubscribers().contains(s2));
+        assertTrue(p.isSubscribed(s));
+        assertTrue(p.isSubscribed(s2));
+        s2.awaitSubscribe();
+        assertNotNull(s2.sn);
+        assertEquals(s2.nexts, 0);
+        assertEquals(s2.errors, 0);
+        assertEquals(s2.completes, 0);
+    }
+
+    /**
+     * If closed, upon subscription, the subscriber's onComplete
+     * method is invoked
+     */
+    public void testSubscribe2() {
+        TestSubscriber s = new TestSubscriber();
+        SubmissionPublisher<Integer> p = basicPublisher();
+        p.close();
+        p.subscribe(s);
+        s.awaitComplete();
+        assertEquals(s.nexts, 0);
+        assertEquals(s.errors, 0);
+        assertEquals(s.completes, 1);
+    }
+
+    /**
+     * If closedExceptionally, upon subscription, the subscriber's
+     * onError method is invoked
+     */
+    public void testSubscribe3() {
+        TestSubscriber s = new TestSubscriber();
+        SubmissionPublisher<Integer> p = basicPublisher();
+        Throwable ex = new SPException();
+        p.closeExceptionally(ex);
+        assertTrue(p.isClosed());
+        assertSame(p.getClosedException(), ex);
+        p.subscribe(s);
+        s.awaitError();
+        assertEquals(s.nexts, 0);
+        assertEquals(s.errors, 1);
+    }
+
+    /**
+     * Upon attempted resubscription, the subscriber's onError is
+     * called and the subscription is cancelled.
+     */
+    public void testSubscribe4() {
+        TestSubscriber s = new TestSubscriber();
+        SubmissionPublisher<Integer> p = basicPublisher();
+        p.subscribe(s);
+        assertTrue(p.hasSubscribers());
+        assertEquals(p.getNumberOfSubscribers(), 1);
+        assertTrue(p.getSubscribers().contains(s));
+        assertTrue(p.isSubscribed(s));
+        s.awaitSubscribe();
+        assertNotNull(s.sn);
+        assertEquals(s.nexts, 0);
+        assertEquals(s.errors, 0);
+        assertEquals(s.completes, 0);
+        p.subscribe(s);
+        s.awaitError();
+        assertEquals(s.nexts, 0);
+        assertEquals(s.errors, 1);
+        assertFalse(p.isSubscribed(s));
+    }
+
+    /**
+     * An exception thrown in onSubscribe causes onError
+     */
+    public void testSubscribe5() {
+        TestSubscriber s = new TestSubscriber();
+        SubmissionPublisher<Integer> p = basicPublisher();
+        s.throwOnCall = true;
+        try {
+            p.subscribe(s);
+        } catch(Exception ok) {
+        }
+        s.awaitError();
+        assertEquals(s.nexts, 0);
+        assertEquals(s.errors, 1);
+        assertEquals(s.completes, 0);
+    }
+
+    /**
+     * subscribe(null) thows NPE
+     */
+    public void testSubscribe6() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        try {
+            p.subscribe(null);
+        } catch(NullPointerException success) {
+        }
+        checkInitialState(p);
+    }
+
+    /**
+     * Closing a publisher causes onComplete to subscribers
+     */
+    public void testCloseCompletes() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        TestSubscriber s1 = new TestSubscriber();
+        TestSubscriber s2 = new TestSubscriber();
+        p.subscribe(s1);
+        p.subscribe(s2);
+        p.submit(1);
+        p.close();
+        assertTrue(p.isClosed());
+        assertNull(p.getClosedException());
+        s1.awaitComplete();
+        assertEquals(s1.nexts, 1);
+        assertEquals(s1.completes, 1);
+        s2.awaitComplete();
+        assertEquals(s2.nexts, 1);
+        assertEquals(s2.completes, 1);
+    }
+
+    /**
+     * Closing a publisher exceptionally causes onError to subscribers
+     */
+    public void testCloseExceptionallyError() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        TestSubscriber s1 = new TestSubscriber();
+        TestSubscriber s2 = new TestSubscriber();
+        p.subscribe(s1);
+        p.subscribe(s2);
+        p.submit(1);
+        p.closeExceptionally(new SPException());
+        assertTrue(p.isClosed());
+        s1.awaitError();
+        assertTrue(s1.nexts <= 1);
+        assertEquals(s1.errors, 1);
+        s2.awaitError();
+        assertTrue(s2.nexts <= 1);
+        assertEquals(s2.errors, 1);
+    }
+
+    /**
+     * Cancelling a subscription eventually causes no more onNexts to be issued
+     */
+    public void testCancel() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        TestSubscriber s1 = new TestSubscriber();
+        TestSubscriber s2 = new TestSubscriber();
+        p.subscribe(s1);
+        p.subscribe(s2);
+        s1.awaitSubscribe();
+        p.submit(1);
+        s1.sn.cancel();
+        for (int i = 2; i <= 20; ++i)
+            p.submit(i);
+        p.close();
+        s2.awaitComplete();
+        assertEquals(s2.nexts, 20);
+        assertEquals(s2.completes, 1);
+        assertTrue(s1.nexts < 20);
+        assertFalse(p.isSubscribed(s1));
+    }
+
+    /**
+     * Throwing an exception in onNext causes onError
+     */
+    public void testThrowOnNext() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        TestSubscriber s1 = new TestSubscriber();
+        TestSubscriber s2 = new TestSubscriber();
+        p.subscribe(s1);
+        p.subscribe(s2);
+        s1.awaitSubscribe();
+        p.submit(1);
+        s1.throwOnCall = true;
+        p.submit(2);
+        p.close();
+        s2.awaitComplete();
+        assertEquals(s2.nexts, 2);
+        s1.awaitComplete();
+        assertEquals(s1.errors, 1);
+    }
+
+    /**
+     * If a handler is supplied in conctructor, it is invoked when
+     * subscriber throws an exception in onNext
+     */
+    public void testThrowOnNextHandler() {
+        AtomicInteger calls = new AtomicInteger();
+        SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>
+            (basicExecutor, 8,
+             (s, e) -> calls.getAndIncrement());
+        TestSubscriber s1 = new TestSubscriber();
+        TestSubscriber s2 = new TestSubscriber();
+        p.subscribe(s1);
+        p.subscribe(s2);
+        s1.awaitSubscribe();
+        p.submit(1);
+        s1.throwOnCall = true;
+        p.submit(2);
+        p.close();
+        s2.awaitComplete();
+        assertEquals(s2.nexts, 2);
+        assertEquals(s2.completes, 1);
+        s1.awaitError();
+        assertEquals(s1.errors, 1);
+        assertEquals(calls.get(), 1);
+    }
+
+    /**
+     * onNext items are issued in the same order to each subscriber
+     */
+    public void testOrder() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        TestSubscriber s1 = new TestSubscriber();
+        TestSubscriber s2 = new TestSubscriber();
+        p.subscribe(s1);
+        p.subscribe(s2);
+        for (int i = 1; i <= 20; ++i)
+            p.submit(i);
+        p.close();
+        s2.awaitComplete();
+        s1.awaitComplete();
+        assertEquals(s2.nexts, 20);
+        assertEquals(s2.completes, 1);
+        assertEquals(s1.nexts, 20);
+        assertEquals(s1.completes, 1);
+    }
+
+    /**
+     * onNext is issued only if requested
+     */
+    public void testRequest1() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        TestSubscriber s1 = new TestSubscriber();
+        s1.request = false;
+        p.subscribe(s1);
+        s1.awaitSubscribe();
+        assertTrue(p.estimateMinimumDemand() == 0);
+        TestSubscriber s2 = new TestSubscriber();
+        p.subscribe(s2);
+        p.submit(1);
+        p.submit(2);
+        s2.awaitNext(1);
+        assertEquals(s1.nexts, 0);
+        s1.sn.request(3);
+        p.submit(3);
+        p.close();
+        s2.awaitComplete();
+        assertEquals(s2.nexts, 3);
+        assertEquals(s2.completes, 1);
+        s1.awaitComplete();
+        assertTrue(s1.nexts > 0);
+        assertEquals(s1.completes, 1);
+    }
+
+    /**
+     * onNext is not issued when requests become zero
+     */
+    public void testRequest2() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        TestSubscriber s1 = new TestSubscriber();
+        TestSubscriber s2 = new TestSubscriber();
+        p.subscribe(s1);
+        p.subscribe(s2);
+        s2.awaitSubscribe();
+        s1.awaitSubscribe();
+        s1.request = false;
+        p.submit(1);
+        p.submit(2);
+        p.close();
+        s2.awaitComplete();
+        assertEquals(s2.nexts, 2);
+        assertEquals(s2.completes, 1);
+        s1.awaitNext(1);
+        assertEquals(s1.nexts, 1);
+    }
+
+    /**
+     * Negative request causes error
+     */
+    public void testRequest3() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        TestSubscriber s1 = new TestSubscriber();
+        TestSubscriber s2 = new TestSubscriber();
+        p.subscribe(s1);
+        p.subscribe(s2);
+        s2.awaitSubscribe();
+        s1.awaitSubscribe();
+        s1.sn.request(-1L);
+        p.submit(1);
+        p.submit(2);
+        p.close();
+        s2.awaitComplete();
+        assertEquals(s2.nexts, 2);
+        assertEquals(s2.completes, 1);
+        s1.awaitError();
+        assertEquals(s1.errors, 1);
+        assertTrue(s1.lastError instanceof IllegalArgumentException);
+    }
+
+    /**
+     * estimateMinimumDemand reports 0 until request, nonzero after
+     * request, and zero again after delivery
+     */
+    public void testEstimateMinimumDemand() {
+        TestSubscriber s = new TestSubscriber();
+        SubmissionPublisher<Integer> p = basicPublisher();
+        s.request = false;
+        p.subscribe(s);
+        s.awaitSubscribe();
+        assertEquals(p.estimateMinimumDemand(), 0);
+        s.sn.request(1);
+        assertEquals(p.estimateMinimumDemand(), 1);
+        p.submit(1);
+        s.awaitNext(1);
+        assertEquals(p.estimateMinimumDemand(), 0);
+    }
+
+    /**
+     * Submit to a publisher with no subscribers returns lag 0
+     */
+    public void testEmptySubmit() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        assertEquals(p.submit(1), 0);
+    }
+
+    /**
+     * Submit(null) throws NPE
+     */
+    public void testNullSubmit() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        try {
+            p.submit(null);
+        } catch (NullPointerException success) {
+        }
+    }
+
+    /**
+     * Submit returns number of lagged items, compatible with result
+     * of estimateMaximumLag.
+     */
+    public void testLaggedSubmit() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        TestSubscriber s1 = new TestSubscriber();
+        s1.request = false;
+        TestSubscriber s2 = new TestSubscriber();
+        s2.request = false;
+        p.subscribe(s1);
+        p.subscribe(s2);
+        s2.awaitSubscribe();
+        s1.awaitSubscribe();
+        assertEquals(p.submit(1), 1);
+        assertTrue(p.estimateMaximumLag() >= 1);
+        assertTrue(p.submit(2) >= 2);
+        assertTrue(p.estimateMaximumLag() >= 2);
+        s1.sn.request(4);
+        assertTrue(p.submit(3) >= 3);
+        assertTrue(p.estimateMaximumLag() >= 3);
+        s2.sn.request(4);
+        p.submit(4);
+        p.close();
+        s2.awaitComplete();
+        assertEquals(s2.nexts, 4);
+        s1.awaitComplete();
+        assertEquals(s2.nexts, 4);
+    }
+
+    /**
+     * submit eventually issues requested items when buffer capacity is 1
+     */
+    public void testCap1Submit() {
+        SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>(
+            basicExecutor, 1);
+        TestSubscriber s1 = new TestSubscriber();
+        TestSubscriber s2 = new TestSubscriber();
+        p.subscribe(s1);
+        p.subscribe(s2);
+        for (int i = 1; i <= 20; ++i) {
+            assertTrue(p.estimateMinimumDemand() <= 1);
+            assertTrue(p.submit(i) >= 0);
+        }
+        p.close();
+        s2.awaitComplete();
+        s1.awaitComplete();
+        assertEquals(s2.nexts, 20);
+        assertEquals(s2.completes, 1);
+        assertEquals(s1.nexts, 20);
+        assertEquals(s1.completes, 1);
+    }
+    
+    static boolean noopHandle(AtomicInteger count) {
+        count.getAndIncrement();
+        return false;
+    }
+
+    static boolean reqHandle(AtomicInteger count, Subscriber s) {
+        count.getAndIncrement();
+        ((TestSubscriber)s).sn.request(Long.MAX_VALUE);
+        return true;
+    }
+
+    /**
+     * Offer to a publisher with no subscribers returns lag 0
+     */
+    public void testEmptyOffer() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        assertEquals(p.offer(1, null), 0);
+    }
+
+    /**
+     * Offer(null) throws NPE
+     */
+    public void testNullOffer() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        try {
+            p.offer(null, null);
+        } catch (NullPointerException success) {
+        }
+    }
+
+    /**
+     * Offer returns number of lagged items if not saturated
+     */
+    public void testLaggedOffer() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        TestSubscriber s1 = new TestSubscriber();
+        s1.request = false;
+        TestSubscriber s2 = new TestSubscriber();
+        s2.request = false;
+        p.subscribe(s1);
+        p.subscribe(s2);
+        s2.awaitSubscribe();
+        s1.awaitSubscribe();
+        assertTrue(p.offer(1, null) >= 1);
+        assertTrue(p.offer(2, null) >= 2);
+        s1.sn.request(4);
+        assertTrue(p.offer(3, null) >= 3);
+        s2.sn.request(4);
+        p.offer(4, null);
+        p.close();
+        s2.awaitComplete();
+        assertEquals(s2.nexts, 4);
+        s1.awaitComplete();
+        assertEquals(s2.nexts, 4);
+    }
+
+    /**
+     * Offer reports drops if saturated
+     */
+    public void testDroppedOffer() {
+        SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>(
+            basicExecutor, 4);
+        TestSubscriber s1 = new TestSubscriber();
+        s1.request = false;
+        TestSubscriber s2 = new TestSubscriber();
+        s2.request = false;
+        p.subscribe(s1);
+        p.subscribe(s2);
+        s2.awaitSubscribe();
+        s1.awaitSubscribe();
+        for (int i = 1; i <= 4; ++i)
+            assertTrue(p.offer(i, null) >= 0);
+        p.offer(5, null);
+        assertTrue(p.offer(6, null) < 0);
+        s1.sn.request(64);
+        assertTrue(p.offer(7, null) < 0);
+        s2.sn.request(64);
+        p.close();
+        s2.awaitComplete();
+        assertTrue(s2.nexts >= 4);
+        s1.awaitComplete();
+        assertTrue(s1.nexts >= 4);
+    }
+
+    /**
+     * Offer invokes drop handler if saturated
+     */
+    public void testHandledDroppedOffer() {
+        AtomicInteger calls = new AtomicInteger();
+        SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>(
+            basicExecutor, 4);
+        TestSubscriber s1 = new TestSubscriber();
+        s1.request = false;
+        TestSubscriber s2 = new TestSubscriber();
+        s2.request = false;
+        p.subscribe(s1);
+        p.subscribe(s2);
+        s2.awaitSubscribe();
+        s1.awaitSubscribe();
+        for (int i = 1; i <= 4; ++i)
+            assertTrue(p.offer(i, (s, x) -> noopHandle(calls)) >= 0);
+        p.offer(4, (s, x) -> noopHandle(calls));
+        assertTrue(p.offer(6, (s, x) -> noopHandle(calls)) < 0);
+        s1.sn.request(64);
+        assertTrue(p.offer(7, (s, x) -> noopHandle(calls)) < 0);
+        s2.sn.request(64);
+        p.close();
+        s2.awaitComplete();
+        s1.awaitComplete();
+        assertTrue(calls.get() >= 4);
+    }
+
+
+    /**
+     * Offer succeeds if drop handler forces request
+     */
+    public void testRecoveredHandledDroppedOffer() {
+        AtomicInteger calls = new AtomicInteger();
+        SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>(
+            basicExecutor, 4);
+        TestSubscriber s1 = new TestSubscriber();
+        s1.request = false;
+        TestSubscriber s2 = new TestSubscriber();
+        s2.request = false;
+        p.subscribe(s1);
+        p.subscribe(s2);
+        s2.awaitSubscribe();
+        s1.awaitSubscribe();
+        int n = 0;
+        for (int i = 1; i <= 8; ++i) {
+            int d = p.offer(i, (s, x) -> reqHandle(calls, s));
+            n = n + 2 + (d < 0 ? d : 0);
+        }
+        p.close();
+        s2.awaitComplete();
+        s1.awaitComplete();
+        assertEquals(s1.nexts + s2.nexts, n);
+        assertTrue(calls.get() >= 2);
+    }
+
+
+    /**
+     * TimedOffer to a publisher with no subscribers returns lag 0
+     */
+    public void testEmptyTimedOffer() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        assertEquals(p.offer(1, null), 0);
+    }
+
+    /**
+     * Timed Offer with null item or TimeUnit throws NPE
+     */
+    public void testNullTimedOffer() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        try {
+            p.offer(null, SHORT_DELAY_MS, MILLISECONDS, null);
+        } catch (NullPointerException success) {
+        }
+        try {
+            p.offer(1, SHORT_DELAY_MS, null, null);
+        } catch (NullPointerException success) {
+        }
+    }
+
+    /**
+     * Timed Offer returns number of lagged items if not saturated
+     */
+    public void testLaggedTimedOffer() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        TestSubscriber s1 = new TestSubscriber();
+        s1.request = false;
+        TestSubscriber s2 = new TestSubscriber();
+        s2.request = false;
+        p.subscribe(s1);
+        p.subscribe(s2);
+        s2.awaitSubscribe();
+        s1.awaitSubscribe();
+        assertTrue(p.offer(1, SHORT_DELAY_MS, MILLISECONDS, null) >= 1);
+        assertTrue(p.offer(2, SHORT_DELAY_MS, MILLISECONDS, null) >= 2);
+        s1.sn.request(4);
+        assertTrue(p.offer(3, SHORT_DELAY_MS, MILLISECONDS, null) >= 3);
+        s2.sn.request(4);
+        p.offer(4, SHORT_DELAY_MS, MILLISECONDS, null);
+        p.close();
+        s2.awaitComplete();
+        assertEquals(s2.nexts, 4);
+        s1.awaitComplete();
+        assertEquals(s2.nexts, 4);
+    }
+
+    /**
+     * Timed Offer reports drops if saturated
+     */
+    public void testDroppedTimedOffer() {
+        SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>(
+            basicExecutor, 4);
+        TestSubscriber s1 = new TestSubscriber();
+        s1.request = false;
+        TestSubscriber s2 = new TestSubscriber();
+        s2.request = false;
+        p.subscribe(s1);
+        p.subscribe(s2);
+        s2.awaitSubscribe();
+        s1.awaitSubscribe();
+        for (int i = 1; i <= 4; ++i)
+            assertTrue(p.offer(i, SHORT_DELAY_MS, MILLISECONDS, null) >= 0);
+        p.offer(5, SHORT_DELAY_MS, MILLISECONDS, null);
+        assertTrue(p.offer(6, SHORT_DELAY_MS, MILLISECONDS, null) < 0);
+        s1.sn.request(64);
+        assertTrue(p.offer(7, SHORT_DELAY_MS, MILLISECONDS, null) < 0);
+        s2.sn.request(64);
+        p.close();
+        s2.awaitComplete();
+        assertTrue(s2.nexts >= 2);
+        s1.awaitComplete();
+        assertTrue(s1.nexts >= 2);
+    }
+
+    /**
+     * Timed Offer invokes drop handler if saturated
+     */
+    public void testHandledDroppedTimedOffer() {
+        AtomicInteger calls = new AtomicInteger();
+        SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>(
+            basicExecutor, 4);
+        TestSubscriber s1 = new TestSubscriber();
+        s1.request = false;
+        TestSubscriber s2 = new TestSubscriber();
+        s2.request = false;
+        p.subscribe(s1);
+        p.subscribe(s2);
+        s2.awaitSubscribe();
+        s1.awaitSubscribe();
+        for (int i = 1; i <= 4; ++i)
+            assertTrue(p.offer(i, SHORT_DELAY_MS, MILLISECONDS, (s, x) -> noopHandle(calls)) >= 0);
+        p.offer(5, (s, x) -> noopHandle(calls));
+        assertTrue(p.offer(6, SHORT_DELAY_MS, MILLISECONDS, (s, x) -> noopHandle(calls)) < 0);
+        s1.sn.request(64);
+        assertTrue(p.offer(7, SHORT_DELAY_MS, MILLISECONDS, (s, x) -> noopHandle(calls)) < 0);
+        s2.sn.request(64);
+        p.close();
+        s2.awaitComplete();
+        s1.awaitComplete();
+        assertTrue(calls.get() >= 2);
+    }
+
+    /**
+     * Timed Offer succeeds if drop handler forces request
+     */
+    public void testRecoveredHandledDroppedTimedOffer() {
+        AtomicInteger calls = new AtomicInteger();
+        SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>(
+            basicExecutor, 4);
+        TestSubscriber s1 = new TestSubscriber();
+        s1.request = false;
+        TestSubscriber s2 = new TestSubscriber();
+        s2.request = false;
+        p.subscribe(s1);
+        p.subscribe(s2);
+        s2.awaitSubscribe();
+        s1.awaitSubscribe();
+        int n = 0;
+        for (int i = 1; i <= 8; ++i) {
+            int d = p.offer(i, SHORT_DELAY_MS, MILLISECONDS, (s, x) -> reqHandle(calls, s));
+            n = n + 2 + (d < 0 ? d : 0);
+        }
+        p.close();
+        s2.awaitComplete();
+        s1.awaitComplete();
+        assertEquals(s1.nexts + s2.nexts, n);
+        assertTrue(calls.get() >= 2);
+    }
+
+
+}
