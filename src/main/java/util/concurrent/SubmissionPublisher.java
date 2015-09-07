@@ -133,15 +133,15 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
     /** The largest possible power of two array size. */
     static final int BUFFER_CAPACITY_LIMIT  = 1 << 30;
 
-    /** Round capacity to power of 2, at least 2, at most limit. */
-    static final int roundCapacity(int cap) { // to nearest power of 2
+    /** Round capacity to power of 2, at most limit. */
+    static final int roundCapacity(int cap) {
         int n = cap - 1;
         n |= n >>> 1;
         n |= n >>> 2;
         n |= n >>> 4;
         n |= n >>> 8;
         n |= n >>> 16;
-        return (n <= 0) ? 2 : // at least 2
+        return (n <= 0) ? 1 : // at least 1
             (n >= BUFFER_CAPACITY_LIMIT) ? BUFFER_CAPACITY_LIMIT : n + 1;
     }
 
@@ -893,9 +893,10 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         static final long INTERRUPTED = -1L; // timeout vs interrupt sentinel
 
         /**
-         * Initial/Minimum buffer capacity. Must be a power of two, at least 2.
+         * Initial buffer capacity used when maxBufferCapacity is
+         * greater. Must be a power of two.
          */
-        static final int MINCAP = 16;
+        static final int DEFAULT_INITIAL_CAP = 32;
 
         BufferedSubscription(Flow.Subscriber<? super T> subscriber,
                              Executor executor,
@@ -906,7 +907,8 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
             this.executor = executor;
             this.onNextHandler = onNextHandler;
             this.maxCapacity = maxBufferCapacity;
-            this.array = new Object[MINCAP];
+            this.array = new Object[maxBufferCapacity < DEFAULT_INITIAL_CAP ?
+                                    maxBufferCapacity : DEFAULT_INITIAL_CAP];
         }
 
         final boolean isDisabled() {
@@ -929,10 +931,9 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         final int offer(T item) {
             int h = head, t = tail, cap, size, stat;
             Object[] a = array;
-            if (a != null && (cap = a.length) > 0 && cap > (size = t + 1 - h)) {
+            if (a != null && (cap = a.length) > 0 && cap >= (size = t + 1 - h)) {
                 a[(cap - 1) & t] = item;    // relaxed writes OK
                 tail = t + 1;
-                U.storeFence();             // ensure fields written
                 stat = size;
             }
             else
@@ -961,10 +962,9 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
             else {
                 U.fullFence();                   // recheck
                 int h = head, t = tail, size = t + 1 - h;
-                if (cap > size) {
+                if (cap >= size) {
                     a[(cap - 1) & t] = item;
                     tail = t + 1;
-                    U.storeFence();
                     stat = size;
                     alloc = false;
                 }
@@ -978,9 +978,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                 }
             }
             if (alloc) {
-                int newCap = (cap > 0 ? cap << 1 :
-                              maxCapacity >= MINCAP ? MINCAP :
-                              maxCapacity >= 2 ? maxCapacity : 2);
+                int newCap = (cap > 0) ? cap << 1 : 1;
                 if (newCap <= cap)
                     stat = 0;
                 else {
@@ -1010,7 +1008,6 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                         }
                         newArray[t & newMask] = item;
                         tail = t + 1;
-                        U.storeFence();
                     }
                 }
             }
