@@ -774,7 +774,6 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         assertTrue(calls.get() >= 4);
     }
 
-
     /**
      * offer succeeds if drop handler forces request
      */
@@ -801,7 +800,6 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         assertEquals(s1.nexts + s2.nexts, n);
         assertTrue(calls.get() >= 2);
     }
-
 
     /**
      * Timed offer to a publisher with no subscribers returns lag 0
@@ -934,6 +932,5 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         assertEquals(s1.nexts + s2.nexts, n);
         assertTrue(calls.get() >= 2);
     }
-
 
 }
