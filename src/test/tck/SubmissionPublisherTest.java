@@ -153,15 +153,15 @@ public class SubmissionPublisherTest extends JSR166TestCase {
      */
     void checkInitialState(SubmissionPublisher<?> p) {
         assertFalse(p.hasSubscribers());
-        assertEquals(p.getNumberOfSubscribers(), 0);
+        assertEquals(0, p.getNumberOfSubscribers());
         assertTrue(p.getSubscribers().isEmpty());
         assertFalse(p.isClosed());
         assertNull(p.getClosedException());
         int n = p.getMaxBufferCapacity();
         assertTrue((n & (n - 1)) == 0); // power of two
         assertNotNull(p.getExecutor());
-        assertEquals(p.estimateMinimumDemand(), 0);
-        assertEquals(p.estimateMaximumLag(), 0);
+        assertEquals(0, p.estimateMinimumDemand());
+        assertEquals(0, p.estimateMaximumLag());
     }
 
     /**
@@ -185,7 +185,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>(e, 8);
         checkInitialState(p);
         assertSame(p.getExecutor(), e);
-        assertEquals(p.getMaxBufferCapacity(), 8);
+        assertEquals(8, p.getMaxBufferCapacity());
     }
 
     /**
@@ -264,27 +264,27 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         SubmissionPublisher<Integer> p = basicPublisher();
         p.subscribe(s);
         assertTrue(p.hasSubscribers());
-        assertEquals(p.getNumberOfSubscribers(), 1);
+        assertEquals(1, p.getNumberOfSubscribers());
         assertTrue(p.getSubscribers().contains(s));
         assertTrue(p.isSubscribed(s));
         s.awaitSubscribe();
         assertNotNull(s.sn);
-        assertEquals(s.nexts, 0);
-        assertEquals(s.errors, 0);
-        assertEquals(s.completes, 0);
+        assertEquals(0, s.nexts);
+        assertEquals(0, s.errors);
+        assertEquals(0, s.completes);
         TestSubscriber s2 = new TestSubscriber();
         p.subscribe(s2);
         assertTrue(p.hasSubscribers());
-        assertEquals(p.getNumberOfSubscribers(), 2);
+        assertEquals(2, p.getNumberOfSubscribers());
         assertTrue(p.getSubscribers().contains(s));
         assertTrue(p.getSubscribers().contains(s2));
         assertTrue(p.isSubscribed(s));
         assertTrue(p.isSubscribed(s2));
         s2.awaitSubscribe();
         assertNotNull(s2.sn);
-        assertEquals(s2.nexts, 0);
-        assertEquals(s2.errors, 0);
-        assertEquals(s2.completes, 0);
+        assertEquals(0, s2.nexts);
+        assertEquals(0, s2.errors);
+        assertEquals(0, s2.completes);
     }
 
     /**
@@ -297,9 +297,9 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.close();
         p.subscribe(s);
         s.awaitComplete();
-        assertEquals(s.nexts, 0);
-        assertEquals(s.errors, 0);
-        assertEquals(s.completes, 1);
+        assertEquals(0, s.nexts);
+        assertEquals(0, s.errors);
+        assertEquals(1, s.completes, 1);
     }
 
     /**
@@ -315,8 +315,8 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         assertSame(p.getClosedException(), ex);
         p.subscribe(s);
         s.awaitError();
-        assertEquals(s.nexts, 0);
-        assertEquals(s.errors, 1);
+        assertEquals(0, s.nexts);
+        assertEquals(1, s.errors);
     }
 
     /**
@@ -328,18 +328,18 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         SubmissionPublisher<Integer> p = basicPublisher();
         p.subscribe(s);
         assertTrue(p.hasSubscribers());
-        assertEquals(p.getNumberOfSubscribers(), 1);
+        assertEquals(1, p.getNumberOfSubscribers());
         assertTrue(p.getSubscribers().contains(s));
         assertTrue(p.isSubscribed(s));
         s.awaitSubscribe();
         assertNotNull(s.sn);
-        assertEquals(s.nexts, 0);
-        assertEquals(s.errors, 0);
-        assertEquals(s.completes, 0);
+        assertEquals(0, s.nexts);
+        assertEquals(0, s.errors);
+        assertEquals(0, s.completes);
         p.subscribe(s);
         s.awaitError();
-        assertEquals(s.nexts, 0);
-        assertEquals(s.errors, 1);
+        assertEquals(0, s.nexts);
+        assertEquals(1, s.errors);
         assertFalse(p.isSubscribed(s));
     }
 
@@ -354,9 +354,9 @@ public class SubmissionPublisherTest extends JSR166TestCase {
             p.subscribe(s);
         } catch (Exception ok) {}
         s.awaitError();
-        assertEquals(s.nexts, 0);
-        assertEquals(s.errors, 1);
-        assertEquals(s.completes, 0);
+        assertEquals(0, s.nexts);
+        assertEquals(1, s.errors);
+        assertEquals(0, s.completes);
     }
 
     /**
@@ -385,11 +385,11 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         assertTrue(p.isClosed());
         assertNull(p.getClosedException());
         s1.awaitComplete();
-        assertEquals(s1.nexts, 1);
-        assertEquals(s1.completes, 1);
+        assertEquals(1, s1.nexts);
+        assertEquals(1, s1.completes);
         s2.awaitComplete();
-        assertEquals(s2.nexts, 1);
-        assertEquals(s2.completes, 1);
+        assertEquals(1, s2.nexts);
+        assertEquals(1, s2.completes);
     }
 
     /**
@@ -406,10 +406,10 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         assertTrue(p.isClosed());
         s1.awaitError();
         assertTrue(s1.nexts <= 1);
-        assertEquals(s1.errors, 1);
+        assertEquals(1, s1.errors);
         s2.awaitError();
         assertTrue(s2.nexts <= 1);
-        assertEquals(s2.errors, 1);
+        assertEquals(1, s2.errors);
     }
 
     /**
@@ -428,8 +428,8 @@ public class SubmissionPublisherTest extends JSR166TestCase {
             p.submit(i);
         p.close();
         s2.awaitComplete();
-        assertEquals(s2.nexts, 20);
-        assertEquals(s2.completes, 1);
+        assertEquals(20, s2.nexts);
+        assertEquals(1, s2.completes);
         assertTrue(s1.nexts < 20);
         assertFalse(p.isSubscribed(s1));
     }
@@ -449,9 +449,9 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.submit(2);
         p.close();
         s2.awaitComplete();
-        assertEquals(s2.nexts, 2);
+        assertEquals(2, s2.nexts);
         s1.awaitComplete();
-        assertEquals(s1.errors, 1);
+        assertEquals(1, s1.errors);
     }
 
     /**
@@ -473,11 +473,11 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.submit(2);
         p.close();
         s2.awaitComplete();
-        assertEquals(s2.nexts, 2);
-        assertEquals(s2.completes, 1);
+        assertEquals(2, s2.nexts);
+        assertEquals(1, s2.completes);
         s1.awaitError();
-        assertEquals(s1.errors, 1);
-        assertEquals(calls.get(), 1);
+        assertEquals(1, s1.errors);
+        assertEquals(1, calls.get());
     }
 
     /**
@@ -494,10 +494,10 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.close();
         s2.awaitComplete();
         s1.awaitComplete();
-        assertEquals(s2.nexts, 20);
-        assertEquals(s2.completes, 1);
-        assertEquals(s1.nexts, 20);
-        assertEquals(s1.completes, 1);
+        assertEquals(20, s2.nexts);
+        assertEquals(1, s2.completes);
+        assertEquals(20, s1.nexts);
+        assertEquals(1, s1.completes);
     }
 
     /**
@@ -515,16 +515,16 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.submit(1);
         p.submit(2);
         s2.awaitNext(1);
-        assertEquals(s1.nexts, 0);
+        assertEquals(0, s1.nexts);
         s1.sn.request(3);
         p.submit(3);
         p.close();
         s2.awaitComplete();
-        assertEquals(s2.nexts, 3);
-        assertEquals(s2.completes, 1);
+        assertEquals(3, s2.nexts);
+        assertEquals(1, s2.completes);
         s1.awaitComplete();
         assertTrue(s1.nexts > 0);
-        assertEquals(s1.completes, 1);
+        assertEquals(1, s1.completes);
     }
 
     /**
@@ -543,10 +543,10 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.submit(2);
         p.close();
         s2.awaitComplete();
-        assertEquals(s2.nexts, 2);
-        assertEquals(s2.completes, 1);
+        assertEquals(2, s2.nexts);
+        assertEquals(1, s2.completes);
         s1.awaitNext(1);
-        assertEquals(s1.nexts, 1);
+        assertEquals(1, s1.nexts);
     }
 
     /**
@@ -565,10 +565,10 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.submit(2);
         p.close();
         s2.awaitComplete();
-        assertEquals(s2.nexts, 2);
-        assertEquals(s2.completes, 1);
+        assertEquals(2, s2.nexts);
+        assertEquals(1, s2.completes);
         s1.awaitError();
-        assertEquals(s1.errors, 1);
+        assertEquals(1, s1.errors);
         assertTrue(s1.lastError instanceof IllegalArgumentException);
     }
 
@@ -582,12 +582,12 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         s.request = false;
         p.subscribe(s);
         s.awaitSubscribe();
-        assertEquals(p.estimateMinimumDemand(), 0);
+        assertEquals(0, p.estimateMinimumDemand());
         s.sn.request(1);
-        assertEquals(p.estimateMinimumDemand(), 1);
+        assertEquals(1, p.estimateMinimumDemand());
         p.submit(1);
         s.awaitNext(1);
-        assertEquals(p.estimateMinimumDemand(), 0);
+        assertEquals(0, p.estimateMinimumDemand());
     }
 
     /**
@@ -595,7 +595,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
      */
     public void testEmptySubmit() {
         SubmissionPublisher<Integer> p = basicPublisher();
-        assertEquals(p.submit(1), 0);
+        assertEquals(0, p.submit(1));
     }
 
     /**
@@ -623,7 +623,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.subscribe(s2);
         s2.awaitSubscribe();
         s1.awaitSubscribe();
-        assertEquals(p.submit(1), 1);
+        assertEquals(1, p.submit(1));
         assertTrue(p.estimateMaximumLag() >= 1);
         assertTrue(p.submit(2) >= 2);
         assertTrue(p.estimateMaximumLag() >= 2);
@@ -634,9 +634,9 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.submit(4);
         p.close();
         s2.awaitComplete();
-        assertEquals(s2.nexts, 4);
+        assertEquals(4, s2.nexts);
         s1.awaitComplete();
-        assertEquals(s2.nexts, 4);
+        assertEquals(4, s2.nexts);
     }
 
     /**
@@ -656,10 +656,10 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.close();
         s2.awaitComplete();
         s1.awaitComplete();
-        assertEquals(s2.nexts, 20);
-        assertEquals(s2.completes, 1);
-        assertEquals(s1.nexts, 20);
-        assertEquals(s1.completes, 1);
+        assertEquals(20, s2.nexts);
+        assertEquals(1, s2.completes);
+        assertEquals(20, s1.nexts);
+        assertEquals(1, s1.completes);
     }
 
     static boolean noopHandle(AtomicInteger count) {
@@ -713,9 +713,9 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.offer(4, null);
         p.close();
         s2.awaitComplete();
-        assertEquals(s2.nexts, 4);
+        assertEquals(4, s2.nexts);
         s1.awaitComplete();
-        assertEquals(s2.nexts, 4);
+        assertEquals(4, s2.nexts);
     }
 
     /**
@@ -797,7 +797,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.close();
         s2.awaitComplete();
         s1.awaitComplete();
-        assertEquals(s1.nexts + s2.nexts, n);
+        assertEquals(n, s1.nexts + s2.nexts);
         assertTrue(calls.get() >= 2);
     }
 
@@ -845,9 +845,9 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.offer(4, SHORT_DELAY_MS, MILLISECONDS, null);
         p.close();
         s2.awaitComplete();
-        assertEquals(s2.nexts, 4);
+        assertEquals(4, s2.nexts);
         s1.awaitComplete();
-        assertEquals(s2.nexts, 4);
+        assertEquals(4, s2.nexts);
     }
 
     /**
@@ -929,7 +929,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.close();
         s2.awaitComplete();
         s1.awaitComplete();
-        assertEquals(s1.nexts + s2.nexts, n);
+        assertEquals(n, s1.nexts + s2.nexts);
         assertTrue(calls.get() >= 2);
     }
 
