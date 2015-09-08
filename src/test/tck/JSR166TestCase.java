@@ -744,20 +744,20 @@ public class JSR166TestCase extends TestCase {
     }
 
     /** Like Runnable, but with the freedom to throw anything */
-    interface Thunk { public void run() throws Throwable; }
+    interface Action { public void run() throws Throwable; }
 
     /**
-     * Runs all the given tasks in parallel, failing if any fail.
+     * Runs all the given actions in parallel, failing if any fail.
      * Useful for running multiple variants of tests that are
      * necessarily individually slow because they must block.
      */
-    void testInParallel(Thunk ... thunks) {
+    void testInParallel(Action ... actions) {
         ExecutorService pool = Executors.newCachedThreadPool();
         try {
-            ArrayList<Future<?>> futures = new ArrayList<>(thunks.length);
-            for (final Thunk thunk : thunks)
+            ArrayList<Future<?>> futures = new ArrayList<>(actions.length);
+            for (final Action action : actions)
                 futures.add(pool.submit(new CheckedRunnable() {
-                    public void realRun() throws Throwable { thunk.run();}}));
+                    public void realRun() throws Throwable { action.run();}}));
             for (Future<?> future : futures)
                 try {
                     assertNull(future.get(LONG_DELAY_MS, MILLISECONDS));
