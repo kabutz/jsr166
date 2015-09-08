@@ -919,7 +919,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
 
         /**
          * Returns estimated number of buffered items, or -1 if
-         * disabled
+         * disabled.
          */
         final int estimateLag() {
             int n;
@@ -1397,7 +1397,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         }
 
         /**
-         * Respond to control events in consume()
+         * Responds to control events in consume().
          */
         private boolean checkControl(Flow.Subscriber<? super T> s, int c) {
             boolean stat = true;
@@ -1430,7 +1430,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         }
 
         /**
-         * Respond to apparent emptiness in consume()
+         * Responds to apparent emptiness in consume().
          */
         private boolean checkEmpty(Flow.Subscriber<? super T> s, int c) {
             boolean stat = true;
@@ -1453,7 +1453,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         }
 
         /**
-         * Respond to apparent zero demand in consume()
+         * Responds to apparent zero demand in consume().
          */
         private boolean checkDemand(int c) {
             boolean stat = true;
@@ -1467,7 +1467,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         }
 
         /**
-         * Process exception in Subscriber.onNext
+         * Processes exception in Subscriber.onNext.
          */
         private void handleOnNext(Flow.Subscriber<? super T> s, Throwable ex) {
             BiConsumer<? super Flow.Subscriber<? super T>, ? super Throwable> h;
