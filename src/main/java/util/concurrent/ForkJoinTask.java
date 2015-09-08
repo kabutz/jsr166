@@ -1274,10 +1274,9 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      * @since 1.9
      */
     protected static ForkJoinTask<?> pollSubmission() {
-        Thread t; ForkJoinWorkerThread wt;
+        Thread t;
         return ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread) ?
-            (wt = (ForkJoinWorkerThread)t).pool.pollSubmission() :
-            null;
+            ((ForkJoinWorkerThread)t).pool.pollSubmission() : null;
     }
 
     // tag operations
