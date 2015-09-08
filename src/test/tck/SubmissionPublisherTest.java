@@ -47,7 +47,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     static final Executor basicExecutor =
-        (ForkJoinPool.getCommonPoolParallelism() > 0) ?
+        (ForkJoinPool.getCommonPoolParallelism() > 1) ?
         ForkJoinPool.commonPool() :
         new ThreadPoolExecutor(1, 1, 60, SECONDS,
                                new LinkedBlockingQueue<Runnable>(),
@@ -285,6 +285,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         assertEquals(0, s2.nexts);
         assertEquals(0, s2.errors);
         assertEquals(0, s2.completes);
+        p.close();
     }
 
     /**
@@ -870,12 +871,15 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.subscribe(s2);
         s2.awaitSubscribe();
         s1.awaitSubscribe();
+        long delay = timeoutMillis();
         for (int i = 1; i <= 4; ++i)
-            assertTrue(p.offer(i, SHORT_DELAY_MS, MILLISECONDS, null) >= 0);
-        p.offer(5, SHORT_DELAY_MS, MILLISECONDS, null);
-        assertTrue(p.offer(6, SHORT_DELAY_MS, MILLISECONDS, null) < 0);
+            assertTrue(p.offer(i, delay, MILLISECONDS, null) >= 0);
+        long startTime = System.nanoTime();
+        assertTrue(p.offer(5, delay, MILLISECONDS, null) < 0);
         s1.sn.request(64);
-        assertTrue(p.offer(7, SHORT_DELAY_MS, MILLISECONDS, null) < 0);
+        assertTrue(p.offer(6, delay, MILLISECONDS, null) < 0);
+        // 2 * delay should elapse but check only 1 * delay to allow timer slop
+        assertTrue(millisElapsedSince(startTime) >= delay);
         s2.sn.request(64);
         p.close();
         s2.awaitComplete();
@@ -899,12 +903,14 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.subscribe(s2);
         s2.awaitSubscribe();
         s1.awaitSubscribe();
+        long delay = timeoutMillis();
         for (int i = 1; i <= 4; ++i)
-            assertTrue(p.offer(i, SHORT_DELAY_MS, MILLISECONDS, (s, x) -> noopHandle(calls)) >= 0);
-        p.offer(5, (s, x) -> noopHandle(calls));
-        assertTrue(p.offer(6, SHORT_DELAY_MS, MILLISECONDS, (s, x) -> noopHandle(calls)) < 0);
+            assertTrue(p.offer(i, delay, MILLISECONDS, (s, x) -> noopHandle(calls)) >= 0);
+        long startTime = System.nanoTime();
+        assertTrue(p.offer(5, delay, MILLISECONDS, (s, x) -> noopHandle(calls)) < 0);
         s1.sn.request(64);
-        assertTrue(p.offer(7, SHORT_DELAY_MS, MILLISECONDS, (s, x) -> noopHandle(calls)) < 0);
+        assertTrue(p.offer(6, delay, MILLISECONDS, (s, x) -> noopHandle(calls)) < 0);
+        assertTrue(millisElapsedSince(startTime) >= delay);
         s2.sn.request(64);
         p.close();
         s2.awaitComplete();
@@ -928,10 +934,13 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         s2.awaitSubscribe();
         s1.awaitSubscribe();
         int n = 0;
-        for (int i = 1; i <= 8; ++i) {
-            int d = p.offer(i, SHORT_DELAY_MS, MILLISECONDS, (s, x) -> reqHandle(calls, s));
+        long delay = timeoutMillis();
+        long startTime = System.nanoTime();
+        for (int i = 1; i <= 6; ++i) {
+            int d = p.offer(i, delay, MILLISECONDS, (s, x) -> reqHandle(calls, s));
             n = n + 2 + (d < 0 ? d : 0);
         }
+        assertTrue(millisElapsedSince(startTime) >= delay);
         p.close();
         s2.awaitComplete();
         s1.awaitComplete();
