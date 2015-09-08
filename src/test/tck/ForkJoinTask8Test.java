@@ -9,9 +9,11 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.TimeoutException;
 
@@ -1152,4 +1154,44 @@ public class ForkJoinTask8Test extends JSR166TestCase {
         testInvokeOnPool(mainPool(), a);
     }
 
+    // jdk9
+    
+    /**
+     * pollSubmission returns unexecuted submitted task, if present
+     */
+    public void testPollSubmission() {
+        final CountDownLatch done = new CountDownLatch(1);
+        final ForkJoinTask a = ForkJoinTask.adapt(awaiter(done));
+        final ForkJoinTask b = ForkJoinTask.adapt(awaiter(done));
+        final ForkJoinTask c = ForkJoinTask.adapt(awaiter(done));
+        final ForkJoinPool p = singletonPool();
+        Thread external = new Thread() {
+                public void run() {
+                    p.execute(a);
+                    p.execute(b);
+                    p.execute(c);
+                }};
+        RecursiveAction s = new CheckedRecursiveAction() {
+                protected void realCompute() {
+                    external.start();
+                    try {
+                        external.join();
+                    } catch(Exception ex) {
+                        threadUnexpectedException(ex);
+                    }
+                    assertTrue(p.hasQueuedSubmissions());
+                    assertTrue(Thread.currentThread() instanceof ForkJoinWorkerThread);
+                    ForkJoinTask r = ForkJoinTask.pollSubmission();
+                    assertTrue(r == a || r == b || r == c);
+                    assertFalse(r.isDone());
+                }};
+        try {
+            p.invoke(s);
+        } finally {
+            done.countDown();
+            joinPool(p);
+        }
+    }
+
+    
 }
