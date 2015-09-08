@@ -2698,47 +2698,51 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         }
     }
 
-    // MinimalStage subclass just throws UOE for non-CompletionStage methods
+    /**
+     * A subclass that just throws UOE for most non-CompletionStage methods.
+     */
     static final class MinimalStage<T> extends CompletableFuture<T> {
         MinimalStage() { }
         MinimalStage(Object r) { super(r); }
-        public <U> CompletableFuture<U> newIncompleteFuture() {
+        @Override public <U> CompletableFuture<U> newIncompleteFuture() {
             return new MinimalStage<U>(); }
-        public T get() {
+        @Override public T get() {
             throw new UnsupportedOperationException(); }
-        public T get(long timeout, TimeUnit unit) {
+        @Override public T get(long timeout, TimeUnit unit) {
             throw new UnsupportedOperationException(); }
-        public T getNow(T valueIfAbsent) {
+        @Override public T getNow(T valueIfAbsent) {
             throw new UnsupportedOperationException(); }
-        public T join() {
+        @Override public T join() {
             throw new UnsupportedOperationException(); }
-        public boolean complete(T value) {
+        @Override public boolean complete(T value) {
             throw new UnsupportedOperationException(); }
-        public boolean completeExceptionally(Throwable ex) {
+        @Override public boolean completeExceptionally(Throwable ex) {
             throw new UnsupportedOperationException(); }
-        public boolean cancel(boolean mayInterruptIfRunning) {
+        @Override public boolean cancel(boolean mayInterruptIfRunning) {
             throw new UnsupportedOperationException(); }
-        public void obtrudeValue(T value) {
+        @Override public void obtrudeValue(T value) {
             throw new UnsupportedOperationException(); }
-        public void obtrudeException(Throwable ex) {
+        @Override public void obtrudeException(Throwable ex) {
             throw new UnsupportedOperationException(); }
-        public boolean isDone() {
+        @Override public boolean isDone() {
             throw new UnsupportedOperationException(); }
-        public boolean isCancelled() {
+        @Override public boolean isCancelled() {
             throw new UnsupportedOperationException(); }
-        public boolean isCompletedExceptionally() {
+        @Override public boolean isCompletedExceptionally() {
             throw new UnsupportedOperationException(); }
-        public int getNumberOfDependents() {
+        @Override public int getNumberOfDependents() {
             throw new UnsupportedOperationException(); }
-        public CompletableFuture<T> completeAsync(Supplier<? extends T> supplier,
-                                                  Executor executor) {
+        @Override public CompletableFuture<T> completeAsync
+            (Supplier<? extends T> supplier, Executor executor) {
             throw new UnsupportedOperationException(); }
-        public CompletableFuture<T> completeAsync(Supplier<? extends T> supplier) {
+        @Override public CompletableFuture<T> completeAsync
+            (Supplier<? extends T> supplier) {
             throw new UnsupportedOperationException(); }
-        public CompletableFuture<T> orTimeout(long timeout, TimeUnit unit) {
+        @Override public CompletableFuture<T> orTimeout
+            (long timeout, TimeUnit unit) {
             throw new UnsupportedOperationException(); }
-        public CompletableFuture<T> completeOnTimeout(T value, long timeout,
-                                                      TimeUnit unit) {
+        @Override public CompletableFuture<T> completeOnTimeout
+            (T value, long timeout, TimeUnit unit) {
             throw new UnsupportedOperationException(); }
     }
 
