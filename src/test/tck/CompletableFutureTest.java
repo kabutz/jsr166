@@ -8,9 +8,17 @@
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -3687,5 +3695,92 @@ public class CompletableFutureTest extends JSR166TestCase {
             assertSame(resultOf(src), resultOf(dep));
         }
     }}
+
+    /**
+     * Minimal completion stages throw UOE for all non-CompletionStage methods
+     */
+    public void testMinimalCompletionStage_minimality() {
+        if (!testImplementationDetails) return;
+        Function<Method, String> toSignature =
+            (method) -> method.getName() + Arrays.toString(method.getParameterTypes());
+        List<Method> minimalMethods =
+            Stream.of(Object.class, CompletionStage.class)
+            .map((klazz) -> Stream.of(klazz.getMethods()))
+            .reduce(Stream::concat)
+            .orElseGet(Stream::empty)
+            .filter((method) -> (method.getModifiers() & Modifier.STATIC) == 0)
+            .collect(Collectors.toList());
+        // Methods from CompletableFuture permitted NOT to throw UOE
+        String[] signatureWhitelist = {
+            "newIncompleteFuture[]",
+            "defaultExecutor[]",
+            "minimalCompletionStage[]",
+            "copy[]",
+        };
+        Set<String> permittedMethodSignatures =
+            Stream.concat(minimalMethods.stream().map(toSignature),
+                          Stream.of(signatureWhitelist))
+            .collect(Collectors.toSet());
+        List<Method> allMethods = Stream.of(CompletableFuture.class.getMethods())
+            .filter((method) -> (method.getModifiers() & Modifier.STATIC) == 0)
+            .filter((method) -> !permittedMethodSignatures.contains(toSignature.apply(method)))
+            .collect(Collectors.toList());
+
+        CompletionStage<Integer> minimalStage =
+            new CompletableFuture<Integer>().minimalCompletionStage();
+
+        List<Method> bugs = new ArrayList<>();
+        for (Method method : allMethods) {
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            Object[] args = new Object[parameterTypes.length];
+            // Manufacture boxed primitives for primitive params
+            for (int i = 0; i < args.length; i++) {
+                Class<?> type = parameterTypes[i];
+                if (parameterTypes[i] == boolean.class)
+                    args[i] = false;
+                else if (parameterTypes[i] == int.class)
+                    args[i] = 0;
+                else if (parameterTypes[i] == long.class)
+                    args[i] = 0L;
+            }
+            try {
+                method.invoke(minimalStage, args);
+                bugs.add(method);
+            }
+            catch (java.lang.reflect.InvocationTargetException expected) {
+                if (! (expected.getCause() instanceof UnsupportedOperationException)) {
+                    bugs.add(method);
+                    // expected.getCause().printStackTrace();
+                }
+            }
+            catch (ReflectiveOperationException bad) { throw new Error(bad); }
+        }
+        if (!bugs.isEmpty())
+            throw new Error("Methods did not throw UOE: " + bugs.toString());
+    }
+
+//     static <U> U join(CompletionStage<U> stage) {
+//         CompletableFuture<U> f = new CompletableFuture<>();
+//         stage.whenComplete((v, ex) -> {
+//             if (ex != null) f.completeExceptionally(ex); else f.complete(v);
+//         });
+//         return f.join();
+//     }
+
+//     static <U> boolean isDone(CompletionStage<U> stage) {
+//         CompletableFuture<U> f = new CompletableFuture<>();
+//         stage.whenComplete((v, ex) -> {
+//             if (ex != null) f.completeExceptionally(ex); else f.complete(v);
+//         });
+//         return f.isDone();
+//     }
+
+//     static <U> U join2(CompletionStage<U> stage) {
+//         return stage.toCompletableFuture().copy().join();
+//     }
+
+//     static <U> boolean isDone2(CompletionStage<U> stage) {
+//         return stage.toCompletableFuture().copy().isDone();
+//     }
 
 }
