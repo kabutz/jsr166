@@ -670,6 +670,7 @@
         <!-- JDK8+ test classes -->
         <exclude name="*8Test.java"/>
         <exclude name="*9Test.java"/>
+        <exclude name="*10Test.java"/>
         <exclude name="DoubleAccumulatorTest.java"/>
         <exclude name="DoubleAdderTest.java"/>
         <exclude name="LongAccumulatorTest.java"/>
@@ -677,6 +678,7 @@
         <exclude name="CompletableFutureTest.java"/>
         <exclude name="SplittableRandomTest.java"/>
         <exclude name="StampedLockTest.java"/>
+        <exclude name="SubmissionPublisherTest.java"/>
       </javac-elements>
     </run-tck-tests>
   </target>
