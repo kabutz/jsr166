@@ -1155,7 +1155,7 @@ public class ForkJoinTask8Test extends JSR166TestCase {
     }
 
     // jdk9
-    
+
     /**
      * pollSubmission returns unexecuted submitted task, if present
      */
@@ -1176,7 +1176,7 @@ public class ForkJoinTask8Test extends JSR166TestCase {
                     external.start();
                     try {
                         external.join();
-                    } catch(Exception ex) {
+                    } catch (Exception ex) {
                         threadUnexpectedException(ex);
                     }
                     assertTrue(p.hasQueuedSubmissions());
@@ -1193,5 +1193,4 @@ public class ForkJoinTask8Test extends JSR166TestCase {
         }
     }
 
-    
 }
