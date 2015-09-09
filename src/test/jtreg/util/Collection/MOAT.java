@@ -1299,7 +1299,7 @@ public class MOAT {
 
         equalNext(descItr, expected[idx--]);
         descItr.remove();
-        while(idx >= 0 && descItr.hasNext()) {
+        while (idx >= 0 && descItr.hasNext()) {
             equalNext(descItr, expected[idx--]);
         }
         equal(descItr.hasNext(), false);

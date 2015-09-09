@@ -26,6 +26,7 @@
  * @bug     4904067
  * @summary Unit test for Collections.checkedList
  * @author  Josh Bloch
+ * @key randomness
  */
 
 import java.util.*;
@@ -201,7 +202,7 @@ public class CheckedListBash {
     }
 
     static List newList() {
-        List s = Collections.checkedList(new ArrayList(), Integer.class);
+        List s =  Collections.checkedList(new ArrayList(), Integer.class);
         if (!s.isEmpty())
             fail("New instance non empty.");
         return s;
@@ -214,10 +215,10 @@ public class CheckedListBash {
 
             int preSize = s.size();
             if (!s.add(e))
-                fail("Add failed.");
+                fail ("Add failed.");
             int postSize = s.size();
             if (postSize-preSize != 1)
-                fail("Add didn't increase size by 1.");
+                fail ("Add didn't increase size by 1.");
         }
     }
 
