@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2014, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,7 +25,11 @@
  * @test
  * @bug     6420753 6242436 6691185
  * @summary Compare NavigableMap implementations for identical behavior
+ * @run main LockStep
+ * @run main/othervm -XX:+AggressiveOpts LockStep
+ * @run main/othervm -XX:+AggressiveOpts -Dthorough=true LockStep
  * @author  Martin Buchholz
+ * @key randomness
  */
 
 import java.io.*;
@@ -52,11 +56,19 @@ public class LockStep {
 
         lockSteps(new TreeMap(),
                   new ConcurrentSkipListMap());
+        lockSteps(new TreeMap(),
+                  Collections.checkedNavigableMap(new TreeMap(), Integer.class, Integer.class));
+        lockSteps(new TreeMap(),
+                  Collections.synchronizedNavigableMap(new TreeMap()));
         lockSteps(new TreeMap(reverseOrder()),
                   new ConcurrentSkipListMap(reverseOrder()));
 
         lockSteps(new TreeSet(),
                   new ConcurrentSkipListSet());
+        lockSteps(new TreeSet(),
+                  Collections.checkedNavigableSet(new TreeSet(), Integer.class));
+        lockSteps(new TreeSet(),
+                  Collections.synchronizedNavigableSet(new TreeSet()));
         lockSteps(new TreeSet(reverseOrder()),
                   new ConcurrentSkipListSet(reverseOrder()));
     }
@@ -178,7 +190,15 @@ public class LockStep {
         testEmptyCollection(m.values());
     }
 
-    static final Random rnd = new Random();
+    static final Random rnd;
+
+    static {
+        // sufficiently random for this test
+        long seed = System.nanoTime();
+        System.out.println(LockStep.class.getCanonicalName() + ": Trial random seed: " + seed );
+
+        rnd = new Random(seed);
+    }
 
     static void equalNext(final Iterator<?> it, Object expected) {
         if (maybe(2))
@@ -205,13 +225,20 @@ public class LockStep {
             check(s.descendingSet().descendingSet().comparator() == null);
         equal(s.isEmpty(), s.size() == 0);
         equal2(s, s.descendingSet());
-        if (maybe(4) && s instanceof Serializable)
-            equal2(s, serialClone(s));
+        if (maybe(4) && s instanceof Serializable) {
+            try {
+                equal2(s, serialClone(s));
+            } catch (RuntimeException uhoh) {
+                if (!(uhoh.getCause() instanceof NotSerializableException)) {
+                    throw uhoh;
+                }
+            }
+        }
         Comparator cmp = comparator(s);
         if (s.isEmpty()) {
             THROWS(NoSuchElementException.class,
-                   new Fun(){void f(){ s.first(); }},
-                   new Fun(){void f(){ s.last();  }});
+                   () -> s.first(),
+                   () -> s.last());
             equal(null, s.lower(1));
             equal(null, s.floor(1));
             equal(null, s.ceiling(1));
@@ -239,8 +266,7 @@ public class LockStep {
         };
         for (final Iterator it : its)
             if (maybe(4))
-                THROWS(IllegalStateException.class,
-                       new Fun(){void f(){ it.remove(); }});
+                THROWS(IllegalStateException.class, () -> it.remove());
         Object prev = null;
         for (Object e : s) {
             check(s.contains(e));
@@ -258,7 +284,7 @@ public class LockStep {
         for (final Iterator it : its) {
             if (maybe(2))
                 check(! it.hasNext());
-            Fun fun = new Fun(){void f(){ it.next(); }};
+            Fun fun = () -> it.next();
             THROWS(NoSuchElementException.class, fun, fun, fun);
         }
     }
@@ -271,6 +297,15 @@ public class LockStep {
             equal(it1.next(), it2.next());
         }
         check(! it2.hasNext());
+    }
+
+    static void equalSetsLeaf(final Set s1, final Set s2) {
+        equal2(s1,            s2);
+        equal( s1.size(),     s2.size());
+        equal( s1.isEmpty(),  s2.isEmpty());
+        equal( s1.hashCode(), s2.hashCode());
+        equal( s1.toString(), s2.toString());
+        equal( s1.containsAll(s2), s2.containsAll(s1));
     }
 
     static void equalNavigableSetsLeaf(final NavigableSet s1,
@@ -345,8 +380,8 @@ public class LockStep {
         Comparator cmp = comparator(m);
         if (m.isEmpty()) {
             THROWS(NoSuchElementException.class,
-                   new Fun(){void f(){ m.firstKey(); }},
-                   new Fun(){void f(){ m.lastKey();  }});
+                   () -> m.firstKey(),
+                   () -> m.lastKey());
             equal(null, m.firstEntry());
             equal(null, m.lastEntry());
             equal(null, m.pollFirstEntry());
@@ -395,8 +430,7 @@ public class LockStep {
         Iterator[] its = concat(kits, vits, eits);
         for (final Iterator it : its)
             if (maybe(4))
-                THROWS(IllegalStateException.class,
-                       new Fun(){void f(){ it.remove(); }});
+                THROWS(IllegalStateException.class, () -> it.remove());
         Map.Entry prev = null;
         for (Map.Entry e : (Set<Map.Entry>) m.entrySet()) {
             Object k = e.getKey();
@@ -424,7 +458,7 @@ public class LockStep {
         for (final Iterator it : its) {
             if (maybe(2))
                 check(! it.hasNext());
-            Fun fun = new Fun(){void f(){ it.next(); }};
+            Fun fun = () -> it.next();
             THROWS(NoSuchElementException.class, fun, fun, fun);
         }
     }
@@ -445,8 +479,7 @@ public class LockStep {
     static void equalNavigableMaps(NavigableMap m1,
                                    NavigableMap m2) {
         equalNavigableMapsLeaf(m1, m2);
-        equalNavigableSetsLeaf((NavigableSet) m1.keySet(),
-                               (NavigableSet) m2.keySet());
+        equalSetsLeaf(m1.keySet(), m2.keySet());
         equalNavigableSets(m1.navigableKeySet(),
                            m2.navigableKeySet());
         equalNavigableSets(m1.descendingKeySet(),
@@ -599,7 +632,7 @@ public class LockStep {
     }
 
     static Fun remover(final Iterator it) {
-        return new Fun(){void f(){ it.remove(); }};
+        return () -> it.remove();
     }
 
     static MapFrobber randomRemover(NavigableMap m) {
@@ -629,7 +662,7 @@ public class LockStep {
                         it.remove();
                         if (maybe(2))
                             THROWS(IllegalStateException.class,
-                                   new Fun(){void f(){ it.remove(); }});
+                                   () -> it.remove());
                     }
                 checkUnusedKey(m, k);}},
             new MapFrobber() {void frob(NavigableMap m) {
@@ -639,7 +672,7 @@ public class LockStep {
                         it.remove();
                         if (maybe(2))
                             THROWS(IllegalStateException.class,
-                                   new Fun(){void f(){ it.remove(); }});
+                                   () -> it.remove());
                     }
                 checkUnusedKey(m, k);}},
             new MapFrobber() {void frob(NavigableMap m) {
@@ -684,7 +717,7 @@ public class LockStep {
                         it.remove();
                         if (maybe(2))
                             THROWS(IllegalStateException.class,
-                                   new Fun(){void f(){ it.remove(); }});
+                                   () -> it.remove());
                     }
                 checkUnusedElt(s, e);}},
             new SetFrobber() {void frob(NavigableSet s) {
@@ -694,7 +727,7 @@ public class LockStep {
                         it.remove();
                         if (maybe(2))
                             THROWS(IllegalStateException.class,
-                                   new Fun(){void f(){ it.remove(); }});
+                                   () -> it.remove());
                     }
                 checkUnusedElt(s, e);}},
             new SetFrobber() {void frob(NavigableSet s) {
@@ -704,7 +737,7 @@ public class LockStep {
                         it.remove();
                         if (maybe(2))
                             THROWS(IllegalStateException.class,
-                                   new Fun(){void f(){ it.remove(); }});
+                                   () -> it.remove());
                     }
                 checkUnusedElt(s, e);}}
         };
@@ -735,12 +768,12 @@ public class LockStep {
         for (final NavigableMap m : maps) {
             final Object e = usedKey(m);
             THROWS(IllegalArgumentException.class,
-                   new Fun(){void f(){m.subMap(e,true,e,false)
-                                       .subMap(e,true,e,true);}},
-                   new Fun(){void f(){m.subMap(e,false,e,true)
-                                       .subMap(e,true,e,true);}},
-                   new Fun(){void f(){m.tailMap(e,false).tailMap(e,true);}},
-                   new Fun(){void f(){m.headMap(e,false).headMap(e,true);}});
+                   () -> {m.subMap(e,true,e,false)
+                           .subMap(e,true,e,true);},
+                   () -> {m.subMap(e,false,e,true)
+                           .subMap(e,true,e,true);},
+                   () -> m.tailMap(e,false).tailMap(e,true),
+                   () -> m.headMap(e,false).headMap(e,true));
         }
         //System.out.printf("%s%n", m1);
         for (int i = size; i > 0; i--) {
@@ -777,12 +810,12 @@ public class LockStep {
         for (final NavigableSet s : sets) {
             final Object e = usedElt(s);
             THROWS(IllegalArgumentException.class,
-                   new Fun(){void f(){s.subSet(e,true,e,false)
-                                       .subSet(e,true,e,true);}},
-                   new Fun(){void f(){s.subSet(e,false,e,true)
-                                       .subSet(e,true,e,true);}},
-                   new Fun(){void f(){s.tailSet(e,false).tailSet(e,true);}},
-                   new Fun(){void f(){s.headSet(e,false).headSet(e,true);}});
+                   () -> {s.subSet(e,true,e,false)
+                           .subSet(e,true,e,true);},
+                   () -> {s.subSet(e,false,e,true)
+                           .subSet(e,true,e,true);},
+                   () -> s.tailSet(e,false).tailSet(e,true),
+                   () -> s.headSet(e,false).headSet(e,true));
         }
         //System.out.printf("%s%n", s1);
         for (int i = size; i > 0; i--) {
@@ -813,13 +846,13 @@ public class LockStep {
         System.out.printf("%nPassed = %d, failed = %d%n%n", passed, failed);
         if (failed > 0) throw new Exception("Some tests failed");
     }
-    abstract static class Fun {abstract void f() throws Throwable;}
+    interface Fun {void f() throws Throwable;}
     static void THROWS(Class<? extends Throwable> k, Fun... fs) {
-        for (Fun f : fs)
-            try { f.f(); fail("Expected " + k.getName() + " not thrown"); }
-            catch (Throwable t) {
-                if (k.isAssignableFrom(t.getClass())) pass();
-                else unexpected(t);}}
+          for (Fun f : fs)
+              try { f.f(); fail("Expected " + k.getName() + " not thrown"); }
+              catch (Throwable t) {
+                  if (k.isAssignableFrom(t.getClass())) pass();
+                  else unexpected(t);}}
     static byte[] serializedForm(Object obj) {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -833,5 +866,7 @@ public class LockStep {
     @SuppressWarnings("unchecked")
     static <T> T serialClone(T obj) {
         try { return (T) readObject(serializedForm(obj)); }
-        catch (Exception e) { throw new RuntimeException(e); }}
+        catch (Error|RuntimeException e) { throw e; }
+        catch (Throwable e) { throw new RuntimeException(e); }
+    }
 }
