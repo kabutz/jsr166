@@ -2075,14 +2075,13 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     // Hashtable legacy methods
 
     /**
-     * Legacy method testing if some key maps into the specified value
-     * in this table.
+     * Tests if some key maps into the specified value in this table.
      *
-     * @deprecated This method is identical in functionality to
+     * <p>Note that this method is identical in functionality to
      * {@link #containsValue(Object)}, and exists solely to ensure
      * full compatibility with class {@link java.util.Hashtable},
-     * which supported this method prior to introduction of the
-     * Java Collections framework.
+     * which supported this method prior to introduction of the Java
+     * Collections Framework.
      *
      * @param  value a value to search for
      * @return {@code true} if and only if some key maps to the
@@ -2091,7 +2090,6 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      *         {@code false} otherwise
      * @throws NullPointerException if the specified value is null
      */
-    @Deprecated
     public boolean contains(Object value) {
         return containsValue(value);
     }
