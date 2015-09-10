@@ -3708,9 +3708,7 @@ public class CompletableFutureTest extends JSR166TestCase {
             (method) -> (method.getModifiers() & Modifier.STATIC) == 0;
         List<Method> minimalMethods =
             Stream.of(Object.class, CompletionStage.class)
-            .map((klazz) -> Stream.of(klazz.getMethods()))
-            .reduce(Stream::concat)
-            .orElseGet(Stream::empty)
+            .flatMap((klazz) -> Stream.of(klazz.getMethods()))
             .filter(isNotStatic)
             .collect(Collectors.toList());
         // Methods from CompletableFuture permitted NOT to throw UOE
