@@ -36,6 +36,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import junit.framework.Test;
@@ -3703,12 +3704,14 @@ public class CompletableFutureTest extends JSR166TestCase {
         if (!testImplementationDetails) return;
         Function<Method, String> toSignature =
             (method) -> method.getName() + Arrays.toString(method.getParameterTypes());
+        Predicate<Method> isNotStatic =
+            (method) -> (method.getModifiers() & Modifier.STATIC) == 0;
         List<Method> minimalMethods =
             Stream.of(Object.class, CompletionStage.class)
             .map((klazz) -> Stream.of(klazz.getMethods()))
             .reduce(Stream::concat)
             .orElseGet(Stream::empty)
-            .filter((method) -> (method.getModifiers() & Modifier.STATIC) == 0)
+            .filter(isNotStatic)
             .collect(Collectors.toList());
         // Methods from CompletableFuture permitted NOT to throw UOE
         String[] signatureWhitelist = {
@@ -3722,7 +3725,7 @@ public class CompletableFutureTest extends JSR166TestCase {
                           Stream.of(signatureWhitelist))
             .collect(Collectors.toSet());
         List<Method> allMethods = Stream.of(CompletableFuture.class.getMethods())
-            .filter((method) -> (method.getModifiers() & Modifier.STATIC) == 0)
+            .filter(isNotStatic)
             .filter((method) -> !permittedMethodSignatures.contains(toSignature.apply(method)))
             .collect(Collectors.toList());
 
