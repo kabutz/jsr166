@@ -24,7 +24,7 @@
 /**
  * @test
  * @bug 4189896
- * @summary AbstractList iterators previously checked for co-modificatin
+ * @summary AbstractList iterators previously checked for co-modification
  *          *after* the set/add/remove operations were performed.
  */
 
