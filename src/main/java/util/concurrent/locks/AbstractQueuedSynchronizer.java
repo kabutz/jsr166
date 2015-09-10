@@ -1570,10 +1570,9 @@ public abstract class AbstractQueuedSynchronizer
      * @return a string identifying this synchronizer, as well as its state
      */
     public String toString() {
-        int s = getState();
-        String q = hasQueuedThreads() ? "non" : "";
-        return super.toString() +
-            "[State = " + s + ", " + q + "empty queue]";
+        return super.toString()
+            + "[State = " + getState() + ", "
+            + (hasQueuedThreads() ? "non" : "") + "empty queue]";
     }
 
 
