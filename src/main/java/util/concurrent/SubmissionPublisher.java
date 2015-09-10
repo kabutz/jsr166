@@ -133,7 +133,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
      */
 
     /** The largest possible power of two array size. */
-    static final int BUFFER_CAPACITY_LIMIT  = 1 << 30;
+    static final int BUFFER_CAPACITY_LIMIT = 1 << 30;
 
     /** Round capacity to power of 2, at most limit. */
     static final int roundCapacity(int cap) {
