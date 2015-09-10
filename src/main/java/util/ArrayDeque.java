@@ -848,7 +848,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     public Spliterator<E> spliterator() {
-        return new DeqSpliterator<E>(this, -1, -1);
+        return new DeqSpliterator<>(this, -1, -1);
     }
 
     static final class DeqSpliterator<E> implements Spliterator<E> {
