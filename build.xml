@@ -1,4 +1,5 @@
-<project name="jsr166" default="usage">
+<project name="jsr166" default="usage"
+  xmlns:if="ant:if" xmlns:unless="ant:unless">
 
   <description>
 ------------------------------------------------------------------------------
@@ -38,6 +39,7 @@
     </java>
   </target>
 
+  <!-- HOWTO printf debug: <echo message="prop=${prop}"/> -->
 
   <!-- User-specific settings -->
   <property file="user.properties"/>
@@ -93,7 +95,12 @@
     <property name="java@{v}"       location="${jdk@{v}.home}/bin/java"/>
     <property name="javac@{v}"      location="${jdk@{v}.home}/bin/javac"/>
     <property name="javadoc@{v}"    location="${jdk@{v}.home}/bin/javadoc"/>
-    <property name="jdk@{v}src.dir" location="${jdks.home}/src/jdk@{v}/jdk/src/share/classes"/>
+    <available property="jdk@{v}.have.java.base"
+      file="${jdks.home}/src/jdk@{v}/jdk/src/java.base/share/classes" type="dir"/>
+    <property name="jdk@{v}src.dir" location="${jdks.home}/src/jdk@{v}/jdk/src/java.base/share/classes"
+      if:set="jdk@{v}.have.java.base"/>
+    <property name="jdk@{v}src.dir" location="${jdks.home}/src/jdk@{v}/jdk/src/share/classes"
+      unless:set="jdk@{v}.have.java.base"/>
     <local name="boot.jar.dir"/>
     <property name="boot.jar.dir"   location="${jdk@{v}.home}/jre/lib"/>
     <path id="bootclasspath@{v}">
