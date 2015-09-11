@@ -54,8 +54,8 @@ import java.util.function.Supplier;
  * it is invoked before cancellation upon an exception in method
  * {@link Flow.Subscriber#onNext onNext}, but exceptions in methods
  * {@link Flow.Subscriber#onSubscribe onSubscribe},
- * {@link Flow.Subscriber#onError #onError} and
- * {@link Flow.Subscriber#onComplete #onComplete} are not recorded or
+ * {@link Flow.Subscriber#onError onError} and
+ * {@link Flow.Subscriber#onComplete onComplete} are not recorded or
  * handled before cancellation.  If the supplied Executor throws
  * {@link RejectedExecutionException} (or any other RuntimeException
  * or Error) when attempting to execute a task, or a drop handler
