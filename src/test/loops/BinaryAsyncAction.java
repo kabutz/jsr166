@@ -57,10 +57,6 @@ import java.util.concurrent.atomic.*;
  * </pre>
  */
 public abstract class BinaryAsyncAction extends ForkJoinTask<Void> {
-    private volatile int controlState;
-
-    static final AtomicIntegerFieldUpdater<BinaryAsyncAction> controlStateUpdater =
-        AtomicIntegerFieldUpdater.newUpdater(BinaryAsyncAction.class, "controlState");
 
     /**
      * Parent to propagate completion; nulled after completion to
@@ -169,7 +165,7 @@ public abstract class BinaryAsyncAction extends ForkJoinTask<Void> {
             a.sibling = null;
             a.parent = null;
             a.completeThis();
-            if (p == null || p.compareAndSetControlState(0, 1))
+            if (p == null || p.markForkJoinTask())
                 break;
             try {
                 p.onComplete(a, s);
@@ -233,6 +229,8 @@ public abstract class BinaryAsyncAction extends ForkJoinTask<Void> {
         super.reinitialize();
     }
 
+<<<<<<< BinaryAsyncAction.java
+=======
     /**
      * Gets the control state, which is initially zero, or negative if
      * this task has completed or cancelled. Once negative, the value
@@ -281,5 +279,6 @@ public abstract class BinaryAsyncAction extends ForkJoinTask<Void> {
     protected final void decrementControlState() {
         controlStateUpdater.decrementAndGet(this);
     }
+>>>>>>> 1.14
 
 }
