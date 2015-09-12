@@ -31,22 +31,16 @@ public final class LeftSpineFib extends RecursiveAction {
         }
 
         for (int reps = 0; reps < 2; ++reps) {
-            ForkJoinPool g = (procs == 0) ? new ForkJoinPool() :
+            ForkJoinPool g = (procs == 0) ? ForkJoinPool.commonPool() :
                 new ForkJoinPool(procs);
-            //            g.setMaintainsParallelism(false);
             lastStealCount = g.getStealCount();
             for (int i = 0; i < 20; ++i) {
                 test(g, num);
-                Thread.sleep(50);
+                Thread.sleep(100);
             }
             System.out.println(g);
-            g.shutdown();
-            if (!g.awaitTermination(8, TimeUnit.SECONDS)) {
-                System.out.println(g);
-                throw new Error();
-            }
-            g = null;
-            //            System.gc();
+            if (g != ForkJoinPool.commonPool())
+                g.shutdown();
             Thread.sleep(500);
         }
     }
