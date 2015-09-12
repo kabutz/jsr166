@@ -39,7 +39,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     }
 
     final Executor basicExecutor = basicPublisher().getExecutor();
-    
+
     static SubmissionPublisher<Integer> basicPublisher() {
         return new SubmissionPublisher<Integer>();
     }
