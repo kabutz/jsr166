@@ -26,16 +26,18 @@ public final class DynamicLeftSpineFib extends RecursiveAction {
         }
 
         for (int reps = 0; reps < 2; ++reps) {
-            ForkJoinPool g = (procs == 0) ? new ForkJoinPool() :
+            ForkJoinPool g = (procs == 0) ? ForkJoinPool.commonPool() :
                 new ForkJoinPool(procs);
             lastStealCount = g.getStealCount();
             for (int i = 0; i < 20; ++i) {
                 test(g, num);
             }
             System.out.println(g);
-            g.shutdown();
-            if (!g.awaitTermination(10, TimeUnit.SECONDS))
-                throw new Error();
+            if (g != ForkJoinPool.commonPool()) {
+                g.shutdown();
+                if (!g.awaitTermination(10, TimeUnit.SECONDS))
+                    throw new Error();
+            }
             Thread.sleep(1000);
         }
     }
@@ -69,6 +71,7 @@ public final class DynamicLeftSpineFib extends RecursiveAction {
     int getAnswer() {
         return number;
     }
+
     public void compute() {
         number = fib(number);
     }
@@ -80,25 +83,19 @@ public final class DynamicLeftSpineFib extends RecursiveAction {
         DynamicLeftSpineFib rt = null;
         while (getSurplusQueuedTaskCount() <= 3) {
             int m = n - 2;
-            n -= 1;
-            if (m <= 1) {
+            if (m <= 1)
                 r += m;
-                if (n > 1) {
-                    r += n - 2;
-                    n -= 1;
-                }
+            else
+                (rt = new DynamicLeftSpineFib(m, rt)).fork();
+            if (--n <= 1)
                 break;
-            }
-            (rt = new DynamicLeftSpineFib(m, rt)).fork();
         }
-        if (n <= 1)
-            r += n;
-        else
-            r += seqFib(n - 2) + fib(n - 1);
+        r += n <= 1 ? n : seqFib(n);
         if (rt != null)
             r += collectRights(rt);
         return r;
     }
+
 
     static final int collectRights(DynamicLeftSpineFib rt) {
         int r = 0;
