@@ -64,6 +64,7 @@ public class TorusSpanningTree {
                 }
                 pool.invoke(new Resetter(graph, 0, graph.length));
             }
+            graph = null;
             System.out.println();
         }
         System.out.println(pool);
@@ -74,20 +75,11 @@ public class TorusSpanningTree {
         final Node[] neighbors;
         Node parent;
         Node next;
-        volatile int mark;
 
         Node(Node[] nbrs) {
             neighbors = nbrs;
             parent = this;
         }
-
-        static final AtomicIntegerFieldUpdater<Node> markUpdater =
-            AtomicIntegerFieldUpdater.newUpdater(Node.class, "mark");
-
-        boolean tryMark() {
-            return mark == 0 && markUpdater.compareAndSet(this, 0, 1);
-        }
-        void setMark() { mark = 1; }
 
         /*
          * Traverse the list ("oldList") embedded across .next fields,
@@ -117,7 +109,8 @@ public class TorusSpanningTree {
                 int nedges = edges.length;
                 for (int k = 0; k < nedges; ++k) {
                     Node e = edges[k];
-                    if (e != null && e.tryMark()) {
+                    if (e != null && 
+                        e.compareAndSetForkJoinTaskTag((short)0, (short)1)) {
                         e.parent = par;
                         e.next = newList;
                         newList = e;
@@ -155,7 +148,6 @@ public class TorusSpanningTree {
             reinitialize();
             parent = this;
             next = null;
-            mark = 0;
         }
 
     }
@@ -166,7 +158,7 @@ public class TorusSpanningTree {
             this.root = root;
         }
         public void compute() {
-            root.setMark();
+            root.setForkJoinTaskTag((short)1);
             root.fork();
             helpQuiesce();
         }
