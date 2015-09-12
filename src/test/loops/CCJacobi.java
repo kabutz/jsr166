@@ -74,7 +74,7 @@ public class CCJacobi {
 
             System.out.println("Compute Time: " + secs);
             System.out.println(fjp);
-            System.gc();
+            Thread.sleep(1000);
         }
     }
 
