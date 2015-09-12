@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -63,6 +64,10 @@ import java.util.function.Supplier;
  * exception is rethrown. In these cases, not all subscribers will
  * have been issued the published item. It is usually good practice to
  * {@link #closeExceptionally closeExceptionally} in these cases.
+ *
+ * <p>Method {@link #consume} simplifies support for a common case in
+ * which the only action of a subscriber is to request and process all
+ * items using a supplied function.
  *
  * <p>This class may also serve as a convenient base for subclasses
  * that generate items, and use the methods in this class to publish
@@ -781,6 +786,64 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
             }
         }
         return max;
+    }
+
+    /**
+     * Processes all published items using the given Consumer
+     * function.  Returns a CompletableFuture that is completed
+     * normally when this publisher signals {@code onComplete}, or
+     * completed exceptionally upon any error, or an exception is
+     * thrown by the Consumer, or the returned CompletableFuture is
+     * cancelled, in which case no further items are processed.
+     *
+     * @param consumer the function applied to each onNext item
+     * @return a CompletableFuture that is completed normally
+     * when the publisher signals onComplete, and exceptionally
+     * upon any error or cancellation.
+     * @throws NullPointerException if consumer is null
+     */
+    public CompletableFuture<Void> consume(Consumer<? super T> consumer) {
+        if (consumer == null)
+            throw new NullPointerException();
+        CompletableFuture<Void> status = new CompletableFuture<>();
+        subscribe(new ConsumerSubscriber<T>(status, consumer));
+        return status;
+    }
+
+    /** Subscriber for method consume */
+    static final class ConsumerSubscriber<T> implements Flow.Subscriber<T> {
+        final CompletableFuture<Void> status;
+        final Consumer<? super T> consumer;
+        Flow.Subscription subscription;
+        ConsumerSubscriber(CompletableFuture<Void> status,
+                           Consumer<? super T> consumer) {
+            this.status = status; this.consumer = consumer;
+        }
+        public final void onSubscribe(Flow.Subscription subscription) {
+            this.subscription = subscription;
+            if (status.isDone())
+                subscription.cancel();
+            else
+                subscription.request(Long.MAX_VALUE);
+        }
+        public final void onError(Throwable ex) {
+            status.completeExceptionally(ex);
+        }
+        public final void onComplete() {
+            status.complete(null);
+        }
+        public final void onNext(T item) {
+            if (status.isDone())
+                subscription.cancel();
+            else {
+                try {
+                    consumer.accept(item);
+                } catch (Throwable ex) {
+                    subscription.cancel();
+                    status.completeExceptionally(ex);
+                }
+            }
+        }
     }
 
     /**

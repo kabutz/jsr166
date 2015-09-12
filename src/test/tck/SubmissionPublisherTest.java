@@ -5,28 +5,29 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
-
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Flow;
-import static java.util.concurrent.Flow.Publisher;
-import static java.util.concurrent.Flow.Subscriber;
-import static java.util.concurrent.Flow.Subscription;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SubmissionPublisher;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
 import java.util.function.BiFunction;
-
+import java.util.function.BiPredicate;
+import java.util.stream.Stream;
 import junit.framework.Test;
 import junit.framework.TestSuite;
+
+import static java.util.concurrent.Flow.Publisher;
+import static java.util.concurrent.Flow.Subscriber;
+import static java.util.concurrent.Flow.Subscription;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class SubmissionPublisherTest extends JSR166TestCase {
 
@@ -948,4 +949,47 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         assertTrue(calls.get() >= 2);
     }
 
+    /**
+     * consume returns a CompletableFuture that is done when
+     * publisher completes
+     */
+    public void testConsume() {
+        AtomicInteger sum = new AtomicInteger();
+        SubmissionPublisher<Integer> p = basicPublisher();
+        CompletableFuture<Void> f = 
+            p.consume((Integer x) -> { sum.getAndAdd(x.intValue()); });
+        int n = 20;
+        for (int i = 1; i <= n; ++i)
+            p.submit(i);
+        p.close();
+        f.join();
+        assertEquals((n * (n + 1)) / 2, sum.get());
+    }
+
+    /**
+     * consume(null) throws NPE
+     */
+    public void testConsumeNPE() {
+        SubmissionPublisher<Integer> p = basicPublisher();
+        try {
+            CompletableFuture<Void> f = p.consume(null);
+            shouldThrow();
+        } catch(NullPointerException success) {
+        }
+    }
+
+    /**
+     * consume eventually stops processing published items if cancelled
+     */
+    public void testCancelledConsume() {
+        AtomicInteger count = new AtomicInteger();
+        SubmissionPublisher<Integer> p = basicPublisher();
+        CompletableFuture<Void> f = p.consume(x -> count.getAndIncrement());
+        f.cancel(true);
+        int n = 1000000; // arbitrary limit
+        for (int i = 1; i <= n; ++i)
+            p.submit(i);
+        assertTrue(count.get() < n);
+    }
+    
 }
