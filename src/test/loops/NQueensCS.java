@@ -19,7 +19,7 @@ public final class NQueensCS extends RecursiveAction {
     }; // see http://www.durangobill.com/N_Queens.html
 
     static final int FIRST_SIZE = 8; // smaller ones too short to measure well
-    static final int LAST_SIZE = 15; // bigger ones too long to wait for
+    static final int LAST_SIZE = 16; // bigger ones too long to wait for
 
     /** for time conversion */
     static final long NPS = (1000L * 1000 * 1000);
@@ -35,13 +35,15 @@ public final class NQueensCS extends RecursiveAction {
             return;
         }
         for (int reps = 0; reps < 2; ++reps) {
-            ForkJoinPool g = (procs == 0) ? new ForkJoinPool() :
+            ForkJoinPool g = (procs == 0) ? ForkJoinPool.commonPool() :
                 new ForkJoinPool(procs);
             lastStealCount = g.getStealCount();
             for (int i = FIRST_SIZE; i <= LAST_SIZE; i++)
                 test(g, i);
             System.out.println(g);
-            g.shutdown();
+            if (g != ForkJoinPool.commonPool())
+                g.shutdown();
+            Thread.sleep(100);
         }
     }
 
@@ -111,12 +113,14 @@ public final class NQueensCS extends RecursiveAction {
         s.compute();
         int ns = s.solutions;
         s = s.nextSubtask;
+        /* comment out to stress join
         // Then the unstolen ones
         while (s != null && s.tryUnfork()) {
             s.compute();
             ns += s.solutions;
             s = s.nextSubtask;
         }
+        */
         // Then wait for the stolen ones
         while (s != null) {
             s.join();
