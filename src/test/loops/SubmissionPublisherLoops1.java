@@ -18,7 +18,7 @@ public class SubmissionPublisherLoops1 {
 
     static final Phaser phaser = new Phaser(CONSUMERS + 1);
 
-    static class Sub implements Flow.Subscriber<Boolean> {
+    static final class Sub implements Flow.Subscriber<Boolean> {
         Flow.Subscription sn;
         int count;
         public void onSubscribe(Flow.Subscription s) {
@@ -48,23 +48,26 @@ public class SubmissionPublisherLoops1 {
                            " CAP: " + CAP);
         ExecutorService exec = ForkJoinPool.commonPool();
         for (int rep = 0; rep < reps; ++rep) {
-            long startTime = System.nanoTime();
-            final SubmissionPublisher<Boolean> pub =
-                new SubmissionPublisher<Boolean>(exec, CAP);
-            for (int i = 0; i < CONSUMERS; ++i)
-                pub.subscribe(new Sub());
-            for (int i = 0; i < ITEMS; ++i) {
-                pub.submit(Boolean.TRUE);
-            }
-            pub.close();
-            phaser.arriveAndAwaitAdvance();
-            long elapsed = System.nanoTime() - startTime;
-            double secs = ((double)elapsed) / NPS;
-            System.out.printf("\tTime: %7.3f\n", secs);
-            //            System.out.println(exec);
+            oneRun(exec);
             Thread.sleep(1000);
         }
         if (exec != ForkJoinPool.commonPool())
             exec.shutdown();
+    }
+
+    static void oneRun(ExecutorService exec) throws Exception {
+        long startTime = System.nanoTime();
+        final SubmissionPublisher<Boolean> pub =
+            new SubmissionPublisher<Boolean>(exec, CAP);
+        for (int i = 0; i < CONSUMERS; ++i)
+            pub.subscribe(new Sub());
+        for (int i = 0; i < ITEMS; ++i) {
+            pub.submit(Boolean.TRUE);
+        }
+        pub.close();
+        phaser.arriveAndAwaitAdvance();
+        long elapsed = System.nanoTime() - startTime;
+        double secs = ((double)elapsed) / NPS;
+        System.out.printf("\tTime: %7.3f\n", secs);
     }
 }

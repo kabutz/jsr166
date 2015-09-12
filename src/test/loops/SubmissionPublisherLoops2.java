@@ -18,7 +18,7 @@ public class SubmissionPublisherLoops2 {
 
     static final Phaser phaser = new Phaser(CONSUMERS + 1);
 
-    static class Sub implements Flow.Subscriber<Boolean> {
+    static final class Sub implements Flow.Subscriber<Boolean> {
         Flow.Subscription sn;
         int count;
         public void onSubscribe(Flow.Subscription s) {
@@ -59,14 +59,19 @@ public class SubmissionPublisherLoops2 {
         System.out.println("ITEMS: " + ITEMS +
                            " CONSUMERS: " + CONSUMERS +
                            " CAP: " + CAP);
-
         for (int rep = 0; rep < reps; ++rep) {
-            long startTime = System.nanoTime();
-            new Pub().fork();
-            phaser.arriveAndAwaitAdvance();
-            long elapsed = System.nanoTime() - startTime;
-            double secs = ((double)elapsed) / NPS;
-            System.out.printf("\tTime: %7.3f\n", secs);
+            oneRun();
+            Thread.sleep(1000);
         }
     }
+
+    static void oneRun() throws Exception {
+        long startTime = System.nanoTime();
+        new Pub().fork();
+        phaser.arriveAndAwaitAdvance();
+        long elapsed = System.nanoTime() - startTime;
+        double secs = ((double)elapsed) / NPS;
+        System.out.printf("\tTime: %7.3f\n", secs);
+    }
+
 }

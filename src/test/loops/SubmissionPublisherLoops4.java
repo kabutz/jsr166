@@ -36,17 +36,22 @@ public class SubmissionPublisherLoops4 {
                            " CONSUMERS: " + CONSUMERS +
                            " CAP: " + CAP);
         for (int rep = 0; rep < reps; ++rep) {
-            long startTime = System.nanoTime();
-            for (int i = 0; i < PRODUCERS; ++i)
-                new Pub().fork();
-            phaser.arriveAndAwaitAdvance();
-            long elapsed = System.nanoTime() - startTime;
-            double secs = ((double)elapsed) / (1000L * 1000 * 1000);
-            double ips = NEXTS / secs;
-            System.out.printf("Time: %7.2f", secs);
-            System.out.printf(" items per sec: %14.2f\n", ips);
-            System.out.println(ForkJoinPool.commonPool());
+            oneRun();
+            Thread.sleep(1000);
         }
+    }
+
+    static void oneRun() throws Exception {
+        long startTime = System.nanoTime();
+        for (int i = 0; i < PRODUCERS; ++i)
+            new Pub().fork();
+        phaser.arriveAndAwaitAdvance();
+        long elapsed = System.nanoTime() - startTime;
+        double secs = ((double)elapsed) / (1000L * 1000 * 1000);
+        double ips = NEXTS / secs;
+        System.out.printf("Time: %7.2f", secs);
+        System.out.printf(" items per sec: %14.2f\n", ips);
+        System.out.println(ForkJoinPool.commonPool());
     }
 
     static final class Sub implements Flow.Subscriber<Boolean> {
