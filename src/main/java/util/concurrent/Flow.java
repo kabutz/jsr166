@@ -89,7 +89,7 @@ import java.util.stream.Stream;
  * the following example, where a buffer size of 1 single-steps, and
  * larger sizes usually allow for more efficient overlapped processing
  * with less communication; for example with a value of 64, this keeps
- * total outstanding requests between 32 and 64. 
+ * total outstanding requests between 32 and 64.
  * Because Subscriber method invocations for a given {@link
  * Subscription} are strictly ordered, there is no need for these
  * methods to use locks or volatiles unless a Subscriber maintains
