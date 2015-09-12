@@ -13,7 +13,7 @@ public class FJPhaserJacobi {
 
     static final double EPSILON = 0.0001;  // convergence criterion
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         int n = 2048;
         int steps = 1000;
         try {
@@ -28,7 +28,9 @@ public class FJPhaserJacobi {
             return;
         }
 
-        ForkJoinPool fjp = new ForkJoinPool();
+        //        ForkJoinPool fjp = new ForkJoinPool();
+        ForkJoinPool fjp = ForkJoinPool.commonPool();
+
         //        int granularity = (n * n / fjp.getParallelism()) / 2;
         int granularity = n * n / fjp.getParallelism();
         dimGran = (int)(Math.sqrt(granularity));
@@ -44,7 +46,7 @@ public class FJPhaserJacobi {
             for (int j = 1; j < dim-1; ++j)
                 a[i][j] = smallVal;
         }
-        int nreps = 3;
+        int nreps = 10;
         for (int rep = 0; rep < nreps; ++rep) {
             // Fill all edges with 1's.
             for (int k = 0; k < dim; ++k) {
@@ -62,6 +64,7 @@ public class FJPhaserJacobi {
 
             System.out.println("Compute Time: " + secs);
             System.out.println(fjp);
+            Thread.sleep(1000);
         }
     }
 

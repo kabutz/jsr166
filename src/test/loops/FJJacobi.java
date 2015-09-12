@@ -38,7 +38,8 @@ public class FJJacobi {
             return;
         }
 
-        ForkJoinPool fjp = new ForkJoinPool();
+        //        ForkJoinPool fjp = new ForkJoinPool(1);
+        ForkJoinPool fjp = ForkJoinPool.commonPool();
 
         // allocate enough space for edges
         int dim = n+2;
@@ -74,6 +75,7 @@ public class FJJacobi {
 
             System.out.println("Compute Time: " + secs);
             System.out.println(fjp);
+            Thread.sleep(1000);
         }
     }
 
