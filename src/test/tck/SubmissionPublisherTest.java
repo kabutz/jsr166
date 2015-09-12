@@ -38,25 +38,10 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         return new TestSuite(SubmissionPublisherTest.class);
     }
 
-    // Factory for single thread pool in case commonPool parallelism is zero
-    static final class DaemonThreadFactory implements ThreadFactory {
-        public Thread newThread(Runnable r) {
-            Thread t = new Thread(r);
-            t.setDaemon(true);
-            return t;
-        }
-    }
-
-    static final Executor basicExecutor =
-        (ForkJoinPool.getCommonPoolParallelism() > 1) ?
-        ForkJoinPool.commonPool() :
-        new ThreadPoolExecutor(1, 1, 60, SECONDS,
-                               new LinkedBlockingQueue<Runnable>(),
-                               new DaemonThreadFactory());
-
+    final Executor basicExecutor = basicPublisher().getExecutor();
+    
     static SubmissionPublisher<Integer> basicPublisher() {
-        return new SubmissionPublisher<Integer>(basicExecutor,
-                                                Flow.defaultBufferSize());
+        return new SubmissionPublisher<Integer>();
     }
 
     static class SPException extends RuntimeException {}
@@ -168,13 +153,17 @@ public class SubmissionPublisherTest extends JSR166TestCase {
     /**
      * A default-constructed SubmissionPublisher has no subscribers,
      * is not closed, has default buffer size, and uses the
-     * ForkJoinPool.commonPool executor
+     * defaultExecutor
      */
     public void testConstructor1() {
         SubmissionPublisher<Integer> p = new SubmissionPublisher<Integer>();
         checkInitialState(p);
-        assertSame(p.getExecutor(), ForkJoinPool.commonPool());
         assertEquals(p.getMaxBufferCapacity(), Flow.defaultBufferSize());
+        Executor e = p.getExecutor(), c = ForkJoinPool.commonPool();
+        if (ForkJoinPool.getCommonPoolParallelism() > 1)
+            assertSame(e, c);
+        else
+            assertNotSame(e, c);
     }
 
     /**

@@ -28,8 +28,8 @@ import java.util.function.Supplier;
  * Executor depends on expected usage. If the generator(s) of
  * submitted items run in separate threads, and the number of
  * subscribers can be estimated, consider using a {@link
- * Executors#newFixedThreadPool}. Otherwise consider using
- * the default {@link ForkJoinPool#commonPool}.
+ * Executors#newFixedThreadPool}. Otherwise consider using the
+ * default, normally the {@link ForkJoinPool#commonPool}.
  *
  * <p>Buffering allows producers and consumers to transiently operate
  * at different rates.  Each subscriber uses an independent buffer.
@@ -152,6 +152,21 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
             (n >= BUFFER_CAPACITY_LIMIT) ? BUFFER_CAPACITY_LIMIT : n + 1;
     }
 
+    // defaultExecutor setup; nearly the same as CompletableFuture
+
+    /**
+     * Default executor -- ForkJoinPool.commonPool() unless it cannot
+     * support parallelism.
+     */
+    private static final Executor asyncPool =
+        (ForkJoinPool.getCommonPoolParallelism() > 1) ?
+        ForkJoinPool.commonPool() : new ThreadPerTaskExecutor();
+
+    /** Fallback if ForkJoinPool.commonPool() cannot support parallelism */
+    static final class ThreadPerTaskExecutor implements Executor {
+        public void execute(Runnable r) { new Thread(r).start(); }
+    }
+
     /**
      * Clients (BufferedSubscriptions) are maintained in a linked list
      * (via their "next" fields). This works well for publish loops.
@@ -230,13 +245,15 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
 
     /**
      * Creates a new SubmissionPublisher using the {@link
-     * ForkJoinPool#commonPool()} for async delivery to subscribers,
+     * ForkJoinPool#commonPool()} for async delivery to subscribers
+     * (unless it does not support a parallelism level of at least
+     * two, in which case, a new Thread is created to run each task),
      * with maximum buffer capacity of {@link Flow#defaultBufferSize},
      * and no handler for Subscriber exceptions in method {@code
      * onNext}.
      */
     public SubmissionPublisher() {
-        this(ForkJoinPool.commonPool(), Flow.defaultBufferSize(), null);
+        this(asyncPool, Flow.defaultBufferSize(), null);
     }
 
     /**
