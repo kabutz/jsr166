@@ -121,15 +121,16 @@ import java.util.stream.Stream;
  * being concurrently updated by other threads; for example, when
  * computing a snapshot summary of the values in a shared registry.
  * There are three kinds of operation, each with four forms, accepting
- * functions with Keys, Values, Entries, and (Key, Value) arguments
- * and/or return values. Because the elements of a ConcurrentHashMap
- * are not ordered in any particular way, and may be processed in
- * different orders in different parallel executions, the correctness
- * of supplied functions should not depend on any ordering, or on any
- * other objects or values that may transiently change while
- * computation is in progress; and except for forEach actions, should
- * ideally be side-effect-free. Bulk operations on {@link java.util.Map.Entry}
- * objects do not support method {@code setValue}.
+ * functions with keys, values, entries, and (key, value) pairs as
+ * arguments and/or return values. Because the elements of a
+ * ConcurrentHashMap are not ordered in any particular way, and may be
+ * processed in different orders in different parallel executions, the
+ * correctness of supplied functions should not depend on any
+ * ordering, or on any other objects or values that may transiently
+ * change while computation is in progress; and except for forEach
+ * actions, should ideally be side-effect-free. Bulk operations on
+ * {@link java.util.Map.Entry} objects do not support method {@code
+ * setValue}.
  *
  * <ul>
  * <li> forEach: Perform a given action on each element.
