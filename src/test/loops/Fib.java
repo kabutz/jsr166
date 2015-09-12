@@ -39,7 +39,7 @@ public final class Fib extends RecursiveAction {
         }
 
         for (int reps = 0; reps < 2; ++reps) {
-            ForkJoinPool g = (procs == 0) ? new ForkJoinPool() :
+            ForkJoinPool g = (procs == 0) ? ForkJoinPool.commonPool() :
                 new ForkJoinPool(procs);
             lastStealCount = g.getStealCount();
             for (int i = 0; i < 20; ++i) {
@@ -48,10 +48,8 @@ public final class Fib extends RecursiveAction {
                 //                    Thread.sleep(100);
             }
             System.out.println(g);
-            g.shutdown();
-            if (!g.awaitTermination(10, TimeUnit.SECONDS))
-                throw new Error();
-            g = null;
+            if (g != ForkJoinPool.commonPool())
+                g.shutdown();
             Thread.sleep(500);
         }
     }
@@ -61,7 +59,6 @@ public final class Fib extends RecursiveAction {
 
     static void test(ForkJoinPool g, int num) throws Exception {
         int ps = g.getParallelism();
-        //        g.setParallelism(ps);
         long start = System.nanoTime();
         Fib f = new Fib(num);
         g.invoke(f);
@@ -96,7 +93,6 @@ public final class Fib extends RecursiveAction {
             else {
                 Fib f1 = new Fib(n - 1);
                 Fib f2 = new Fib(n - 2);
-                //                forkJoin(f1, f2);
                 invokeAll(f1, f2);
                 number = f1.number + f2.number;
             }
@@ -112,5 +108,5 @@ public final class Fib extends RecursiveAction {
         } while (--n > 1);
         return r;
     }
-
+    
 }
