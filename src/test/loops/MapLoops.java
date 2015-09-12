@@ -46,6 +46,9 @@ public class MapLoops {
         if (args.length > 5)
             nops = Integer.parseInt(args[5]);
 
+        if (nops < nkeys)
+            nops = nkeys;
+
         // normalize probabilities wrt random number generator
         removesPerMaxRandom = (int)(((double)premove/100.0 * 0x7FFFFFFFL));
         insertsPerMaxRandom = (int)(((double)pinsert/100.0 * 0x7FFFFFFFL));
@@ -59,21 +62,24 @@ public class MapLoops {
         System.out.println();
 
         int warmups = 2;
-        for (int k = 1, i = 1; i <= maxThreads;) {
-            Thread.sleep(100);
-            test(i, nkeys, mapClass);
-            if (warmups > 0)
-                --warmups;
-            else if (i == k) {
-                k = i << 1;
-                i = i + (i >>> 1);
+        for (int reps = 0; reps < 3; ++reps) {
+            int k = 1;
+            for (int i = 1; i <= maxThreads;) {
+                Thread.sleep(100);
+                test(i, nkeys, mapClass);
+                if (warmups > 0)
+                    --warmups;
+                else if (i == k) {
+                    k = i << 1;
+                    i = i + (i >>> 1);
+                }
+                else if (i == 1 && k == 2) {
+                    i = k;
+                    warmups = 1;
+                }
+                else
+                    i = k;
             }
-            else if (i == 1 && k == 2) {
-                i = k;
-                warmups = 1;
-            }
-            else
-                i = k;
         }
         pool.shutdown();
     }
@@ -126,7 +132,7 @@ public class MapLoops {
         int position;
         int total;
 
-        Runner(int id, Map<Integer,Integer> map, Integer[] key, CyclicBarrier barrier) {
+        Runner(int id, Map<Integer,Integer> map, Integer[] key,  CyclicBarrier barrier) {
             this.map = map;
             this.key = key;
             this.barrier = barrier;
@@ -158,7 +164,7 @@ public class MapLoops {
             }
             else if (r < insertsPerMaxRandom) {
                 ++position;
-                map.put(k, k);
+                map.putIfAbsent(k, k);
                 return 2;
             }
 
