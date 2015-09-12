@@ -96,7 +96,6 @@ public final class DynamicLeftSpineFib extends RecursiveAction {
         return r;
     }
 
-
     static final int collectRights(DynamicLeftSpineFib rt) {
         int r = 0;
         while (rt != null) {
@@ -113,7 +112,7 @@ public final class DynamicLeftSpineFib extends RecursiveAction {
         return r;
     }
 
-    // Sequential version for arguments less than threshold
+    /** Sequential version for arguments less than threshold */
     static final int seqFib(int n) { // unroll left only
         int r = 1;
         do {

@@ -561,8 +561,7 @@ public class Microscope extends JPanel {
                 return Player.Illegal;
         }
 
-
-        // place a tile without taking opponent tiles
+        /** Places a tile without taking opponent tiles. */
         public void occupy(Player player, int row, int col) {
             long m = 1L << (row + col * RANKS);
             long nm = ~m;
@@ -586,7 +585,7 @@ public class Microscope extends JPanel {
             green_ &= nm;
         }
 
-        // place a tile, taking all adjacent tiles of opponent
+        /** Places a tile, taking all adjacent tiles of opponent. */
         public void take(Player player, int row, int col) {
             int k = row + col * RANKS;
             long dest = 1L << k;

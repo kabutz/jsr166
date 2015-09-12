@@ -95,8 +95,7 @@ public class Heat {
     static final double dtdxsq = dt / (dx * dx);
     static final double dtdysq = dt / (dy * dy);
 
-
-    // the function being applied across the cells
+    /** the function being applied across the cells */
     static final double f(double x, double y) {
         return Math.sin(x) * Math.sin(y);
     }
@@ -118,9 +117,6 @@ public class Heat {
     static final double solu(double x, double y, double t) {
         return Math.exp(-2*t) * Math.sin(x) * Math.sin(y);
     }
-
-
-
 
     static final class Compute extends RecursiveAction {
         final int lb;
@@ -148,7 +144,6 @@ public class Heat {
             else
                 compstripe(oldm, newm);
         }
-
 
         /** Updates all cells. */
         final void compstripe(double[][] newMat, double[][] oldMat) {
@@ -190,8 +185,7 @@ public class Heat {
             edges(newMat, llb, lub, tu + time * dt);
         }
 
-
-        // the original version from cilk
+        /** the original version from cilk */
         final void origcompstripe(double[][] newMat, double[][] oldMat) {
 
             final int llb = (lb == 0)  ? 1 : lb;
@@ -209,7 +203,6 @@ public class Heat {
 
             edges(newMat, llb, lub,  tu + time * dt);
         }
-
 
         /** Initializes all cells. */
         final void init() {

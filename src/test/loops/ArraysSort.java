@@ -15,7 +15,6 @@ class ArraysSort {
     static final Comparator<Object> cmp = (Object x, Object y) ->
         ((Long)x).compareTo((Long)y);
 
-
     public static void main(String[] args) throws Exception {
         int n = 1 << 22;
         int reps = 30;

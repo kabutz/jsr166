@@ -155,6 +155,4 @@ public class CancelledProducerConsumerLoops {
             return new Integer(s);
         }
     }
-
-
 }
