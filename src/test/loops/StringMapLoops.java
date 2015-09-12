@@ -4,13 +4,15 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
+import java.io.*;
+import java.math.*;
 import java.util.*;
 import java.util.concurrent.*;
 
 public class StringMapLoops {
-    static int nkeys       = 75000;
+    static int nkeys       = 147456;
     static int pinsert     = 60;
-    static int premove     =  2;
+    static int premove     =  5;
     static int maxThreads  = 100;
     static int nops        = 8000000;
     static int removesPerMaxRandom;
@@ -58,7 +60,9 @@ public class StringMapLoops {
         System.out.print(" ops: " + nops);
         System.out.println();
 
-        String[] key = makeKeys(nkeys);
+        String[] key = new String[nkeys];
+        initStringKeys(key, nkeys);
+        //        String[] key = makeKeys(nkeys);
 
         int warmups = 2;
         for (int k = 1, i = 1; i <= maxThreads;) {
@@ -84,28 +88,6 @@ public class StringMapLoops {
             //            shuffleKeys(key);
         }
         pool.shutdown();
-    }
-
-    static String[] makeKeys(int n) {
-        LoopHelpers.SimpleRandom rng = new LoopHelpers.SimpleRandom();
-        String[] key = new String[n];
-        for (int i = 0; i < key.length; ++i) {
-            int k = 0;
-            int len = 1 + (rng.next() & 0xf);
-            char[] c = new char[len * 4];
-            for (int j = 0; j < len; ++j) {
-                int r = rng.next();
-                c[k++] = (char) (' ' + (r & 0x7f));
-                r >>>= 8;
-                c[k++] = (char) (' ' + (r & 0x7f));
-                r >>>= 8;
-                c[k++] = (char) (' ' + (r & 0x7f));
-                r >>>= 8;
-                c[k++] = (char) (' ' + (r & 0x7f));
-            }
-            key[i] = new String(c);
-        }
-        return key;
     }
 
     static void shuffleKeys(String[] key) {
@@ -147,7 +129,7 @@ public class StringMapLoops {
         int position;
         int total;
 
-        Runner(int id, Map<String,String> map, String[] key, CyclicBarrier barrier) {
+        Runner(int id, Map<String,String> map, String[] key,  CyclicBarrier barrier) {
             this.map = map;
             this.key = key;
             this.barrier = barrier;
@@ -176,6 +158,7 @@ public class StringMapLoops {
             }
             else if (r < insertsPerMaxRandom) {
                 ++position;
+                //                map.putIfAbsent(k, k);
                 map.put(k, k);
                 return 2;
             }
@@ -197,4 +180,46 @@ public class StringMapLoops {
             }
         }
     }
+
+    static final String wordFile = "testwords.txt";
+
+    // Read in String keys from file if possible
+    static void initStringKeys(String[] keys, int n) throws Exception {
+        FileInputStream fr = null;
+        try {
+            fr = new FileInputStream(wordFile);
+        } catch (IOException ex) {
+            System.out.println("No word file. Using String.valueOf(i)");
+            for (int i = 0; i < n; i++)
+                keys[i] = String.valueOf(i);
+            return;
+        }
+
+        BufferedInputStream in = new BufferedInputStream(fr);
+        int k = 0;
+        outer:while (k < n) {
+            StringBuffer sb = new StringBuffer();
+            for (;;) {
+                int c = in.read();
+                if (c < 0)
+                    break outer;
+                char ch = (char) c;
+                if (ch == '\n') {
+                    keys[k++] = sb.toString();
+                    break;
+                }
+                if (!Character.isWhitespace(ch))
+                    sb.append(ch);
+            }
+        }
+        in.close();
+
+        // fill up remaining keys with path-like compounds of previous pairs
+        int j = 0;
+        while (k < n)
+            keys[k++] = (String) keys[j++] + "/" + (String) keys[j];
+    }
+
+
+
 }
