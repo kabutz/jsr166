@@ -148,7 +148,7 @@ public class FJSums {
         final int lo, hi;
         long in, out;
 
-        Cumulater(Cumulater parent, LongByLongToLong function, 
+        Cumulater(Cumulater parent, LongByLongToLong function,
                   long[] array, int lo, int hi) {
             super(parent);
             this.function = function; this.array = array;
@@ -206,8 +206,9 @@ public class FJSums {
                     for (int b;;) {
                         if (((b = t.getPendingCount()) & FINISHED) != 0)
                             break outer;                      // already done
-                        state = ((b & CUMULATE) != 0? FINISHED :
-                                 (l > 0) ? SUMMED : (SUMMED|FINISHED));
+                        state = (((b & CUMULATE) != 0)
+                                 ? FINISHED
+                                 : (l > 0) ? SUMMED : (SUMMED|FINISHED));
                         if (t.compareAndSetPendingCount(b, b|state))
                             break;
                     }

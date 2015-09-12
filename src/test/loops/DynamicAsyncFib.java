@@ -24,7 +24,7 @@ public final class DynamicAsyncFib extends BinaryAsyncAction {
             f = l;
             --n;
         }
-        f.number = n <= 1? n : seqFib(n);
+        f.number = (n <= 1) ? n : seqFib(n);
         f.complete();
         return false;
     }
