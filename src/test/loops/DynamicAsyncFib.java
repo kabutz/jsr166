@@ -17,13 +17,14 @@ public final class DynamicAsyncFib extends BinaryAsyncAction {
         DynamicAsyncFib f = this;
         int n = f.number;
         while (n > 1 && getSurplusQueuedTaskCount() <= 3) {
-            DynamicAsyncFib l = new DynamicAsyncFib(--n);
-            DynamicAsyncFib r = new DynamicAsyncFib(n - 1);
+            DynamicAsyncFib l = new DynamicAsyncFib(n - 1);
+            DynamicAsyncFib r = new DynamicAsyncFib(n - 2);
             f.linkSubtasks(l, r);
             r.fork();
             f = l;
+            --n;
         }
-        f.number = seqFib(n);
+        f.number = n <= 1? n : seqFib(n);
         f.complete();
         return false;
     }
