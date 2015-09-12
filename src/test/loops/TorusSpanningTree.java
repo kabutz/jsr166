@@ -109,7 +109,7 @@ public class TorusSpanningTree {
                 int nedges = edges.length;
                 for (int k = 0; k < nedges; ++k) {
                     Node e = edges[k];
-                    if (e != null && 
+                    if (e != null &&
                         e.compareAndSetForkJoinTaskTag((short)0, (short)1)) {
                         e.parent = par;
                         e.next = newList;
