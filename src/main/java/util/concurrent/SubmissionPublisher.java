@@ -816,7 +816,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
      * @param consumer the function applied to each onNext item
      * @return a CompletableFuture that is completed normally
      * when the publisher signals onComplete, and exceptionally
-     * upon any error or cancellation.
+     * upon any error or cancellation
      * @throws NullPointerException if consumer is null
      */
     public CompletableFuture<Void> consume(Consumer<? super T> consumer) {
