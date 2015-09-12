@@ -16,7 +16,7 @@ class BoxedLongSort {
     public static void main(String[] args) throws Exception {
         int procs = 0;
         int n = 1 << 22;
-        int reps = 20;
+        int reps = 30;
         int sreps = 2;
         try {
             if (args.length > 0)
@@ -45,7 +45,8 @@ class BoxedLongSort {
         for (int i = 0; i < n; ++i)
             numbers[i] = Long.valueOf(i);
         Long[] a = new Long[n];
-        ForkJoinPool pool = new ForkJoinPool(procs);
+        //        ForkJoinPool pool = new ForkJoinPool(procs);
+        ForkJoinPool pool = ForkJoinPool.commonPool();
         seqTest(a, numbers, pool, 1);
         System.out.println(pool);
         parTest(a, numbers, pool, reps);
@@ -60,7 +61,7 @@ class BoxedLongSort {
         System.out.printf("Sorting %d longs, %d replications\n", n, reps);
         long start = System.nanoTime();
         for (int i = 0; i < reps; ++i) {
-            pool.invoke(new RandomRepacker(numbers, a, 0, n, n));
+            new RandomRepacker(numbers, a, 0, n, n).invoke();
             //            pool.invoke(new TaskChecker());
             long last = System.nanoTime();
             //            quickSort(a, 0, n-1);
@@ -75,17 +76,18 @@ class BoxedLongSort {
         }
     }
 
-    static void parTest(Long[] a, Long[] numbers, ForkJoinPool pool, int reps) {
+    static void parTest(Long[] a, Long[] numbers, ForkJoinPool pool, int reps) throws Exception {
         int n = numbers.length;
         Long[] w = new Long[n];
         System.out.printf("Sorting %d longs, %d replications\n", n, reps);
         long start = System.nanoTime();
         for (int i = 0; i < reps; ++i) {
             //            Arrays.fill(w, 0, n, null);
-            pool.invoke(new RandomRepacker(numbers, a, 0, n, n));
+            new RandomRepacker(numbers, a, 0, n, n).invoke();
+            //            Thread.sleep(500);
             //            pool.invoke(new TaskChecker());
             long last = System.nanoTime();
-            pool.invoke(new Sorter(a, w, 0, n));
+            new Sorter(a, w, 0, n).invoke();
             long now = System.nanoTime();
             //            pool.invoke(new TaskChecker());
             double total = (double)(now - start) / NPS;

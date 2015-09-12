@@ -38,7 +38,7 @@ public class CCJacobi {
             return;
         }
 
-        ForkJoinPool fjp = new ForkJoinPool();
+        ForkJoinPool fjp = ForkJoinPool.commonPool();
 
         // allocate enough space for edges
         int dim = n+2;
@@ -67,13 +67,14 @@ public class CCJacobi {
             Driver driver = new Driver(a, b, 1, n, 1, n, steps, granularity);
 
             long startTime = System.currentTimeMillis();
-            fjp.invoke(driver);
+            driver.invoke();
 
             long time = System.currentTimeMillis() - startTime;
             double secs = ((double)time) / 1000.0;
 
             System.out.println("Compute Time: " + secs);
             System.out.println(fjp);
+            System.gc();
         }
     }
 
@@ -109,14 +110,13 @@ public class CCJacobi {
             double[][] b = AtoB ? B : A;
 
             double md = 0.0; // local for computing max diff
-
             for (int i = loRow; i <= hiRow; ++i) {
                 for (int j = loCol; j <= hiCol; ++j) {
                     double v = 0.25 * (a[i-1][j] + a[i][j-1] +
                                        a[i+1][j] + a[i][j+1]);
                     b[i][j] = v;
-
-                    double diff = v - a[i][j];
+                    double prev = a[i][j];
+                    double diff = v - prev;
                     if (diff < 0) diff = -diff;
                     if (diff > md) md = diff;
                 }
