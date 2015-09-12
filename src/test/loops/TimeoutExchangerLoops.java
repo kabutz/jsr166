@@ -12,7 +12,7 @@ public class TimeoutExchangerLoops {
     static final int NCPUS = Runtime.getRuntime().availableProcessors();
 
     static final int  DEFAULT_THREADS = NCPUS + 2;
-    static final long DEFAULT_PATIENCE_NANOS = 500000;
+    static final long DEFAULT_PATIENCE_NANOS = 100000;
     static final long DEFAULT_TRIAL_MILLIS   = 10000;
 
     public static void main(String[] args) throws Exception {
@@ -106,7 +106,8 @@ public class TimeoutExchangerLoops {
         double failRate = (fails * 100.0) / (double) iters;
         System.out.printf("%9d it/s ", rate);
         System.out.printf("%9d ns/it", npt);
-        System.out.printf("%9.5f%% fails", failRate);
+        System.out.printf("%9.5f%% fails ", failRate);
+        System.out.print(fails);
         System.out.println();
         //        x.printStats();
     }
