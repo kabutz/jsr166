@@ -1533,8 +1533,12 @@ public class ForkJoinPool extends AbstractExecutorService {
                      (m = ws.length - 1) < 0) { // initialize workQueues
                 int p = parallelism;            // find power of two table size
                 int n = (p > 1) ? p - 1 : 1;    // ensure at least 2 slots
-                n |= n >>> 1; n |= n >>> 2;  n |= n >>> 4;
-                n |= n >>> 8; n |= n >>> 16; n = (n + 1) << 1;
+                n |= n >>> 1;
+                n |= n >>> 2;
+                n |= n >>> 4;
+                n |= n >>> 8;
+                n |= n >>> 16;
+                n = (n + 1) << 1;
                 WorkQueue[] nws = ((ws = workQueues) == null || ws.length == 0 ?
                                    new WorkQueue[n] : null);
                 if (((ps = plock) & PL_LOCK) != 0 ||

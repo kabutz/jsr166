@@ -1483,8 +1483,12 @@ public class ForkJoinPool extends AbstractExecutorService {
             int rs; // create workQueues array with size a power of two
             int p = config & SMASK; // ensure at least 2 slots
             int n = (p > 1) ? p - 1 : 1;
-            n |= n >>> 1; n |= n >>> 2;  n |= n >>> 4;
-            n |= n >>> 8; n |= n >>> 16; n = ((n + 1) << 1) & SMASK;
+            n |= n >>> 1;
+            n |= n >>> 2;
+            n |= n >>> 4;
+            n |= n >>> 8;
+            n |= n >>> 16;
+            n = ((n + 1) << 1) & SMASK;
             AuxState aux = new AuxState();
             WorkQueue[] ws = new WorkQueue[n];
             synchronized (modifyThreadPermission) { // double-check
