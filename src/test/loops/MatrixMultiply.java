@@ -15,7 +15,7 @@ public class MatrixMultiply {
     /** for time conversion */
     static final long NPS = (1000L * 1000 * 1000);
 
-    static final int DEFAULT_GRANULARITY = 32;
+    static final int DEFAULT_GRANULARITY = 16; // 32;
 
     /**
      * The quadrant size at which to stop recursing down
@@ -30,7 +30,7 @@ public class MatrixMultiply {
 
         int procs = 0;
         int n = 2048;
-        int runs = 5;
+        int runs = 32;
         try {
             if (args.length > 0)
                 procs = Integer.parseInt(args[0]);
@@ -54,7 +54,7 @@ public class MatrixMultiply {
             return;
         }
 
-        ForkJoinPool pool = (procs == 0) ? new ForkJoinPool() :
+        ForkJoinPool pool = (procs == 0) ? ForkJoinPool.commonPool() :
             new ForkJoinPool(procs);
         System.out.println("procs: " + pool.getParallelism() +
                            " n: " + n + " granularity: " + granularity +
@@ -67,15 +67,18 @@ public class MatrixMultiply {
         for (int i = 0; i < runs; ++i) {
             init(a, b, n);
             long start = System.nanoTime();
-            pool.invoke(new Multiplier(a, 0, 0, b, 0, 0, c, 0, 0, n));
+            new Multiplier(a, 0, 0, b, 0, 0, c, 0, 0, n).invoke();
             long time = System.nanoTime() - start;
             double secs = ((double)time) / NPS;
             Thread.sleep(100);
-            System.out.printf("\tTime: %7.3f\n", secs);
+            System.out.printf("Time: %7.3f ", secs);
+            if ((i & 3) == 3) System.out.println();
             // check(c, n);
         }
         System.out.println(pool.toString());
-        pool.shutdown();
+        if (pool != ForkJoinPool.commonPool())
+            pool.shutdown();
+        Thread.sleep(100);
     }
 
     // To simplify checking, fill with all 1's. Answer should be all n's.
