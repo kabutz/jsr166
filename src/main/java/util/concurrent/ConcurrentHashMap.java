@@ -133,15 +133,15 @@ import java.util.stream.Stream;
  * setValue}.
  *
  * <ul>
- * <li> forEach: Perform a given action on each element.
+ * <li> forEach: Performs a given action on each element.
  * A variant form applies a given transformation on each element
  * before performing the action.</li>
  *
- * <li> search: Return the first available non-null result of
+ * <li> search: Returns the first available non-null result of
  * applying a given function on each element; skipping further
  * search when a result is found.</li>
  *
- * <li> reduce: Accumulate each element.  The supplied reduction
+ * <li> reduce: Accumulates each element.  The supplied reduction
  * function cannot rely on ordering (more formally, it should be
  * both associative and commutative).  There are five variants:
  *
