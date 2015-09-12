@@ -26,7 +26,7 @@ public final class LU {
 
         int procs = 0;
         int n = 2048;
-        int runs = 5;
+        int runs = 32;
         try {
             if (args.length > 0)
                 procs = Integer.parseInt(args[0]);
@@ -43,7 +43,7 @@ public final class LU {
             System.out.println(usage);
             return;
         }
-        ForkJoinPool pool = (procs == 0) ? new ForkJoinPool() :
+        ForkJoinPool pool = (procs == 0) ? ForkJoinPool.commonPool() :
             new ForkJoinPool(procs);
         System.out.println("procs: " + pool.getParallelism() +
                            " n: " + n + " runs: " + runs);
@@ -64,7 +64,8 @@ public final class LU {
             pool.invoke(new LowerUpper(n, M));
             long time = System.nanoTime() - start;
             double secs = ((double)time) / NPS;
-            System.out.printf("\tTime: %7.3f\n", secs);
+            System.out.printf("Time: %7.3f ", secs);
+            if ((run & 3) == 3) System.out.println();
 
             if (CHECK) check(m, copy, n);
         }
