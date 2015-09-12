@@ -57,11 +57,11 @@ import java.util.concurrent.atomic.*;
  * </pre>
  */
 public abstract class BinaryAsyncAction extends ForkJoinTask<Void> {
-    private volatile int controlState; 	 
-    
-    static final AtomicIntegerFieldUpdater<BinaryAsyncAction> controlStateUpdater = 	 
+    private volatile int controlState;
+
+    static final AtomicIntegerFieldUpdater<BinaryAsyncAction> controlStateUpdater =
         AtomicIntegerFieldUpdater.newUpdater(BinaryAsyncAction.class, "controlState");
-    
+
     /**
      * Parent to propagate completion; nulled after completion to
      * avoid retaining entire tree as garbage

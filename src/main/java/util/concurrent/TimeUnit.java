@@ -164,7 +164,7 @@ public enum TimeUnit {
      * This has a short name to make above code more readable.
      */
     static long x(long d, long m, long over) {
-        if (d >  over) return Long.MAX_VALUE;
+        if (d > +over) return Long.MAX_VALUE;
         if (d < -over) return Long.MIN_VALUE;
         return d * m;
     }

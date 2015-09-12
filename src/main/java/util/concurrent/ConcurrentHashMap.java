@@ -1616,7 +1616,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     /**
      * Helper method for Values.removeIf
      */
-    boolean removeValueIf(Predicate<? super  V> function) {
+    boolean removeValueIf(Predicate<? super V> function) {
         if (function == null) throw new NullPointerException();
         Node<K,V>[] t;
         boolean removed = false;
