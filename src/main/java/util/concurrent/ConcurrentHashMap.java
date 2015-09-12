@@ -1594,7 +1594,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Helper method for EntrySet.removeIf
+     * Helper method for EntrySetView.removeIf
      */
     boolean removeEntryIf(Predicate<? super Entry<K,V>> function) {
         if (function == null) throw new NullPointerException();
@@ -1614,7 +1614,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Helper method for Values.removeIf
+     * Helper method for ValuesView.removeIf
      */
     boolean removeValueIf(Predicate<? super V> function) {
         if (function == null) throw new NullPointerException();
