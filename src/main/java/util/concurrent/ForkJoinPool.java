@@ -1034,12 +1034,11 @@ public class ForkJoinPool extends AbstractExecutorService {
          */
         final boolean trySharedUnpush(ForkJoinTask<?> task) {
             boolean popped = false;
-            int s = top - 1, al;  ForkJoinTask<?>[] a;
+            int s = top - 1, al; ForkJoinTask<?>[] a;
             if ((a = array) != null && (al = a.length) > 0) {
                 int index = (al - 1) & s;
                 long offset = ((long)index << ASHIFT) + ABASE;
-                ForkJoinTask<?> t = (ForkJoinTask<?>)
-                    U.getObject(a, offset);
+                ForkJoinTask<?> t = (ForkJoinTask<?>) U.getObject(a, offset);
                 if (t == task &&
                     U.compareAndSwapInt(this, QLOCK, 0, 1)) {
                     if (U.compareAndSwapObject(a, offset, task, null)) {
