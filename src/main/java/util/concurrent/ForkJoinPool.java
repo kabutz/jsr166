@@ -840,7 +840,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 a[(al - 1) & s] = task;  // relaxed writes OK
                 top = s + 1;
                 ForkJoinPool p = pool;
-                U.storeFence();          // ensure fields written before use
+                U.storeFence();          // ensure fields written
                 if ((d = b - s) == 0 && p != null)
                     p.signalWork();
                 else if (al + d == 1)
@@ -891,7 +891,6 @@ public class ForkJoinPool extends AbstractExecutorService {
                 if (t != null &&
                     U.compareAndSwapObject(a, offset, t, null)) {
                     top = s;
-                    U.storeFence();
                     return t;
                 }
             }
@@ -974,7 +973,6 @@ public class ForkJoinPool extends AbstractExecutorService {
                 long offset = ((long)index << ASHIFT) + ABASE;
                 if (U.compareAndSwapObject(a, offset, task, null)) {
                     top = s;
-                    U.storeFence();
                     return true;
                 }
             }
@@ -1179,7 +1177,6 @@ public class ForkJoinPool extends AbstractExecutorService {
                             if (s + 1 == top) {      // pop
                                 if (U.compareAndSwapObject(a, offset, t, null)) {
                                     top = s;
-                                    U.storeFence();
                                     removed = true;
                                 }
                             }
@@ -1196,7 +1193,6 @@ public class ForkJoinPool extends AbstractExecutorService {
                         else if (t.status < 0 && s + 1 == top) {
                             if (U.compareAndSwapObject(a, offset, t, null)) {
                                 top = s;
-                                U.storeFence();
                             }
                             break;                  // was cancelled
                         }
@@ -1243,7 +1239,6 @@ public class ForkJoinPool extends AbstractExecutorService {
                             else if (U.compareAndSwapObject(a, offset,
                                                             t, null)) {
                                 top = s - 1;
-                                U.storeFence();
                                 return t;
                             }
                             break;
@@ -1731,11 +1726,11 @@ public class ForkJoinPool extends AbstractExecutorService {
      * @param r random seed
      */
     private void tryReactivate(WorkQueue w, WorkQueue[] ws, int r) {
-        long c; int sp, wl, m; WorkQueue v;
+        long c; int sp, wl; WorkQueue v;
         if ((sp = (int)(c = ctl)) != 0 && w != null &&
             ws != null && (wl = ws.length) > 0 &&
-            ((m = wl - 1) & ((sp ^ r) >>> 16)) <= 1 &&
-            (v = ws[m & sp]) != null) {
+            ((sp ^ r) & SS_SEQ) == 0 &&
+            (v = ws[(wl - 1) & sp]) != null) {
             long nc = (v.stackPred & SP_MASK) | (UC_MASK & (c + AC_UNIT));
             int ns = sp & ~UNSIGNALLED;
             if (w.scanState < 0 &&
