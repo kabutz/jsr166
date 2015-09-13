@@ -366,8 +366,8 @@
     <jar destfile="${product.jar}">
       <fileset dir="${build.classes.dir}"/>
       <manifest>
-      <attribute name="Built-By" value="${user.name}"/>
-      <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
       </manifest>
     </jar>
   </target>
@@ -428,8 +428,8 @@
       <exclude name="**/SyntaxTest.java"/>
       <exclude name="**/SuperfluousAbstract.java"/>
       <manifest>
-      <attribute name="Built-By" value="${user.name}"/>
-      <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
       </manifest>
     </jar>
   </target>
@@ -669,8 +669,8 @@
     <jar destfile="${4jdk7product.jar}">
       <fileset dir="${build.4jdk7.classes.dir}"/>
       <manifest>
-      <attribute name="Built-By" value="${user.name}"/>
-      <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
       </manifest>
     </jar>
 
@@ -833,8 +833,8 @@
     <jar destfile="${jsr166x.jar}">
       <fileset dir="${build.jsr166x.classes.dir}"/>
       <manifest>
-      <attribute name="Built-By" value="${user.name}"/>
-      <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
       </manifest>
     </jar>
 
@@ -924,8 +924,8 @@
     <jar destfile="${jsr166y.jar}" index="true">
       <fileset dir="${build.jsr166y.classes.dir}"/>
       <manifest>
-      <attribute name="Built-By" value="${user.name}"/>
-      <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
       </manifest>
     </jar>
 
@@ -1016,8 +1016,8 @@
     <jar destfile="${extra166y.jar}" index="true">
       <fileset dir="${build.extra166y.classes.dir}"/>
       <manifest>
-      <attribute name="Built-By" value="${user.name}"/>
-      <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
       </manifest>
     </jar>
 
@@ -1135,8 +1135,8 @@
     <jar destfile="${jsr166e.jar}" index="true">
       <fileset dir="${build.jsr166e.classes.dir}"/>
       <manifest>
-      <attribute name="Built-By" value="${user.name}"/>
-      <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
       </manifest>
     </jar>
 
