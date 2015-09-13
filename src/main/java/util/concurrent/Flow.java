@@ -41,7 +41,7 @@ import java.util.stream.Stream;
  * <pre> {@code
  * class OneShotPublisher implements Publisher<Boolean> {
  *   private final ExecutorService executor = ForkJoinPool.commonPool(); // daemon-based
- *   private boolean subscribed = false; // true after first subscribe
+ *   private boolean subscribed; // true after first subscribe
  *   public synchronized void subscribe(Subscriber<? super Boolean> subscriber) {
  *     if (subscribed)
  *        subscriber.onError(new IllegalStateException()); // only one allowed
@@ -54,7 +54,7 @@ import java.util.stream.Stream;
  *     private final Subscriber<? super Boolean> subscriber;
  *     private final ExecutorService executor;
  *     private Future<?> future; // to allow cancellation
- *     private boolean completed = false;
+ *     private boolean completed;
  *     OneShotSubscription(Subscriber<? super Boolean> subscriber,
  *                         ExecutorService executor) {
  *       this.subscriber = subscriber;
@@ -64,10 +64,9 @@ import java.util.stream.Stream;
  *       if (n != 0 && !completed) {
  *         completed = true;
  *         if (n < 0) {
- *           IllegalStateException ex = new IllegalStateException();
+ *           IllegalArgumentException ex = new IllegalArgumentException();
  *           executor.execute(() -> subscriber.onError(ex));
- *         }
- *         else {
+ *         } else {
  *           future = executor.submit(() -> {
  *             subscriber.onNext(Boolean.TRUE);
  *             subscriber.onComplete();
@@ -123,9 +122,8 @@ import java.util.stream.Stream;
  * <p>The default value of {@link #defaultBufferSize} may provide a
  * useful starting point for choosing request sizes and capacities in
  * Flow components based on expected rates, resources, and usages.
- * Or, when flow control is known to be always inapplicable, a
- * subscriber may initially request an effectively unbounded number of
- * items, as in:
+ * Or, when flow control is never needed, a subscriber may initially
+ * request an effectively unbounded number of items, as in:
  *
  * <pre> {@code
  * class UnboundedSubscriber<T> implements Subscriber<T> {
@@ -198,7 +196,7 @@ public final class Flow {
          * Method invoked prior to invoking any other Subscriber
          * methods for the given Subscription. If this method throws
          * an exception, resulting behavior is not guaranteed, but may
-         * cause the Subscription to be cancelled.
+         * cause the Subscription not to be established or to be cancelled.
          *
          * <p>Typically, implementations of this method invoke {@code
          * subscription.request} to enable receiving items.
@@ -265,7 +263,7 @@ public final class Flow {
          * messages.  Implementation is best-effort -- additional
          * messages may be received after invoking this method.  A
          * cancelled subscription need not ever receive an {@code
-         * onComplete} signal.
+         * onComplete} or {@code onError} signal.
          */
         public void cancel();
     }
