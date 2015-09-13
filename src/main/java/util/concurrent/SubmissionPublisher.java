@@ -152,7 +152,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
             (n >= BUFFER_CAPACITY_LIMIT) ? BUFFER_CAPACITY_LIMIT : n + 1;
     }
 
-    // defaultExecutor setup; nearly the same as CompletableFuture
+    // default Executor setup; nearly the same as CompletableFuture
 
     /**
      * Default executor -- ForkJoinPool.commonPool() unless it cannot
@@ -434,8 +434,8 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
      * subscriber by asynchronously invoking its {@link
      * Flow.Subscriber#onNext} method, blocking while resources for
      * any subscription are unavailable, up to the specified timeout
-     * or the caller thread is interrupted, at which point the given
-     * handler (if non-null) is invoked, and if it returns true,
+     * or until the caller thread is interrupted, at which point the
+     * given handler (if non-null) is invoked, and if it returns true,
      * retried once. (The drop handler may distinguish timeouts from
      * interrupts by checking whether the current thread is
      * interrupted.) Other calls to methods in this class by other
