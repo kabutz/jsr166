@@ -29,6 +29,11 @@
   Alternatively, define ant variables thus:
   ant -Djdk$N.home=...
   for $N in 6 7 8 9 ...
+
+  As of 2015-09, there is incomplete hacky support for jigsaw
+  Build for jigsaw using something like:
+  ant -Djdk9.home="$HOME/jdk/jigsaw" -Djdk9.src.dir="$HOME/jdk/src/jigsaw" clean test dist
+  "docs" target is still broken.
 ------------------------------------------------------------------------------
   </description>
 
@@ -102,16 +107,18 @@
       if:set="have.java.base"/>
     <property name="jdk@{v}src.dir" location="${jdks.home}/src/jdk@{v}/jdk/src/share/classes"
       unless:set="have.java.base"/>
+    <local name="modules"/>
+    <available property="modules" file="${jdk@{v}.home}/jmods" type="dir"/>
     <local name="boot.jar.dir"/>
-    <property name="boot.jar.dir"   location="${jdk@{v}.home}/jre/lib"/>
-    <path id="bootclasspath@{v}">
+    <property name="boot.jar.dir"   location="${jdk@{v}.home}/jre/lib" unless:set="modules"/>
+    <path id="bootclasspath@{v}" unless:set="modules">
       <pathelement path="${boot.jar.dir}/resources.jar"/>
       <pathelement path="${boot.jar.dir}/rt.jar"/>
       <pathelement path="${boot.jar.dir}/jsse.jar"/>
       <pathelement path="${boot.jar.dir}/jce.jar"/>
       <pathelement path="${boot.jar.dir}/charsets.jar"/>
     </path>
-    <property name="bootclasspath@{v}" value="${toString:bootclasspath@{v}}"/>
+    <property name="bootclasspath@{v}" value="${toString:bootclasspath@{v}}" unless:set="modules"/>
     </sequential>
   </macrodef>
 
@@ -212,7 +219,13 @@
     <attribute name="classes"/>
     <attribute name="jvmflags" default="-ea -esa -Djsr166.testImplementationDetails=true"/>
     <element name="javac-elements" optional="true"/>
+
     <sequential>
+
+    <local name="modules"/>
+    <condition property="modules">
+      <available file="${jdk@{compile-target}.home}/jmods" type="dir"/>
+    </condition>
 
     <mkdir dir="@{workdir}/tck-classes"/>
 
@@ -232,7 +245,8 @@
       <include name="*.java"/>
       <compilerarg value="-XDignore.symbol.file=true"/>
       <compilerarg value="-Xlint:all,-unchecked,-rawtypes,-serial,-deprecation"/>
-      <compilerarg value="-Xbootclasspath/p:@{classes}"/>
+      <compilerarg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
+      <compilerarg value="-Xoverride:${build.classes.dir}" if:set="modules"/>
       <compilerarg line="${build.args}"/>
       <javac-elements/>
 
@@ -242,7 +256,8 @@
           failonerror="true"
           jvm="${java@{target}}"
           fork="true">
-	<jvmarg value="-Xbootclasspath/p:@{classes}"/>
+	<jvmarg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
+	<jvmarg value="-Xoverride:${build.classes.dir}" if:set="modules"/>
 	<jvmarg line="@{jvmflags}"/>
 
         <!-- ant -Djava.util.concurrent.ForkJoinPool.common.parallelism=1 tck -->
@@ -291,7 +306,14 @@
     <attribute name="workdir"/>
     <attribute name="classes"/>
     <attribute name="jtregflags" default=""/>
+
     <sequential>
+
+    <local name="modules"/>
+    <condition property="modules">
+      <available file="${jdk@{target}.home}/jmods" type="dir"/>
+    </condition>
+
     <delete dir="@{workdir}/JTwork"   quiet="true"/>
     <delete dir="@{workdir}/JTreport" quiet="true"/>
     <mkdir dir="@{workdir}/JTwork/scratch"/>
@@ -301,7 +323,8 @@
            workDir="@{workdir}/JTwork"
            reportDir="@{workdir}/JTreport">
       <patternset refid="jdk@{target}.jtreg.tests"/>
-      <arg value="-Xbootclasspath/p:@{classes}"/>
+      <arg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
+      <arg value="-Xoverride:${build.classes.dir}" if:set="modules"/>
       <arg value="-agentvm"/>
       <arg value="-v:nopass,fail"/>
       <arg value="-vmoptions:-esa -ea"/>
@@ -334,10 +357,22 @@
           depends="configure-compiler"
           description="Compiles src/main sources to build dir">
 
-    <mkdir dir="${build.classes.dir}"/>
+    <local name="modules"/>
+    <condition property="modules">
+      <and>
+        <available file="${jdk9.home}/jmods" type="dir"/>
+        <equals arg1="9" arg2="${build.main.java.version}"/>
+      </and>
+    </condition>
+
+    <local name="destdir"/>
+    <property name="destdir" value="${build.classes.dir}/java.base" if:set="modules"/>
+    <property name="destdir" value="${build.classes.dir}" unless:set="modules"/>
+
+    <mkdir dir="${destdir}"/>
 
     <javac srcdir="${src.dir}"
-           destdir="${build.classes.dir}"
+           destdir="${destdir}"
            debug="${build.debug}"
            debuglevel="${build.debuglevel}"
            deprecation="${build.deprecation}"
@@ -348,6 +383,7 @@
            fork="true">
 
       <include name="**/*.java"/>
+      <compilerarg value="-Xmodule:java.base" if:set="modules"/>
       <compilerarg value="-Xprefer:source"/>
       <compilerarg value="-XDignore.symbol.file=true"/>
       <compilerarg value="-Xlint:all"/>
@@ -397,6 +433,7 @@
       <arg line="-Xdocrootparent ${java9.docroot.url}"/>
       <arg line="-Xmaxerrs 1000 -Xmaxwarns 1000"/>
       <arg value="-XDignore.symbol.file=true"/>
+<!--  TODO     <arg value="-Xmodule:java.base"/> -->
       <arg value="-tag"/>
       <arg value="${javadoc.jls.option}"/>
       <arg value="-tag"/>
