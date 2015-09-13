@@ -529,6 +529,11 @@
 
 
   <target name="configure-compiler">
+    <fail message="ant version too old">
+      <condition>
+	<not> <antversion atleast="1.9.1"/> </not>
+      </condition>
+    </fail>
 
     <property name="unchecked.option" value="-Xlint:unchecked"/>
 
