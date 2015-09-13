@@ -44,7 +44,7 @@ import java.util.concurrent.locks.LockSupport;
  *
  * <ul>
  *
- *   <li> <b>Arrival.</b> Methods {@link #arrive} and
+ *   <li><b>Arrival.</b> Methods {@link #arrive} and
  *       {@link #arriveAndDeregister} record arrival.  These methods
  *       do not block, but return an associated <em>arrival phase
  *       number</em>; that is, the phase number of the phaser to which
@@ -57,7 +57,7 @@ import java.util.concurrent.locks.LockSupport;
  *       flexible than, providing a barrier action to a {@code
  *       CyclicBarrier}.
  *
- *   <li> <b>Waiting.</b> Method {@link #awaitAdvance} requires an
+ *   <li><b>Waiting.</b> Method {@link #awaitAdvance} requires an
  *       argument indicating an arrival phase number, and returns when
  *       the phaser advances to (or is already at) a different phase.
  *       Unlike similar constructions using {@code CyclicBarrier},

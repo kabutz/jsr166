@@ -28,12 +28,12 @@ import java.util.concurrent.locks.ReadWriteLock;
  *   in method {@link #unlockWrite} to release the lock. Untimed and
  *   timed versions of {@code tryWriteLock} are also provided. When
  *   the lock is held in write mode, no read locks may be obtained,
- *   and all optimistic read validations will fail.  </li>
+ *   and all optimistic read validations will fail.
  *
  *  <li><b>Reading.</b> Method {@link #readLock} possibly blocks
  *   waiting for non-exclusive access, returning a stamp that can be
  *   used in method {@link #unlockRead} to release the lock. Untimed
- *   and timed versions of {@code tryReadLock} are also provided. </li>
+ *   and timed versions of {@code tryReadLock} are also provided.
  *
  *  <li><b>Optimistic Reading.</b> Method {@link #tryOptimisticRead}
  *   returns a non-zero stamp only if the lock is not currently held
@@ -51,7 +51,7 @@ import java.util.concurrent.locks.ReadWriteLock;
  *   invoke method {@code validate()}.  For example, such steps are
  *   typically required when first reading an object or array
  *   reference, and then accessing one of its fields, elements or
- *   methods. </li>
+ *   methods.
  *
  * </ul>
  *

@@ -133,32 +133,31 @@ import java.util.stream.Stream;
  * setValue}.
  *
  * <ul>
- * <li> forEach: Performs a given action on each element.
+ * <li>forEach: Performs a given action on each element.
  * A variant form applies a given transformation on each element
- * before performing the action.</li>
+ * before performing the action.
  *
- * <li> search: Returns the first available non-null result of
+ * <li>search: Returns the first available non-null result of
  * applying a given function on each element; skipping further
- * search when a result is found.</li>
+ * search when a result is found.
  *
- * <li> reduce: Accumulates each element.  The supplied reduction
+ * <li>reduce: Accumulates each element.  The supplied reduction
  * function cannot rely on ordering (more formally, it should be
  * both associative and commutative).  There are five variants:
  *
  * <ul>
  *
- * <li> Plain reductions. (There is not a form of this method for
+ * <li>Plain reductions. (There is not a form of this method for
  * (key, value) function arguments since there is no corresponding
- * return type.)</li>
+ * return type.)
  *
- * <li> Mapped reductions that accumulate the results of a given
- * function applied to each element.</li>
+ * <li>Mapped reductions that accumulate the results of a given
+ * function applied to each element.
  *
- * <li> Reductions to scalar doubles, longs, and ints, using a
- * given basis value.</li>
+ * <li>Reductions to scalar doubles, longs, and ints, using a
+ * given basis value.
  *
  * </ul>
- * </li>
  * </ul>
  *
  * <p>These bulk operations accept a {@code parallelismThreshold}

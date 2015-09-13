@@ -20,22 +20,22 @@ import sun.misc.Unsafe;
  * user-supplied computational methods for setting and updating
  * values. In particular: <ul>
  *
- *   <li> Identity-based, Equality-based or User-definable {@link
- *        Equivalence}-based comparisons controlling membership.
+ *   <li>Identity-based, Equality-based or User-definable {@link
+ *       Equivalence}-based comparisons controlling membership.
  *
- *   <li> {@linkplain SoftReference Soft}, {@linkplain
- *        WeakReference weak} or strong (regular) keys and values.
+ *   <li>{@linkplain SoftReference Soft}, {@linkplain
+ *       WeakReference weak} or strong (regular) keys and values.
  *
- *   <li> User-definable {@code MappingFunctions} that may be
- *        used in method {@link
- *        CustomConcurrentHashMap#computeIfAbsent} to atomically
- *        establish a computed value, along with
- *        {@code RemappingFunctions} that can be used in method
- *        {@link CustomConcurrentHashMap#compute} to atomically
- *        replace values.
+ *   <li>User-definable {@code MappingFunctions} that may be
+ *       used in method {@link
+ *       CustomConcurrentHashMap#computeIfAbsent} to atomically
+ *       establish a computed value, along with
+ *       {@code RemappingFunctions} that can be used in method
+ *       {@link CustomConcurrentHashMap#compute} to atomically
+ *       replace values.
  *
- *    <li>Factory methods returning specialized forms for {@code int}
- *        keys and/or values, that may be more space-efficient
+ *   <li>Factory methods returning specialized forms for {@code int}
+ *       keys and/or values, that may be more space-efficient
  *
  * </ul>
  *

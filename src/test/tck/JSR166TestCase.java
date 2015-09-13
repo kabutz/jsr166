@@ -67,18 +67,18 @@ import junit.framework.TestSuite;
  *
  * <ol>
  *
- * <li> All assertions in code running in generated threads must use
+ * <li>All assertions in code running in generated threads must use
  * the forms {@link #threadFail}, {@link #threadAssertTrue}, {@link
  * #threadAssertEquals}, or {@link #threadAssertNull}, (not
  * {@code fail}, {@code assertTrue}, etc.) It is OK (but not
  * particularly recommended) for other code to use these forms too.
  * Only the most typically used JUnit assertion methods are defined
- * this way, but enough to live with.</li>
+ * this way, but enough to live with.
  *
- * <li> If you override {@link #setUp} or {@link #tearDown}, make sure
+ * <li>If you override {@link #setUp} or {@link #tearDown}, make sure
  * to invoke {@code super.setUp} and {@code super.tearDown} within
  * them. These methods are used to clear and check for thread
- * assertion failures.</li>
+ * assertion failures.
  *
  * <li>All delays and timeouts must use one of the constants {@code
  * SHORT_DELAY_MS}, {@code SMALL_DELAY_MS}, {@code MEDIUM_DELAY_MS},
@@ -89,44 +89,44 @@ import junit.framework.TestSuite;
  * is always discriminable as larger than SHORT and smaller than
  * MEDIUM.  And so on. These constants are set to conservative values,
  * but even so, if there is ever any doubt, they can all be increased
- * in one spot to rerun tests on slower platforms.</li>
+ * in one spot to rerun tests on slower platforms.
  *
- * <li> All threads generated must be joined inside each test case
+ * <li>All threads generated must be joined inside each test case
  * method (or {@code fail} to do so) before returning from the
  * method. The {@code joinPool} method can be used to do this when
- * using Executors.</li>
+ * using Executors.
  *
  * </ol>
  *
  * <p><b>Other notes</b>
  * <ul>
  *
- * <li> Usually, there is one testcase method per JSR166 method
+ * <li>Usually, there is one testcase method per JSR166 method
  * covering "normal" operation, and then as many exception-testing
  * methods as there are exceptions the method can throw. Sometimes
  * there are multiple tests per JSR166 method when the different
  * "normal" behaviors differ significantly. And sometimes testcases
  * cover multiple methods when they cannot be tested in
- * isolation.</li>
+ * isolation.
  *
- * <li> The documentation style for testcases is to provide as javadoc
+ * <li>The documentation style for testcases is to provide as javadoc
  * a simple sentence or two describing the property that the testcase
  * method purports to test. The javadocs do not say anything about how
- * the property is tested. To find out, read the code.</li>
+ * the property is tested. To find out, read the code.
  *
- * <li> These tests are "conformance tests", and do not attempt to
+ * <li>These tests are "conformance tests", and do not attempt to
  * test throughput, latency, scalability or other performance factors
  * (see the separate "jtreg" tests for a set intended to check these
  * for the most central aspects of functionality.) So, most tests use
  * the smallest sensible numbers of threads, collection sizes, etc
- * needed to check basic conformance.</li>
+ * needed to check basic conformance.
  *
  * <li>The test classes currently do not declare inclusion in
  * any particular package to simplify things for people integrating
- * them in TCK test suites.</li>
+ * them in TCK test suites.
  *
- * <li> As a convenience, the {@code main} of this class (JSR166TestCase)
- * runs all JSR166 unit tests.</li>
+ * <li>As a convenience, the {@code main} of this class (JSR166TestCase)
+ * runs all JSR166 unit tests.
  *
  * </ul>
  */

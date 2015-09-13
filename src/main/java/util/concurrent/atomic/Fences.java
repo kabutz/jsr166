@@ -340,10 +340,10 @@ package java.util.concurrent.atomic;
  *
  *     <li><em>w</em>, a write of value <em>p</em>
  *
- *     <li> <em>rf</em>, an invocation of {@code orderReads(p)} or
+ *     <li><em>rf</em>, an invocation of {@code orderReads(p)} or
  *     {@code orderAccesses(p)}
  *
- *     <li> <em>r</em>, a read returning value <em>p</em>
+ *     <li><em>r</em>, a read returning value <em>p</em>
  *
  *   </ul>
  *   If:
@@ -355,12 +355,12 @@ package java.util.concurrent.atomic;
  *   Then:
  *   <ul>
  *
- *     <li> <em>wf happens-before rf</em>
+ *     <li><em>wf happens-before rf</em>
  *
- *     <li> <em>wf</em> precedes <em>rf</em> in the
+ *     <li><em>wf</em> precedes <em>rf</em> in the
  *          <em>synchronization order</em>
  *
- *     <li> If (<em>r1</em>, <em>w1</em>) and (<em>r2</em>,
+ *     <li>If (<em>r1</em>, <em>w1</em>) and (<em>r2</em>,
  *     <em>w2</em>) are two pairs of reads and writes, both
  *     respectively satisfying the above conditions for <em>p</em>,
  *     and sequenced(r1, r2) then it is not the case that <em>w2
@@ -374,16 +374,16 @@ package java.util.concurrent.atomic;
  *
  *     <li><em>p</em>, a reference to an object
  *
- *     <li> <em>a</em>, an access where deeplyAccesses(a, p)
+ *     <li><em>a</em>, an access where deeplyAccesses(a, p)
  *
  *     <li><em>wf</em>, an invocation of {@code orderWrites(p)} or
  *       {@code orderAccesses(p)}
  *
  *     <li><em>w</em>, a write of value <em>p</em>
  *
- *     <li> <em>r</em>, a read returning value <em>p</em>
+ *     <li><em>r</em>, a read returning value <em>p</em>
  *
- *     <li> <em>b</em>, an access where accesses(b, p)
+ *     <li><em>b</em>, an access where accesses(b, p)
  *
  *   </ul>
  *   If:
@@ -397,7 +397,7 @@ package java.util.concurrent.atomic;
  *   </ul>
  *   Then:
  *   <ul>
- *     <li> the effects of <em>b</em> are constrained
+ *     <li>the effects of <em>b</em> are constrained
  *          by the relation <em>a happens-before b</em>.
  *   </ul>
  *  <dt><b>[orderAccesses]</b>
@@ -416,7 +416,7 @@ package java.util.concurrent.atomic;
  *
  *   <ul>
  *
- *     <li> <em>f</em> is an element of the <em>synchronization order</em>.
+ *     <li><em>f</em> is an element of the <em>synchronization order</em>.
  *
  *   </ul>
  *   <dt><b>[Reachability]</b>
@@ -446,7 +446,7 @@ package java.util.concurrent.atomic;
  *
  *   <ul>
  *
- *     <li> <em>a happens-before b</em>.
+ *     <li><em>a happens-before b</em>.
  *
  *   </ul>
  *

@@ -1139,7 +1139,7 @@ public class ReentrantReadWriteLock
          * InterruptedException} will be thrown, and the thread's
          * interrupted status will be cleared.
          *
-         * <li> Waiting threads are signalled in FIFO order.
+         * <li>Waiting threads are signalled in FIFO order.
          *
          * <li>The ordering of lock reacquisition for threads returning
          * from waiting methods is the same as for threads initially

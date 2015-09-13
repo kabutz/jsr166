@@ -18,13 +18,13 @@ import java.util.concurrent.locks.*;
  * A set of worker threads perform updates on subpops. The basic
  * update step is:
  * <ol>
- *   <li> Select a breeder b from the subpop
- *   <li> Create a strand of its tour with a random starting point and length
- *   <li> Offer the strand to the exchanger, receiving a strand from
- *        another subpop
- *   <li> Combine b and the received strand using crossing function to
- *        create new chromosome c.
- *   <li> Replace a chromosome in the subpop with c.
+ *   <li>Select a breeder b from the subpop
+ *   <li>Create a strand of its tour with a random starting point and length
+ *   <li>Offer the strand to the exchanger, receiving a strand from
+ *       another subpop
+ *   <li>Combine b and the received strand using crossing function to
+ *       create new chromosome c.
+ *   <li>Replace a chromosome in the subpop with c.
  * </ol>
  *
  * This continues for a given number of generations per subpop.

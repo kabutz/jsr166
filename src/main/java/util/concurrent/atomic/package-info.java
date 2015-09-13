@@ -71,13 +71,13 @@
  *
  * <ul>
  *
- *   <li> {@code get} has the memory effects of reading a
+ *   <li>{@code get} has the memory effects of reading a
  * {@code volatile} variable.
  *
- *   <li> {@code set} has the memory effects of writing (assigning) a
+ *   <li>{@code set} has the memory effects of writing (assigning) a
  * {@code volatile} variable.
  *
- *   <li> {@code lazySet} has the memory effects of writing (assigning)
+ *   <li>{@code lazySet} has the memory effects of writing (assigning)
  *   a {@code volatile} variable except that it permits reorderings with
  *   subsequent (but not previous) memory actions that do not themselves
  *   impose reordering constraints with ordinary non-{@code volatile}
@@ -91,7 +91,7 @@
  *   with respect to previous or subsequent reads and writes of any
  *   variables other than the target of the {@code weakCompareAndSet}.
  *
- *   <li> {@code compareAndSet}
+ *   <li>{@code compareAndSet}
  *   and all other read-and-update operations such as {@code getAndIncrement}
  *   have the memory effects of both reading and
  *   writing {@code volatile} variables.

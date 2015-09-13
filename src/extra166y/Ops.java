@@ -26,16 +26,16 @@ import java.util.*;
  * <p>The naming conventions are as follows:
  * <ul>
  *
- * <li> The name of the single method declared in each interface is
+ * <li>The name of the single method declared in each interface is
  * simply {@code op} (short for "operate").
  *
- * <li> An {@code Op} (short for "operation") maps a single argument to
+ * <li>An {@code Op} (short for "operation") maps a single argument to
  * a result. Example: negating a value.
  *
- * <li> The names for scalar ops accepting and returning the same type
+ * <li>The names for scalar ops accepting and returning the same type
  * are prefaced by their type name.
  *
- * <li> A {@code BinaryOp} maps two arguments to a result. Example:
+ * <li>A {@code BinaryOp} maps two arguments to a result. Example:
  * dividing two numbers
  *
  * <li>A {@code Reducer} is an <em>associative</em> binary op
@@ -43,16 +43,16 @@ import java.util.*;
  * c)) should have the same result as op(op(a, b), c).  Example:
  * adding two numbers.
  *
- * <li> Scalar binary ops accepting and returning the same type
+ * <li>Scalar binary ops accepting and returning the same type
  * include their type name.
  *
- * <li> Mixed-type operators are named just by their argument type
+ * <li>Mixed-type operators are named just by their argument type
  * names.
  *
- * <li> A {@code Generator} takes no arguments and returns a result.
+ * <li>A {@code Generator} takes no arguments and returns a result.
  * Examples: random number generators, builders
  *
- * <li> A {@code Procedure} accepts an argument but doesn't return a
+ * <li>A {@code Procedure} accepts an argument but doesn't return a
  * result. Example: printing a value.  An {@code Action} is a
  * Procedure that takes no arguments.
  *

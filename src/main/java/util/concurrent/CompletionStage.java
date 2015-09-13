@@ -26,9 +26,9 @@ import java.util.function.Function;
  * For example, {@code stage.thenApply(x -> square(x)).thenAccept(x ->
  * System.out.print(x)).thenRun(() -> System.out.println())}. An
  * additional form (<em>compose</em>) applies functions of stages
- * themselves, rather than their results. </li>
+ * themselves, rather than their results.
  *
- * <li> One stage's execution may be triggered by completion of a
+ * <li>One stage's execution may be triggered by completion of a
  * single stage, or both of two stages, or either of two stages.
  * Dependencies on a single stage are arranged using methods with
  * prefix <em>then</em>. Those triggered by completion of
@@ -36,9 +36,9 @@ import java.util.function.Function;
  * effects, using correspondingly named methods. Those triggered by
  * <em>either</em> of two stages make no guarantees about which of the
  * results or effects are used for the dependent stage's
- * computation.</li>
+ * computation.
  *
- * <li> Dependencies among stages control the triggering of
+ * <li>Dependencies among stages control the triggering of
  * computations, but do not otherwise guarantee any particular
  * ordering. Additionally, execution of a new stage's computations may
  * be arranged in any of three ways: default execution, default
@@ -51,7 +51,7 @@ import java.util.function.Function;
  * properties, and might not even support concurrent execution, but
  * are arranged for processing in a way that accommodates asynchrony.
  *
- * <li> Two method forms support processing whether the triggering
+ * <li>Two method forms support processing whether the triggering
  * stage completed normally or exceptionally: Method {@link
  * #whenComplete whenComplete} allows injection of an action
  * regardless of outcome, otherwise preserving the outcome in its
@@ -70,7 +70,7 @@ import java.util.function.Function;
  * stage completes normally or exceptionally. In the case of method
  * {@code whenComplete}, when the supplied action itself encounters an
  * exception, then the stage exceptionally completes with this
- * exception if not already completed exceptionally.</li>
+ * exception if not already completed exceptionally.
  *
  * </ul>
  *

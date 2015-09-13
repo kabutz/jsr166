@@ -1492,12 +1492,12 @@ public abstract class AbstractQueuedLongSynchronizer
         /**
          * Implements uninterruptible condition wait.
          * <ol>
-         * <li> Save lock state returned by {@link #getState}.
-         * <li> Invoke {@link #release} with saved state as argument,
-         *      throwing IllegalMonitorStateException if it fails.
-         * <li> Block until signalled.
-         * <li> Reacquire by invoking specialized version of
-         *      {@link #acquire} with saved state as argument.
+         * <li>Save lock state returned by {@link #getState}.
+         * <li>Invoke {@link #release} with saved state as argument,
+         *     throwing IllegalMonitorStateException if it fails.
+         * <li>Block until signalled.
+         * <li>Reacquire by invoking specialized version of
+         *     {@link #acquire} with saved state as argument.
          * </ol>
          */
         public final void awaitUninterruptibly() {
@@ -1551,14 +1551,14 @@ public abstract class AbstractQueuedLongSynchronizer
         /**
          * Implements interruptible condition wait.
          * <ol>
-         * <li> If current thread is interrupted, throw InterruptedException.
-         * <li> Save lock state returned by {@link #getState}.
-         * <li> Invoke {@link #release} with saved state as argument,
-         *      throwing IllegalMonitorStateException if it fails.
-         * <li> Block until signalled or interrupted.
-         * <li> Reacquire by invoking specialized version of
-         *      {@link #acquire} with saved state as argument.
-         * <li> If interrupted while blocked in step 4, throw InterruptedException.
+         * <li>If current thread is interrupted, throw InterruptedException.
+         * <li>Save lock state returned by {@link #getState}.
+         * <li>Invoke {@link #release} with saved state as argument,
+         *     throwing IllegalMonitorStateException if it fails.
+         * <li>Block until signalled or interrupted.
+         * <li>Reacquire by invoking specialized version of
+         *     {@link #acquire} with saved state as argument.
+         * <li>If interrupted while blocked in step 4, throw InterruptedException.
          * </ol>
          */
         public final void await() throws InterruptedException {
@@ -1583,14 +1583,14 @@ public abstract class AbstractQueuedLongSynchronizer
         /**
          * Implements timed condition wait.
          * <ol>
-         * <li> If current thread is interrupted, throw InterruptedException.
-         * <li> Save lock state returned by {@link #getState}.
-         * <li> Invoke {@link #release} with saved state as argument,
-         *      throwing IllegalMonitorStateException if it fails.
-         * <li> Block until signalled, interrupted, or timed out.
-         * <li> Reacquire by invoking specialized version of
-         *      {@link #acquire} with saved state as argument.
-         * <li> If interrupted while blocked in step 4, throw InterruptedException.
+         * <li>If current thread is interrupted, throw InterruptedException.
+         * <li>Save lock state returned by {@link #getState}.
+         * <li>Invoke {@link #release} with saved state as argument,
+         *     throwing IllegalMonitorStateException if it fails.
+         * <li>Block until signalled, interrupted, or timed out.
+         * <li>Reacquire by invoking specialized version of
+         *     {@link #acquire} with saved state as argument.
+         * <li>If interrupted while blocked in step 4, throw InterruptedException.
          * </ol>
          */
         public final long awaitNanos(long nanosTimeout)
@@ -1626,15 +1626,15 @@ public abstract class AbstractQueuedLongSynchronizer
         /**
          * Implements absolute timed condition wait.
          * <ol>
-         * <li> If current thread is interrupted, throw InterruptedException.
-         * <li> Save lock state returned by {@link #getState}.
-         * <li> Invoke {@link #release} with saved state as argument,
-         *      throwing IllegalMonitorStateException if it fails.
-         * <li> Block until signalled, interrupted, or timed out.
-         * <li> Reacquire by invoking specialized version of
-         *      {@link #acquire} with saved state as argument.
-         * <li> If interrupted while blocked in step 4, throw InterruptedException.
-         * <li> If timed out while blocked in step 4, return false, else true.
+         * <li>If current thread is interrupted, throw InterruptedException.
+         * <li>Save lock state returned by {@link #getState}.
+         * <li>Invoke {@link #release} with saved state as argument,
+         *     throwing IllegalMonitorStateException if it fails.
+         * <li>Block until signalled, interrupted, or timed out.
+         * <li>Reacquire by invoking specialized version of
+         *     {@link #acquire} with saved state as argument.
+         * <li>If interrupted while blocked in step 4, throw InterruptedException.
+         * <li>If timed out while blocked in step 4, return false, else true.
          * </ol>
          */
         public final boolean awaitUntil(Date deadline)
@@ -1667,15 +1667,15 @@ public abstract class AbstractQueuedLongSynchronizer
         /**
          * Implements timed condition wait.
          * <ol>
-         * <li> If current thread is interrupted, throw InterruptedException.
-         * <li> Save lock state returned by {@link #getState}.
-         * <li> Invoke {@link #release} with saved state as argument,
-         *      throwing IllegalMonitorStateException if it fails.
-         * <li> Block until signalled, interrupted, or timed out.
-         * <li> Reacquire by invoking specialized version of
-         *      {@link #acquire} with saved state as argument.
-         * <li> If interrupted while blocked in step 4, throw InterruptedException.
-         * <li> If timed out while blocked in step 4, return false, else true.
+         * <li>If current thread is interrupted, throw InterruptedException.
+         * <li>Save lock state returned by {@link #getState}.
+         * <li>Invoke {@link #release} with saved state as argument,
+         *     throwing IllegalMonitorStateException if it fails.
+         * <li>Block until signalled, interrupted, or timed out.
+         * <li>Reacquire by invoking specialized version of
+         *     {@link #acquire} with saved state as argument.
+         * <li>If interrupted while blocked in step 4, throw InterruptedException.
+         * <li>If timed out while blocked in step 4, return false, else true.
          * </ol>
          */
         public final boolean await(long time, TimeUnit unit)

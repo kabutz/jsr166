@@ -32,7 +32,7 @@ import java.util.function.Supplier;
  * <li>Actions supplied for dependent completions of
  * <em>non-async</em> methods may be performed by the thread that
  * completes the current CompletableFuture, or by any other caller of
- * a completion method.</li>
+ * a completion method.
  *
  * <li>All <em>async</em> methods without an explicit Executor
  * argument are performed using the {@link ForkJoinPool#commonPool()}
@@ -46,17 +46,18 @@ import java.util.function.Supplier;
  * example: {@code supplyAsync(supplier, delayedExecutor(timeout,
  * timeUnit))}.  To support methods with delays and timeouts, this
  * class maintains at most one daemon thread for triggering and
- * cancelling actions, not for running them.</li>
+ * cancelling actions, not for running them.
  *
  * <li>All CompletionStage methods are implemented independently of
  * other public methods, so the behavior of one method is not impacted
- * by overrides of others in subclasses.  </li>
+ * by overrides of others in subclasses.
  *
  * <li>All CompletionStage methods return CompletableFutures.  To
  * restrict usages to only those methods defined in interface
  * CompletionStage, use method {@link #minimalCompletionStage}. Or to
  * ensure only that clients do not themselves modify a future, use
- * method {@link #copy}. </li> </ul>
+ * method {@link #copy}.
+ * </ul>
  *
  * <p>CompletableFuture also implements {@link Future} with the following
  * policies: <ul>
@@ -67,7 +68,7 @@ import java.util.function.Supplier;
  * completion.  Method {@link #cancel cancel} has the same effect as
  * {@code completeExceptionally(new CancellationException())}. Method
  * {@link #isCompletedExceptionally} can be used to determine if a
- * CompletableFuture completed in any exceptional fashion.</li>
+ * CompletableFuture completed in any exceptional fashion.
  *
  * <li>In case of exceptional completion with a CompletionException,
  * methods {@link #get()} and {@link #get(long, TimeUnit)} throw an
@@ -75,7 +76,8 @@ import java.util.function.Supplier;
  * corresponding CompletionException.  To simplify usage in most
  * contexts, this class also defines methods {@link #join()} and
  * {@link #getNow} that instead throw the CompletionException directly
- * in these cases.</li> </ul>
+ * in these cases.
+ * </ul>
  *
  * <p>Arguments used to pass a completion result (that is, for
  * parameters of type {@code T}) for methods accepting them may be
