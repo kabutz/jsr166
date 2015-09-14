@@ -281,6 +281,4 @@ public abstract class BinaryAsyncAction extends ForkJoinTask<Void> {
     protected final void decrementControlState() {
         controlStateUpdater.decrementAndGet(this);
     }
-
-
 }

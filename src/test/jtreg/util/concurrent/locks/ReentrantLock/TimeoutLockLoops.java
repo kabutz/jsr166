@@ -30,7 +30,6 @@ public final class TimeoutLockLoops {
         if (args.length > 0)
             maxThreads = Integer.parseInt(args[0]);
 
-
         print = true;
 
         for (int i = 1; i <= maxThreads; i += (i+1) >>> 1) {
@@ -113,6 +112,4 @@ public final class TimeoutLockLoops {
             }
         }
     }
-
-
 }

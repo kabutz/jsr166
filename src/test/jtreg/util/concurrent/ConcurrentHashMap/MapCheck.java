@@ -41,7 +41,6 @@ public class MapCheck {
             }
         }
 
-
         if (args.length > 1)
             numTests = Integer.parseInt(args[1]);
 

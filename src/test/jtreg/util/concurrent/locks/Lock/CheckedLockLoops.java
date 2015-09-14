@@ -162,7 +162,6 @@ public final class CheckedLockLoops {
 
     }
 
-
     private static class BuiltinLockLoop extends LockLoop {
         final int loop(int n) {
             int sum = 0;
@@ -349,7 +348,6 @@ public final class CheckedLockLoops {
         }
 
     }
-
 
     private static class FairReentrantReadWriteLockLoop extends LockLoop {
         private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);

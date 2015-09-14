@@ -610,7 +610,6 @@ public class Defaults {
         return all;
     }
 
-
     private static Collection<Object[]> makeRWMapsNoNulls() {
         Collection<Object[]> all = new ArrayList<>();
 

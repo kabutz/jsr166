@@ -53,7 +53,6 @@ import java.util.concurrent.Executors;
 import static java.util.concurrent.ForkJoinPool.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 public class Basic {
 
     static void checkCompletedNormally(CompletableFuture<?> cf, Object value) {
