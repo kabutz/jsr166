@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -587,7 +588,7 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
             l.add(new StringTask());
             l.add(new StringTask());
             List<Future<String>> futures =
-                e.invokeAll(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAll(l, LONG_DELAY_MS, MILLISECONDS);
             assertEquals(2, futures.size());
             for (Future<String> future : futures)
                 assertSame(TEST_STRING, future.get());
@@ -599,20 +600,24 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
     /**
      * timed invokeAll cancels tasks not completed by timeout
      */
-    public void testTimedInvokeAll6() throws InterruptedException {
+    public void testTimedInvokeAll6() throws Exception {
         ExecutorService e = new DirectExecutorService();
         try {
-            List<Callable<String>> l = new ArrayList<Callable<String>>();
-            l.add(new StringTask());
-            l.add(Executors.callable(possiblyInterruptedRunnable(2 * SHORT_DELAY_MS), TEST_STRING));
-            l.add(new StringTask());
+            long timeout = timeoutMillis();
+            List<Callable<String>> tasks = new ArrayList<>();
+            tasks.add(new StringTask("0"));
+            tasks.add(Executors.callable(possiblyInterruptedRunnable(timeout),
+                                         TEST_STRING));
+            tasks.add(new StringTask("2"));
+            long startTime = System.nanoTime();
             List<Future<String>> futures =
-                e.invokeAll(l, SHORT_DELAY_MS, MILLISECONDS);
-            assertEquals(l.size(), futures.size());
+                e.invokeAll(tasks, timeout, MILLISECONDS);
+            assertEquals(tasks.size(), futures.size());
+            assertTrue(millisElapsedSince(startTime) >= timeout);
             for (Future future : futures)
                 assertTrue(future.isDone());
-            assertFalse(futures.get(0).isCancelled());
-            assertFalse(futures.get(1).isCancelled());
+            assertEquals("0", futures.get(0).get());
+            assertEquals(TEST_STRING, futures.get(1).get());
             assertTrue(futures.get(2).isCancelled());
         } finally {
             joinPool(e);

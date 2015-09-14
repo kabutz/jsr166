@@ -1895,9 +1895,9 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
         try {
             for (long timeout = timeoutMillis();;) {
                 List<Callable<String>> tasks = new ArrayList<>();
-                tasks.add(new StringTask());
+                tasks.add(new StringTask("0"));
                 tasks.add(Executors.callable(new LongPossiblyInterruptedRunnable(), TEST_STRING));
-                tasks.add(new StringTask());
+                tasks.add(new StringTask("2"));
                 long startTime = System.nanoTime();
                 List<Future<String>> futures =
                     e.invokeAll(tasks, timeout, MILLISECONDS);
@@ -1907,8 +1907,8 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                     assertTrue(future.isDone());
                 assertTrue(futures.get(1).isCancelled());
                 try {
-                    assertEquals(TEST_STRING, futures.get(0).get());
-                    assertEquals(TEST_STRING, futures.get(2).get());
+                    assertEquals("0", futures.get(0).get());
+                    assertEquals("2", futures.get(2).get());
                     break;
                 } catch (CancellationException retryWithLongerTimeout) {
                     timeout *= 2;
