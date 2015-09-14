@@ -261,9 +261,9 @@ public final class Flow {
         /**
          * Causes the Subscriber to (eventually) stop receiving
          * messages.  Implementation is best-effort -- additional
-         * messages may be received after invoking this method.  A
-         * cancelled subscription need not ever receive an {@code
-         * onComplete} or {@code onError} signal.
+         * messages may be received after invoking this method.
+         * A cancelled subscription need not ever receive an
+         * {@code onComplete} or {@code onError} signal.
          */
         public void cancel();
     }
