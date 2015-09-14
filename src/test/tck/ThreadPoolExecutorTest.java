@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -1892,17 +1893,29 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
         try {
-            List<Callable<String>> l = new ArrayList<Callable<String>>();
-            l.add(new StringTask());
-            l.add(Executors.callable(new MediumPossiblyInterruptedRunnable(), TEST_STRING));
-            l.add(new StringTask());
-            List<Future<String>> futures =
-                e.invokeAll(l, SHORT_DELAY_MS, MILLISECONDS);
-            assertEquals(l.size(), futures.size());
-            for (Future future : futures)
-                assertTrue(future.isDone());
-            assertFalse(futures.get(0).isCancelled());
-            assertTrue(futures.get(1).isCancelled());
+            for (long timeout = timeoutMillis();;) {
+                List<Callable<String>> tasks = new ArrayList<>();
+                tasks.add(new StringTask());
+                tasks.add(Executors.callable(new LongPossiblyInterruptedRunnable(), TEST_STRING));
+                tasks.add(new StringTask());
+                long startTime = System.nanoTime();
+                List<Future<String>> futures =
+                    e.invokeAll(tasks, timeout, MILLISECONDS);
+                assertEquals(tasks.size(), futures.size());
+                assertTrue(millisElapsedSince(startTime) >= timeout);
+                for (Future future : futures)
+                    assertTrue(future.isDone());
+                assertTrue(futures.get(1).isCancelled());
+                try {
+                    assertEquals(TEST_STRING, futures.get(0).get());
+                    assertEquals(TEST_STRING, futures.get(2).get());
+                    break;
+                } catch (CancellationException retryWithLongerTimeout) {
+                    timeout *= 2;
+                    if (timeout >= LONG_DELAY_MS / 2)
+                        fail("expected exactly one task to be cancelled");
+                }
+            }
         } finally {
             joinPool(e);
         }
