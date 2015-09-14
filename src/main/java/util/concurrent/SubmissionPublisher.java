@@ -37,26 +37,26 @@ import java.util.function.Supplier;
  * given maximum. (The enforced capacity may be rounded up to the
  * nearest power of two and/or bounded by the largest value supported
  * by this implementation.)  Invocations of {@link
- * Flow.Subscription#request} do not directly result in buffer
- * expansion, but risk saturation if unfilled requests exceed the
- * maximum capacity.  The default value of {@link
- * Flow#defaultBufferSize} may provide a useful starting point for
+ * Flow.Subscription#request(long) request} do not directly result in
+ * buffer expansion, but risk saturation if unfilled requests exceed
+ * the maximum capacity.  The default value of {@link
+ * Flow#defaultBufferSize()} may provide a useful starting point for
  * choosing a capacity based on expected rates, resources, and usages.
  *
  * <p>Publication methods support different policies about what to do
- * when buffers are saturated. Method {@link #submit} blocks until
- * resources are available. This is simplest, but least responsive.
- * The {@code offer} methods may drop items (either immediately or
- * with bounded timeout), but provide an opportunity to interpose a
- * handler and then retry.
+ * when buffers are saturated. Method {@link #submit(Object) submit}
+ * blocks until resources are available. This is simplest, but least
+ * responsive.  The {@code offer} methods may drop items (either
+ * immediately or with bounded timeout), but provide an opportunity to
+ * interpose a handler and then retry.
  *
  * <p>If any Subscriber method throws an exception, its subscription
  * is cancelled.  If a handler is supplied as a constructor argument,
  * it is invoked before cancellation upon an exception in method
  * {@link Flow.Subscriber#onNext onNext}, but exceptions in methods
  * {@link Flow.Subscriber#onSubscribe onSubscribe},
- * {@link Flow.Subscriber#onError onError} and
- * {@link Flow.Subscriber#onComplete onComplete} are not recorded or
+ * {@link Flow.Subscriber#onError(Throwable) onError} and
+ * {@link Flow.Subscriber#onComplete() onComplete} are not recorded or
  * handled before cancellation.  If the supplied Executor throws
  * {@link RejectedExecutionException} (or any other RuntimeException
  * or Error) when attempting to execute a task, or a drop handler
@@ -65,9 +65,9 @@ import java.util.function.Supplier;
  * have been issued the published item. It is usually good practice to
  * {@link #closeExceptionally closeExceptionally} in these cases.
  *
- * <p>Method {@link #consume} simplifies support for a common case in
- * which the only action of a subscriber is to request and process all
- * items using a supplied function.
+ * <p>Method {@link #consume(Consumer)} simplifies support for a
+ * common case in which the only action of a subscriber is to request
+ * and process all items using a supplied function.
  *
  * <p>This class may also serve as a convenient base for subclasses
  * that generate items, and use the methods in this class to publish
@@ -194,9 +194,10 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
 
     /**
      * Creates a new SubmissionPublisher using the given Executor for
-     * async delivery to subscribers, with the given maximum
-     * buffer size for each subscriber, and, if non-null, the given handler
-     * invoked when any Subscriber throws an exception in method {@code onNext}.
+     * async delivery to subscribers, with the given maximum buffer size
+     * for each subscriber, and, if non-null, the given handler invoked
+     * when any Subscriber throws an exception in method {@link
+     * Flow.Subscriber#onNext(Object) onNext}.
      *
      * @param executor the executor to use for async delivery,
      * supporting creation of at least one independent thread
@@ -206,7 +207,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
      * supported by this implementation; method {@link #getMaxBufferCapacity}
      * returns the actual value)
      * @param handler if non-null, procedure to invoke upon exception
-     * thrown in method {@code onNext}.
+     * thrown in method {@code onNext}
      * @throws NullPointerException if executor is null
      * @throws IllegalArgumentException if maxBufferCapacity not
      * positive
@@ -224,9 +225,9 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
 
     /**
      * Creates a new SubmissionPublisher using the given Executor for
-     * async delivery to subscribers, with the given maximum
-     * buffer size for each subscriber, and no handler for Subscriber
-     * exceptions in method {@code onNext}.
+     * async delivery to subscribers, with the given maximum buffer size
+     * for each subscriber, and no handler for Subscriber exceptions in
+     * method {@link Flow.Subscriber#onNext(Object) onNext}.
      *
      * @param executor the executor to use for async delivery,
      * supporting creation of at least one independent thread
@@ -246,31 +247,34 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
     /**
      * Creates a new SubmissionPublisher using the {@link
      * ForkJoinPool#commonPool()} for async delivery to subscribers
-     * (unless it does not support a parallelism level of at least
-     * two, in which case, a new Thread is created to run each task),
-     * with maximum buffer capacity of {@link Flow#defaultBufferSize},
-     * and no handler for Subscriber exceptions in method {@code
-     * onNext}.
+     * (unless it does not support a parallelism level of at least two,
+     * in which case, a new Thread is created to run each task), with
+     * maximum buffer capacity of {@link Flow#defaultBufferSize}, and no
+     * handler for Subscriber exceptions in method {@link
+     * Flow.Subscriber#onNext(Object) onNext}.
      */
     public SubmissionPublisher() {
         this(asyncPool, Flow.defaultBufferSize(), null);
     }
 
     /**
-     * Adds the given Subscriber unless already subscribed.  If
-     * already subscribed, the Subscriber's {@code onError} method is
-     * invoked on the existing subscription with an {@link
-     * IllegalStateException}.  Otherwise, upon success, the
-     * Subscriber's {@code onSubscribe} method is invoked
-     * asynchronously with a new {@link Flow.Subscription}. If {@code
-     * onSubscribe} throws an exception, the subscription is
-     * cancelled. Otherwise, if this SubmissionPublisher was closed
-     * exceptionally, then the subscriber's {@code onError} method is
-     * invoked with the corresponding exception, or if closed without
-     * exception, the subscriber's {@code onComplete} method is
-     * invoked.  Subscribers may enable receiving items by invoking
-     * the {@code request} method of the new Subscription, and may
-     * unsubscribe by invoking its {@code cancel} method.
+     * Adds the given Subscriber unless already subscribed.  If already
+     * subscribed, the Subscriber's {@link
+     * Flow.Subscriber#onError(Throwable) onError} method is invoked on
+     * the existing subscription with an {@link IllegalStateException}.
+     * Otherwise, upon success, the Subscriber's {@link
+     * Flow.Subscriber#onSubscribe onSubscribe} method is invoked
+     * asynchronously with a new {@link Flow.Subscription}.  If {@link
+     * Flow.Subscriber#onSubscribe onSubscribe} throws an exception, the
+     * subscription is cancelled. Otherwise, if this SubmissionPublisher
+     * was closed exceptionally, then the subscriber's {@link
+     * Flow.Subscriber#onError onError} method is invoked with the
+     * corresponding exception, or if closed without exception, the
+     * subscriber's {@link Flow.Subscriber#onComplete() onComplete}
+     * method is invoked.  Subscribers may enable receiving items by
+     * invoking the {@link Flow.Subscription#request(long) request}
+     * method of the new Subscription, and may unsubscribe by invoking
+     * its {@link Flow.Subscription#cancel() cancel} method.
      *
      * @param subscriber the subscriber
      * @throws NullPointerException if subscriber is null
@@ -316,12 +320,12 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
 
     /**
      * Publishes the given item to each current subscriber by
-     * asynchronously invoking its {@link Flow.Subscriber#onNext}
-     * method, blocking uninterruptibly while resources for any
+     * asynchronously invoking its {@link Flow.Subscriber#onNext(Object)
+     * onNext} method, blocking uninterruptibly while resources for any
      * subscriber are unavailable. This method returns an estimate of
-     * the maximum lag (number of items submitted but not yet
-     * consumed) among all current subscribers. This value is at least
-     * one (accounting for this submitted item) if there are any
+     * the maximum lag (number of items submitted but not yet consumed)
+     * among all current subscribers. This value is at least one
+     * (accounting for this submitted item) if there are any
      * subscribers, else zero.
      *
      * <p>If the Executor for this publisher throws a
@@ -389,16 +393,17 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
     }
 
     /**
-     * Publishes the given item, if possible, to each current
-     * subscriber by asynchronously invoking its {@link
-     * Flow.Subscriber#onNext} method. The item may be dropped by one
-     * or more subscribers if resource limits are exceeded, in which
-     * case the given handler (if non-null) is invoked, and if it
-     * returns true, retried once.  Other calls to methods in this
-     * class by other threads are blocked while the handler is
-     * invoked.  Unless recovery is assured, options are usually
-     * limited to logging the error and/or issuing an {@code onError}
-     * signal to the subscriber.
+     * Publishes the given item, if possible, to each current subscriber
+     * by asynchronously invoking its {@link
+     * Flow.Subscriber#onNext(Object) onNext} method. The item may be
+     * dropped by one or more subscribers if resource limits are
+     * exceeded, in which case the given handler (if non-null) is
+     * invoked, and if it returns true, retried once.  Other calls to
+     * methods in this class by other threads are blocked while the
+     * handler is invoked.  Unless recovery is assured, options are
+     * usually limited to logging the error and/or issuing an {@link
+     * Flow.Subscriber#onError(Throwable) onError} signal to the
+     * subscriber.
      *
      * <p>This method returns a status indicator: If negative, it
      * represents the (negative) number of drops (failed attempts to
@@ -430,19 +435,19 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
     }
 
     /**
-     * Publishes the given item, if possible, to each current
-     * subscriber by asynchronously invoking its {@link
-     * Flow.Subscriber#onNext} method, blocking while resources for
-     * any subscription are unavailable, up to the specified timeout
-     * or until the caller thread is interrupted, at which point the
-     * given handler (if non-null) is invoked, and if it returns true,
-     * retried once. (The drop handler may distinguish timeouts from
-     * interrupts by checking whether the current thread is
-     * interrupted.) Other calls to methods in this class by other
+     * Publishes the given item, if possible, to each current subscriber
+     * by asynchronously invoking its {@link
+     * Flow.Subscriber#onNext(Object) onNext} method, blocking while
+     * resources for any subscription are unavailable, up to the
+     * specified timeout or until the caller thread is interrupted, at
+     * which point the given handler (if non-null) is invoked, and if it
+     * returns true, retried once. (The drop handler may distinguish
+     * timeouts from interrupts by checking whether the current thread
+     * is interrupted.)  Other calls to methods in this class by other
      * threads are blocked while the handler is invoked.  Unless
      * recovery is assured, options are usually limited to logging the
-     * error and/or issuing an {@code onError} signal to the
-     * subscriber.
+     * error and/or issuing an {@link Flow.Subscriber#onError(Throwable)
+     * onError} signal to the subscriber.
      *
      * <p>This method returns a status indicator: If negative, it
      * represents the (negative) number of drops (failed attempts to
@@ -541,10 +546,10 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
 
     /**
      * Unless already closed, issues {@link
-     * Flow.Subscriber#onComplete} signals to current subscribers, and
-     * disallows subsequent attempts to publish. Upon return, this
-     * method does <em>NOT</em> guarantee that all subscribers have
-     * yet completed.
+     * Flow.Subscriber#onComplete() onComplete} signals to current
+     * subscribers, and disallows subsequent attempts to publish.
+     * Upon return, this method does <em>NOT</em> guarantee that all
+     * subscribers have yet completed.
      */
     public void close() {
         if (!closed) {
@@ -564,11 +569,12 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
     }
 
     /**
-     * Unless already closed, issues {@link Flow.Subscriber#onError}
-     * signals to current subscribers with the given error, and
-     * disallows subsequent attempts to publish.  Future subscribers
-     * also receive the given error. Upon return, this method does
-     * <em>NOT</em> guarantee that all subscribers have yet completed.
+     * Unless already closed, issues {@link
+     * Flow.Subscriber#onError(Throwable) onError} signals to current
+     * subscribers with the given error, and disallows subsequent
+     * attempts to publish.  Future subscribers also receive the given
+     * error. Upon return, this method does <em>NOT</em> guarantee
+     * that all subscribers have yet completed.
      *
      * @param error the {@code onError} argument sent to subscribers
      * @throws NullPointerException if error is null
@@ -603,8 +609,9 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
     }
 
     /**
-     * Returns the exception associated with {@link #closeExceptionally},
-     * or null if not closed or if closed normally.
+     * Returns the exception associated with {@link
+     * #closeExceptionally(Throwable) closeExceptionally}, or null if
+     * not closed or if closed normally.
      *
      * @return the exception, or null if none
      */
@@ -744,8 +751,8 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
 
     /**
      * Returns an estimate of the minimum number of items requested
-     * (via {@link Flow.Subscription#request}) but not yet produced,
-     * among all current subscribers.
+     * (via {@link Flow.Subscription#request(long) request}) but not
+     * yet produced, among all current subscribers.
      *
      * @return the estimate, or zero if no subscribers
      */
@@ -806,12 +813,13 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
     }
 
     /**
-     * Processes all published items using the given Consumer
-     * function.  Returns a CompletableFuture that is completed
-     * normally when this publisher signals {@code onComplete}, or
-     * completed exceptionally upon any error, or an exception is
-     * thrown by the Consumer, or the returned CompletableFuture is
-     * cancelled, in which case no further items are processed.
+     * Processes all published items using the given Consumer function.
+     * Returns a CompletableFuture that is completed normally when this
+     * publisher signals {@link Flow.Subscriber#onComplete()
+     * onComplete}, or completed exceptionally upon any error, or an
+     * exception is thrown by the Consumer, or the returned
+     * CompletableFuture is cancelled, in which case no further items
+     * are processed.
      *
      * @param consumer the function applied to each onNext item
      * @return a CompletableFuture that is completed normally
