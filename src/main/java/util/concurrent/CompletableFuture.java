@@ -2540,7 +2540,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * Returns a new Executor that submits a task to the give base
      * executor after the given delay (or no delay if non-positive).
      * Each delay commences upon invocation of this Executor's {@code
-     * execute} method,
+     * execute} method.
      *
      * @param delay how long to delay, in units of {@code unit}
      * @param unit a {@code TimeUnit} determining how to interpret the
@@ -2560,7 +2560,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * Returns a new Executor that submits a task to the default
      * executor after the given delay (or no delay if non-positive).
      * Each delay commences upon invocation of this Executor's {@code
-     * execute} method,
+     * execute} method.
      *
      * @param delay how long to delay, in units of {@code unit}
      * @param unit a {@code TimeUnit} determining how to interpret the
