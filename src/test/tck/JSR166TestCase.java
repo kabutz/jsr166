@@ -1223,7 +1223,10 @@ public class JSR166TestCase extends TestCase {
     public static final String TEST_STRING = "a test string";
 
     public static class StringTask implements Callable<String> {
-        public String call() { return TEST_STRING; }
+        final String value;
+        public StringTask() { this(TEST_STRING); }
+        public StringTask(String value) { this.value = value; }
+        public String call() { return value; }
     }
 
     public Callable<String> latchAwaitingStringTask(final CountDownLatch latch) {
