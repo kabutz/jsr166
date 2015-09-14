@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -1737,17 +1738,29 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
     public void testTimedInvokeAll6() throws Exception {
         ExecutorService e = new CustomTPE(2, 2, LONG_DELAY_MS, MILLISECONDS, new ArrayBlockingQueue<Runnable>(10));
         try {
-            List<Callable<String>> l = new ArrayList<Callable<String>>();
-            l.add(new StringTask());
-            l.add(Executors.callable(new MediumPossiblyInterruptedRunnable(), TEST_STRING));
-            l.add(new StringTask());
-            List<Future<String>> futures =
-                e.invokeAll(l, SHORT_DELAY_MS, MILLISECONDS);
-            assertEquals(l.size(), futures.size());
-            for (Future future : futures)
-                assertTrue(future.isDone());
-            assertFalse(futures.get(0).isCancelled());
-            assertTrue(futures.get(1).isCancelled());
+            for (long timeout = timeoutMillis();;) {
+                List<Callable<String>> tasks = new ArrayList<>();
+                tasks.add(new StringTask("0"));
+                tasks.add(Executors.callable(new LongPossiblyInterruptedRunnable(), TEST_STRING));
+                tasks.add(new StringTask("2"));
+                long startTime = System.nanoTime();
+                List<Future<String>> futures =
+                    e.invokeAll(tasks, timeout, MILLISECONDS);
+                assertEquals(tasks.size(), futures.size());
+                assertTrue(millisElapsedSince(startTime) >= timeout);
+                for (Future future : futures)
+                    assertTrue(future.isDone());
+                assertTrue(futures.get(1).isCancelled());
+                try {
+                    assertEquals("0", futures.get(0).get());
+                    assertEquals("2", futures.get(2).get());
+                    break;
+                } catch (CancellationException retryWithLongerTimeout) {
+                    timeout *= 2;
+                    if (timeout >= LONG_DELAY_MS / 2)
+                        fail("expected exactly one task to be cancelled");
+                }
+            }
         } finally {
             joinPool(e);
         }
@@ -1790,21 +1803,21 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * allowCoreThreadTimeOut(true) causes idle threads to time out
      */
     public void testAllowCoreThreadTimeOut_true() throws Exception {
-        long coreThreadTimeOut = SHORT_DELAY_MS;
+        long keepAliveTime = timeoutMillis();
         final ThreadPoolExecutor p =
             new CustomTPE(2, 10,
-                          coreThreadTimeOut, MILLISECONDS,
+                          keepAliveTime, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(10));
         final CountDownLatch threadStarted = new CountDownLatch(1);
         try {
             p.allowCoreThreadTimeOut(true);
             p.execute(new CheckedRunnable() {
-                public void realRun() throws InterruptedException {
+                public void realRun() {
                     threadStarted.countDown();
                     assertEquals(1, p.getPoolSize());
                 }});
             await(threadStarted);
-            delay(coreThreadTimeOut);
+            delay(keepAliveTime);
             long startTime = System.nanoTime();
             while (p.getPoolSize() > 0
                    && millisElapsedSince(startTime) < LONG_DELAY_MS)
@@ -1820,10 +1833,10 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * allowCoreThreadTimeOut(false) causes idle threads not to time out
      */
     public void testAllowCoreThreadTimeOut_false() throws Exception {
-        long coreThreadTimeOut = SHORT_DELAY_MS;
+        long keepAliveTime = timeoutMillis();
         final ThreadPoolExecutor p =
             new CustomTPE(2, 10,
-                          coreThreadTimeOut, MILLISECONDS,
+                          keepAliveTime, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(10));
         final CountDownLatch threadStarted = new CountDownLatch(1);
         try {
@@ -1833,7 +1846,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                     threadStarted.countDown();
                     assertTrue(p.getPoolSize() >= 1);
                 }});
-            delay(2 * coreThreadTimeOut);
+            delay(2 * keepAliveTime);
             assertTrue(p.getPoolSize() >= 1);
         } finally {
             joinPool(p);
