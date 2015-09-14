@@ -1961,10 +1961,10 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * allowCoreThreadTimeOut(true) causes idle threads to time out
      */
     public void testAllowCoreThreadTimeOut_true() throws Exception {
-        long coreThreadTimeOut = SHORT_DELAY_MS;
+        long keepAliveTime = timeoutMillis();
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(2, 10,
-                                   coreThreadTimeOut, MILLISECONDS,
+                                   keepAliveTime, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
         final CountDownLatch threadStarted = new CountDownLatch(1);
         try {
@@ -1975,7 +1975,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                     assertEquals(1, p.getPoolSize());
                 }});
             await(threadStarted);
-            delay(coreThreadTimeOut);
+            delay(keepAliveTime);
             long startTime = System.nanoTime();
             while (p.getPoolSize() > 0
                    && millisElapsedSince(startTime) < LONG_DELAY_MS)
@@ -1991,10 +1991,10 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * allowCoreThreadTimeOut(false) causes idle threads not to time out
      */
     public void testAllowCoreThreadTimeOut_false() throws Exception {
-        long coreThreadTimeOut = SHORT_DELAY_MS;
+        long keepAliveTime = timeoutMillis();
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(2, 10,
-                                   coreThreadTimeOut, MILLISECONDS,
+                                   keepAliveTime, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
         final CountDownLatch threadStarted = new CountDownLatch(1);
         try {
@@ -2004,7 +2004,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                     threadStarted.countDown();
                     assertTrue(p.getPoolSize() >= 1);
                 }});
-            delay(2 * coreThreadTimeOut);
+            delay(2 * keepAliveTime);
             assertTrue(p.getPoolSize() >= 1);
         } finally {
             joinPool(p);
