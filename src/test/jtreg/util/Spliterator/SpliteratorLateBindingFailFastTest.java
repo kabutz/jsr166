@@ -71,7 +71,7 @@ public class SpliteratorLateBindingFailFastTest {
 
         final List<T> exp;
 
-        final Map<T,T> mExp;
+        final Map<T, T> mExp;
 
         SpliteratorDataBuilder(List<Object[]> data, T newValue, List<T> exp) {
             this.data = data;
@@ -80,8 +80,8 @@ public class SpliteratorLateBindingFailFastTest {
             this.mExp = createMap(exp);
         }
 
-        Map<T,T> createMap(List<T> l) {
-            Map<T,T> m = new LinkedHashMap<>();
+        Map<T, T> createMap(List<T> l) {
+            Map<T, T> m = new LinkedHashMap<>();
             for (T t : l) {
                 m.put(t, t);
             }
@@ -124,15 +124,15 @@ public class SpliteratorLateBindingFailFastTest {
             addCollection(l);
         }
 
-        void addMap(Function<Map<T,T>, ? extends Map<T,T>> mapConstructor) {
+        void addMap(Function<Map<T, T>, ? extends Map<T, T>> mapConstructor) {
             class MapSource<U> implements Source<U> {
-                final Map<T,T> m = mapConstructor.apply(mExp);
+                final Map<T, T> m = mapConstructor.apply(mExp);
 
                 final Collection<U> c;
 
-                final Consumer<Map<T,T>> updater;
+                final Consumer<Map<T, T>> updater;
 
-                MapSource(Function<Map<T,T>, Collection<U>> f, Consumer<Map<T,T>> updater) {
+                MapSource(Function<Map<T, T>, Collection<U>> f, Consumer<Map<T, T>> updater) {
                     this.c = f.apply(m);
                     this.updater = updater;
                 }
@@ -148,18 +148,18 @@ public class SpliteratorLateBindingFailFastTest {
                 }
             }
 
-            Map<String, Consumer<Map<T,T>>> actions = new HashMap<>();
+            Map<String, Consumer<Map<T, T>>> actions = new HashMap<>();
             actions.put("ADD", m -> m.put(newValue, newValue));
             actions.put("REMOVE", m -> m.remove(m.keySet().iterator().next()));
 
-            String description = "new " + mapConstructor.apply(Collections.<T,T>emptyMap()).getClass().getName();
-            for (Map.Entry<String, Consumer<Map<T,T>>> e : actions.entrySet()) {
+            String description = "new " + mapConstructor.apply(Collections.<T, T>emptyMap()).getClass().getName();
+            for (Map.Entry<String, Consumer<Map<T, T>>> e : actions.entrySet()) {
                 add(description + ".keySet().spliterator() " + e.getKey(),
                     () -> new MapSource<T>(m -> m.keySet(), e.getValue()));
                 add(description + ".values().spliterator() " + e.getKey(),
                     () -> new MapSource<T>(m -> m.values(), e.getValue()));
                 add(description + ".entrySet().spliterator() " + e.getKey(),
-                    () -> new MapSource<Map.Entry<T,T>>(m -> m.entrySet(), e.getValue()));
+                    () -> new MapSource<Map.Entry<T, T>>(m -> m.entrySet(), e.getValue()));
             }
         }
 

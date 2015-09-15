@@ -123,7 +123,7 @@ public class SpliteratorTraversingAndSplittingTest {
 
         List<T> exp;
 
-        Map<T,T> mExp;
+        Map<T, T> mExp;
 
         SpliteratorDataBuilder(List<Object[]> data, List<T> exp) {
             this.data = data;
@@ -131,8 +131,8 @@ public class SpliteratorTraversingAndSplittingTest {
             this.mExp = createMap(exp);
         }
 
-        Map<T,T> createMap(List<T> l) {
-            Map<T,T> m = new LinkedHashMap<>();
+        Map<T, T> createMap(List<T> l) {
+            Map<T, T> m = new LinkedHashMap<>();
             for (T t : l) {
                 m.put(t, t);
             }
@@ -158,12 +158,12 @@ public class SpliteratorTraversingAndSplittingTest {
             addCollection(l);
         }
 
-        void addMap(Function<Map<T,T>, ? extends Map<T,T>> m) {
-            String description = "new " + m.apply(Collections.<T,T>emptyMap()).getClass().getName();
+        void addMap(Function<Map<T, T>, ? extends Map<T, T>> m) {
+            String description = "new " + m.apply(Collections.<T, T>emptyMap()).getClass().getName();
             addMap(m, description);
         }
 
-        void addMap(Function<Map<T,T>, ? extends Map<T,T>> m, String description) {
+        void addMap(Function<Map<T, T>, ? extends Map<T, T>> m, String description) {
             add(description + ".keySet().spliterator()", () -> m.apply(mExp).keySet().spliterator());
             add(description + ".values().spliterator()", () -> m.apply(mExp).values().spliterator());
             add(description + ".entrySet().spliterator()", mExp.entrySet(), () -> m.apply(mExp).entrySet().spliterator());
