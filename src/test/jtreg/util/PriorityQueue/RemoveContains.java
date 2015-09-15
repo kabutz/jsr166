@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -64,6 +64,7 @@ public class RemoveContains {
             public int compare(String x, String y) {
                 return x.charAt(0) - y.charAt(0); }};
 
+        test(new PriorityQueue<String>(firstChar));
         test(new PriorityQueue<String>(10, firstChar));
         test(new PriorityBlockingQueue<String>(10, firstChar));
         test(new ArrayBlockingQueue<String>(10));
