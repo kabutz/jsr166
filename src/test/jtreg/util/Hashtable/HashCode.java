@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2012, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -36,8 +36,5 @@ public class HashCode {
         if (m.hashCode() != 0)
             throw new Exception("Empty Hashtable has nonzero hashCode.");
 
-        m.put("Joe", "Blow");
-        if (m.hashCode() != ("Joe".hashCode() ^ "Blow".hashCode()))
-            throw new Exception("Non-empty Hashtable has wrong hashCode.");
     }
 }
