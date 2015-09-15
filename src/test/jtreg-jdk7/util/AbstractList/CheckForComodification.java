@@ -28,7 +28,6 @@
  * @author  Josh Bloch
  *
  * @ignore Bug fix temporarily removed as it uncovered other bugs (4992226)
- * @run main CheckForComodification
  */
 
 import java.util.*;

@@ -26,8 +26,6 @@
  * @bug     4973432
  * @summary Test that toString on entrySet Iterator/Entry behaves reasonably
  * @author  Josh Bloch
- *
- * @run main ToString
  */
 
 
