@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007, 2014, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -23,49 +23,47 @@
 
 /*
  * @test
- * @bug 5017904 6356890
+ * @bug 5017904 6356890 8004928
  * @summary Test empty iterators, enumerations, and collections
  */
 
-import java.util.*;
 import static java.util.Collections.*;
+import java.util.*;
+import java.util.concurrent.SynchronousQueue;
 
 public class EmptyIterator {
 
     void test(String[] args) throws Throwable {
-        testEmptyCollection(Collections.<Object>emptyList());
-        testEmptyCollection(Collections.<Object>emptySet());
-//         Removed jdk7 dependency from SynchronousQueue.
-//         testEmptyCollection(new java.util.concurrent.
-//                             SynchronousQueue<Object>());
+        testEmptyCollection(emptyList());
+        testEmptyCollection(emptySet());
+        testEmptyCollection(new SynchronousQueue<Object>());
+        testEmptyMap(emptyMap());
 
-        testEmptyMap(Collections.<Object, Object>emptyMap());
-
-        Hashtable<Object, Object> emptyTable = new Hashtable<Object, Object>();
+        Hashtable<?,?> emptyTable = new Hashtable<>();
         testEmptyEnumeration(emptyTable.keys());
         testEmptyEnumeration(emptyTable.elements());
         testEmptyIterator(emptyTable.keySet().iterator());
         testEmptyIterator(emptyTable.values().iterator());
         testEmptyIterator(emptyTable.entrySet().iterator());
 
-        testEmptyEnumeration(javax.swing.tree.DefaultMutableTreeNode
-                             .EMPTY_ENUMERATION);
-        testEmptyEnumeration(javax.swing.text.SimpleAttributeSet
-                             .EMPTY.getAttributeNames());
+        final Enumeration<EmptyIterator> finalEmptyTyped = emptyEnumeration();
+        testEmptyEnumeration(finalEmptyTyped);
 
-        @SuppressWarnings("unchecked")
-        Iterator<?> x = new sun.tools.java.MethodSet()
-            .lookupName(sun.tools.java.Identifier.lookup(""));
-        testEmptyIterator(x);
+        final Enumeration<?> finalEmptyAbstract = emptyEnumeration();
+        testEmptyEnumeration(finalEmptyAbstract);
+
+        testEmptyIterator(emptyIterator());
     }
 
-    <T> void testEmptyEnumeration(final Enumeration<T> e) {
-        check(! e.hasMoreElements());
+    void testEmptyEnumeration(final Enumeration<?> e) {
+        check(e == emptyEnumeration());
+        check(!e.hasMoreElements());
         THROWS(NoSuchElementException.class,
                new F(){void f(){ e.nextElement(); }});
     }
 
-    <T> void testEmptyIterator(final Iterator<T> it) {
+    void testEmptyIterator(final Iterator<?> it) {
+        check(it == emptyIterator());
         check(! it.hasNext());
         THROWS(NoSuchElementException.class,
                new F(){void f(){ it.next(); }});
@@ -73,9 +71,10 @@ public class EmptyIterator {
                new F(){void f(){ it.remove(); }});
     }
 
-    void testEmptyMap(Map<Object, Object> m) {
+    void testEmptyMap(Map<?,?> m) {
+        check(m == emptyMap());
         check(m.entrySet().iterator() ==
-              Collections.<Map.Entry<Object,Object>>emptyIterator());
+              Collections.<Map.Entry<?,?>>emptyIterator());
         check(m.values().iterator() == emptyIterator());
         check(m.keySet().iterator() == emptyIterator());
         equal(m, unmodifiableMap(m));
@@ -85,7 +84,7 @@ public class EmptyIterator {
         testEmptyCollection(m.values());
     }
 
-    <E> void testToArray(final Collection<E> c) {
+    void testToArray(final Collection<?> c) {
         Object[] a = c.toArray();
         equal(a.length, 0);
         equal(a.getClass().getComponentType(), Object.class);
@@ -106,8 +105,13 @@ public class EmptyIterator {
         }
     }
 
-    <E> void testEmptyCollection(final Collection<E> c) {
+    void testEmptyCollection(final Collection<?> c) {
         testEmptyIterator(c.iterator());
+
+        check(c.iterator() == emptyIterator());
+        if (c instanceof List)
+            check(((List<?>)c).listIterator() == emptyListIterator());
+
         testToArray(c);
     }
 
