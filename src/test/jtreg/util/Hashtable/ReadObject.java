@@ -98,4 +98,4 @@ public class ReadObject extends Hashtable {
         ReadObject myHashtableCopy = (ReadObject)copyObject(myHashtable);
         String value = (String)myHashtableCopy.get("key");
     }
-};
+}
