@@ -26,8 +26,7 @@
  * @bug     4822887
  * @summary Basic test for Collections.addAll
  * @author  Josh Bloch
- *
- * @run main AddAll
+ * @key randomness
  */
 
 import java.util.*;
