@@ -608,6 +608,20 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             }
             lastRet = -1;
         }
+
+        public void forEachRemaining(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
+            Object[] a = elements;
+            int m = a.length - 1, f = fence, i = cursor;
+            cursor = f;
+            while (i != f) {
+                @SuppressWarnings("unchecked") E e = (E)a[i];
+                i = (i + 1) & m;
+                if (e == null)
+                    throw new ConcurrentModificationException();
+                action.accept(e);
+            }
+        }
     }
 
     /**
