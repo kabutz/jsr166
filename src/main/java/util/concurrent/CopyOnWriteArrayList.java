@@ -1109,6 +1109,17 @@ public class CopyOnWriteArrayList<E>
         public void add(E e) {
             throw new UnsupportedOperationException();
         }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void forEachRemaining(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
+            final int size = snapshot.length;
+            for (int i = cursor; i < size; i++) {
+                action.accept((E) snapshot[i]);
+            }
+            cursor = size;
+        }
     }
 
     /**
@@ -1501,6 +1512,15 @@ public class CopyOnWriteArrayList<E>
 
         public void add(E e) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void forEachRemaining(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
+            while (nextIndex() < size) {
+                action.accept(it.next());
+            }
         }
     }
 
