@@ -2080,8 +2080,8 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * <p>Note that this method is identical in functionality to
      * {@link #containsValue(Object)}, and exists solely to ensure
      * full compatibility with class {@link java.util.Hashtable},
-     * which supported this method prior to introduction of the Java
-     * Collections Framework.
+     * which supported this method prior to introduction of the
+     * Java Collections Framework.
      *
      * @param  value a value to search for
      * @return {@code true} if and only if some key maps to the
