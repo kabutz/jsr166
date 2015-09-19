@@ -3487,7 +3487,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         common = java.security.AccessController.doPrivileged
             (new java.security.PrivilegedAction<ForkJoinPool>() {
                 public ForkJoinPool run() { return makeCommonPool(); }});
-        
+
         // report 1 even if threads disabled
         COMMON_PARALLELISM = Math.max(common.config & SMASK, 1);
     }
