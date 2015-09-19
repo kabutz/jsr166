@@ -7,7 +7,6 @@
 package java.util;
 
 import java.util.concurrent.CountedCompleter;
-import java.util.concurrent.ForkJoinPool;
 import java.util.function.BinaryOperator;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.IntBinaryOperator;
