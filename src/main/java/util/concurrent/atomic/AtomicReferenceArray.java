@@ -26,12 +26,12 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
     private static final int ABASE;
     private static final int ASHIFT;
-    private static final long arrayFieldOffset;
+    private static final long ARRAY;
     private final Object[] array; // must have exact type Object[]
 
     static {
         try {
-            arrayFieldOffset = U.objectFieldOffset
+            ARRAY = U.objectFieldOffset
                 (AtomicReferenceArray.class.getDeclaredField("array"));
             ABASE = U.arrayBaseOffset(Object[].class);
             int scale = U.arrayIndexScale(Object[].class);
@@ -297,7 +297,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
             throw new java.io.InvalidObjectException("Not array type");
         if (a.getClass() != Object[].class)
             a = Arrays.copyOf((Object[])a, Array.getLength(a), Object[].class);
-        U.putObjectVolatile(this, arrayFieldOffset, a);
+        U.putObjectVolatile(this, ARRAY, a);
     }
 
 }

@@ -4423,19 +4423,19 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         public abstract boolean contains(Object o);
         public abstract boolean remove(Object o);
 
-        private static final String oomeMsg = "Required array size too large";
+        private static final String OOME_MSG = "Required array size too large";
 
         public final Object[] toArray() {
             long sz = map.mappingCount();
             if (sz > MAX_ARRAY_SIZE)
-                throw new OutOfMemoryError(oomeMsg);
+                throw new OutOfMemoryError(OOME_MSG);
             int n = (int)sz;
             Object[] r = new Object[n];
             int i = 0;
             for (E e : this) {
                 if (i == n) {
                     if (n >= MAX_ARRAY_SIZE)
-                        throw new OutOfMemoryError(oomeMsg);
+                        throw new OutOfMemoryError(OOME_MSG);
                     if (n >= MAX_ARRAY_SIZE - (MAX_ARRAY_SIZE >>> 1) - 1)
                         n = MAX_ARRAY_SIZE;
                     else
@@ -4451,7 +4451,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         public final <T> T[] toArray(T[] a) {
             long sz = map.mappingCount();
             if (sz > MAX_ARRAY_SIZE)
-                throw new OutOfMemoryError(oomeMsg);
+                throw new OutOfMemoryError(OOME_MSG);
             int m = (int)sz;
             T[] r = (a.length >= m) ? a :
                 (T[])java.lang.reflect.Array
@@ -4461,7 +4461,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
             for (E e : this) {
                 if (i == n) {
                     if (n >= MAX_ARRAY_SIZE)
-                        throw new OutOfMemoryError(oomeMsg);
+                        throw new OutOfMemoryError(OOME_MSG);
                     if (n >= MAX_ARRAY_SIZE - (MAX_ARRAY_SIZE >>> 1) - 1)
                         n = MAX_ARRAY_SIZE;
                     else
