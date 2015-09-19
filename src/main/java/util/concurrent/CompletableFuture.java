@@ -390,14 +390,14 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     public static interface AsynchronousCompletionTask {
     }
 
-    private static final boolean useCommonPool =
+    private static final boolean USE_COMMON_POOL =
         (ForkJoinPool.getCommonPoolParallelism() > 1);
 
     /**
      * Default executor -- ForkJoinPool.commonPool() unless it cannot
      * support parallelism.
      */
-    private static final Executor asyncPool = useCommonPool ?
+    private static final Executor ASYNC_POOL = USE_COMMON_POOL ?
         ForkJoinPool.commonPool() : new ThreadPerTaskExecutor();
 
     /** Fallback if ForkJoinPool.commonPool() cannot support parallelism */
@@ -407,11 +407,11 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
     /**
      * Null-checks user executor argument, and translates uses of
-     * commonPool to asyncPool in case parallelism disabled.
+     * commonPool to ASYNC_POOL in case parallelism disabled.
      */
     static Executor screenExecutor(Executor e) {
-        if (!useCommonPool && e == ForkJoinPool.commonPool())
-            return asyncPool;
+        if (!USE_COMMON_POOL && e == ForkJoinPool.commonPool())
+            return ASYNC_POOL;
         if (e == null) throw new NullPointerException();
         return e;
     }
@@ -1836,7 +1836,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * @return the new CompletableFuture
      */
     public static <U> CompletableFuture<U> supplyAsync(Supplier<U> supplier) {
-        return asyncSupplyStage(asyncPool, supplier);
+        return asyncSupplyStage(ASYNC_POOL, supplier);
     }
 
     /**
@@ -1865,7 +1865,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * @return the new CompletableFuture
      */
     public static CompletableFuture<Void> runAsync(Runnable runnable) {
-        return asyncRunStage(asyncPool, runnable);
+        return asyncRunStage(ASYNC_POOL, runnable);
     }
 
     /**
@@ -2421,7 +2421,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * @since 1.9
      */
     public Executor defaultExecutor() {
-        return asyncPool;
+        return ASYNC_POOL;
     }
 
     /**
@@ -2571,7 +2571,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     public static Executor delayedExecutor(long delay, TimeUnit unit) {
         if (unit == null)
             throw new NullPointerException();
-        return new DelayedExecutor(delay, unit, asyncPool);
+        return new DelayedExecutor(delay, unit, ASYNC_POOL);
     }
 
     /**

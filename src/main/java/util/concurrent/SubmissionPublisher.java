@@ -158,7 +158,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
      * Default executor -- ForkJoinPool.commonPool() unless it cannot
      * support parallelism.
      */
-    private static final Executor asyncPool =
+    private static final Executor ASYNC_POOL =
         (ForkJoinPool.getCommonPoolParallelism() > 1) ?
         ForkJoinPool.commonPool() : new ThreadPerTaskExecutor();
 
@@ -254,7 +254,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
      * Flow.Subscriber#onNext(Object) onNext}.
      */
     public SubmissionPublisher() {
-        this(asyncPool, Flow.defaultBufferSize(), null);
+        this(ASYNC_POOL, Flow.defaultBufferSize(), null);
     }
 
     /**

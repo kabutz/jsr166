@@ -180,7 +180,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
      * The number of nanoseconds for which it is faster to spin
      * rather than to use timed park. A rough estimate suffices.
      */
-    static final long spinForTimeoutThreshold = 1000L;
+    static final long SPIN_FOR_TIMEOUT_THRESHOLD = 1000L;
 
     /** Dual stack */
     static final class TransferStack<E> extends Transferer<E> {
@@ -430,7 +430,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
                     s.waiter = w; // establish waiter so can park next iter
                 else if (!timed)
                     LockSupport.park(this);
-                else if (nanos > spinForTimeoutThreshold)
+                else if (nanos > SPIN_FOR_TIMEOUT_THRESHOLD)
                     LockSupport.parkNanos(this, nanos);
             }
         }
@@ -731,7 +731,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
                     s.waiter = w;
                 else if (!timed)
                     LockSupport.park(this);
-                else if (nanos > spinForTimeoutThreshold)
+                else if (nanos > SPIN_FOR_TIMEOUT_THRESHOLD)
                     LockSupport.parkNanos(this, nanos);
             }
         }
