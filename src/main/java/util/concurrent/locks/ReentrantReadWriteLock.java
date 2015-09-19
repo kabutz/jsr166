@@ -1005,7 +1005,7 @@ public class ReentrantReadWriteLock
          * by the current thread, or the write lock was already held
          * by the current thread; and {@code false} otherwise.
          */
-        public boolean tryLock( ) {
+        public boolean tryLock() {
             return sync.tryWriteLock();
         }
 
