@@ -571,7 +571,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     private static final ObjectStreamField[] serialPersistentFields = {
         new ObjectStreamField("segments", Segment[].class),
         new ObjectStreamField("segmentMask", Integer.TYPE),
-        new ObjectStreamField("segmentShift", Integer.TYPE)
+        new ObjectStreamField("segmentShift", Integer.TYPE),
     };
 
     /* ---------------- Nodes -------------- */
