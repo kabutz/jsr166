@@ -18,8 +18,10 @@ import java.util.function.Consumer;
  * (non-null) items to current subscribers until it is closed.  Each
  * current subscriber receives newly submitted items in the same order
  * unless drops or exceptions are encountered.  Using a
- * SubmissionPublisher allows item generators to act as Publishers
- * relying on drop handling and/or blocking for flow control.
+ * SubmissionPublisher allows item generators to act as compliant <a
+ * href="http://www.reactive-streams.org/"> reactive-streams</a>
+ * Publishers relying on drop handling and/or blocking for flow
+ * control.
  *
  * <p>A SubmissionPublisher uses the {@link Executor} supplied in its
  * constructor for delivery to subscribers. The best choice of
