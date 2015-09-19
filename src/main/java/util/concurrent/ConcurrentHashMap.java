@@ -543,7 +543,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * The number of bits used for generation stamp in sizeCtl.
      * Must be at least 6 for 32bit arrays.
      */
-    private static int RESIZE_STAMP_BITS = 16;
+    private static final int RESIZE_STAMP_BITS = 16;
 
     /**
      * The maximum number of threads that can help resize.
