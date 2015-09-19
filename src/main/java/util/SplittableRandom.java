@@ -240,9 +240,9 @@ public final class SplittableRandom {
     }
 
     // IllegalArgumentException messages
-    static final String BadBound = "bound must be positive";
-    static final String BadRange = "bound must be greater than origin";
-    static final String BadSize  = "size must be non-negative";
+    static final String BAD_BOUND = "bound must be positive";
+    static final String BAD_RANGE = "bound must be greater than origin";
+    static final String BAD_SIZE  = "size must be non-negative";
 
     /*
      * Internal versions of nextX methods used by streams, as well as
@@ -416,7 +416,7 @@ public final class SplittableRandom {
      */
     public int nextInt(int bound) {
         if (bound <= 0)
-            throw new IllegalArgumentException(BadBound);
+            throw new IllegalArgumentException(BAD_BOUND);
         // Specialize internalNextInt for origin 0
         int r = mix32(nextSeed());
         int m = bound - 1;
@@ -444,7 +444,7 @@ public final class SplittableRandom {
      */
     public int nextInt(int origin, int bound) {
         if (origin >= bound)
-            throw new IllegalArgumentException(BadRange);
+            throw new IllegalArgumentException(BAD_RANGE);
         return internalNextInt(origin, bound);
     }
 
@@ -468,7 +468,7 @@ public final class SplittableRandom {
      */
     public long nextLong(long bound) {
         if (bound <= 0)
-            throw new IllegalArgumentException(BadBound);
+            throw new IllegalArgumentException(BAD_BOUND);
         // Specialize internalNextLong for origin 0
         long r = mix64(nextSeed());
         long m = bound - 1;
@@ -496,7 +496,7 @@ public final class SplittableRandom {
      */
     public long nextLong(long origin, long bound) {
         if (origin >= bound)
-            throw new IllegalArgumentException(BadRange);
+            throw new IllegalArgumentException(BAD_RANGE);
         return internalNextLong(origin, bound);
     }
 
@@ -522,7 +522,7 @@ public final class SplittableRandom {
      */
     public double nextDouble(double bound) {
         if (!(bound > 0.0))
-            throw new IllegalArgumentException(BadBound);
+            throw new IllegalArgumentException(BAD_BOUND);
         double result = (mix64(nextSeed()) >>> 11) * DOUBLE_UNIT * bound;
         return (result < bound) ?  result : // correct for rounding
             Double.longBitsToDouble(Double.doubleToLongBits(bound) - 1);
@@ -541,7 +541,7 @@ public final class SplittableRandom {
      */
     public double nextDouble(double origin, double bound) {
         if (!(origin < bound))
-            throw new IllegalArgumentException(BadRange);
+            throw new IllegalArgumentException(BAD_RANGE);
         return internalNextDouble(origin, bound);
     }
 
@@ -569,7 +569,7 @@ public final class SplittableRandom {
      */
     public IntStream ints(long streamSize) {
         if (streamSize < 0L)
-            throw new IllegalArgumentException(BadSize);
+            throw new IllegalArgumentException(BAD_SIZE);
         return StreamSupport.intStream
             (new RandomIntsSpliterator
              (this, 0L, streamSize, Integer.MAX_VALUE, 0),
@@ -610,9 +610,9 @@ public final class SplittableRandom {
     public IntStream ints(long streamSize, int randomNumberOrigin,
                           int randomNumberBound) {
         if (streamSize < 0L)
-            throw new IllegalArgumentException(BadSize);
+            throw new IllegalArgumentException(BAD_SIZE);
         if (randomNumberOrigin >= randomNumberBound)
-            throw new IllegalArgumentException(BadRange);
+            throw new IllegalArgumentException(BAD_RANGE);
         return StreamSupport.intStream
             (new RandomIntsSpliterator
              (this, 0L, streamSize, randomNumberOrigin, randomNumberBound),
@@ -636,7 +636,7 @@ public final class SplittableRandom {
      */
     public IntStream ints(int randomNumberOrigin, int randomNumberBound) {
         if (randomNumberOrigin >= randomNumberBound)
-            throw new IllegalArgumentException(BadRange);
+            throw new IllegalArgumentException(BAD_RANGE);
         return StreamSupport.intStream
             (new RandomIntsSpliterator
              (this, 0L, Long.MAX_VALUE, randomNumberOrigin, randomNumberBound),
@@ -655,7 +655,7 @@ public final class SplittableRandom {
      */
     public LongStream longs(long streamSize) {
         if (streamSize < 0L)
-            throw new IllegalArgumentException(BadSize);
+            throw new IllegalArgumentException(BAD_SIZE);
         return StreamSupport.longStream
             (new RandomLongsSpliterator
              (this, 0L, streamSize, Long.MAX_VALUE, 0L),
@@ -696,9 +696,9 @@ public final class SplittableRandom {
     public LongStream longs(long streamSize, long randomNumberOrigin,
                             long randomNumberBound) {
         if (streamSize < 0L)
-            throw new IllegalArgumentException(BadSize);
+            throw new IllegalArgumentException(BAD_SIZE);
         if (randomNumberOrigin >= randomNumberBound)
-            throw new IllegalArgumentException(BadRange);
+            throw new IllegalArgumentException(BAD_RANGE);
         return StreamSupport.longStream
             (new RandomLongsSpliterator
              (this, 0L, streamSize, randomNumberOrigin, randomNumberBound),
@@ -722,7 +722,7 @@ public final class SplittableRandom {
      */
     public LongStream longs(long randomNumberOrigin, long randomNumberBound) {
         if (randomNumberOrigin >= randomNumberBound)
-            throw new IllegalArgumentException(BadRange);
+            throw new IllegalArgumentException(BAD_RANGE);
         return StreamSupport.longStream
             (new RandomLongsSpliterator
              (this, 0L, Long.MAX_VALUE, randomNumberOrigin, randomNumberBound),
@@ -741,7 +741,7 @@ public final class SplittableRandom {
      */
     public DoubleStream doubles(long streamSize) {
         if (streamSize < 0L)
-            throw new IllegalArgumentException(BadSize);
+            throw new IllegalArgumentException(BAD_SIZE);
         return StreamSupport.doubleStream
             (new RandomDoublesSpliterator
              (this, 0L, streamSize, Double.MAX_VALUE, 0.0),
@@ -784,9 +784,9 @@ public final class SplittableRandom {
     public DoubleStream doubles(long streamSize, double randomNumberOrigin,
                                 double randomNumberBound) {
         if (streamSize < 0L)
-            throw new IllegalArgumentException(BadSize);
+            throw new IllegalArgumentException(BAD_SIZE);
         if (!(randomNumberOrigin < randomNumberBound))
-            throw new IllegalArgumentException(BadRange);
+            throw new IllegalArgumentException(BAD_RANGE);
         return StreamSupport.doubleStream
             (new RandomDoublesSpliterator
              (this, 0L, streamSize, randomNumberOrigin, randomNumberBound),
@@ -810,7 +810,7 @@ public final class SplittableRandom {
      */
     public DoubleStream doubles(double randomNumberOrigin, double randomNumberBound) {
         if (!(randomNumberOrigin < randomNumberBound))
-            throw new IllegalArgumentException(BadRange);
+            throw new IllegalArgumentException(BAD_RANGE);
         return StreamSupport.doubleStream
             (new RandomDoublesSpliterator
              (this, 0L, Long.MAX_VALUE, randomNumberOrigin, randomNumberBound),

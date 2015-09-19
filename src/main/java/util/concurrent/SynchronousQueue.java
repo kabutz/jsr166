@@ -167,14 +167,14 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
      * seems not to vary with number of CPUs (beyond 2) so is just
      * a constant.
      */
-    static final int maxTimedSpins = (NCPUS < 2) ? 0 : 32;
+    static final int MAX_TIMED_SPINS = (NCPUS < 2) ? 0 : 32;
 
     /**
      * The number of times to spin before blocking in untimed waits.
      * This is greater than timed value because untimed waits spin
      * faster since they don't need to check times on each spin.
      */
-    static final int maxUntimedSpins = maxTimedSpins * 16;
+    static final int MAX_UNTIMED_SPINS = MAX_TIMED_SPINS * 16;
 
     /**
      * The number of nanoseconds for which it is faster to spin
@@ -409,7 +409,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
             final long deadline = timed ? System.nanoTime() + nanos : 0L;
             Thread w = Thread.currentThread();
             int spins = shouldSpin(s)
-                ? (timed ? maxTimedSpins : maxUntimedSpins)
+                ? (timed ? MAX_TIMED_SPINS : MAX_UNTIMED_SPINS)
                 : 0;
             for (;;) {
                 if (w.isInterrupted())
@@ -710,7 +710,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
             final long deadline = timed ? System.nanoTime() + nanos : 0L;
             Thread w = Thread.currentThread();
             int spins = (head.next == s)
-                ? (timed ? maxTimedSpins : maxUntimedSpins)
+                ? (timed ? MAX_TIMED_SPINS : MAX_UNTIMED_SPINS)
                 : 0;
             for (;;) {
                 if (w.isInterrupted())
