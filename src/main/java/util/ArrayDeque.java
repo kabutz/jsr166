@@ -109,8 +109,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             initialCapacity |= (initialCapacity >>> 16);
             initialCapacity++;
 
-            if (initialCapacity < 0)   // Too many elements, must back off
-                initialCapacity >>>= 1;// Good luck allocating 2 ^ 30 elements
+            if (initialCapacity < 0)    // Too many elements, must back off
+                initialCapacity >>>= 1; // Good luck allocating 2^30 elements
         }
         elements = new Object[initialCapacity];
     }
