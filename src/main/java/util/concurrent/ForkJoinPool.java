@@ -1360,7 +1360,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * common.parallelism field to be zero, but in that case still report
      * parallelism as 1 to reflect resulting caller-runs mechanics.
      */
-    static final int commonParallelism;
+    static final int COMMON_PARALLELISM;
 
     /**
      * Limit on spare thread construction in tryCompensate.
@@ -2879,7 +2879,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * @since 1.8
      */
     public static int getCommonPoolParallelism() {
-        return commonParallelism;
+        return COMMON_PARALLELISM;
     }
 
     /**
@@ -3487,8 +3487,9 @@ public class ForkJoinPool extends AbstractExecutorService {
         common = java.security.AccessController.doPrivileged
             (new java.security.PrivilegedAction<ForkJoinPool>() {
                 public ForkJoinPool run() { return makeCommonPool(); }});
-        int par = common.config & SMASK; // report 1 even if threads disabled
-        commonParallelism = par > 0 ? par : 1;
+        
+        // report 1 even if threads disabled
+        COMMON_PARALLELISM = Math.max(common.config & SMASK, 1);
     }
 
     /**
