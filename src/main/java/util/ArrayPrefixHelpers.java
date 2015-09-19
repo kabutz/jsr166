@@ -80,20 +80,6 @@ class ArrayPrefixHelpers {
         T in, out;
         final int lo, hi, origin, fence, threshold;
 
-        /** Root task constructor */
-        public CumulateTask(CumulateTask<T> parent,
-                            BinaryOperator<T> function,
-                            T[] array, int lo, int hi) {
-            super(parent);
-            this.function = function; this.array = array;
-            this.lo = this.origin = lo; this.hi = this.fence = hi;
-            int p;
-            this.threshold =
-                (p = (hi - lo) / (ForkJoinPool.getCommonPoolParallelism() << 3))
-                <= MIN_PARTITION ? MIN_PARTITION : p;
-        }
-
-        /** Subtask constructor */
         CumulateTask(CumulateTask<T> parent, BinaryOperator<T> function,
                      T[] array, int origin, int fence, int threshold,
                      int lo, int hi) {
@@ -232,20 +218,6 @@ class ArrayPrefixHelpers {
         long in, out;
         final int lo, hi, origin, fence, threshold;
 
-        /** Root task constructor */
-        public LongCumulateTask(LongCumulateTask parent,
-                                LongBinaryOperator function,
-                                long[] array, int lo, int hi) {
-            super(parent);
-            this.function = function; this.array = array;
-            this.lo = this.origin = lo; this.hi = this.fence = hi;
-            int p;
-            this.threshold =
-                (p = (hi - lo) / (ForkJoinPool.getCommonPoolParallelism() << 3))
-                <= MIN_PARTITION ? MIN_PARTITION : p;
-        }
-
-        /** Subtask constructor */
         LongCumulateTask(LongCumulateTask parent, LongBinaryOperator function,
                          long[] array, int origin, int fence, int threshold,
                          int lo, int hi) {
@@ -382,23 +354,9 @@ class ArrayPrefixHelpers {
         double in, out;
         final int lo, hi, origin, fence, threshold;
 
-        /** Root task constructor */
-        public DoubleCumulateTask(DoubleCumulateTask parent,
-                                DoubleBinaryOperator function,
-                                double[] array, int lo, int hi) {
-            super(parent);
-            this.function = function; this.array = array;
-            this.lo = this.origin = lo; this.hi = this.fence = hi;
-            int p;
-            this.threshold =
-                (p = (hi - lo) / (ForkJoinPool.getCommonPoolParallelism() << 3))
-                <= MIN_PARTITION ? MIN_PARTITION : p;
-        }
-
-        /** Subtask constructor */
         DoubleCumulateTask(DoubleCumulateTask parent, DoubleBinaryOperator function,
-                         double[] array, int origin, int fence, int threshold,
-                         int lo, int hi) {
+                           double[] array, int origin, int fence, int threshold,
+                           int lo, int hi) {
             super(parent);
             this.function = function; this.array = array;
             this.origin = origin; this.fence = fence;
@@ -532,23 +490,9 @@ class ArrayPrefixHelpers {
         int in, out;
         final int lo, hi, origin, fence, threshold;
 
-        /** Root task constructor */
-        public IntCumulateTask(IntCumulateTask parent,
-                                IntBinaryOperator function,
-                                int[] array, int lo, int hi) {
-            super(parent);
-            this.function = function; this.array = array;
-            this.lo = this.origin = lo; this.hi = this.fence = hi;
-            int p;
-            this.threshold =
-                (p = (hi - lo) / (ForkJoinPool.getCommonPoolParallelism() << 3))
-                <= MIN_PARTITION ? MIN_PARTITION : p;
-        }
-
-        /** Subtask constructor */
         IntCumulateTask(IntCumulateTask parent, IntBinaryOperator function,
-                         int[] array, int origin, int fence, int threshold,
-                         int lo, int hi) {
+                        int[] array, int origin, int fence, int threshold,
+                        int lo, int hi) {
             super(parent);
             this.function = function; this.array = array;
             this.origin = origin; this.fence = fence;
