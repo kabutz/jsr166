@@ -563,7 +563,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * each probe via the "bound" parameter.)
      *
      * The compensation mechanism may be bounded.  Bounds for the
-     * commonPool (see commonMaxSpares) better enable JVMs to cope
+     * commonPool (see COMMON_MAX_SPARES) better enable JVMs to cope
      * with programming errors and abuse before running out of
      * resources to do so. In other cases, users may supply factories
      * that limit thread construction. The effects of bounding in this
@@ -1365,7 +1365,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     /**
      * Limit on spare thread construction in tryCompensate.
      */
-    private static int commonMaxSpares;
+    private static final int COMMON_MAX_SPARES;
 
     /**
      * Sequence number for creating workerNamePrefix.
@@ -1397,13 +1397,12 @@ public class ForkJoinPool extends AbstractExecutorService {
     private static final long TIMEOUT_SLOP_MS =   20L; // 20ms
 
     /**
-     * The initial value for commonMaxSpares during static
-     * initialization unless overridden using System property
-     * "java.util.concurrent.ForkJoinPool.common.maximumSpares".  The
-     * default value is far in excess of normal requirements, but also
-     * far short of MAX_CAP and typical OS thread limits, so allows
-     * JVMs to catch misuse/abuse before running out of resources
-     * needed to do so.
+     * The default value for COMMON_MAX_SPARES.  Overridable using the
+     * "java.util.concurrent.ForkJoinPool.common.maximumSpares" system
+     * property.  The default value is far in excess of normal
+     * requirements, but also far short of MAX_CAP and typical OS
+     * thread limits, so allows JVMs to catch misuse/abuse before
+     * running out of resources needed to do so.
      */
     private static final int DEFAULT_COMMON_MAX_SPARES = 256;
 
@@ -2174,7 +2173,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 canBlock = U.compareAndSwapLong(this, CTL, c, nc);
             }
             else if (tc >= MAX_CAP ||
-                     (this == common && tc >= pc + commonMaxSpares))
+                     (this == common && tc >= pc + COMMON_MAX_SPARES))
                 throw new RejectedExecutionException(
                     "Thread limit exceeded replacing blocked worker");
             else {                                  // similar to tryAddWorker
@@ -3472,7 +3471,15 @@ public class ForkJoinPool extends AbstractExecutorService {
         // LockSupport.park: https://bugs.openjdk.java.net/browse/JDK-8074773
         Class<?> ensureLoaded = LockSupport.class;
 
-        commonMaxSpares = DEFAULT_COMMON_MAX_SPARES;
+        int commonMaxSpares = DEFAULT_COMMON_MAX_SPARES;
+        try {
+            String p = System.getProperty
+                ("java.util.concurrent.ForkJoinPool.common.maximumSpares");
+            if (p != null)
+                commonMaxSpares = Integer.parseInt(p);
+        } catch (Exception ignore) {}
+        COMMON_MAX_SPARES = commonMaxSpares;
+
         defaultForkJoinWorkerThreadFactory =
             new DefaultForkJoinWorkerThreadFactory();
         modifyThreadPermission = new RuntimePermission("modifyThread");
@@ -3499,8 +3506,6 @@ public class ForkJoinPool extends AbstractExecutorService {
                 ("java.util.concurrent.ForkJoinPool.common.threadFactory");
             String hp = System.getProperty
                 ("java.util.concurrent.ForkJoinPool.common.exceptionHandler");
-            String mp = System.getProperty
-                ("java.util.concurrent.ForkJoinPool.common.maximumSpares");
             if (pp != null)
                 parallelism = Integer.parseInt(pp);
             if (fp != null)
@@ -3509,8 +3514,6 @@ public class ForkJoinPool extends AbstractExecutorService {
             if (hp != null)
                 handler = ((UncaughtExceptionHandler)ClassLoader.
                            getSystemClassLoader().loadClass(hp).newInstance());
-            if (mp != null)
-                commonMaxSpares = Integer.parseInt(mp);
         } catch (Exception ignore) {
         }
         if (factory == null) {
