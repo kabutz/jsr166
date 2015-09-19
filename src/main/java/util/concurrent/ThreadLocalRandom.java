@@ -97,8 +97,7 @@ public class ThreadLocalRandom extends Random {
      */
 
     /** Generates per-thread initialization/probe field */
-    private static final AtomicInteger probeGenerator =
-        new AtomicInteger();
+    private static final AtomicInteger probeGenerator = new AtomicInteger();
 
     /**
      * The next seed for default constructors.
