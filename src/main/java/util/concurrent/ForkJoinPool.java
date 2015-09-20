@@ -685,7 +685,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * Default ForkJoinWorkerThreadFactory implementation; creates a
      * new ForkJoinWorkerThread.
      */
-    static final class DefaultForkJoinWorkerThreadFactory
+    private static final class DefaultForkJoinWorkerThreadFactory
         implements ForkJoinWorkerThreadFactory {
         public final ForkJoinWorkerThread newThread(ForkJoinPool pool) {
             return new ForkJoinWorkerThread(pool);
@@ -698,7 +698,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * in WorkQueue.tryRemoveAndExec. We don't need the proxy to
      * actually do anything beyond having a unique identity.
      */
-    static final class EmptyTask extends ForkJoinTask<Void> {
+    private static final class EmptyTask extends ForkJoinTask<Void> {
         private static final long serialVersionUID = -7721805057305804111L;
         EmptyTask() { status = ForkJoinTask.NORMAL; } // force done
         public final Void getRawResult() { return null; }
@@ -709,7 +709,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     /**
      * Additional fields and lock created upon initialization.
      */
-    static final class AuxState extends ReentrantLock {
+    private static final class AuxState extends ReentrantLock {
         private static final long serialVersionUID = -6001602636862214147L;
         volatile long stealCount;     // cumulative steal count
         long indexSeed;               // index bits for registerWorker
@@ -3496,7 +3496,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * Creates and returns the common pool, respecting user settings
      * specified via system properties.
      */
-    private static ForkJoinPool makeCommonPool() {
+    static ForkJoinPool makeCommonPool() {
         int parallelism = -1;
         ForkJoinWorkerThreadFactory factory = null;
         UncaughtExceptionHandler handler = null;
@@ -3535,7 +3535,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     /**
      * Factory for innocuous worker threads
      */
-    static final class InnocuousForkJoinWorkerThreadFactory
+    private static final class InnocuousForkJoinWorkerThreadFactory
         implements ForkJoinWorkerThreadFactory {
 
         /**
