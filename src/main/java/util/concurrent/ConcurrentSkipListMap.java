@@ -330,7 +330,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     /**
      * Special value used to identify base-level header
      */
-    private static final Object BASE_HEADER = new Object();
+    static final Object BASE_HEADER = new Object();
 
     /**
      * The topmost head index of the skiplist.
@@ -2539,7 +2539,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         private static final long serialVersionUID = -7647078645895051609L;
 
         /** Underlying map */
-        private final ConcurrentSkipListMap<K,V> m;
+        final ConcurrentSkipListMap<K,V> m;
         /** lower bound key, or null if from start */
         private final K lo;
         /** upper bound key, or null if to end */
@@ -2549,7 +2549,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         /** inclusion flag for hi */
         private final boolean hiInclusive;
         /** direction */
-        private final boolean isDescending;
+        final boolean isDescending;
 
         // Lazily initialized view holders
         private transient KeySet<K,V> keySetView;

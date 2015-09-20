@@ -99,7 +99,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     /**
      * The number of elements in the priority queue.
      */
-    private int size;
+    int size;
 
     /**
      * The comparator, or null if priority queue uses elements'
@@ -609,7 +609,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * avoid missing traversing elements.
      */
     @SuppressWarnings("unchecked")
-    private E removeAt(int i) {
+    E removeAt(int i) {
         // assert i >= 0 && i < size;
         modCount++;
         int s = --size;
@@ -828,7 +828,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
 
         /** Creates new spliterator covering the given range */
         PriorityQueueSpliterator(PriorityQueue<E> pq, int origin, int fence,
-                             int expectedModCount) {
+                                 int expectedModCount) {
             this.pq = pq;
             this.index = origin;
             this.fence = fence;
