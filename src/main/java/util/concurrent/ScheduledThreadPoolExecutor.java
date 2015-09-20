@@ -183,11 +183,12 @@ public class ScheduledThreadPoolExecutor
         /**
          * Creates a one-shot action with given nanoTime-based trigger time.
          */
-        ScheduledFutureTask(Runnable r, V result, long triggerTime) {
+        ScheduledFutureTask(Runnable r, V result, long triggerTime,
+                            long sequenceNumber) {
             super(r, result);
             this.time = triggerTime;
             this.period = 0;
-            this.sequenceNumber = sequencer.getAndIncrement();
+            this.sequenceNumber = sequenceNumber;
         }
 
         /**
@@ -195,21 +196,22 @@ public class ScheduledThreadPoolExecutor
          * trigger time and period.
          */
         ScheduledFutureTask(Runnable r, V result, long triggerTime,
-                            long period) {
+                            long period, long sequenceNumber) {
             super(r, result);
             this.time = triggerTime;
             this.period = period;
-            this.sequenceNumber = sequencer.getAndIncrement();
+            this.sequenceNumber = sequenceNumber;
         }
 
         /**
          * Creates a one-shot action with given nanoTime-based trigger time.
          */
-        ScheduledFutureTask(Callable<V> callable, long triggerTime) {
+        ScheduledFutureTask(Callable<V> callable, long triggerTime,
+                            long sequenceNumber) {
             super(callable);
             this.time = triggerTime;
             this.period = 0;
-            this.sequenceNumber = sequencer.getAndIncrement();
+            this.sequenceNumber = sequenceNumber;
         }
 
         public long getDelay(TimeUnit unit) {
@@ -529,7 +531,8 @@ public class ScheduledThreadPoolExecutor
             throw new NullPointerException();
         RunnableScheduledFuture<Void> t = decorateTask(command,
             new ScheduledFutureTask<Void>(command, null,
-                                          triggerTime(delay, unit)));
+                                          triggerTime(delay, unit),
+                                          sequencer.getAndIncrement()));
         delayedExecute(t);
         return t;
     }
@@ -545,7 +548,8 @@ public class ScheduledThreadPoolExecutor
             throw new NullPointerException();
         RunnableScheduledFuture<V> t = decorateTask(callable,
             new ScheduledFutureTask<V>(callable,
-                                       triggerTime(delay, unit)));
+                                       triggerTime(delay, unit),
+                                       sequencer.getAndIncrement()));
         delayedExecute(t);
         return t;
     }
@@ -567,7 +571,8 @@ public class ScheduledThreadPoolExecutor
             new ScheduledFutureTask<Void>(command,
                                           null,
                                           triggerTime(initialDelay, unit),
-                                          unit.toNanos(period));
+                                          unit.toNanos(period),
+                                          sequencer.getAndIncrement());
         RunnableScheduledFuture<Void> t = decorateTask(command, sft);
         sft.outerTask = t;
         delayedExecute(t);
@@ -591,7 +596,8 @@ public class ScheduledThreadPoolExecutor
             new ScheduledFutureTask<Void>(command,
                                           null,
                                           triggerTime(initialDelay, unit),
-                                          unit.toNanos(-delay));
+                                          unit.toNanos(-delay),
+                                          sequencer.getAndIncrement());
         RunnableScheduledFuture<Void> t = decorateTask(command, sft);
         sft.outerTask = t;
         delayedExecute(t);
