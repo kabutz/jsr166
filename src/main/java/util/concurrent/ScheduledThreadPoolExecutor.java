@@ -140,7 +140,7 @@ public class ScheduledThreadPoolExecutor
     /**
      * True if ScheduledFutureTask.cancel should remove from queue.
      */
-    private volatile boolean removeOnCancel;
+    volatile boolean removeOnCancel;
 
     /**
      * Sequence number to break scheduling ties, and in turn to
