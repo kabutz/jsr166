@@ -473,7 +473,7 @@ public class Executors {
     /**
      * A callable that runs given task and returns given result
      */
-    static final class RunnableAdapter<T> implements Callable<T> {
+    private static final class RunnableAdapter<T> implements Callable<T> {
         final Runnable task;
         final T result;
         RunnableAdapter(Runnable task, T result) {
@@ -489,9 +489,9 @@ public class Executors {
     /**
      * A callable that runs under established access control settings
      */
-    static final class PrivilegedCallable<T> implements Callable<T> {
-        private final Callable<T> task;
-        private final AccessControlContext acc;
+    private static final class PrivilegedCallable<T> implements Callable<T> {
+        final Callable<T> task;
+        final AccessControlContext acc;
 
         PrivilegedCallable(Callable<T> task) {
             this.task = task;
@@ -516,10 +516,11 @@ public class Executors {
      * A callable that runs under established access control settings and
      * current ClassLoader
      */
-    static final class PrivilegedCallableUsingCurrentClassLoader<T> implements Callable<T> {
-        private final Callable<T> task;
-        private final AccessControlContext acc;
-        private final ClassLoader ccl;
+    private static final class PrivilegedCallableUsingCurrentClassLoader<T>
+            implements Callable<T> {
+        final Callable<T> task;
+        final AccessControlContext acc;
+        final ClassLoader ccl;
 
         PrivilegedCallableUsingCurrentClassLoader(Callable<T> task) {
             SecurityManager sm = System.getSecurityManager();
@@ -566,7 +567,7 @@ public class Executors {
     /**
      * The default thread factory
      */
-    static class DefaultThreadFactory implements ThreadFactory {
+    private static class DefaultThreadFactory implements ThreadFactory {
         private static final AtomicInteger poolNumber = new AtomicInteger(1);
         private final ThreadGroup group;
         private final AtomicInteger threadNumber = new AtomicInteger(1);
@@ -596,9 +597,9 @@ public class Executors {
     /**
      * Thread factory capturing access control context and class loader
      */
-    static class PrivilegedThreadFactory extends DefaultThreadFactory {
-        private final AccessControlContext acc;
-        private final ClassLoader ccl;
+    private static class PrivilegedThreadFactory extends DefaultThreadFactory {
+        final AccessControlContext acc;
+        final ClassLoader ccl;
 
         PrivilegedThreadFactory() {
             super();
@@ -635,7 +636,8 @@ public class Executors {
      * A wrapper class that exposes only the ExecutorService methods
      * of an ExecutorService implementation.
      */
-    static class DelegatedExecutorService extends AbstractExecutorService {
+    private static class DelegatedExecutorService
+            extends AbstractExecutorService {
         private final ExecutorService e;
         DelegatedExecutorService(ExecutorService executor) { e = executor; }
         public void execute(Runnable command) { e.execute(command); }
@@ -676,8 +678,8 @@ public class Executors {
         }
     }
 
-    static class FinalizableDelegatedExecutorService
-        extends DelegatedExecutorService {
+    private static class FinalizableDelegatedExecutorService
+            extends DelegatedExecutorService {
         FinalizableDelegatedExecutorService(ExecutorService executor) {
             super(executor);
         }
@@ -690,7 +692,7 @@ public class Executors {
      * A wrapper class that exposes only the ScheduledExecutorService
      * methods of a ScheduledExecutorService implementation.
      */
-    static class DelegatedScheduledExecutorService
+    private static class DelegatedScheduledExecutorService
             extends DelegatedExecutorService
             implements ScheduledExecutorService {
         private final ScheduledExecutorService e;
