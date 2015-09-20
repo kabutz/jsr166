@@ -72,7 +72,8 @@ class ArrayPrefixHelpers {
     /** The smallest subtask array partition size to use as threshold */
     static final int MIN_PARTITION = 16;
 
-    static final class CumulateTask<T> extends CountedCompleter<Void> {
+    private static final class CumulateTask<T>
+            extends CountedCompleter<Void> {
         final T[] array;
         final BinaryOperator<T> function;
         CumulateTask<T> left, right;
@@ -210,7 +211,8 @@ class ArrayPrefixHelpers {
         private static final long serialVersionUID = 5293554502939613543L;
     }
 
-    static final class LongCumulateTask extends CountedCompleter<Void> {
+    private static final class LongCumulateTask
+            extends CountedCompleter<Void> {
         final long[] array;
         final LongBinaryOperator function;
         LongCumulateTask left, right;
@@ -346,7 +348,8 @@ class ArrayPrefixHelpers {
         private static final long serialVersionUID = -5074099945909284273L;
     }
 
-    static final class DoubleCumulateTask extends CountedCompleter<Void> {
+    private static final class DoubleCumulateTask
+            extends CountedCompleter<Void> {
         final double[] array;
         final DoubleBinaryOperator function;
         DoubleCumulateTask left, right;
@@ -482,7 +485,8 @@ class ArrayPrefixHelpers {
         private static final long serialVersionUID = -586947823794232033L;
     }
 
-    static final class IntCumulateTask extends CountedCompleter<Void> {
+    private static final class IntCumulateTask
+            extends CountedCompleter<Void> {
         final int[] array;
         final IntBinaryOperator function;
         IntCumulateTask left, right;
