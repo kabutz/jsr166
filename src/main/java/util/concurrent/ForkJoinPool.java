@@ -1342,7 +1342,7 @@ public class ForkJoinPool extends AbstractExecutorService {
 
     /**
      * Permission required for callers of methods that may start or
-     * kill threads. Also used as a private static lock in tryInitialize.
+     * kill threads.  Also used as a static lock in tryInitialize.
      */
     static final RuntimePermission modifyThreadPermission;
 
