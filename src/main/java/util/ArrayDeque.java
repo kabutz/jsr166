@@ -488,7 +488,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      *
      * @return true if elements moved backwards
      */
-    private boolean delete(int i) {
+    boolean delete(int i) {
         checkInvariants();
         final Object[] elements = this.elements;
         final int mask = elements.length - 1;
