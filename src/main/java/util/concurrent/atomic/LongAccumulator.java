@@ -212,7 +212,7 @@ public class LongAccumulator extends Striped64 implements Serializable {
         private final LongBinaryOperator function;
 
         /**
-         * The identity value
+         * The identity value.
          * @serial
          */
         private final long identity;
