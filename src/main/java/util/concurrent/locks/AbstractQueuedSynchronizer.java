@@ -473,8 +473,46 @@ public abstract class AbstractQueuedSynchronizer
         /** Establishes initial head or SHARED marker. */
         Node() {}
 
-        Node(Node nextWaiter) { // Used by addWaiter
+        /** Constructor used by addWaiter. */
+        Node(Node nextWaiter) {
             this.nextWaiter = nextWaiter;
+            U.putObject(this, THREAD, Thread.currentThread());
+        }
+
+        /** Constructor used by addConditionWaiter. */
+        Node(int waitStatus) {
+            U.putInt(this, WAITSTATUS, waitStatus);
+            U.putObject(this, THREAD, Thread.currentThread());
+        }
+
+        /** CASes waitStatus field. */
+        final boolean compareAndSetWaitStatus(int expect, int update) {
+            return U.compareAndSwapInt(this, WAITSTATUS, expect, update);
+        }
+
+        /** CASes next field. */
+        final boolean compareAndSetNext(Node expect, Node update) {
+            return U.compareAndSwapObject(this, NEXT, expect, update);
+        }
+
+        private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+        private static final long NEXT;
+        static final long PREV;
+        private static final long THREAD;
+        private static final long WAITSTATUS;
+        static {
+            try {
+                NEXT = U.objectFieldOffset
+                    (Node.class.getDeclaredField("next"));
+                PREV = U.objectFieldOffset
+                    (Node.class.getDeclaredField("prev"));
+                THREAD = U.objectFieldOffset
+                    (Node.class.getDeclaredField("thread"));
+                WAITSTATUS = U.objectFieldOffset
+                    (Node.class.getDeclaredField("waitStatus"));
+            } catch (ReflectiveOperationException e) {
+                throw new Error(e);
+            }
         }
     }
 
@@ -548,7 +586,7 @@ public abstract class AbstractQueuedSynchronizer
         for (;;) {
             Node oldTail = tail;
             if (oldTail != null) {
-                U.putObject(node, PREV, oldTail);
+                U.putObject(node, Node.PREV, oldTail);
                 if (compareAndSetTail(oldTail, node)) {
                     oldTail.next = node;
                     return oldTail;
@@ -567,12 +605,11 @@ public abstract class AbstractQueuedSynchronizer
      */
     private Node addWaiter(Node mode) {
         Node node = new Node(mode);
-        U.putObject(node, THREAD, Thread.currentThread());
 
         for (;;) {
             Node oldTail = tail;
             if (oldTail != null) {
-                U.putObject(node, PREV, oldTail);
+                U.putObject(node, Node.PREV, oldTail);
                 if (compareAndSetTail(oldTail, node)) {
                     oldTail.next = node;
                     return node;
@@ -609,7 +646,7 @@ public abstract class AbstractQueuedSynchronizer
          */
         int ws = node.waitStatus;
         if (ws < 0)
-            compareAndSetWaitStatus(node, ws, 0);
+            node.compareAndSetWaitStatus(ws, 0);
 
         /*
          * Thread to unpark is held in successor, which is normally
@@ -650,12 +687,12 @@ public abstract class AbstractQueuedSynchronizer
             if (h != null && h != tail) {
                 int ws = h.waitStatus;
                 if (ws == Node.SIGNAL) {
-                    if (!compareAndSetWaitStatus(h, Node.SIGNAL, 0))
+                    if (!h.compareAndSetWaitStatus(Node.SIGNAL, 0))
                         continue;            // loop to recheck cases
                     unparkSuccessor(h);
                 }
                 else if (ws == 0 &&
-                         !compareAndSetWaitStatus(h, 0, Node.PROPAGATE))
+                         !h.compareAndSetWaitStatus(0, Node.PROPAGATE))
                     continue;                // loop on failed CAS
             }
             if (h == head)                   // loop if head changed
@@ -729,18 +766,18 @@ public abstract class AbstractQueuedSynchronizer
 
         // If we are the tail, remove ourselves.
         if (node == tail && compareAndSetTail(node, pred)) {
-            compareAndSetNext(pred, predNext, null);
+            pred.compareAndSetNext(predNext, null);
         } else {
             // If successor needs signal, try to set pred's next-link
             // so it will get one. Otherwise wake it up to propagate.
             int ws;
             if (pred != head &&
                 ((ws = pred.waitStatus) == Node.SIGNAL ||
-                 (ws <= 0 && compareAndSetWaitStatus(pred, ws, Node.SIGNAL))) &&
+                 (ws <= 0 && pred.compareAndSetWaitStatus(ws, Node.SIGNAL))) &&
                 pred.thread != null) {
                 Node next = node.next;
                 if (next != null && next.waitStatus <= 0)
-                    compareAndSetNext(pred, predNext, next);
+                    pred.compareAndSetNext(predNext, next);
             } else {
                 unparkSuccessor(node);
             }
@@ -781,7 +818,7 @@ public abstract class AbstractQueuedSynchronizer
              * need a signal, but don't park yet.  Caller will need to
              * retry to make sure it cannot acquire before parking.
              */
-            compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
+            pred.compareAndSetWaitStatus(ws, Node.SIGNAL);
         }
         return false;
     }
@@ -1629,7 +1666,7 @@ public abstract class AbstractQueuedSynchronizer
         /*
          * If cannot change waitStatus, the node has been cancelled.
          */
-        if (!compareAndSetWaitStatus(node, Node.CONDITION, 0))
+        if (!node.compareAndSetWaitStatus(Node.CONDITION, 0))
             return false;
 
         /*
@@ -1640,7 +1677,7 @@ public abstract class AbstractQueuedSynchronizer
          */
         Node p = enq(node);
         int ws = p.waitStatus;
-        if (ws > 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))
+        if (ws > 0 || !p.compareAndSetWaitStatus(ws, Node.SIGNAL))
             LockSupport.unpark(node.thread);
         return true;
     }
@@ -1653,7 +1690,7 @@ public abstract class AbstractQueuedSynchronizer
      * @return true if cancelled before the node was signalled
      */
     final boolean transferAfterCancelledWait(Node node) {
-        if (compareAndSetWaitStatus(node, Node.CONDITION, 0)) {
+        if (node.compareAndSetWaitStatus(Node.CONDITION, 0)) {
             enq(node);
             return true;
         }
@@ -1807,9 +1844,7 @@ public abstract class AbstractQueuedSynchronizer
                 t = lastWaiter;
             }
 
-            Node node = new Node();
-            U.putInt(node, WAITSTATUS, Node.CONDITION);
-            U.putObject(node, THREAD, Thread.currentThread());
+            Node node = new Node(Node.CONDITION);
 
             if (t == null)
                 firstWaiter = node;
@@ -2221,10 +2256,6 @@ public abstract class AbstractQueuedSynchronizer
     private static final long STATE;
     private static final long HEAD;
     private static final long TAIL;
-    private static final long WAITSTATUS;
-    private static final long PREV;
-    private static final long NEXT;
-    private static final long THREAD;
 
     static {
         try {
@@ -2234,15 +2265,6 @@ public abstract class AbstractQueuedSynchronizer
                 (AbstractQueuedSynchronizer.class.getDeclaredField("head"));
             TAIL = U.objectFieldOffset
                 (AbstractQueuedSynchronizer.class.getDeclaredField("tail"));
-
-            WAITSTATUS = U.objectFieldOffset
-                (Node.class.getDeclaredField("waitStatus"));
-            PREV = U.objectFieldOffset
-                (Node.class.getDeclaredField("prev"));
-            NEXT = U.objectFieldOffset
-                (Node.class.getDeclaredField("next"));
-            THREAD = U.objectFieldOffset
-                (Node.class.getDeclaredField("thread"));
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }
@@ -2265,23 +2287,5 @@ public abstract class AbstractQueuedSynchronizer
      */
     private final boolean compareAndSetTail(Node expect, Node update) {
         return U.compareAndSwapObject(this, TAIL, expect, update);
-    }
-
-    /**
-     * CASes waitStatus field of a node.
-     */
-    private static final boolean compareAndSetWaitStatus(Node node,
-                                                         int expect,
-                                                         int update) {
-        return U.compareAndSwapInt(node, WAITSTATUS, expect, update);
-    }
-
-    /**
-     * CASes next field of a node.
-     */
-    private static final boolean compareAndSetNext(Node node,
-                                                   Node expect,
-                                                   Node update) {
-        return U.compareAndSwapObject(node, NEXT, expect, update);
     }
 }
