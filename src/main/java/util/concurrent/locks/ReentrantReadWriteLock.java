@@ -677,7 +677,7 @@ public class ReentrantReadWriteLock
         private final Sync sync;
 
         /**
-         * Constructor for use by subclasses
+         * Constructor for use by subclasses.
          *
          * @param lock the outer lock object
          * @throws NullPointerException if the lock is null
@@ -891,7 +891,7 @@ public class ReentrantReadWriteLock
         private final Sync sync;
 
         /**
-         * Constructor for use by subclasses
+         * Constructor for use by subclasses.
          *
          * @param lock the outer lock object
          * @throws NullPointerException if the lock is null

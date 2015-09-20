@@ -301,7 +301,7 @@ public class Phaser {
     }
 
     /**
-     * The parent of this phaser, or null if none
+     * The parent of this phaser, or null if none.
      */
     private final Phaser parent;
 
@@ -388,7 +388,7 @@ public class Phaser {
     }
 
     /**
-     * Implementation of register, bulkRegister
+     * Implementation of register, bulkRegister.
      *
      * @param registrations number to add to both parties and
      * unarrived fields. Must be greater than zero.
@@ -922,7 +922,7 @@ public class Phaser {
     }
 
     /**
-     * Implementation of toString and string-based error messages
+     * Implementation of toString and string-based error messages.
      */
     private String stateToString(long s) {
         return super.toString() +
@@ -1050,7 +1050,7 @@ public class Phaser {
     }
 
     /**
-     * Wait nodes for Treiber stack representing wait queue
+     * Wait nodes for Treiber stack representing wait queue.
      */
     static final class QNode implements ForkJoinPool.ManagedBlocker {
         final Phaser phaser;

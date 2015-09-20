@@ -984,11 +984,11 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Base class for Iterators for LinkedBlockingDeque
+     * Base class for LinkedBlockingDeque iterators.
      */
     private abstract class AbstractItr implements Iterator<E> {
         /**
-         * The next node to return in next()
+         * The next node to return in next().
          */
         Node<E> next;
 

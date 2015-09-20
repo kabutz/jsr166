@@ -136,7 +136,7 @@ abstract class Striped64 extends Number {
     transient volatile int cellsBusy;
 
     /**
-     * Package-private default constructor
+     * Package-private default constructor.
      */
     Striped64() {
     }

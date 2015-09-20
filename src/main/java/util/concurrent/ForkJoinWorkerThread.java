@@ -58,7 +58,7 @@ public class ForkJoinWorkerThread extends Thread {
     }
 
     /**
-     * Version for InnocuousForkJoinWorkerThread
+     * Version for InnocuousForkJoinWorkerThread.
      */
     ForkJoinWorkerThread(ForkJoinPool pool, ThreadGroup threadGroup,
                          AccessControlContext acc) {
@@ -150,7 +150,7 @@ public class ForkJoinWorkerThread extends Thread {
     }
 
     /**
-     * Non-public hook method for InnocuousForkJoinWorkerThread
+     * Non-public hook method for InnocuousForkJoinWorkerThread.
      */
     void afterTopLevelExec() {
     }

@@ -41,7 +41,7 @@ package java.util.concurrent;
  */
 public enum TimeUnit {
     /**
-     * Time unit representing one thousandth of a microsecond
+     * Time unit representing one thousandth of a microsecond.
      */
     NANOSECONDS {
         public long toNanos(long d)   { return d; }
@@ -56,7 +56,7 @@ public enum TimeUnit {
     },
 
     /**
-     * Time unit representing one thousandth of a millisecond
+     * Time unit representing one thousandth of a millisecond.
      */
     MICROSECONDS {
         public long toNanos(long d)   { return x(d, C1/C0, MAX/(C1/C0)); }
@@ -71,7 +71,7 @@ public enum TimeUnit {
     },
 
     /**
-     * Time unit representing one thousandth of a second
+     * Time unit representing one thousandth of a second.
      */
     MILLISECONDS {
         public long toNanos(long d)   { return x(d, C2/C0, MAX/(C2/C0)); }
@@ -86,7 +86,7 @@ public enum TimeUnit {
     },
 
     /**
-     * Time unit representing one second
+     * Time unit representing one second.
      */
     SECONDS {
         public long toNanos(long d)   { return x(d, C3/C0, MAX/(C3/C0)); }
@@ -101,7 +101,7 @@ public enum TimeUnit {
     },
 
     /**
-     * Time unit representing sixty seconds
+     * Time unit representing sixty seconds.
      * @since 1.6
      */
     MINUTES {
@@ -117,7 +117,7 @@ public enum TimeUnit {
     },
 
     /**
-     * Time unit representing sixty minutes
+     * Time unit representing sixty minutes.
      * @since 1.6
      */
     HOURS {
@@ -133,7 +133,7 @@ public enum TimeUnit {
     },
 
     /**
-     * Time unit representing twenty four hours
+     * Time unit representing twenty four hours.
      * @since 1.6
      */
     DAYS {

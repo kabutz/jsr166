@@ -1138,7 +1138,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         }
 
         /**
-         * Tries helping for FJ submitter
+         * Tries helping for FJ submitter.
          */
         private int internalHelpConsume(ForkJoinPool.WorkQueue w, T item) {
             int stat = 0;
@@ -1154,7 +1154,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         }
 
         /**
-         * Tries helping for non-FJ submitter
+         * Tries helping for non-FJ submitter.
          */
         private int externalHelpConsume(ForkJoinPool.WorkQueue w, T item) {
             int stat = 0;
@@ -1170,7 +1170,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         }
 
         /**
-         * Timeout version; similar to submit
+         * Timeout version; similar to submit.
          */
         final int timedOffer(T item, long nanos) {
             int stat; Executor e;

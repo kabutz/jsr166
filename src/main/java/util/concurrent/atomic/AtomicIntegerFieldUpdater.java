@@ -334,7 +334,7 @@ public abstract class AtomicIntegerFieldUpdater<T> {
     }
 
     /**
-     * Standard hotspot implementation using intrinsics
+     * Standard hotspot implementation using intrinsics.
      */
     private static class AtomicIntegerFieldUpdaterImpl<T>
             extends AtomicIntegerFieldUpdater<T> {

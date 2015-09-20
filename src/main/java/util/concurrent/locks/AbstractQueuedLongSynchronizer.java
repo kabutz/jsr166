@@ -365,7 +365,7 @@ public abstract class AbstractQueuedLongSynchronizer
     }
 
     /**
-     * Convenience method to park and then check if interrupted
+     * Convenience method to park and then check if interrupted.
      *
      * @return {@code true} if interrupted
      */
@@ -921,7 +921,7 @@ public abstract class AbstractQueuedLongSynchronizer
     }
 
     /**
-     * Version of getFirstQueuedThread called when fastpath fails
+     * Version of getFirstQueuedThread called when fastpath fails.
      */
     private Thread fullGetFirstQueuedThread() {
         /*

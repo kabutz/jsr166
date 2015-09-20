@@ -1028,7 +1028,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
 
         /**
-         * Shared version of pop
+         * Shared version of pop.
          */
         final boolean trySharedUnpush(ForkJoinTask<?> task) {
             boolean popped = false;
@@ -1392,7 +1392,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     private static final long IDLE_TIMEOUT_MS = 2000L; // 2sec
 
     /**
-     * Tolerance for idle timeouts, to cope with timer undershoots
+     * Tolerance for idle timeouts, to cope with timer undershoots.
      */
     private static final long TIMEOUT_SLOP_MS =   20L; // 20ms
 
@@ -3533,7 +3533,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     /**
-     * Factory for innocuous worker threads
+     * Factory for innocuous worker threads.
      */
     private static final class InnocuousForkJoinWorkerThreadFactory
         implements ForkJoinWorkerThreadFactory {

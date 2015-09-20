@@ -1339,7 +1339,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
 
     /**
      * Stripped-down version of helper class used in previous version,
-     * declared for the sake of serialization compatibility
+     * declared for the sake of serialization compatibility.
      */
     static class Segment<K,V> extends ReentrantLock implements Serializable {
         private static final long serialVersionUID = 2249069246763182397L;
@@ -1594,7 +1594,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Helper method for EntrySetView.removeIf
+     * Helper method for EntrySetView.removeIf.
      */
     boolean removeEntryIf(Predicate<? super Entry<K,V>> function) {
         if (function == null) throw new NullPointerException();
@@ -1614,7 +1614,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Helper method for ValuesView.removeIf
+     * Helper method for ValuesView.removeIf.
      */
     boolean removeValueIf(Predicate<? super V> function) {
         if (function == null) throw new NullPointerException();
@@ -2222,7 +2222,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * A place-holder node used in computeIfAbsent and compute
+     * A place-holder node used in computeIfAbsent and compute.
      */
     static final class ReservationNode<K,V> extends Node<K,V> {
         ReservationNode() {
@@ -2671,7 +2671,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     /* ---------------- TreeNodes -------------- */
 
     /**
-     * Nodes for use in TreeBins
+     * Nodes for use in TreeBins.
      */
     static final class TreeNode<K,V> extends Node<K,V> {
         TreeNode<K,V> parent;  // red-black tree links
@@ -3234,7 +3234,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         }
 
         /**
-         * Recursive invariant check
+         * Checks invariants recursively for the tree of Nodes rooted at t.
          */
         static <K,V> boolean checkInvariants(TreeNode<K,V> t) {
             TreeNode<K,V> tp = t.parent, tl = t.left, tr = t.right,
@@ -3479,7 +3479,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Exported Entry for EntryIterator
+     * Exported Entry for EntryIterator.
      */
     static final class MapEntry<K,V> implements Map.Entry<K,V> {
         final K key; // non-null
@@ -4856,7 +4856,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         }
 
         /**
-         * Same as Traverser version
+         * Same as Traverser version.
          */
         final Node<K,V> advance() {
             Node<K,V> e;

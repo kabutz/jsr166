@@ -88,7 +88,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
      */
 
     /**
-     * Linked list node class
+     * Linked list node class.
      */
     static class Node<E> {
         E item;

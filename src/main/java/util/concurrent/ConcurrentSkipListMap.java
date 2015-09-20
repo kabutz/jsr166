@@ -328,7 +328,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     private static final long serialVersionUID = -8627078645895051609L;
 
     /**
-     * Special value used to identify base-level header
+     * Special value used to identify base-level header.
      */
     static final Object BASE_HEADER = new Object();
 
@@ -369,7 +369,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * compareAndSet head node
+     * compareAndSet head node.
      */
     private boolean casHead(HeadIndex<K,V> cmp, HeadIndex<K,V> val) {
         return U.compareAndSwapObject(this, HEAD, cmp, val);
@@ -412,14 +412,14 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         }
 
         /**
-         * compareAndSet value field
+         * compareAndSet value field.
          */
         boolean casValue(Object cmp, Object val) {
             return U.compareAndSwapObject(this, VALUE, cmp, val);
         }
 
         /**
-         * compareAndSet next field
+         * compareAndSet next field.
          */
         boolean casNext(Node<K,V> cmp, Node<K,V> val) {
             return U.compareAndSwapObject(this, NEXT, cmp, val);
@@ -545,7 +545,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         }
 
         /**
-         * compareAndSet right field
+         * compareAndSet right field.
          */
         final boolean casRight(Index<K,V> cmp, Index<K,V> val) {
             return U.compareAndSwapObject(this, RIGHT, cmp, val);
@@ -2725,7 +2725,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         }
 
         /**
-         * Submap version of ConcurrentSkipListMap.getNearEntry
+         * Submap version of ConcurrentSkipListMap.getNearEntry.
          */
         Map.Entry<K,V> getNearEntry(K key, int rel) {
             Comparator<? super K> cmp = m.comparator;
@@ -3221,7 +3221,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Helper method for EntrySet.removeIf
+     * Helper method for EntrySet.removeIf.
      */
     boolean removeEntryIf(Predicate<? super Entry<K,V>> function) {
         if (function == null) throw new NullPointerException();
@@ -3239,7 +3239,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Helper method for Values.removeIf
+     * Helper method for Values.removeIf.
      */
     boolean removeValueIf(Predicate<? super V> function) {
         if (function == null) throw new NullPointerException();

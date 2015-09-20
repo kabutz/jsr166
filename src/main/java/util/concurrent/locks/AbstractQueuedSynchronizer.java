@@ -354,15 +354,15 @@ public abstract class AbstractQueuedSynchronizer
         /** Marker to indicate a node is waiting in exclusive mode */
         static final Node EXCLUSIVE = null;
 
-        /** waitStatus value to indicate thread has cancelled */
+        /** waitStatus value to indicate thread has cancelled. */
         static final int CANCELLED =  1;
-        /** waitStatus value to indicate successor's thread needs unparking */
+        /** waitStatus value to indicate successor's thread needs unparking. */
         static final int SIGNAL    = -1;
-        /** waitStatus value to indicate thread is waiting on condition */
+        /** waitStatus value to indicate thread is waiting on condition. */
         static final int CONDITION = -2;
         /**
          * waitStatus value to indicate the next acquireShared should
-         * unconditionally propagate
+         * unconditionally propagate.
          */
         static final int PROPAGATE = -3;
 
@@ -831,7 +831,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Convenience method to park and then check if interrupted
+     * Convenience method to park and then check if interrupted.
      *
      * @return {@code true} if interrupted
      */
@@ -1387,7 +1387,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Version of getFirstQueuedThread called when fastpath fails
+     * Version of getFirstQueuedThread called when fastpath fails.
      */
     private Thread fullGetFirstQueuedThread() {
         /*

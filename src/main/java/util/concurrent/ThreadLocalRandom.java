@@ -120,17 +120,17 @@ public class ThreadLocalRandom extends Random {
     }
 
     /**
-     * The seed increment
+     * The seed increment.
      */
     private static final long GAMMA = 0x9e3779b97f4a7c15L;
 
     /**
-     * The increment for generating probe values
+     * The increment for generating probe values.
      */
     private static final int PROBE_INCREMENT = 0x9e3779b9;
 
     /**
-     * The increment of seeder per new instance
+     * The increment of seeder per new instance.
      */
     private static final long SEEDER_INCREMENT = 0xbb67ae8584caa73bL;
 

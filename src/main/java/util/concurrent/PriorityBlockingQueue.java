@@ -132,12 +132,12 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
     private transient Comparator<? super E> comparator;
 
     /**
-     * Lock used for all public operations
+     * Lock used for all public operations.
      */
     private final ReentrantLock lock;
 
     /**
-     * Condition for blocking when empty
+     * Condition for blocking when empty.
      */
     private final Condition notEmpty;
 
@@ -642,7 +642,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Identity-based version for use in Itr.remove
+     * Identity-based version for use in Itr.remove.
      */
     void removeEQ(Object o) {
         final ReentrantLock lock = this.lock;

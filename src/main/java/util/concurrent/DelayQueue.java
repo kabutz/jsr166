@@ -466,7 +466,7 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
     }
 
     /**
-     * Identity-based version for use in Itr.remove
+     * Identity-based version for use in Itr.remove.
      */
     void removeEQ(Object o) {
         final ReentrantLock lock = this.lock;

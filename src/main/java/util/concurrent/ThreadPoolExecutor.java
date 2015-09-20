@@ -451,7 +451,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     private final HashSet<Worker> workers = new HashSet<>();
 
     /**
-     * Wait condition to support awaitTermination
+     * Wait condition to support awaitTermination.
      */
     private final Condition termination = mainLock.newCondition();
 
@@ -527,7 +527,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     private volatile int maximumPoolSize;
 
     /**
-     * The default rejected execution handler
+     * The default rejected execution handler.
      */
     private static final RejectedExecutionHandler defaultHandler =
         new AbortPolicy();

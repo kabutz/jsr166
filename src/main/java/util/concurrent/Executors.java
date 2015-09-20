@@ -471,7 +471,7 @@ public class Executors {
     // Non-public classes supporting the public methods
 
     /**
-     * A callable that runs given task and returns given result
+     * A callable that runs given task and returns given result.
      */
     private static final class RunnableAdapter<T> implements Callable<T> {
         private final Runnable task;
@@ -487,7 +487,7 @@ public class Executors {
     }
 
     /**
-     * A callable that runs under established access control settings
+     * A callable that runs under established access control settings.
      */
     private static final class PrivilegedCallable<T> implements Callable<T> {
         final Callable<T> task;
@@ -514,7 +514,7 @@ public class Executors {
 
     /**
      * A callable that runs under established access control settings and
-     * current ClassLoader
+     * current ClassLoader.
      */
     private static final class PrivilegedCallableUsingCurrentClassLoader<T>
             implements Callable<T> {
@@ -565,7 +565,7 @@ public class Executors {
     }
 
     /**
-     * The default thread factory
+     * The default thread factory.
      */
     private static class DefaultThreadFactory implements ThreadFactory {
         private static final AtomicInteger poolNumber = new AtomicInteger(1);
@@ -595,7 +595,7 @@ public class Executors {
     }
 
     /**
-     * Thread factory capturing access control context and class loader
+     * Thread factory capturing access control context and class loader.
      */
     private static class PrivilegedThreadFactory extends DefaultThreadFactory {
         final AccessControlContext acc;

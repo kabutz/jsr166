@@ -294,7 +294,7 @@ public class Exchanger<V> {
     }
 
     /**
-     * Per-thread state
+     * Per-thread state.
      */
     private final Participant participant;
 
