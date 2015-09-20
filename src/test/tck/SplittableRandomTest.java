@@ -160,6 +160,7 @@ public class SplittableRandomTest extends JSR166TestCase {
      */
     public void testNextIntBounded() {
         SplittableRandom sr = new SplittableRandom();
+        for (int i = 0; i < 2; i++) assertEquals(0, sr.nextInt(1));
         // sample bound space across prime number increments
         for (int bound = 2; bound < MAX_INT_BOUND; bound += 524959) {
             int f = sr.nextInt(bound);
@@ -229,6 +230,7 @@ public class SplittableRandomTest extends JSR166TestCase {
      */
     public void testNextLongBounded() {
         SplittableRandom sr = new SplittableRandom();
+        for (int i = 0; i < 2; i++) assertEquals(0L, sr.nextLong(1L));
         for (long bound = 2; bound < MAX_LONG_BOUND; bound += 15485863) {
             long f = sr.nextLong(bound);
             assertTrue(0 <= f && f < bound);
