@@ -762,7 +762,8 @@ public class ThreadLocalRandom extends Random {
      * approach. The long and double versions of this class are
      * identical except for types.
      */
-    static final class RandomIntsSpliterator implements Spliterator.OfInt {
+    private static final class RandomIntsSpliterator
+            implements Spliterator.OfInt {
         long index;
         final long fence;
         final int origin;
@@ -816,7 +817,8 @@ public class ThreadLocalRandom extends Random {
     /**
      * Spliterator for long streams.
      */
-    static final class RandomLongsSpliterator implements Spliterator.OfLong {
+    private static final class RandomLongsSpliterator
+            implements Spliterator.OfLong {
         long index;
         final long fence;
         final long origin;
@@ -871,7 +873,8 @@ public class ThreadLocalRandom extends Random {
     /**
      * Spliterator for double streams.
      */
-    static final class RandomDoublesSpliterator implements Spliterator.OfDouble {
+    private static final class RandomDoublesSpliterator
+            implements Spliterator.OfDouble {
         long index;
         final long fence;
         final double origin;

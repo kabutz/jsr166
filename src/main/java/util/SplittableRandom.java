@@ -825,7 +825,8 @@ public final class SplittableRandom {
      * approach. The long and double versions of this class are
      * identical except for types.
      */
-    static final class RandomIntsSpliterator implements Spliterator.OfInt {
+    private static final class RandomIntsSpliterator
+            implements Spliterator.OfInt {
         final SplittableRandom rng;
         long index;
         final long fence;
@@ -880,7 +881,8 @@ public final class SplittableRandom {
     /**
      * Spliterator for long streams.
      */
-    static final class RandomLongsSpliterator implements Spliterator.OfLong {
+    private static final class RandomLongsSpliterator
+            implements Spliterator.OfLong {
         final SplittableRandom rng;
         long index;
         final long fence;
@@ -936,7 +938,8 @@ public final class SplittableRandom {
     /**
      * Spliterator for double streams.
      */
-    static final class RandomDoublesSpliterator implements Spliterator.OfDouble {
+    private static final class RandomDoublesSpliterator
+            implements Spliterator.OfDouble {
         final SplittableRandom rng;
         long index;
         final long fence;
