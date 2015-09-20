@@ -163,7 +163,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         ForkJoinPool.commonPool() : new ThreadPerTaskExecutor();
 
     /** Fallback if ForkJoinPool.commonPool() cannot support parallelism */
-    static final class ThreadPerTaskExecutor implements Executor {
+    private static final class ThreadPerTaskExecutor implements Executor {
         public void execute(Runnable r) { new Thread(r).start(); }
     }
 
@@ -836,7 +836,8 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
     }
 
     /** Subscriber for method consume */
-    static final class ConsumerSubscriber<T> implements Flow.Subscriber<T> {
+    private static final class ConsumerSubscriber<T>
+            implements Flow.Subscriber<T> {
         final CompletableFuture<Void> status;
         final Consumer<? super T> consumer;
         Flow.Subscription subscription;
@@ -951,7 +952,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
      */
     @SuppressWarnings("serial")
     @sun.misc.Contended
-    static final class BufferedSubscription<T>
+    private static final class BufferedSubscription<T>
         implements Flow.Subscription, ForkJoinPool.ManagedBlocker {
         // Order-sensitive field declarations
         long timeout;                      // > 0 if timed wait
