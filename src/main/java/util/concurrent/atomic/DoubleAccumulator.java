@@ -207,11 +207,13 @@ public class DoubleAccumulator extends Striped64 implements Serializable {
          * @serial
          */
         private final double value;
+
         /**
          * The function used for updates.
          * @serial
          */
         private final DoubleBinaryOperator function;
+
         /**
          * The identity value, represented as a long, as converted by
          * {@link Double#doubleToRawLongBits}.  The original identity
