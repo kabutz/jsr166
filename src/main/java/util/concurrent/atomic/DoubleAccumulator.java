@@ -222,10 +222,12 @@ public class DoubleAccumulator extends Striped64 implements Serializable {
          */
         private final long identity;
 
-        SerializationProxy(DoubleAccumulator a) {
-            function = a.function;
-            identity = a.identity;
-            value = a.get();
+        SerializationProxy(double value,
+                           DoubleBinaryOperator function,
+                           long identity) {
+            this.value = value;
+            this.function = function;
+            this.identity = identity;
         }
 
         /**
@@ -250,7 +252,7 @@ public class DoubleAccumulator extends Striped64 implements Serializable {
      * representing the state of this instance
      */
     private Object writeReplace() {
-        return new SerializationProxy(this);
+        return new SerializationProxy(get(), function, identity);
     }
 
     /**
