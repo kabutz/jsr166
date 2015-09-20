@@ -566,7 +566,7 @@ public abstract class AtomicLongFieldUpdater<T> {
      * classloader's delegation chain.
      * Equivalent to the inaccessible: first.isAncestor(second).
      */
-    private static boolean isAncestor(ClassLoader first, ClassLoader second) {
+    static boolean isAncestor(ClassLoader first, ClassLoader second) {
         ClassLoader acl = first;
         do {
             acl = acl.getParent();
