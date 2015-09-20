@@ -474,8 +474,8 @@ public class Executors {
      * A callable that runs given task and returns given result
      */
     private static final class RunnableAdapter<T> implements Callable<T> {
-        final Runnable task;
-        final T result;
+        private final Runnable task;
+        private final T result;
         RunnableAdapter(Runnable task, T result) {
             this.task = task;
             this.result = result;
