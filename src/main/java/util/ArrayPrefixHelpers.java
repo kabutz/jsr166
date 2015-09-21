@@ -118,7 +118,7 @@ class ArrayPrefixHelpers {
                         int mid = (l + h) >>> 1;
                         f = rt = t.right =
                             new CumulateTask<T>(t, fn, a, org, fnc, th, mid, h);
-                        t = lt = t.left  =
+                        t = lt = t.left =
                             new CumulateTask<T>(t, fn, a, org, fnc, th, l, mid);
                     }
                     else {                           // possibly refork
@@ -270,7 +270,7 @@ class ArrayPrefixHelpers {
                         int mid = (l + h) >>> 1;
                         f = rt = t.right =
                             new LongCumulateTask(t, fn, a, org, fnc, th, mid, h);
-                        t = lt = t.left  =
+                        t = lt = t.left =
                             new LongCumulateTask(t, fn, a, org, fnc, th, l, mid);
                     }
                     else {                           // possibly refork
@@ -420,7 +420,7 @@ class ArrayPrefixHelpers {
                         int mid = (l + h) >>> 1;
                         f = rt = t.right =
                             new DoubleCumulateTask(t, fn, a, org, fnc, th, mid, h);
-                        t = lt = t.left  =
+                        t = lt = t.left =
                             new DoubleCumulateTask(t, fn, a, org, fnc, th, l, mid);
                     }
                     else {                           // possibly refork
@@ -570,7 +570,7 @@ class ArrayPrefixHelpers {
                         int mid = (l + h) >>> 1;
                         f = rt = t.right =
                             new IntCumulateTask(t, fn, a, org, fnc, th, mid, h);
-                        t = lt = t.left  =
+                        t = lt = t.left =
                             new IntCumulateTask(t, fn, a, org, fnc, th, l, mid);
                     }
                     else {                           // possibly refork
@@ -674,5 +674,4 @@ class ArrayPrefixHelpers {
         }
         private static final long serialVersionUID = 3731755594596840961L;
     }
-
 }

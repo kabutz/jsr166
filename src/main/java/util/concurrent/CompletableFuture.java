@@ -1327,7 +1327,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
             if ((a = (lo == mid ? cfs[lo] :
                       andTree(cfs, lo, mid))) == null ||
                 (b = (lo == hi ? a : (hi == mid+1) ? cfs[hi] :
-                      andTree(cfs, mid+1, hi)))  == null)
+                      andTree(cfs, mid+1, hi))) == null)
                 throw new NullPointerException();
             if (!d.biRelay(a, b)) {
                 BiRelay<?,?> c = new BiRelay<>(d, a, b);
@@ -1581,7 +1581,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
             if ((a = (lo == mid ? cfs[lo] :
                       orTree(cfs, lo, mid))) == null ||
                 (b = (lo == hi ? a : (hi == mid+1) ? cfs[hi] :
-                      orTree(cfs, mid+1, hi)))  == null)
+                      orTree(cfs, mid+1, hi))) == null)
                 throw new NullPointerException();
             if (!d.orRelay(a, b)) {
                 OrRelay<?,?> c = new OrRelay<>(d, a, b);
