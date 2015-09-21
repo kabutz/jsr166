@@ -68,9 +68,9 @@ public class AtomicBoolean implements java.io.Serializable {
      * the actual value was not equal to the expected value.
      */
     public final boolean compareAndSet(boolean expect, boolean update) {
-        int e = expect ? 1 : 0;
-        int u = update ? 1 : 0;
-        return U.compareAndSwapInt(this, VALUE, e, u);
+        return U.compareAndSwapInt(this, VALUE,
+                                   (expect ? 1 : 0),
+                                   (update ? 1 : 0));
     }
 
     /**
@@ -86,9 +86,9 @@ public class AtomicBoolean implements java.io.Serializable {
      * @return {@code true} if successful
      */
     public boolean weakCompareAndSet(boolean expect, boolean update) {
-        int e = expect ? 1 : 0;
-        int u = update ? 1 : 0;
-        return U.compareAndSwapInt(this, VALUE, e, u);
+        return U.compareAndSwapInt(this, VALUE,
+                                   (expect ? 1 : 0),
+                                   (update ? 1 : 0));
     }
 
     /**
@@ -107,8 +107,7 @@ public class AtomicBoolean implements java.io.Serializable {
      * @since 1.6
      */
     public final void lazySet(boolean newValue) {
-        int v = newValue ? 1 : 0;
-        U.putOrderedInt(this, VALUE, v);
+        U.putOrderedInt(this, VALUE, (newValue ? 1 : 0));
     }
 
     /**
