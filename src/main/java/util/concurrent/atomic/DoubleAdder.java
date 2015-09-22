@@ -199,8 +199,11 @@ public class DoubleAdder extends Striped64 implements Serializable {
         }
 
         /**
-         * @return a {@code DoubleAdder} object with initial state
+         * Returns a {@code DoubleAdder} object with initial state
          * held by this proxy.
+         *
+         * @return a {@code DoubleAdder} object with initial state
+         * held by this proxy
          */
         private Object readResolve() {
             DoubleAdder a = new DoubleAdder();

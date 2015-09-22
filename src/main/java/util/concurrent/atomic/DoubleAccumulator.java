@@ -231,8 +231,11 @@ public class DoubleAccumulator extends Striped64 implements Serializable {
         }
 
         /**
-         * @return a {@code DoubleAccumulator} object with initial state
+         * Returns a {@code DoubleAccumulator} object with initial state
          * held by this proxy.
+         *
+         * @return a {@code DoubleAccumulator} object with initial state
+         * held by this proxy
          */
         private Object readResolve() {
             double d = Double.longBitsToDouble(identity);

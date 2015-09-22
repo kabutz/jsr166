@@ -226,8 +226,11 @@ public class LongAccumulator extends Striped64 implements Serializable {
         }
 
         /**
-         * @return a {@code LongAccumulator} object with initial state
+         * Returns a {@code LongAccumulator} object with initial state
          * held by this proxy.
+         *
+         * @return a {@code LongAccumulator} object with initial state
+         * held by this proxy
          */
         private Object readResolve() {
             LongAccumulator a = new LongAccumulator(function, identity);
