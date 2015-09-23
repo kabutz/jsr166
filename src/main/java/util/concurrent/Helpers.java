@@ -10,6 +10,8 @@ import java.util.Collection;
 
 /** Shared implementation code for java.util.concurrent. */
 class Helpers {
+    private Helpers() {}                // non-instantiable
+
     /**
      * An implementation of Collection.toString() suitable for classes
      * with locks.  Instead of holding a lock for the entire duration of
@@ -63,7 +65,7 @@ class Helpers {
         }
         chars[j] = ']';
         // assert j == chars.length - 1;
-        return newStringUnsafe(chars);
+        return new String(chars);
     }
 
     /** Optimized form of: key + "=" + val */
@@ -76,7 +78,7 @@ class Helpers {
         k.getChars(0, klen, chars, 0);
         chars[klen] = '=';
         v.getChars(0, vlen, chars, klen + 1);
-        return newStringUnsafe(chars);
+        return new String(chars);
     }
 
     private static String objectToString(Object x) {
@@ -84,17 +86,4 @@ class Helpers {
         String s;
         return (x == null || (s = x.toString()) == null) ? "null" : s;
     }
-
-    /**
-     * Returns a String containing the contents of chars, which caller
-     * promises will never be modified.
-     */
-    private static String newStringUnsafe(char[] chars) {
-        // If porting to a JDK where sun.misc.SharedSecrets is not
-        // available, modify the code below to simply:
-        // return new String(chars);
-        // TODO: Can we do this more portably?
-        return sun.misc.SharedSecrets.getJavaLangAccess().newStringUnsafe(chars);
-    }
-
 }
