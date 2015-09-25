@@ -22,8 +22,10 @@ public class FlakyThreadFactory {
         test(OutOfMemoryError.class,
              new ThreadFactory() {
                 public Thread newThread(Runnable r) {
-                    // "guarantee" OutOfMemoryError
-                    return new Thread(null, r, "bloated", 1L << 60);
+                    new Thread(null, r, "a natural OOME", 1L << 60);
+                    // """On some platforms, the value of the stackSize
+                    // parameter may have no effect whatsoever."""
+                    throw new OutOfMemoryError("artificial OOME");
                 }});
         test(null,
              new ThreadFactory() {
