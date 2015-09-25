@@ -198,14 +198,15 @@ public class JSR166TestCase extends TestCase {
     }
 
     protected void runTestProfiled() throws Throwable {
-        // Warmup run, notably to trigger all needed classloading.
-        super.runTest();
-        long t0 = System.nanoTime();
-        try {
+        for (int i = 0; i < 2; i++) {
+            long startTime = System.nanoTime();
             super.runTest();
-        } finally {
-            long elapsedMillis = millisElapsedSince(t0);
-            if (elapsedMillis >= profileThreshold)
+            long elapsedMillis = millisElapsedSince(startTime);
+            if (elapsedMillis < profileThreshold)
+                break;
+            // Never report first run of any test; treat it as a
+            // warmup run, notably to trigger all needed classloading,
+            if (i > 0)
                 System.out.printf("%n%s: %d%n", toString(), elapsedMillis);
         }
     }
