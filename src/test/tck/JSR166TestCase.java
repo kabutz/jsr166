@@ -40,6 +40,7 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.RecursiveTask;
@@ -521,6 +522,13 @@ public class JSR166TestCase extends TestCase {
         setDelays();
     }
 
+    void tearDownFail(String format, Object... args) {
+        String msg = toString() + ": " + String.format(format, args);
+        System.err.println(msg);
+        printAllStackTraces();
+        throw new AssertionFailedError(msg);
+    }
+
     /**
      * Extra checks that get done for all test cases.
      *
@@ -548,7 +556,7 @@ public class JSR166TestCase extends TestCase {
         }
 
         if (Thread.interrupted())
-            throw new AssertionFailedError("interrupt status set in main thread");
+            tearDownFail("interrupt status set in main thread");
 
         checkForkJoinPoolThreadLeaks();
     }
@@ -557,7 +565,7 @@ public class JSR166TestCase extends TestCase {
      * Finds missing try { ... } finally { joinPool(e); }
      */
     void checkForkJoinPoolThreadLeaks() throws InterruptedException {
-        Thread[] survivors = new Thread[5];
+        Thread[] survivors = new Thread[7];
         int count = Thread.enumerate(survivors);
         for (int i = 0; i < count; i++) {
             Thread thread = survivors[i];
@@ -565,12 +573,15 @@ public class JSR166TestCase extends TestCase {
             if (name.startsWith("ForkJoinPool-")) {
                 // give thread some time to terminate
                 thread.join(LONG_DELAY_MS);
-                if (!thread.isAlive()) continue;
-                throw new AssertionFailedError
-                    (String.format("Found leaked ForkJoinPool thread test=%s thread=%s%n",
-                                   toString(), name));
+                if (thread.isAlive())
+                    tearDownFail("Found leaked ForkJoinPool thread thread=%s",
+                                 thread);
             }
         }
+
+        if (!ForkJoinPool.commonPool()
+            .awaitQuiescence(LONG_DELAY_MS, MILLISECONDS))
+            tearDownFail("ForkJoin common pool thread stuck");
     }
 
     /**
