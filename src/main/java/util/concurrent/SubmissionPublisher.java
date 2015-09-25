@@ -847,9 +847,8 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         }
         public final void onSubscribe(Flow.Subscription subscription) {
             this.subscription = subscription;
-            if (status.isDone())
-                subscription.cancel();
-            else
+            status.whenComplete((v, e) -> subscription.cancel());
+            if (!status.isDone())
                 subscription.request(Long.MAX_VALUE);
         }
         public final void onError(Throwable ex) {
@@ -859,15 +858,11 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
             status.complete(null);
         }
         public final void onNext(T item) {
-            if (status.isDone())
+            try {
+                consumer.accept(item);
+            } catch (Throwable ex) {
                 subscription.cancel();
-            else {
-                try {
-                    consumer.accept(item);
-                } catch (Throwable ex) {
-                    subscription.cancel();
-                    status.completeExceptionally(ex);
-                }
+                status.completeExceptionally(ex);
             }
         }
     }
@@ -999,7 +994,9 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
             this.onNextHandler = onNextHandler;
             this.maxCapacity = maxBufferCapacity;
             this.array = new Object[maxBufferCapacity < DEFAULT_INITIAL_CAP ?
-                                    maxBufferCapacity : DEFAULT_INITIAL_CAP];
+                                    (maxBufferCapacity < 2 ? // at least 2 slots
+                                     2 : maxBufferCapacity) :
+                                    DEFAULT_INITIAL_CAP];
         }
 
         final boolean isDisabled() {
