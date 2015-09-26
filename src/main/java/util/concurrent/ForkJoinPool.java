@@ -1781,8 +1781,11 @@ public class ForkJoinPool extends AbstractExecutorService {
                 if (w.scanState < 0) {           // recheck after write
                     LockSupport.park(this);
                     if ((stat = w.qlock) >= 0 && w.scanState < 0) {
-                        Thread.interrupted();    // clear status
-                        LockSupport.park(this);  // retry once
+                        Thread.interrupted();    // clear status and retry once
+                        if ((runState & STOP) != 0)
+                            stat = w.qlock = -1;
+                        else
+                            LockSupport.park(this);
                     }
                 }
                 w.parker = null;
@@ -1825,7 +1828,8 @@ public class ForkJoinPool extends AbstractExecutorService {
                         int cfg = w.config, idx = cfg & SMASK;
                         long nc = ((UC_MASK & (c - TC_UNIT)) |
                                    (SP_MASK & w.stackPred));
-                        if ((ws = workQueues) != null &&
+                        if ((runState & STOP) == 0 &&
+                            (ws = workQueues) != null &&
                             idx < ws.length && idx >= 0 && ws[idx] == w &&
                             U.compareAndSwapLong(this, CTL, c, nc)) {
                             ws[idx] = null;
