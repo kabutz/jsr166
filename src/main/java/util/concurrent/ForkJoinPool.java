@@ -1631,6 +1631,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                                                (SP_MASK & c))));
         }
         if (w != null) {
+            w.currentSteal = null;
             w.qlock = -1;                             // ensure set
             w.cancelAll();                            // cancel remaining tasks
         }
@@ -2404,12 +2405,12 @@ public class ForkJoinPool extends AbstractExecutorService {
                         break;                    // check queues
                     for (int i = 0; i <= m; ++i) {
                         if ((w = ws[i]) != null) {
-                            if ((b = w.base) != w.top ||
+                            if (((b = w.base) != w.top && !w.isEmpty()) ||
                                 w.currentSteal != null) {
-                                while ((sp = (int)(c = ctl)) != 0 &&
-                                       !tryRelease(c, ws[m & sp], AC_UNIT))
-                                    ;
-                                return false;     // arrange for recheck
+                                if ((sp = (int)(c = ctl)) == 0 ||
+                                    tryRelease(c, ws[m & sp], AC_UNIT))
+                                    return false; // arrange for recheck
+                                oldSum = 0L;      // rescan
                             }
                             checkSum += b;
                             if ((i & 1) == 0)
