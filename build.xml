@@ -57,17 +57,6 @@
   <property name="build.deprecation"    value="false"/>
   <property name="build.javadoc.access" value="protected"/>
 
-  <!-- Tck options; see JSR166TestCase.java
-   To profile a single tck test class:
-   ant -Djsr166.profileTests=true -Djsr166.profileThreshold=10 -Djsr166.tckTestClass=CompletableFutureTest tck
-   To stress test a single tck test class:
-   ant -Djsr166.tckTestClass=CountedCompleterTest -Djsr166.runsPerTest=100 tck
-  -->
-  <property name="jsr166.profileTests"     value="false"/>
-  <property name="jsr166.profileThreshold" value="100"/>
-  <property name="jsr166.runsPerTest"      value="1"/>
-  <property name="jsr166.tckTestClass"     value="JSR166TestCase"/>
-
   <!-- Build locations -->
   <property name="build.dir"                   location="build"/>
   <property name="build.classes.dir"           location="${build.dir}/classes"/>
@@ -211,6 +200,15 @@
     <pathelement location="${junit.jar}"/>
   </path>
 
+  <!-- Tck options; see JSR166TestCase.java
+   To profile a single tck test class:
+   ant -Djsr166.profileTests=true -Djsr166.profileThreshold=10 -Djsr166.tckTestClass=CompletableFutureTest tck
+   To stress test a single tck test class:
+   ant -Djsr166.tckTestClass=CountedCompleterTest -Djsr166.runsPerTest=100 tck
+   To stress test a single tck test method:
+   ant -Djsr166.tckTestClass=RecursiveTaskTest -Djsr166.runsPerTest=1000 -Djsr166.methodFilter=testAbnormalInvokeAll3 tck
+  -->
+  <property name="jsr166.tckTestClass"     value="JSR166TestCase"/>
   <macrodef name="run-tck-tests">
     <attribute name="tck.src.dir" default="${tck.src.dir}"/>
     <attribute name="target"/>
@@ -261,13 +259,11 @@
 	<jvmarg line="@{jvmflags}"/>
 
         <!-- ant -Djava.util.concurrent.ForkJoinPool.common.parallelism=1 tck -->
-	<syspropertyset id="java.util.concurrent.ForkJoinPool-properties">
+	<syspropertyset id="system-properties-used-by-tck">
 	  <propertyref prefix="java.util.concurrent.ForkJoinPool"/>
+	  <propertyref prefix="jsr166"/>
 	</syspropertyset>
 
-        <sysproperty key="jsr166.profileTests"     value="${jsr166.profileTests}"/>
-        <sysproperty key="jsr166.profileThreshold" value="${jsr166.profileThreshold}"/>
-        <sysproperty key="jsr166.runsPerTest"      value="${jsr166.runsPerTest}"/>
 	<classpath>
 	  <pathelement location="${junit.jar}"/>
 	  <pathelement location="@{workdir}/tck-classes"/>
