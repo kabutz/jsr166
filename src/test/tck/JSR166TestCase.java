@@ -186,15 +186,18 @@ public class JSR166TestCase extends TestCase {
         return (regex == null) ? null : Pattern.compile(regex);
     }
 
-    protected void runTest() throws Throwable {
+    public void runBare() throws Throwable {
         if (methodFilter == null
-            || methodFilter.matcher(toString()).find()) {
-            for (int i = 0; i < runsPerTest; i++) {
-                if (profileTests)
-                    runTestProfiled();
-                else
-                    super.runTest();
-            }
+            || methodFilter.matcher(toString()).find())
+            super.runBare();
+    }
+
+    protected void runTest() throws Throwable {
+        for (int i = 0; i < runsPerTest; i++) {
+            if (profileTests)
+                runTestProfiled();
+            else
+                super.runTest();
         }
     }
 
