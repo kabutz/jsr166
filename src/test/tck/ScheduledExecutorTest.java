@@ -651,7 +651,8 @@ public class ScheduledExecutorTest extends JSR166TestCase {
     }
 
     /**
-     * shutdownNow returns a list containing tasks that were not run
+     * shutdownNow returns a list containing tasks that were not run,
+     * and those tasks are drained from the queue
      */
     public void testShutdownNow() {
         ScheduledThreadPoolExecutor p = new ScheduledThreadPoolExecutor(1);
@@ -661,6 +662,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         try {
             List<Runnable> l = p.shutdownNow();
             assertTrue(p.isShutdown());
+            assertTrue(p.getQueue().isEmpty());
             assertEquals(5, l.size());
         } catch (SecurityException ok) {
             // Allowed in case test doesn't have privs

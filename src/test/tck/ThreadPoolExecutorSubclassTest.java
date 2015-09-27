@@ -699,7 +699,8 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
     }
 
     /**
-     * shutdownNow returns a list containing tasks that were not run
+     * shutdownNow returns a list containing tasks that were not run,
+     * and those tasks are drained from the queue
      */
     public void testShutdownNow() {
         ThreadPoolExecutor p = new CustomTPE(1, 1, LONG_DELAY_MS, MILLISECONDS, new ArrayBlockingQueue<Runnable>(10));
@@ -714,6 +715,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             } catch (SecurityException ok) { return; }
         }
         assertTrue(p.isShutdown());
+        assertTrue(p.getQueue().isEmpty());
         assertTrue(l.size() <= 4);
     }
 
