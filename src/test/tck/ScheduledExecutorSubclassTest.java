@@ -5,8 +5,10 @@
  */
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
@@ -708,21 +710,33 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * shutdownNow returns a list containing tasks that were not run,
      * and those tasks are drained from the queue
      */
-    public void testShutdownNow() {
+    public void testShutdownNow_delayedTasks() throws InterruptedException {
         CustomExecutor p = new CustomExecutor(1);
-        for (int i = 0; i < 5; i++)
-            p.schedule(new SmallPossiblyInterruptedRunnable(),
-                       LONG_DELAY_MS, MILLISECONDS);
-        try {
-            List<Runnable> l = p.shutdownNow();
-            assertTrue(p.isShutdown());
-            assertTrue(p.getQueue().isEmpty());
-            assertEquals(5, l.size());
-        } catch (SecurityException ok) {
-            // Allowed in case test doesn't have privs
-        } finally {
-            joinPool(p);
+        List<ScheduledFuture> tasks = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            Runnable r = new NoOpRunnable();
+            tasks.add(p.schedule(r, 9, SECONDS));
+            tasks.add(p.scheduleAtFixedRate(r, 9, 9, SECONDS));
+            tasks.add(p.scheduleWithFixedDelay(r, 9, 9, SECONDS));
         }
+        assertEquals(new HashSet(tasks), new HashSet(p.getQueue()));
+        final List<Runnable> queuedTasks;
+        try {
+            queuedTasks = p.shutdownNow();
+        } catch (SecurityException ok) {
+            return; // Allowed in case test doesn't have privs
+        }
+        assertTrue(p.isShutdown());
+        assertTrue(p.getQueue().isEmpty());
+        assertEquals(new HashSet(tasks), new HashSet(queuedTasks));
+        assertEquals(tasks.size(), queuedTasks.size());
+        for (ScheduledFuture task : tasks) {
+            assertFalse(((CustomTask)task).ran);
+            assertFalse(task.isDone());
+            assertFalse(task.isCancelled());
+        }
+        assertTrue(p.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
+        assertTrue(p.isTerminated());
     }
 
     /**
