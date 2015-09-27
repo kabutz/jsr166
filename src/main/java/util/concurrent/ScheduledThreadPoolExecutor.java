@@ -779,7 +779,7 @@ public class ScheduledThreadPoolExecutor
      *
      * <p>There are no guarantees beyond best-effort attempts to stop
      * processing actively executing tasks.  This implementation
-     * cancels tasks via {@link Thread#interrupt}, so any task that
+     * interrupts tasks via {@link Thread#interrupt}; any task that
      * fails to respond to interrupts may never terminate.
      *
      * @return list of tasks that never commenced execution.
