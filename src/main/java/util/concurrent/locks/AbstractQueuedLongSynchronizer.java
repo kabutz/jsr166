@@ -1617,7 +1617,7 @@ public abstract class AbstractQueuedLongSynchronizer
             if (interruptMode != 0)
                 reportInterruptAfterWait(interruptMode);
             long remaining = deadline - System.nanoTime(); // avoid overflow
-            return (remaining < initialNanos) ? remaining : Long.MIN_VALUE;
+            return (remaining <= initialNanos) ? remaining : Long.MIN_VALUE;
         }
 
         /**
