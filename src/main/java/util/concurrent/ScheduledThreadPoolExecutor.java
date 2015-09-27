@@ -770,7 +770,8 @@ public class ScheduledThreadPoolExecutor
     /**
      * Attempts to stop all actively executing tasks, halts the
      * processing of waiting tasks, and returns a list of the tasks
-     * that were awaiting execution.
+     * that were awaiting execution. These tasks are drained (removed)
+     * from the task queue upon return from this method.
      *
      * <p>This method does not wait for actively executing tasks to
      * terminate.  Use {@link #awaitTermination awaitTermination} to
