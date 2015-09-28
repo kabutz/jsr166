@@ -647,6 +647,8 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
         for (int i = 0; i < count; i++)
             p.execute(waiter);
         assertTrue(threadsStarted.await(LONG_DELAY_MS, MILLISECONDS));
+        assertEquals(poolSize, p.getActiveCount());
+        assertEquals(0, p.getCompletedTaskCount());
         final List<Runnable> queuedTasks;
         try {
             queuedTasks = p.shutdownNow();
@@ -659,6 +661,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
         assertTrue(p.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
         assertTrue(p.isTerminated());
         assertEquals(poolSize, ran.get());
+        assertEquals(poolSize, p.getCompletedTaskCount());
     }
 
     // Exception Tests
