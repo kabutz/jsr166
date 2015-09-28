@@ -1676,7 +1676,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     @SuppressWarnings("serial")
     static final class Signaller extends Completion
         implements ForkJoinPool.ManagedBlocker {
-        long nanos;                    // wait time if timed
+        long nanos;                    // remaining wait time if timed
         final long deadline;           // non-zero if timed
         volatile int interruptControl; // > 0: interruptible, < 0: interrupted
         volatile Thread thread;
