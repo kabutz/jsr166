@@ -1254,6 +1254,13 @@ public class JSR166TestCase extends TestCase {
             }};
     }
 
+    public Runnable countDowner(final CountDownLatch latch) {
+        return new CheckedRunnable() {
+            public void realRun() throws InterruptedException {
+                latch.countDown();
+            }};
+    }
+
     public Runnable awaiter(final CountDownLatch latch) {
         return new CheckedRunnable() {
             public void realRun() throws InterruptedException {

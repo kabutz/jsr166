@@ -716,7 +716,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
         final AtomicInteger ran = new AtomicInteger(0);
         final CustomExecutor p = new CustomExecutor(poolSize);
         CountDownLatch threadsStarted = new CountDownLatch(poolSize);
-        CheckedRunnable waiter = new CheckedRunnable() { public void realRun() {
+        Runnable waiter = new CheckedRunnable() { public void realRun() {
             threadsStarted.countDown();
             try {
                 MILLISECONDS.sleep(2 * LONG_DELAY_MS);
@@ -779,118 +779,97 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
     }
 
     /**
-     * In default setting, shutdown cancels periodic but not delayed
-     * tasks at shutdown
+     * By default, periodic tasks are cancelled at shutdown.
+     * By default, delayed tasks keep running after shutdown.
+     * Check that changing the default values work:
+     * - setExecuteExistingDelayedTasksAfterShutdownPolicy
+     * - setContinueExistingPeriodicTasksAfterShutdownPolicy
      */
-    public void testShutdown1() throws InterruptedException {
-        CustomExecutor p = new CustomExecutor(1);
-        assertTrue(p.getExecuteExistingDelayedTasksAfterShutdownPolicy());
-        assertFalse(p.getContinueExistingPeriodicTasksAfterShutdownPolicy());
-
-        ScheduledFuture[] tasks = new ScheduledFuture[5];
-        for (int i = 0; i < tasks.length; i++)
-            tasks[i] = p.schedule(new NoOpRunnable(),
-                                  SHORT_DELAY_MS, MILLISECONDS);
-        try { p.shutdown(); } catch (SecurityException ok) { return; }
-        BlockingQueue<Runnable> q = p.getQueue();
-        for (ScheduledFuture task : tasks) {
-            assertFalse(task.isDone());
-            assertFalse(task.isCancelled());
-            assertTrue(q.contains(task));
+    public void testShutdown_cancellation() throws Exception {
+        Boolean[] allBooleans = { null, Boolean.FALSE, Boolean.TRUE };
+        for (Boolean policy : allBooleans)
+    {
+        final int poolSize = 2;
+        final CustomExecutor p = new CustomExecutor(poolSize);
+        final boolean effectiveDelayedPolicy = (policy != Boolean.FALSE);
+        final boolean effectivePeriodicPolicy = (policy == Boolean.TRUE);
+        final boolean effectiveRemovePolicy = (policy == Boolean.TRUE);
+        if (policy != null) {
+            p.setExecuteExistingDelayedTasksAfterShutdownPolicy(policy);
+            p.setContinueExistingPeriodicTasksAfterShutdownPolicy(policy);
+            p.setRemoveOnCancelPolicy(policy);
         }
+        assertEquals(effectiveDelayedPolicy,
+                     p.getExecuteExistingDelayedTasksAfterShutdownPolicy());
+        assertEquals(effectivePeriodicPolicy,
+                     p.getContinueExistingPeriodicTasksAfterShutdownPolicy());
+        assertEquals(effectiveRemovePolicy,
+                     p.getRemoveOnCancelPolicy());
+        // Strategy: Wedge the pool with poolSize "blocker" threads
+        final AtomicInteger ran = new AtomicInteger(0);
+        final CountDownLatch poolBlocked = new CountDownLatch(poolSize);
+        final CountDownLatch unblock = new CountDownLatch(1);
+        final CountDownLatch periodicLatch1 = new CountDownLatch(2);
+        final CountDownLatch periodicLatch2 = new CountDownLatch(2);
+        Runnable task = new CheckedRunnable() { public void realRun()
+                                                    throws InterruptedException {
+            poolBlocked.countDown();
+            assertTrue(unblock.await(LONG_DELAY_MS, MILLISECONDS));
+            ran.getAndIncrement();
+        }};
+        List<Future<?>> blockers = new ArrayList<>();
+        List<Future<?>> periodics = new ArrayList<>();
+        List<Future<?>> delayeds = new ArrayList<>();
+        for (int i = 0; i < poolSize; i++)
+            blockers.add(p.submit(task));
+        assertTrue(poolBlocked.await(LONG_DELAY_MS, MILLISECONDS));
+
+        periodics.add(p.scheduleAtFixedRate(countDowner(periodicLatch1),
+                                            1, 1, MILLISECONDS));
+        periodics.add(p.scheduleWithFixedDelay(countDowner(periodicLatch2),
+                                               1, 1, MILLISECONDS));
+        delayeds.add(p.schedule(task, 1, MILLISECONDS));
+
+        assertTrue(p.getQueue().containsAll(periodics));
+        assertTrue(p.getQueue().containsAll(delayeds));
+        try { p.shutdown(); } catch (SecurityException ok) { return; }
         assertTrue(p.isShutdown());
-        assertTrue(p.awaitTermination(SMALL_DELAY_MS, MILLISECONDS));
+        assertFalse(p.isTerminated());
+        for (Future<?> periodic : periodics) {
+            assertTrue(effectivePeriodicPolicy ^ periodic.isCancelled());
+            assertTrue(effectivePeriodicPolicy ^ periodic.isDone());
+        }
+        for (Future<?> delayed : delayeds) {
+            assertTrue(effectiveDelayedPolicy ^ delayed.isCancelled());
+            assertTrue(effectiveDelayedPolicy ^ delayed.isDone());
+        }
+        if (testImplementationDetails) {
+            assertEquals(effectivePeriodicPolicy,
+                         p.getQueue().containsAll(periodics));
+            assertEquals(effectiveDelayedPolicy,
+                         p.getQueue().containsAll(delayeds));
+        }
+        // Release all pool threads
+        unblock.countDown();
+
+        for (Future<?> delayed : delayeds) {
+            if (effectiveDelayedPolicy) {
+                assertNull(delayed.get());
+            }
+        }
+        if (effectivePeriodicPolicy) {
+            assertTrue(periodicLatch1.await(LONG_DELAY_MS, MILLISECONDS));
+            assertTrue(periodicLatch2.await(LONG_DELAY_MS, MILLISECONDS));
+            for (Future<?> periodic : periodics) {
+                assertTrue(periodic.cancel(false));
+                assertTrue(periodic.isCancelled());
+                assertTrue(periodic.isDone());
+            }
+        }
+        assertTrue(p.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
         assertTrue(p.isTerminated());
-        for (ScheduledFuture task : tasks) {
-            assertTrue(task.isDone());
-            assertFalse(task.isCancelled());
-        }
-    }
-
-    /**
-     * If setExecuteExistingDelayedTasksAfterShutdownPolicy is false,
-     * delayed tasks are cancelled at shutdown
-     */
-    public void testShutdown2() throws InterruptedException {
-        CustomExecutor p = new CustomExecutor(1);
-        p.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
-        assertFalse(p.getExecuteExistingDelayedTasksAfterShutdownPolicy());
-        assertFalse(p.getContinueExistingPeriodicTasksAfterShutdownPolicy());
-        ScheduledFuture[] tasks = new ScheduledFuture[5];
-        for (int i = 0; i < tasks.length; i++)
-            tasks[i] = p.schedule(new NoOpRunnable(),
-                                  SHORT_DELAY_MS, MILLISECONDS);
-        BlockingQueue q = p.getQueue();
-        assertEquals(tasks.length, q.size());
-        try { p.shutdown(); } catch (SecurityException ok) { return; }
-        assertTrue(p.isShutdown());
-        assertTrue(q.isEmpty());
-        assertTrue(p.awaitTermination(SMALL_DELAY_MS, MILLISECONDS));
-        assertTrue(p.isTerminated());
-        for (ScheduledFuture task : tasks) {
-            assertTrue(task.isDone());
-            assertTrue(task.isCancelled());
-        }
-    }
-
-    /**
-     * If setContinueExistingPeriodicTasksAfterShutdownPolicy is set false,
-     * periodic tasks are cancelled at shutdown
-     */
-    public void testShutdown3() throws InterruptedException {
-        CustomExecutor p = new CustomExecutor(1);
-        assertTrue(p.getExecuteExistingDelayedTasksAfterShutdownPolicy());
-        assertFalse(p.getContinueExistingPeriodicTasksAfterShutdownPolicy());
-        p.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
-        assertTrue(p.getExecuteExistingDelayedTasksAfterShutdownPolicy());
-        assertFalse(p.getContinueExistingPeriodicTasksAfterShutdownPolicy());
-        long initialDelay = LONG_DELAY_MS;
-        ScheduledFuture task =
-            p.scheduleAtFixedRate(new NoOpRunnable(), initialDelay,
-                                  5, MILLISECONDS);
-        try { p.shutdown(); } catch (SecurityException ok) { return; }
-        assertTrue(p.isShutdown());
-        assertTrue(p.getQueue().isEmpty());
-        assertTrue(task.isDone());
-        assertTrue(task.isCancelled());
-        joinPool(p);
-    }
-
-    /**
-     * if setContinueExistingPeriodicTasksAfterShutdownPolicy is true,
-     * periodic tasks are not cancelled at shutdown
-     */
-    public void testShutdown4() throws InterruptedException {
-        CustomExecutor p = new CustomExecutor(1);
-        final CountDownLatch counter = new CountDownLatch(2);
-        try {
-            p.setContinueExistingPeriodicTasksAfterShutdownPolicy(true);
-            assertTrue(p.getExecuteExistingDelayedTasksAfterShutdownPolicy());
-            assertTrue(p.getContinueExistingPeriodicTasksAfterShutdownPolicy());
-            final Runnable r = new CheckedRunnable() {
-                public void realRun() {
-                    counter.countDown();
-                }};
-            ScheduledFuture task =
-                p.scheduleAtFixedRate(r, 1, 1, MILLISECONDS);
-            assertFalse(task.isDone());
-            assertFalse(task.isCancelled());
-            try { p.shutdown(); } catch (SecurityException ok) { return; }
-            assertFalse(task.isCancelled());
-            assertFalse(p.isTerminated());
-            assertTrue(p.isShutdown());
-            assertTrue(counter.await(SMALL_DELAY_MS, MILLISECONDS));
-            assertFalse(task.isCancelled());
-            assertTrue(task.cancel(false));
-            assertTrue(task.isDone());
-            assertTrue(task.isCancelled());
-            assertTrue(p.awaitTermination(SMALL_DELAY_MS, MILLISECONDS));
-            assertTrue(p.isTerminated());
-        }
-        finally {
-            joinPool(p);
-        }
-    }
+        assertEquals(2 + (effectiveDelayedPolicy ? 1 : 0), ran.get());
+    }}
 
     /**
      * completed submit of callable returns result

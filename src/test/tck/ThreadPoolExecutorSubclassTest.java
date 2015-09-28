@@ -711,7 +711,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             new CustomTPE(poolSize, poolSize, LONG_DELAY_MS, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(10));
         CountDownLatch threadsStarted = new CountDownLatch(poolSize);
-        CheckedRunnable waiter = new CheckedRunnable() { public void realRun() {
+        Runnable waiter = new CheckedRunnable() { public void realRun() {
             threadsStarted.countDown();
             try {
                 MILLISECONDS.sleep(2 * LONG_DELAY_MS);
