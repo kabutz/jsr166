@@ -30,6 +30,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -702,21 +703,36 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * shutdownNow returns a list containing tasks that were not run,
      * and those tasks are drained from the queue
      */
-    public void testShutdownNow() {
-        ThreadPoolExecutor p = new CustomTPE(1, 1, LONG_DELAY_MS, MILLISECONDS, new ArrayBlockingQueue<Runnable>(10));
-        List l;
-        try {
-            for (int i = 0; i < 5; i++)
-                p.execute(new MediumPossiblyInterruptedRunnable());
-        }
-        finally {
+    public void testShutdownNow() throws InterruptedException {
+        final int poolSize = 2;
+        final int count = 5;
+        final AtomicInteger ran = new AtomicInteger(0);
+        ThreadPoolExecutor p =
+            new CustomTPE(poolSize, poolSize, LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(10));
+        CountDownLatch threadsStarted = new CountDownLatch(poolSize);
+        CheckedRunnable waiter = new CheckedRunnable() { public void realRun() {
+            threadsStarted.countDown();
             try {
-                l = p.shutdownNow();
-            } catch (SecurityException ok) { return; }
+                MILLISECONDS.sleep(2 * LONG_DELAY_MS);
+            } catch (InterruptedException success) {}
+            ran.getAndIncrement();
+        }};
+        for (int i = 0; i < count; i++)
+            p.execute(waiter);
+        assertTrue(threadsStarted.await(LONG_DELAY_MS, MILLISECONDS));
+        final List<Runnable> queuedTasks;
+        try {
+            queuedTasks = p.shutdownNow();
+        } catch (SecurityException ok) {
+            return; // Allowed in case test doesn't have privs
         }
         assertTrue(p.isShutdown());
         assertTrue(p.getQueue().isEmpty());
-        assertTrue(l.size() <= 4);
+        assertEquals(count - poolSize, queuedTasks.size());
+        assertTrue(p.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
+        assertTrue(p.isTerminated());
+        assertEquals(poolSize, ran.get());
     }
 
     // Exception Tests

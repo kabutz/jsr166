@@ -656,6 +656,41 @@ public class ScheduledExecutorTest extends JSR166TestCase {
      * shutdownNow returns a list containing tasks that were not run,
      * and those tasks are drained from the queue
      */
+    public void testShutdownNow() throws InterruptedException {
+        final int poolSize = 2;
+        final int count = 5;
+        final AtomicInteger ran = new AtomicInteger(0);
+        final ScheduledThreadPoolExecutor p =
+            new ScheduledThreadPoolExecutor(poolSize);
+        CountDownLatch threadsStarted = new CountDownLatch(poolSize);
+        CheckedRunnable waiter = new CheckedRunnable() { public void realRun() {
+            threadsStarted.countDown();
+            try {
+                MILLISECONDS.sleep(2 * LONG_DELAY_MS);
+            } catch (InterruptedException success) {}
+            ran.getAndIncrement();
+        }};
+        for (int i = 0; i < count; i++)
+            p.execute(waiter);
+        assertTrue(threadsStarted.await(LONG_DELAY_MS, MILLISECONDS));
+        final List<Runnable> queuedTasks;
+        try {
+            queuedTasks = p.shutdownNow();
+        } catch (SecurityException ok) {
+            return; // Allowed in case test doesn't have privs
+        }
+        assertTrue(p.isShutdown());
+        assertTrue(p.getQueue().isEmpty());
+        assertEquals(count - poolSize, queuedTasks.size());
+        assertTrue(p.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
+        assertTrue(p.isTerminated());
+        assertEquals(poolSize, ran.get());
+    }
+
+    /**
+     * shutdownNow returns a list containing tasks that were not run,
+     * and those tasks are drained from the queue
+     */
     public void testShutdownNow_delayedTasks() throws InterruptedException {
         ScheduledThreadPoolExecutor p = new ScheduledThreadPoolExecutor(1);
         List<ScheduledFuture> tasks = new ArrayList<>();
