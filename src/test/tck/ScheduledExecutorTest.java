@@ -665,7 +665,8 @@ public class ScheduledExecutorTest extends JSR166TestCase {
             tasks.add(p.scheduleAtFixedRate(r, 9, 9, SECONDS));
             tasks.add(p.scheduleWithFixedDelay(r, 9, 9, SECONDS));
         }
-        assertEquals(new HashSet(tasks), new HashSet(p.getQueue()));
+        if (testImplementationDetails)
+            assertEquals(new HashSet(tasks), new HashSet(p.getQueue()));
         final List<Runnable> queuedTasks;
         try {
             queuedTasks = p.shutdownNow();
@@ -674,7 +675,8 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         }
         assertTrue(p.isShutdown());
         assertTrue(p.getQueue().isEmpty());
-        assertEquals(new HashSet(tasks), new HashSet(queuedTasks));
+        if (testImplementationDetails)
+            assertEquals(new HashSet(tasks), new HashSet(queuedTasks));
         assertEquals(tasks.size(), queuedTasks.size());
         for (ScheduledFuture task : tasks) {
             assertFalse(task.isDone());
