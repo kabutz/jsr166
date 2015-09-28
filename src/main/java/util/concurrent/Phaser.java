@@ -1087,14 +1087,10 @@ public class Phaser {
                 thread = null;
                 return true;
             }
-            if (timed) {
-                if (nanos > 0L) {
-                    nanos = deadline - System.nanoTime();
-                }
-                if (nanos <= 0L) {
-                    thread = null;
-                    return true;
-                }
+            if (timed &&
+                (nanos <= 0L || (nanos = deadline - System.nanoTime()) <= 0L)) {
+                thread = null;
+                return true;
             }
             return false;
         }
