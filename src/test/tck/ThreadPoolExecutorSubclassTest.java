@@ -101,11 +101,13 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             }
             lock.lock();
             try {
-                result = v;
-                exception = e;
-                done = true;
-                thread = null;
-                cond.signalAll();
+                if (!done) {
+                    result = v;
+                    exception = e;
+                    done = true;
+                    thread = null;
+                    cond.signalAll();
+                }
             }
             finally { lock.unlock(); }
         }
@@ -114,6 +116,8 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             try {
                 while (!done)
                     cond.await();
+                if (cancelled)
+                    throw new CancellationException();
                 if (exception != null)
                     throw new ExecutionException(exception);
                 return result;
@@ -125,12 +129,13 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             long nanos = unit.toNanos(timeout);
             lock.lock();
             try {
-                for (;;) {
-                    if (done) break;
+                while (!done) {
                     if (nanos < 0)
                         throw new TimeoutException();
                     nanos = cond.awaitNanos(nanos);
                 }
+                if (cancelled)
+                    throw new CancellationException();
                 if (exception != null)
                     throw new ExecutionException(exception);
                 return result;
@@ -1871,6 +1876,47 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             assertTrue(p.getPoolSize() >= 1);
         } finally {
             joinPool(p);
+        }
+    }
+
+    /**
+     * get(cancelled task) throws CancellationException
+     * (in part, a test of CustomTPE itself)
+     */
+    public void testGet_cancelled() throws Exception {
+        final ExecutorService e =
+            new CustomTPE(1, 1,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new LinkedBlockingQueue<Runnable>());
+        try {
+            final CountDownLatch blockerStarted = new CountDownLatch(1);
+            final CountDownLatch done = new CountDownLatch(1);
+            final List<Future<?>> futures = new ArrayList<>();
+            for (int i = 0; i < 2; i++) {
+                Runnable r = new CheckedRunnable() { public void realRun()
+                                                         throws Throwable {
+                    blockerStarted.countDown();
+                    assertTrue(done.await(2 * LONG_DELAY_MS, MILLISECONDS));
+                }};
+                futures.add(e.submit(r));
+            }
+            assertTrue(blockerStarted.await(LONG_DELAY_MS, MILLISECONDS));
+            for (Future<?> future : futures) future.cancel(false);
+            for (Future<?> future : futures) {
+                try {
+                    future.get();
+                    shouldThrow();
+                } catch (CancellationException success) {}
+                try {
+                    future.get(LONG_DELAY_MS, MILLISECONDS);
+                    shouldThrow();
+                } catch (CancellationException success) {}
+                assertTrue(future.isCancelled());
+                assertTrue(future.isDone());
+            }
+            done.countDown();
+        } finally {
+            joinPool(e);
         }
     }
 
