@@ -2058,6 +2058,8 @@ public abstract class AbstractQueuedSynchronizer
                 throws InterruptedException {
             if (Thread.interrupted())
                 throw new InterruptedException();
+            // We don't check for nanosTimeout <= 0L here, to allow
+            // awaitNanos(0) as a way to "yield the lock".
             final long deadline = System.nanoTime() + nanosTimeout;
             long initialNanos = nanosTimeout;
             Node node = addConditionWaiter();
@@ -2144,6 +2146,8 @@ public abstract class AbstractQueuedSynchronizer
             long nanosTimeout = unit.toNanos(time);
             if (Thread.interrupted())
                 throw new InterruptedException();
+            // We don't check for nanosTimeout <= 0L here, to allow
+            // await(0, unit) as a way to "yield the lock".
             final long deadline = System.nanoTime() + nanosTimeout;
             Node node = addConditionWaiter();
             int savedState = fullyRelease(node);
