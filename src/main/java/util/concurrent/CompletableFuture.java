@@ -2537,7 +2537,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     }
 
     /**
-     * Returns a new Executor that submits a task to the give base
+     * Returns a new Executor that submits a task to the given base
      * executor after the given delay (or no delay if non-positive).
      * Each delay commences upon invocation of this Executor's {@code
      * execute} method.
