@@ -297,7 +297,7 @@ public class ConcurrentSkipListSet<E>
      * @return {@code true} if this set changed as a result of the call
      * @throws ClassCastException if the class of an element of this set
      *         is incompatible with the specified collection
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     * (<a href="../Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified collection or any
      *         of its elements are null
      */
