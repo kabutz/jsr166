@@ -295,8 +295,9 @@ public class ConcurrentSkipListSet<E>
      *
      * @param  c collection containing elements to be removed from this set
      * @return {@code true} if this set changed as a result of the call
-     * @throws ClassCastException if the types of one or more elements in this
-     *         set are incompatible with the specified collection
+     * @throws ClassCastException if the class of an element of this set
+     *         is incompatible with the specified collection
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified collection or any
      *         of its elements are null
      */
