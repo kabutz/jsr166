@@ -401,8 +401,7 @@ public class CopyOnWriteArraySet<E> extends AbstractSet<E>
      *
      * <p>The spliterator provides a snapshot of the state of the set
      * when the spliterator was constructed. No synchronization is needed while
-     * operating on the spliterator. The spliterator does <em>NOT</em> support
-     * the {@code remove}, {@code set} or {@code add} methods.
+     * operating on the spliterator.
      *
      * @return a {@code Spliterator} over the elements in this set
      * @since 1.8
