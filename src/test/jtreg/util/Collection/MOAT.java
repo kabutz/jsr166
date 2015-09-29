@@ -101,7 +101,12 @@ public class MOAT {
 
         testMap(new HashMap<Integer,Integer>());
         testMap(new LinkedHashMap<Integer,Integer>());
-        testMap(new WeakHashMap<Integer,Integer>());
+
+        // TODO: Add reliable support for WeakHashMap.
+        // This test is subject to very rare failures because the GC
+        // may remove unreferenced-keys from the map at any time.
+        // testMap(new WeakHashMap<Integer,Integer>());
+
         testMap(new IdentityHashMap<Integer,Integer>());
         testMap(new TreeMap<Integer,Integer>());
         testMap(new Hashtable<Integer,Integer>());
@@ -343,6 +348,11 @@ public class MOAT {
         return true;
     }
 
+    // 6260652: (coll) Arrays.asList(x).toArray().getClass()
+    // Fixed in jdk9, but not jdk8 ...
+    static final boolean needToWorkAround6260652 =
+        Arrays.asList("").toArray().getClass() != Object[].class;
+
     private static void checkFunctionalInvariants(Collection<Integer> c) {
         try {
             checkContainsSelf(c);
@@ -358,13 +368,8 @@ public class MOAT {
             check(c.toArray().length == c.size());
             check(c.toArray().getClass() == Object[].class
                   ||
-                  // !!!!
-                  // 6260652: (coll) Arrays.asList(x).toArray().getClass()
-                  // should be Object[].class
-                  // Fixed in jdk9, but not jdk8 ...
-                  (c.getClass().getName().equals("java.util.Arrays$ArrayList"))
-                  );
-            // check(c.toArray().getClass() == Object[].class);
+                  (needToWorkAround6260652 &&
+                   c.getClass().getName().equals("java.util.Arrays$ArrayList")));
             for (int size : new int[]{0,1,c.size(), c.size()+1}) {
                 Integer[] a = c.toArray(new Integer[size]);
                 check((size > c.size()) || a.length == c.size());
