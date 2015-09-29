@@ -311,10 +311,10 @@ public class CopyOnWriteArraySet<E> extends AbstractSet<E>
      * @return {@code true} if this set changed as a result of the call
      * @throws ClassCastException if the class of an element of this set
      *         is incompatible with the specified collection
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     * (<a href="../Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if this set contains a null element and the
      *         specified collection does not permit null elements
-     * (<a href="Collection.html#optional-restrictions">optional</a>),
+     * (<a href="../Collection.html#optional-restrictions">optional</a>),
      *         or if the specified collection is null
      * @see #remove(Object)
      */
@@ -332,13 +332,12 @@ public class CopyOnWriteArraySet<E> extends AbstractSet<E>
      *
      * @param  c collection containing elements to be retained in this set
      * @return {@code true} if this set changed as a result of the call
-     * @throws ClassCastException if the types of one or more elements
-     *         in this set are incompatible with the specified collection
-     *         (<a href="#optional-restrictions">optional</a>)
-     * @throws NullPointerException if this set contains one or more
-     *         null elements and the specified collection does not permit null
-     *         elements
-     *         (<a href="#optional-restrictions">optional</a>),
+     * @throws ClassCastException if the class of an element of this set
+     *         is incompatible with the specified collection
+     * (<a href="../Collection.html#optional-restrictions">optional</a>)
+     * @throws NullPointerException if this set contains a null element and the
+     *         specified collection does not permit null elements
+     * (<a href="../Collection.html#optional-restrictions">optional</a>),
      *         or if the specified collection is null
      * @see #remove(Object)
      */
