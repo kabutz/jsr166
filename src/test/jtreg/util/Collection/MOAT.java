@@ -349,6 +349,7 @@ public class MOAT {
     }
 
     // 6260652: (coll) Arrays.asList(x).toArray().getClass()
+    //          should be Object[].class
     // Fixed in jdk9, but not jdk8 ...
     static final boolean needToWorkAround6260652 =
         Arrays.asList("").toArray().getClass() != Object[].class;
