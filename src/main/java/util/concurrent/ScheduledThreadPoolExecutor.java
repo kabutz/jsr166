@@ -797,7 +797,7 @@ public class ScheduledThreadPoolExecutor
 
     /**
      * Returns the task queue used by this executor.
-     * Each element of this list is a {@link ScheduledFuture}.
+     * Each element of this queue is a {@link ScheduledFuture}.
      * For tasks submitted via one of the {@code schedule} methods, the
      * element will be identical to the returned {@code ScheduledFuture}.
      * For tasks submitted using {@link #execute execute}, the element
