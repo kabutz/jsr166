@@ -323,10 +323,10 @@ public interface Deque<E> extends Queue<E> {
      * @return {@code true} if an element was removed as a result of this call
      * @throws ClassCastException if the class of the specified element
      *         is incompatible with this deque
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     * (<a href="{@docRoot}/../api/java/util/Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
      *         deque does not permit null elements
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     * (<a href="{@docRoot}/../api/java/util/Collection.html#optional-restrictions">optional</a>)
      */
     boolean removeFirstOccurrence(Object o);
 
@@ -342,10 +342,10 @@ public interface Deque<E> extends Queue<E> {
      * @return {@code true} if an element was removed as a result of this call
      * @throws ClassCastException if the class of the specified element
      *         is incompatible with this deque
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     * (<a href="{@docRoot}/../api/java/util/Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
      *         deque does not permit null elements
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     * (<a href="{@docRoot}/../api/java/util/Collection.html#optional-restrictions">optional</a>)
      */
     boolean removeLastOccurrence(Object o);
 
@@ -500,10 +500,10 @@ public interface Deque<E> extends Queue<E> {
      * @return {@code true} if an element was removed as a result of this call
      * @throws ClassCastException if the class of the specified element
      *         is incompatible with this deque
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     * (<a href="{@docRoot}/../api/java/util/Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
      *         deque does not permit null elements
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     * (<a href="{@docRoot}/../api/java/util/Collection.html#optional-restrictions">optional</a>)
      */
     boolean remove(Object o);
 
@@ -516,10 +516,10 @@ public interface Deque<E> extends Queue<E> {
      * @return {@code true} if this deque contains the specified element
      * @throws ClassCastException if the class of the specified element
      *         is incompatible with this deque
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     * (<a href="{@docRoot}/../api/java/util/Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
      *         deque does not permit null elements
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     * (<a href="{@docRoot}/../api/java/util/Collection.html#optional-restrictions">optional</a>)
      */
     boolean contains(Object o);
 
