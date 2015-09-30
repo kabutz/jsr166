@@ -261,7 +261,7 @@
         <!-- ant -Djava.util.concurrent.ForkJoinPool.common.parallelism=1 tck -->
 	<syspropertyset id="system-properties-used-by-tck">
 	  <propertyref prefix="java.util.concurrent.ForkJoinPool"/>
-	  <propertyref prefix="jsr166"/>
+	  <propertyref prefix="jsr166."/>
 	</syspropertyset>
 
 	<classpath>
