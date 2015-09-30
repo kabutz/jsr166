@@ -316,7 +316,7 @@
       <arg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
       <arg value="-Xoverride:${build.classes.dir}" if:set="modules"/>
       <arg value="-agentvm"/>
-      <arg value="-v:nopass,fail"/>
+      <arg value="-verbose:nopass,fail,error"/>
       <arg value="-vmoptions:-esa -ea"/>
       <arg value="-automatic"/>
       <arg value="-k:!ignore"/>
