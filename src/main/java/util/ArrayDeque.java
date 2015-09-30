@@ -899,13 +899,13 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             return t;
         }
 
-        public Spliterator<E> trySplit() {
+        public DeqSpliterator<E> trySplit() {
             int t = getFence(), h = index, n = deq.elements.length;
             if (h != t && ((h + 1) & (n - 1)) != t) {
                 if (h > t)
                     t += n;
                 int m = ((h + t) >>> 1) & (n - 1);
-                return new DeqSpliterator<>(deq, h, index = m);
+                return new DeqSpliterator<E>(deq, h, index = m);
             }
             return null;
         }

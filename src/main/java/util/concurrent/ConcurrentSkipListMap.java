@@ -3294,7 +3294,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             super(comparator, row, origin, fence, est);
         }
 
-        public Spliterator<K> trySplit() {
+        public KeySpliterator<K,V> trySplit() {
             Node<K,V> e; K ek;
             Comparator<? super K> cmp = comparator;
             K f = fence;
@@ -3382,7 +3382,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             super(comparator, row, origin, fence, est);
         }
 
-        public Spliterator<V> trySplit() {
+        public ValueSpliterator<K,V> trySplit() {
             Node<K,V> e; K ek;
             Comparator<? super K> cmp = comparator;
             K f = fence;
@@ -3469,7 +3469,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             super(comparator, row, origin, fence, est);
         }
 
-        public Spliterator<Map.Entry<K,V>> trySplit() {
+        public EntrySpliterator<K,V> trySplit() {
             Node<K,V> e; K ek;
             Comparator<? super K> cmp = comparator;
             K f = fence;

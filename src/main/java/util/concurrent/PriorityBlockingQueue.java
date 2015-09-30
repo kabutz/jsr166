@@ -924,7 +924,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
             return hi;
         }
 
-        public Spliterator<E> trySplit() {
+        public PBQSpliterator<E> trySplit() {
             int hi = getFence(), lo = index, mid = (lo + hi) >>> 1;
             return (lo >= mid) ? null :
                 new PBQSpliterator<E>(queue, array, lo, index = mid);
