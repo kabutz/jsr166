@@ -19,16 +19,18 @@ package java.util;
  * methods are designed for locating, not traversing entries.
  *
  * <p>A {@code NavigableMap} may be accessed and traversed in either
- * ascending or descending key order.  The {@code descendingMap}
+ * ascending or descending key order.  The {@link #descendingMap}
  * method returns a view of the map with the senses of all relational
  * and directional methods inverted. The performance of ascending
  * operations and views is likely to be faster than that of descending
- * ones.  Methods {@code subMap}, {@code headMap},
- * and {@code tailMap} differ from the like-named {@code
- * SortedMap} methods in accepting additional arguments describing
- * whether lower and upper bounds are inclusive versus exclusive.
- * Submaps of any {@code NavigableMap} must implement the {@code
- * NavigableMap} interface.
+ * ones.  Methods
+ * {@link #subMap(Object, boolean, Object, boolean) subMap(K, boolean, K, boolean)},
+ * {@link #headMap(Object, boolean) headMap(K, boolean)}, and
+ * {@link #tailMap(Object, boolean) tailMap(K, boolean)}
+ * differ from the like-named {@code SortedMap} methods in accepting
+ * additional arguments describing whether lower and upper bounds are
+ * inclusive versus exclusive.  Submaps of any {@code NavigableMap}
+ * must implement the {@code NavigableMap} interface.
  *
  * <p>This interface additionally defines methods {@link #firstEntry},
  * {@link #pollFirstEntry}, {@link #lastEntry}, and
@@ -51,7 +53,7 @@ package java.util;
  * implement {@code NavigableMap}, but extensions and implementations
  * of this interface are encouraged to override these methods to return
  * {@code NavigableMap}.  Similarly,
- * {@link #keySet()} can be overridden to return {@code NavigableSet}.
+ * {@link #keySet()} can be overridden to return {@link NavigableSet}.
  *
  * <p>This interface is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
