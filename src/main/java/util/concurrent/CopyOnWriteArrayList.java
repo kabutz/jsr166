@@ -1031,8 +1031,7 @@ public class CopyOnWriteArrayList<E>
      *
      * <p>The spliterator provides a snapshot of the state of the list
      * when the spliterator was constructed. No synchronization is needed while
-     * operating on the spliterator. The spliterator does <em>NOT</em> support
-     * the {@code remove}, {@code set} or {@code add} methods.
+     * operating on the spliterator.
      *
      * @return a {@code Spliterator} over the elements in this list
      * @since 1.8
