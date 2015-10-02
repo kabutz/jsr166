@@ -6,6 +6,7 @@
 
 /*
  * @test
+ * @bug 8074773
  * @summary Stress test looks for lost unparks
  */
 
@@ -22,8 +23,10 @@ import java.util.concurrent.locks.LockSupport;
 public final class ParkLoops {
     public static void main(String[] args) throws Exception {
         final int nThreads = 4; // must be power of two
-        final int iters = 2_000_000;
-        final int timeout = 3500;  // in seconds
+//         final int iters = 2_000_000;
+//         final int timeout = 3500;  // in seconds
+        final int iters = 100_000;
+        final int timeout = 100;  // in seconds
         final ExecutorService pool = Executors.newCachedThreadPool();
         final AtomicReferenceArray<Thread> threads
             = new AtomicReferenceArray<>(nThreads);
