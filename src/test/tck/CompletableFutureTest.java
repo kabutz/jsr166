@@ -898,7 +898,7 @@ public class CompletableFutureTest extends JSR166TestCase {
      * whenComplete action executes on normal completion, propagating
      * source result.
      */
-    public void testWhenComplete_normalCompletion1() {
+    public void testWhenComplete_normalCompletion() {
         for (ExecutionMode m : ExecutionMode.values())
         for (boolean createIncomplete : new boolean[] { true, false })
         for (Integer v1 : new Integer[] { 1, null })
