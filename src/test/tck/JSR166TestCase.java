@@ -7,6 +7,7 @@
  */
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 import java.io.ByteArrayInputStream;
@@ -187,7 +188,27 @@ public class JSR166TestCase extends TestCase {
         return (regex == null) ? null : Pattern.compile(regex);
     }
 
+    static volatile TestCase currentTestCase;
+    static {
+        Runnable checkForWedgedTest = new Runnable() { public void run() {
+            for (TestCase lastTestCase = currentTestCase;;) {
+                try { MINUTES.sleep(10); }
+                catch (InterruptedException unexpected) { break; }
+                if (lastTestCase == currentTestCase) {
+                    System.err.println
+                        ("Looks like we're stuck running test: "
+                         + lastTestCase);
+                    dumpTestThreads();
+                }
+                lastTestCase = currentTestCase;
+            }}};
+        Thread thread = new Thread(checkForWedgedTest, "checkForWedgedTest");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
     public void runBare() throws Throwable {
+        currentTestCase = this;
         if (methodFilter == null
             || methodFilter.matcher(toString()).find())
             super.runBare();
@@ -518,7 +539,7 @@ public class JSR166TestCase extends TestCase {
      * the same test have no effect.
      */
     public void threadRecordFailure(Throwable t) {
-        threadDump();
+        dumpTestThreads();
         threadFailure.compareAndSet(null, t);
     }
 
@@ -529,7 +550,7 @@ public class JSR166TestCase extends TestCase {
     void tearDownFail(String format, Object... args) {
         String msg = toString() + ": " + String.format(format, args);
         System.err.println(msg);
-        threadDump();
+        dumpTestThreads();
         throw new AssertionFailedError(msg);
     }
 
@@ -797,10 +818,10 @@ public class JSR166TestCase extends TestCase {
     }
 
     /**
-     * A debugging tool to print all stack traces, as jstack does.
+     * A debugging tool to print stack traces of most threads, as jstack does.
      * Uninteresting threads are filtered out.
      */
-    static void threadDump() {
+    static void dumpTestThreads() {
         ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
         System.err.println("------ stacktrace dump start ------");
         for (ThreadInfo info : threadMXBean.dumpAllThreads(true, true)) {
@@ -812,6 +833,8 @@ public class JSR166TestCase extends TestCase {
                 continue;
             if ("Finalizer".equals(name)
                 && info.getLockName().startsWith("java.lang.ref.ReferenceQueue$Lock"))
+                continue;
+            if ("checkForWedgedTest".equals(name))
                 continue;
             System.err.print(info);
         }
