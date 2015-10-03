@@ -743,9 +743,19 @@ public class JSR166TestCase extends TestCase {
     }
 
     /**
+     * Allows use of try-with-resources with per-test thread pools.
+     */
+    static class PoolCloser<T extends ExecutorService>
+            implements AutoCloseable {
+        public final T pool;
+        public PoolCloser(T pool) { this.pool = pool; }
+        public void close() { joinPool(pool); }
+    }
+
+    /**
      * Waits out termination of a thread pool or fails doing so.
      */
-    void joinPool(ExecutorService pool) {
+    static void joinPool(ExecutorService pool) {
         try {
             pool.shutdown();
             if (!pool.awaitTermination(2 * LONG_DELAY_MS, MILLISECONDS))
