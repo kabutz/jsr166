@@ -519,7 +519,7 @@ public class JSR166TestCase extends TestCase {
      * the same test have no effect.
      */
     public void threadRecordFailure(Throwable t) {
-        printAllStackTraces();
+        threadDump();
         threadFailure.compareAndSet(null, t);
     }
 
@@ -530,7 +530,7 @@ public class JSR166TestCase extends TestCase {
     void tearDownFail(String format, Object... args) {
         String msg = toString() + ": " + String.format(format, args);
         System.err.println(msg);
-        printAllStackTraces();
+        threadDump();
         throw new AssertionFailedError(msg);
     }
 
@@ -801,7 +801,7 @@ public class JSR166TestCase extends TestCase {
      * A debugging tool to print all stack traces, as jstack does.
      * Uninteresting threads are filtered out.
      */
-    static void printAllStackTraces() {
+    static void threadDump() {
         ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
         System.err.println("------ stacktrace dump start ------");
         for (ThreadInfo info : threadMXBean.dumpAllThreads(true, true)) {
