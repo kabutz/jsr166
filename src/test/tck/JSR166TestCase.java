@@ -15,6 +15,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -798,12 +799,24 @@ public class JSR166TestCase extends TestCase {
 
     /**
      * A debugging tool to print all stack traces, as jstack does.
+     * Uninteresting threads are filtered out.
      */
     static void printAllStackTraces() {
-        for (ThreadInfo info :
-                 ManagementFactory.getThreadMXBean()
-                 .dumpAllThreads(true, true))
+        ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+        System.err.println("------ stacktrace dump start ------");
+        for (ThreadInfo info : threadMXBean.dumpAllThreads(true, true)) {
+            String name = info.getThreadName();
+            if ("Signal Dispatcher".equals(name))
+                continue;
+            if ("Reference Handler".equals(name)
+                && info.getLockName().startsWith("java.lang.ref.Reference$Lock"))
+                continue;
+            if ("Finalizer".equals(name)
+                && info.getLockName().startsWith("java.lang.ref.ReferenceQueue$Lock"))
+                continue;
             System.err.print(info);
+        }
+        System.err.println("------ stacktrace dump end ------");
     }
 
     /**
