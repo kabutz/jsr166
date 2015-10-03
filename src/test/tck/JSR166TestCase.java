@@ -598,7 +598,7 @@ public class JSR166TestCase extends TestCase {
             fail(reason);
         } catch (AssertionFailedError t) {
             threadRecordFailure(t);
-            fail(reason);
+            throw t;
         }
     }
 
