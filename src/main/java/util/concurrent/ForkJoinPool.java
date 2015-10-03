@@ -982,7 +982,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         /**
          * Shared version of push. Fails if already locked.
          *
-         * @return status: > 0 locked, 0 was empty, < 0 was nonempty
+         * @return status: > 0 locked, 0 possibly was empty, < 0 was nonempty
          */
         final int sharedPush(ForkJoinTask<?> task) {
             int stat;
@@ -992,13 +992,8 @@ public class ForkJoinPool extends AbstractExecutorService {
                     al - 1 + (d = b - s) > 0) {
                     a[(al - 1) & s] = task;
                     top = s + 1;                 // relaxed writes OK here
-                    U.putOrderedInt(this, QLOCK, 0);
-                    if (d < 0)
-                        stat = d;
-                    else {
-                        U.fullFence();           // sync with signallees
-                        stat = 0;
-                    }
+                    qlock = 0;
+                    stat = (d < 0 && base - s < 0) ? d : 0;
                 }
                 else {
                     growAndSharedPush(task);
@@ -2403,21 +2398,21 @@ public class ForkJoinPool extends AbstractExecutorService {
                         return false;             // still active workers
                     if ((ws = workQueues) == null || (m = ws.length - 1) < 0)
                         break;                    // check queues
+                    boolean clean = true;
                     for (int i = 0; i <= m; ++i) {
                         if ((w = ws[i]) != null) {
-                            if (((b = w.base) != w.top && !w.isEmpty()) ||
-                                w.currentSteal != null) {
+                            checkSum += (b = w.base);
+                            if ((i & 1) == 0)
+                                w.qlock = -1;     // try to disable external
+                            if (w.currentSteal != null || b != w.top) {
                                 if ((sp = (int)(c = ctl)) == 0 ||
                                     tryRelease(c, ws[m & sp], AC_UNIT))
                                     return false; // arrange for recheck
-                                oldSum = 0L;      // rescan
+                                clean = false;    // rescan
                             }
-                            checkSum += b;
-                            if ((i & 1) == 0)
-                                w.qlock = -1;     // try to disable external
                         }
                     }
-                    if (oldSum == (oldSum = checkSum))
+                    if (clean && oldSum == (oldSum = checkSum))
                         break;
                 }
             }
@@ -2544,7 +2539,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 r = ThreadLocalRandom.advanceProbe(r);
         }
     }
-
+    
     /**
      * Pushes a possibly-external submission.
      */
