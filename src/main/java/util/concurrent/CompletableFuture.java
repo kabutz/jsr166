@@ -1678,12 +1678,13 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         implements ForkJoinPool.ManagedBlocker {
         long nanos;                    // remaining wait time if timed
         final long deadline;           // non-zero if timed
-        volatile int interruptControl; // > 0: interruptible, < 0: interrupted
+        final boolean interruptible;
+        boolean interrupted;
         volatile Thread thread;
 
         Signaller(boolean interruptible, long nanos, long deadline) {
             this.thread = Thread.currentThread();
-            this.interruptControl = interruptible ? 1 : 0;
+            this.interruptible = interruptible;
             this.nanos = nanos;
             this.deadline = deadline;
         }
@@ -1696,29 +1697,22 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
             return null;
         }
         public boolean isReleasable() {
-            if (thread == null)
-                return true;
-            if (Thread.interrupted()) {
-                int i = interruptControl;
-                interruptControl = -1;
-                if (i > 0)
-                    return true;
-            }
-            if (deadline != 0L &&
-                (nanos <= 0L || (nanos = deadline - System.nanoTime()) <= 0L)) {
-                thread = null;
-                return true;
-            }
-            return false;
+            if (Thread.interrupted())
+                interrupted = true;
+            return ((interrupted && interruptible) ||
+                    (deadline != 0L &&
+                     (nanos <= 0L ||
+                      (nanos = deadline - System.nanoTime()) <= 0L)) ||
+                    thread == null);
         }
         public boolean block() {
-            if (isReleasable())
-                return true;
-            else if (deadline == 0L)
-                LockSupport.park(this);
-            else if (nanos > 0L)
-                LockSupport.parkNanos(this, nanos);
-            return isReleasable();
+            while (!isReleasable()) {
+                if (deadline == 0L)
+                    LockSupport.park(this);
+                else
+                    LockSupport.parkNanos(this, nanos);
+            }
+            return true;
         }
         final boolean isLive() { return thread != null; }
     }
@@ -1744,29 +1738,27 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
                 q = new Signaller(interruptible, 0L, 0L);
             else if (!queued)
                 queued = tryPushStack(q);
-            else if (interruptible && q.interruptControl < 0) {
-                q.thread = null;
-                cleanStack();
-                return null;
-            }
-            else if (q.thread != null && result == null) {
+            else {
                 try {
                     ForkJoinPool.managedBlock(q);
                 } catch (InterruptedException ie) {
-                    q.interruptControl = -1;
+                    q.interrupted = true;
                 }
+                if (q.interrupted && interruptible)
+                    break;
             }
         }
         if (q != null) {
             q.thread = null;
-            if (q.interruptControl < 0) {
+            if (q.interrupted) {
                 if (interruptible)
-                    r = null; // report interruption
+                    cleanStack();
                 else
                     Thread.currentThread().interrupt();
             }
         }
-        postComplete();
+        if (r != null)
+            postComplete();
         return r;
     }
 
@@ -1777,37 +1769,39 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     private Object timedGet(long nanos) throws TimeoutException {
         if (Thread.interrupted())
             return null;
-        if (nanos <= 0L)
-            throw new TimeoutException();
-        long d = System.nanoTime() + nanos;
-        Signaller q = new Signaller(true, nanos, d == 0L ? 1L : d); // avoid 0
-        boolean queued = false;
-        Object r;
-        // We intentionally don't spin here (as waitingGet does) because
-        // the call to nanoTime() above acts much like a spin.
-        while ((r = result) == null) {
-            if (!queued)
-                queued = tryPushStack(q);
-            else if (q.interruptControl < 0 || q.nanos <= 0L) {
-                q.thread = null;
-                cleanStack();
-                if (q.interruptControl < 0)
-                    return null;
-                throw new TimeoutException();
-            }
-            else if (q.thread != null && result == null) {
-                try {
-                    ForkJoinPool.managedBlock(q);
-                } catch (InterruptedException ie) {
-                    q.interruptControl = -1;
+        if (nanos > 0L) {
+            long d = System.nanoTime() + nanos;
+            long deadline = (d == 0L) ? 1L : d; // avoid 0
+            Signaller q = null;
+            boolean queued = false;
+            Object r;
+            while ((r = result) == null) { // similar to untimed, without spins
+                if (q == null)
+                    q = new Signaller(true, nanos, deadline);
+                else if (!queued)
+                    queued = tryPushStack(q);
+                else if (q.nanos <= 0)
+                    break;
+                else {
+                    try {
+                        ForkJoinPool.managedBlock(q);
+                    } catch (InterruptedException ie) {
+                        q.interrupted = true;
+                    }
+                    if (q.interrupted)
+                        break;
                 }
             }
+            if (q != null)
+                q.thread = null;
+            if (r != null)
+                postComplete();
+            else
+                cleanStack();
+            if (r != null || (q != null && q.interrupted))
+                return r;
         }
-        if (q.interruptControl < 0)
-            r = null;
-        q.thread = null;
-        postComplete();
-        return r;
+        throw new TimeoutException();
     }
 
     /* ------------- public methods -------------- */
