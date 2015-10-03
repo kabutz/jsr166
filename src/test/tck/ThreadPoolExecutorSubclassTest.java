@@ -1749,7 +1749,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             l.add(new StringTask());
             l.add(new StringTask());
             List<Future<String>> futures =
-                e.invokeAll(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAll(l, LONG_DELAY_MS, MILLISECONDS);
             assertEquals(2, futures.size());
             for (Future<String> future : futures)
                 assertSame(TEST_STRING, future.get());
