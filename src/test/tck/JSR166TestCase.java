@@ -541,6 +541,7 @@ public class JSR166TestCase extends TestCase {
      * the same test have no effect.
      */
     public void threadRecordFailure(Throwable t) {
+        System.err.println(t);
         dumpTestThreads();
         threadFailure.compareAndSet(null, t);
     }
@@ -769,7 +770,7 @@ public class JSR166TestCase extends TestCase {
     /**
      * Allows use of try-with-resources with per-test thread pools.
      */
-    static class PoolCloser<T extends ExecutorService>
+    class PoolCloser<T extends ExecutorService>
             implements AutoCloseable {
         public final T pool;
         public PoolCloser(T pool) { this.pool = pool; }
@@ -779,16 +780,23 @@ public class JSR166TestCase extends TestCase {
     /**
      * Waits out termination of a thread pool or fails doing so.
      */
-    static void joinPool(ExecutorService pool) {
+    void joinPool(ExecutorService pool) {
         try {
             pool.shutdown();
-            if (!pool.awaitTermination(2 * LONG_DELAY_MS, MILLISECONDS))
-                fail("ExecutorService " + pool +
-                     " did not terminate in a timely manner");
+            if (!pool.awaitTermination(2 * LONG_DELAY_MS, MILLISECONDS)) {
+                try {
+                    threadFail("ExecutorService " + pool +
+                               " did not terminate in a timely manner");
+                } finally {
+                    // last resort, for the benefit of subsequent tests
+                    pool.shutdownNow();
+                    pool.awaitTermination(SMALL_DELAY_MS, MILLISECONDS);
+                }
+            }
         } catch (SecurityException ok) {
             // Allowed in case test doesn't have privs
         } catch (InterruptedException fail) {
-            fail("Unexpected InterruptedException");
+            threadFail("Unexpected InterruptedException");
         }
     }
 
@@ -860,7 +868,7 @@ public class JSR166TestCase extends TestCase {
             delay(millis);
             assertTrue(thread.isAlive());
         } catch (InterruptedException fail) {
-            fail("Unexpected InterruptedException");
+            threadFail("Unexpected InterruptedException");
         }
     }
 
@@ -882,7 +890,7 @@ public class JSR166TestCase extends TestCase {
             for (Thread thread : threads)
                 assertTrue(thread.isAlive());
         } catch (InterruptedException fail) {
-            fail("Unexpected InterruptedException");
+            threadFail("Unexpected InterruptedException");
         }
     }
 
