@@ -519,6 +519,7 @@ public class JSR166TestCase extends TestCase {
      * the same test have no effect.
      */
     public void threadRecordFailure(Throwable t) {
+        printAllStackTraces();
         threadFailure.compareAndSet(null, t);
     }
 
