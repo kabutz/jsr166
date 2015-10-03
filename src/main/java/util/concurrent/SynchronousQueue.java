@@ -157,9 +157,6 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
         abstract E transfer(E e, boolean timed, long nanos);
     }
 
-    /** The number of CPUs, for spin control */
-    static final int NCPUS = Runtime.getRuntime().availableProcessors();
-
     /**
      * The number of times to spin before blocking in timed waits.
      * The value is empirically derived -- it works well across a
@@ -167,7 +164,8 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
      * seems not to vary with number of CPUs (beyond 2) so is just
      * a constant.
      */
-    static final int MAX_TIMED_SPINS = (NCPUS < 2) ? 0 : 32;
+    static final int MAX_TIMED_SPINS =
+        (Runtime.getRuntime().availableProcessors() < 2) ? 0 : 32;
 
     /**
      * The number of times to spin before blocking in untimed waits.
