@@ -841,8 +841,10 @@ public class ForkJoinPool extends AbstractExecutorService {
                 top = s + 1;
                 ForkJoinPool p = pool;
                 U.storeFence();          // ensure fields written
-                if ((d = b - s) == 0 && p != null)
+                if (((d = b - s) == 0 || b != base) && p != null) {
+                    U.fullFence();
                     p.signalWork();
+                }
                 else if (al + d == 1)
                     growArray();
             }
@@ -993,7 +995,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                     a[(al - 1) & s] = task;
                     top = s + 1;                 // relaxed writes OK here
                     qlock = 0;
-                    stat = (d < 0 && base - s < 0) ? d : 0;
+                    stat = (d < 0 && b == base) ? d : 0;
                 }
                 else {
                     growAndSharedPush(task);
