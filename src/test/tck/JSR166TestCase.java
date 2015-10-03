@@ -778,8 +778,9 @@ public class JSR166TestCase extends TestCase {
      * necessarily individually slow because they must block.
      */
     void testInParallel(Action ... actions) {
-        ExecutorService pool = Executors.newCachedThreadPool();
-        try {
+        try (PoolCloser<ExecutorService> poolCloser
+             = new PoolCloser<>(Executors.newCachedThreadPool())) {
+            ExecutorService pool = poolCloser.pool;
             ArrayList<Future<?>> futures = new ArrayList<>(actions.length);
             for (final Action action : actions)
                 futures.add(pool.submit(new CheckedRunnable() {
@@ -792,8 +793,6 @@ public class JSR166TestCase extends TestCase {
                 } catch (Exception ex) {
                     threadUnexpectedException(ex);
                 }
-        } finally {
-            joinPool(pool);
         }
     }
 
