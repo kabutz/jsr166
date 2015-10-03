@@ -191,8 +191,10 @@ public class JSR166TestCase extends TestCase {
     static volatile TestCase currentTestCase;
     static {
         Runnable checkForWedgedTest = new Runnable() { public void run() {
+            // avoid spurious reports with enormous runsPerTest
+            final int timeoutMinutes = Math.max(runsPerTest / 10, 1);
             for (TestCase lastTestCase = currentTestCase;;) {
-                try { MINUTES.sleep(10); }
+                try { MINUTES.sleep(timeoutMinutes); }
                 catch (InterruptedException unexpected) { break; }
                 if (lastTestCase == currentTestCase) {
                     System.err.println
