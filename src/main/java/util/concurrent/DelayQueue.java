@@ -187,7 +187,7 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
                     available.await();
                 else {
                     long delay = first.getDelay(NANOSECONDS);
-                    if (delay <= 0)
+                    if (delay <= 0L)
                         return q.poll();
                     first = null; // don't retain ref while waiting
                     if (leader != null)
@@ -229,15 +229,15 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
             for (;;) {
                 E first = q.peek();
                 if (first == null) {
-                    if (nanos <= 0)
+                    if (nanos <= 0L)
                         return null;
                     else
                         nanos = available.awaitNanos(nanos);
                 } else {
                     long delay = first.getDelay(NANOSECONDS);
-                    if (delay <= 0)
+                    if (delay <= 0L)
                         return q.poll();
-                    if (nanos <= 0)
+                    if (nanos <= 0L)
                         return null;
                     first = null; // don't retain ref while waiting
                     if (nanos < delay || leader != null)

@@ -565,7 +565,7 @@ public class ScheduledThreadPoolExecutor
                                                   TimeUnit unit) {
         if (command == null || unit == null)
             throw new NullPointerException();
-        if (period <= 0)
+        if (period <= 0L)
             throw new IllegalArgumentException();
         ScheduledFutureTask<Void> sft =
             new ScheduledFutureTask<Void>(command,
@@ -590,7 +590,7 @@ public class ScheduledThreadPoolExecutor
                                                      TimeUnit unit) {
         if (command == null || unit == null)
             throw new NullPointerException();
-        if (delay <= 0)
+        if (delay <= 0L)
             throw new IllegalArgumentException();
         ScheduledFutureTask<Void> sft =
             new ScheduledFutureTask<Void>(command,
@@ -1095,7 +1095,7 @@ public class ScheduledThreadPoolExecutor
                         available.await();
                     else {
                         long delay = first.getDelay(NANOSECONDS);
-                        if (delay <= 0)
+                        if (delay <= 0L)
                             return finishPoll(first);
                         first = null; // don't retain ref while waiting
                         if (leader != null)
@@ -1128,15 +1128,15 @@ public class ScheduledThreadPoolExecutor
                 for (;;) {
                     RunnableScheduledFuture<?> first = queue[0];
                     if (first == null) {
-                        if (nanos <= 0)
+                        if (nanos <= 0L)
                             return null;
                         else
                             nanos = available.awaitNanos(nanos);
                     } else {
                         long delay = first.getDelay(NANOSECONDS);
-                        if (delay <= 0)
+                        if (delay <= 0L)
                             return finishPoll(first);
-                        if (nanos <= 0)
+                        if (nanos <= 0L)
                             return null;
                         first = null; // don't retain ref while waiting
                         if (nanos < delay || leader != null)

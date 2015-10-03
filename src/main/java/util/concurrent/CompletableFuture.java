@@ -1780,7 +1780,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
                     q = new Signaller(true, nanos, deadline);
                 else if (!queued)
                     queued = tryPushStack(q);
-                else if (q.nanos <= 0)
+                else if (q.nanos <= 0L)
                     break;
                 else {
                     try {

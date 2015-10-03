@@ -130,7 +130,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             lock.lock();
             try {
                 while (!done) {
-                    if (nanos <= 0)
+                    if (nanos <= 0L)
                         throw new TimeoutException();
                     nanos = cond.awaitNanos(nanos);
                 }

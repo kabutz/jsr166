@@ -675,7 +675,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 @SuppressWarnings("unchecked") E itemE = (E) item;
                 return itemE;
             }
-            else if (w.isInterrupted() || (timed && nanos <= 0)) {
+            else if (w.isInterrupted() || (timed && nanos <= 0L)) {
                 unsplice(pred, s);           // try to unlink and cancel
                 if (s.casItem(e, s))         // return normally if lost CAS
                     return e;

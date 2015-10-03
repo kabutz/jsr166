@@ -324,7 +324,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
             for (;;) {
                 SNode h = head;
                 if (h == null || h.mode == mode) {  // empty or same-mode
-                    if (timed && nanos <= 0) {      // can't wait
+                    if (timed && nanos <= 0L) {     // can't wait
                         if (h != null && h.isCancelled())
                             casHead(h, h.next);     // pop cancelled node
                         else
@@ -652,7 +652,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
                         advanceTail(t, tn);
                         continue;
                     }
-                    if (timed && nanos <= 0)        // can't wait
+                    if (timed && nanos <= 0L)       // can't wait
                         return null;
                     if (s == null)
                         s = new QNode(e, isData);

@@ -678,7 +678,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 s.forgetContents();           // avoid garbage
                 return LinkedTransferQueue.<E>cast(item);
             }
-            if ((w.isInterrupted() || (timed && nanos <= 0)) &&
+            if ((w.isInterrupted() || (timed && nanos <= 0L)) &&
                     s.casItem(e, s)) {        // cancel
                 unsplice(pred, s);
                 return e;

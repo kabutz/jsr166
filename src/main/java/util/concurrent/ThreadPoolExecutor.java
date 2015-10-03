@@ -1445,7 +1445,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         mainLock.lock();
         try {
             while (!runStateAtLeast(ctl.get(), TERMINATED)) {
-                if (nanos <= 0)
+                if (nanos <= 0L)
                     return false;
                 nanos = termination.awaitNanos(nanos);
             }
