@@ -461,7 +461,6 @@ public class JSR166TestCase extends TestCase {
         } else {
             return new TestSuite();
         }
-
     }
 
     // Delays for timing-dependent tests, in milliseconds.
