@@ -1961,7 +1961,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                     else {
                         q.base = b;
                         w.currentSteal = t;
-                        if (d != -1)               // propagate signal
+                        if (d != -1 || b != q.top) // propagate signal
                             signalWork();
                         w.runTask(t);
                         if (++npolls > bound)
