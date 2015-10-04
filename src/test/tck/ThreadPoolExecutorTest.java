@@ -119,7 +119,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                     assertEquals(1, p.getActiveCount());
                     done.await();
                 }});
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(1, p.getActiveCount());
         } finally {
             done.countDown();
@@ -418,7 +418,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                     assertEquals(1, p.getTaskCount());
                     done.await();
                 }});
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(1, p.getTaskCount());
         } finally {
             done.countDown();
@@ -488,7 +488,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                     threadStarted.countDown();
                     done.await();
                 }});
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertFalse(p.isTerminating());
             done.countDown();
         } finally {
@@ -516,7 +516,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                     threadStarted.countDown();
                     done.await();
                 }});
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertFalse(p.isTerminating());
             done.countDown();
         } finally {
@@ -551,7 +551,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                 tasks[i] = new FutureTask(task);
                 p.execute(tasks[i]);
             }
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertSame(q, p.getQueue());
             assertFalse(q.contains(tasks[0]));
             assertTrue(q.contains(tasks[tasks.length - 1]));
@@ -583,7 +583,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                     }};
                 p.execute(tasks[i]);
             }
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertFalse(p.remove(tasks[0]));
             assertTrue(q.contains(tasks[4]));
             assertTrue(q.contains(tasks[3]));
@@ -622,7 +622,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                 tasks[i] = new FutureTask(task);
                 p.execute(tasks[i]);
             }
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(tasks.length, p.getTaskCount());
             assertEquals(tasks.length - 1, q.size());
             assertEquals(1L, p.getActiveCount());
@@ -1044,7 +1044,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                     p.submit(task).get();
                 }});
 
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             t.interrupt();
             awaitTermination(t, MEDIUM_DELAY_MS);
         } finally {

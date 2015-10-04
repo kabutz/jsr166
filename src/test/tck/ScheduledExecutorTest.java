@@ -334,7 +334,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     assertEquals(1, p.getActiveCount());
                     done.await();
                 }});
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(1, p.getActiveCount());
         } finally {
             done.countDown();
@@ -427,7 +427,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     assertEquals(1, p.getPoolSize());
                     done.await();
                 }});
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(1, p.getPoolSize());
         } finally {
             done.countDown();
@@ -452,7 +452,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                         threadStarted.countDown();
                         done.await();
                     }});
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(TASKS, p.getTaskCount());
         } finally {
             done.countDown();
@@ -525,7 +525,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     threadStarted.countDown();
                     done.await();
                 }});
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertFalse(p.isTerminating());
             done.countDown();
         } finally {
@@ -550,7 +550,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     threadStarted.countDown();
                     done.await();
                 }});
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertFalse(p.isTerminating());
             done.countDown();
         } finally {
@@ -578,7 +578,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     }};
                 tasks[i] = p.schedule(r, 1, MILLISECONDS);
             }
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             BlockingQueue<Runnable> q = p.getQueue();
             assertTrue(q.contains(tasks[tasks.length - 1]));
             assertFalse(q.contains(tasks[0]));
@@ -605,7 +605,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     }};
                 tasks[i] = p.schedule(r, 1, MILLISECONDS);
             }
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             BlockingQueue<Runnable> q = p.getQueue();
             assertFalse(p.remove((Runnable)tasks[0]));
             assertTrue(q.contains((Runnable)tasks[4]));
