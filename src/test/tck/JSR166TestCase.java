@@ -1318,11 +1318,22 @@ public class JSR166TestCase extends TestCase {
             }};
     }
 
-    public Runnable awaiter(final CountDownLatch latch) {
-        return new CheckedRunnable() {
-            public void realRun() throws InterruptedException {
-                await(latch);
-            }};
+    class LatchAwaiter extends CheckedRunnable {
+        final static int NEW = 0;
+        final static int RUNNING = 1;
+        final static int DONE = 2;
+        final CountDownLatch latch;
+        int state = NEW;
+        LatchAwaiter(CountDownLatch latch) { this.latch = latch; }
+        public void realRun() throws InterruptedException {
+            state = 1;
+            await(latch);
+            state = 2;
+        }
+    }
+    
+    public LatchAwaiter awaiter(CountDownLatch latch) {
+        return new LatchAwaiter(latch);
     }
 
     public void await(CountDownLatch latch) {

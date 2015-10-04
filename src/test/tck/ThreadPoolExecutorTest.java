@@ -1184,25 +1184,30 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * executor using DiscardOldestPolicy drops oldest task if saturated.
      */
     public void testSaturatedExecute4() {
-        RejectedExecutionHandler h = new ThreadPoolExecutor.DiscardOldestPolicy();
+        final CountDownLatch done = new CountDownLatch(1);
+        LatchAwaiter r1 = awaiter(done);
+        LatchAwaiter r2 = awaiter(done);
+        LatchAwaiter r3 = awaiter(done);
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1),
-                                   h);
-        try {
-            p.execute(new TrackedLongRunnable());
-            TrackedLongRunnable r2 = new TrackedLongRunnable();
+                                   new ThreadPoolExecutor.DiscardOldestPolicy());
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertEquals(LatchAwaiter.NEW, r1.state);
+            assertEquals(LatchAwaiter.NEW, r2.state);
+            assertEquals(LatchAwaiter.NEW, r3.state);
+            p.execute(r1);
             p.execute(r2);
             assertTrue(p.getQueue().contains(r2));
-            TrackedNoOpRunnable r3 = new TrackedNoOpRunnable();
             p.execute(r3);
             assertFalse(p.getQueue().contains(r2));
             assertTrue(p.getQueue().contains(r3));
-            try { p.shutdownNow(); } catch (SecurityException ok) { return; }
-        } finally {
-            joinPool(p);
+            done.countDown();
         }
+        assertEquals(LatchAwaiter.DONE, r1.state);
+        assertEquals(LatchAwaiter.NEW, r2.state);
+        assertEquals(LatchAwaiter.DONE, r3.state);
     }
 
     /**
