@@ -753,7 +753,8 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
         final int count = 5;
         final AtomicInteger ran = new AtomicInteger(0);
         final ThreadPoolExecutor p =
-            new CustomTPE(poolSize, poolSize, LONG_DELAY_MS, MILLISECONDS,
+            new CustomTPE(poolSize, poolSize,
+                          LONG_DELAY_MS, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(10));
         CountDownLatch threadsStarted = new CountDownLatch(poolSize);
         Runnable waiter = new CheckedRunnable() { public void realRun() {
@@ -1322,15 +1323,15 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      */
     public void testCorePoolSizeIllegalArgumentException() {
         final ThreadPoolExecutor p =
-            new CustomTPE(1,2,LONG_DELAY_MS, MILLISECONDS,new ArrayBlockingQueue<Runnable>(10));
-        try {
-            p.setCorePoolSize(-1);
-            shouldThrow();
-        } catch (IllegalArgumentException success) {
-        } finally {
-            try { p.shutdown(); } catch (SecurityException ok) { return; }
+            new CustomTPE(1, 2,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(10));
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.setCorePoolSize(-1);
+                shouldThrow();
+            } catch (IllegalArgumentException success) {}
         }
-        joinPool(p);
     }
 
     /**
@@ -1339,7 +1340,9 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      */
     public void testMaximumPoolSizeIllegalArgumentException() {
         final ThreadPoolExecutor p =
-            new CustomTPE(2,3,LONG_DELAY_MS, MILLISECONDS,new ArrayBlockingQueue<Runnable>(10));
+            new CustomTPE(2, 3,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(10));
         try {
             p.setMaximumPoolSize(1);
             shouldThrow();
@@ -1356,7 +1359,9 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      */
     public void testMaximumPoolSizeIllegalArgumentException2() {
         final ThreadPoolExecutor p =
-            new CustomTPE(2,3,LONG_DELAY_MS, MILLISECONDS,new ArrayBlockingQueue<Runnable>(10));
+            new CustomTPE(2, 3,
+                          LONG_DELAY_MS,
+                          MILLISECONDS,new ArrayBlockingQueue<Runnable>(10));
         try {
             p.setMaximumPoolSize(-1);
             shouldThrow();
@@ -1373,7 +1378,9 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      */
     public void testKeepAliveTimeIllegalArgumentException() {
         final ThreadPoolExecutor p =
-            new CustomTPE(2,3,LONG_DELAY_MS, MILLISECONDS,new ArrayBlockingQueue<Runnable>(10));
+            new CustomTPE(2, 3,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(10));
 
         try {
             p.setKeepAliveTime(-1,MILLISECONDS);

@@ -1305,14 +1305,12 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
-            p.setCorePoolSize(-1);
-            shouldThrow();
-        } catch (IllegalArgumentException success) {
-        } finally {
-            try { p.shutdown(); } catch (SecurityException ok) { return; }
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.setCorePoolSize(-1);
+                shouldThrow();
+            } catch (IllegalArgumentException success) {}
         }
-        joinPool(p);
     }
 
     /**
