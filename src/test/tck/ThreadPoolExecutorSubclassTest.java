@@ -1151,24 +1151,28 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * executor using CallerRunsPolicy runs task if saturated.
      */
     public void testSaturatedExecute2() {
-        RejectedExecutionHandler h = new CustomTPE.CallerRunsPolicy();
-        ThreadPoolExecutor p = new CustomTPE(1, 1,
-                                             LONG_DELAY_MS, MILLISECONDS,
-                                             new ArrayBlockingQueue<Runnable>(1),
-                                             h);
-        try {
+        final ThreadPoolExecutor p =
+            new CustomTPE(1, 1,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(1),
+                          new CustomTPE.CallerRunsPolicy());
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch done = new CountDownLatch(1);
+            Runnable blocker = new CheckedRunnable() {
+                public void realRun() throws InterruptedException {
+                    done.await();
+                }};
+            p.execute(blocker);
             TrackedNoOpRunnable[] tasks = new TrackedNoOpRunnable[5];
-            for (int i = 0; i < tasks.length; ++i)
+            for (int i = 0; i < tasks.length; i++)
                 tasks[i] = new TrackedNoOpRunnable();
-            TrackedLongRunnable mr = new TrackedLongRunnable();
-            p.execute(mr);
-            for (int i = 0; i < tasks.length; ++i)
+            for (int i = 0; i < tasks.length; i++)
                 p.execute(tasks[i]);
-            for (int i = 1; i < tasks.length; ++i)
+            for (int i = 1; i < tasks.length; i++)
                 assertTrue(tasks[i].done);
-            try { p.shutdownNow(); } catch (SecurityException ok) { return; }
-        } finally {
-            joinPool(p);
+            // tasks[0] is waiting in queue
+            assertFalse(tasks[0].done);
+            done.countDown();
         }
     }
 
