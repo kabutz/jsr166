@@ -87,16 +87,12 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        final CountDownLatch done = new CountDownLatch(1);
-        final Runnable task = new CheckedRunnable() {
-            public void realRun() {
-                done.countDown();
-            }};
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch done = new CountDownLatch(1);
+            final Runnable task = new CheckedRunnable() {
+                public void realRun() { done.countDown(); }};
             p.execute(task);
-            assertTrue(done.await(SMALL_DELAY_MS, MILLISECONDS));
-        } finally {
-            joinPool(p);
+            assertTrue(done.await(LONG_DELAY_MS, MILLISECONDS));
         }
     }
 
@@ -109,9 +105,9 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadStarted = new CountDownLatch(1);
+            final CountDownLatch done = new CountDownLatch(1);
             assertEquals(0, p.getActiveCount());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
@@ -121,9 +117,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                 }});
             assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(1, p.getActiveCount());
-        } finally {
             done.countDown();
-            joinPool(p);
         }
     }
 
