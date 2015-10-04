@@ -749,22 +749,20 @@ public class JSR166TestCase extends TestCase {
     /**
      * Delays, via Thread.sleep, for the given millisecond delay, but
      * if the sleep is shorter than specified, may re-sleep or yield
-     * until time elapses.
+     * until time elapses.  Ensures that the given time, as measured
+     * by System.nanoTime(), has elapsed.
      */
     static void delay(long millis) throws InterruptedException {
-        long startTime = System.nanoTime();
-        long ns = millis * 1000 * 1000;
-        for (;;) {
+        long nanos = millis * (1000 * 1000);
+        final long wakeupTime = System.nanoTime() + nanos;
+        do {
             if (millis > 0L)
                 Thread.sleep(millis);
             else // too short to sleep
                 Thread.yield();
-            long d = ns - (System.nanoTime() - startTime);
-            if (d > 0L)
-                millis = d / (1000 * 1000);
-            else
-                break;
-        }
+            nanos = wakeupTime - System.nanoTime();
+            millis = nanos / (1000 * 1000);
+        } while (nanos >= 0L);
     }
 
     /**
