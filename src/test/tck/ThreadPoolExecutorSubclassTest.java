@@ -1253,9 +1253,11 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * execute using CallerRunsPolicy drops task on shutdown
      */
     public void testCallerRunsOnShutdown() {
-        RejectedExecutionHandler h = new CustomTPE.CallerRunsPolicy();
-        ThreadPoolExecutor p = new CustomTPE(1,1, LONG_DELAY_MS, MILLISECONDS, new ArrayBlockingQueue<Runnable>(1), h);
-
+        final ThreadPoolExecutor p =
+            new CustomTPE(1, 1,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(1),
+                          new CustomTPE.CallerRunsPolicy());
         try { p.shutdown(); } catch (SecurityException ok) { return; }
         try (PoolCleaner cleaner = cleaner(p)) {
             TrackedNoOpRunnable r = new TrackedNoOpRunnable();
@@ -1268,16 +1270,16 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * execute using DiscardPolicy drops task on shutdown
      */
     public void testDiscardOnShutdown() {
-        RejectedExecutionHandler h = new CustomTPE.DiscardPolicy();
-        ThreadPoolExecutor p = new CustomTPE(1,1, LONG_DELAY_MS, MILLISECONDS, new ArrayBlockingQueue<Runnable>(1), h);
-
+        final ThreadPoolExecutor p =
+            new CustomTPE(1, 1,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(1),
+                          new CustomTPE.DiscardPolicy());
         try { p.shutdown(); } catch (SecurityException ok) { return; }
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
             TrackedNoOpRunnable r = new TrackedNoOpRunnable();
             p.execute(r);
             assertFalse(r.done);
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -1285,16 +1287,17 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * execute using DiscardOldestPolicy drops task on shutdown
      */
     public void testDiscardOldestOnShutdown() {
-        RejectedExecutionHandler h = new CustomTPE.DiscardOldestPolicy();
-        ThreadPoolExecutor p = new CustomTPE(1,1, LONG_DELAY_MS, MILLISECONDS, new ArrayBlockingQueue<Runnable>(1), h);
+        final ThreadPoolExecutor p =
+            new CustomTPE(1, 1,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(1),
+                          new CustomTPE.DiscardOldestPolicy());
 
         try { p.shutdown(); } catch (SecurityException ok) { return; }
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
             TrackedNoOpRunnable r = new TrackedNoOpRunnable();
             p.execute(r);
             assertFalse(r.done);
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -1302,15 +1305,16 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * execute(null) throws NPE
      */
     public void testExecuteNull() {
-        ThreadPoolExecutor p =
-            new CustomTPE(1, 2, 1L, SECONDS,
+        final ThreadPoolExecutor p =
+            new CustomTPE(1, 2,
+                          1L, SECONDS,
                           new ArrayBlockingQueue<Runnable>(10));
-        try {
-            p.execute(null);
-            shouldThrow();
-        } catch (NullPointerException success) {}
-
-        joinPool(p);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.execute(null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
+        }
     }
 
     /**

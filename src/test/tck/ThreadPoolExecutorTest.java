@@ -1249,20 +1249,17 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * execute using DiscardPolicy drops task on shutdown
      */
     public void testDiscardOnShutdown() {
-        RejectedExecutionHandler h = new ThreadPoolExecutor.DiscardPolicy();
-        ThreadPoolExecutor p =
+        final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1),
-                                   h);
+                                   new ThreadPoolExecutor.DiscardPolicy());
 
         try { p.shutdown(); } catch (SecurityException ok) { return; }
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
             TrackedNoOpRunnable r = new TrackedNoOpRunnable();
             p.execute(r);
             assertFalse(r.done);
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -1270,20 +1267,17 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * execute using DiscardOldestPolicy drops task on shutdown
      */
     public void testDiscardOldestOnShutdown() {
-        RejectedExecutionHandler h = new ThreadPoolExecutor.DiscardOldestPolicy();
-        ThreadPoolExecutor p =
+        final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1),
-                                   h);
+                                   new ThreadPoolExecutor.DiscardOldestPolicy());
 
         try { p.shutdown(); } catch (SecurityException ok) { return; }
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
             TrackedNoOpRunnable r = new TrackedNoOpRunnable();
             p.execute(r);
             assertFalse(r.done);
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -1291,15 +1285,16 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * execute(null) throws NPE
      */
     public void testExecuteNull() {
-        ThreadPoolExecutor p =
-            new ThreadPoolExecutor(1, 2, 1L, SECONDS,
+        final ThreadPoolExecutor p =
+            new ThreadPoolExecutor(1, 2,
+                                   1L, SECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
-            p.execute(null);
-            shouldThrow();
-        } catch (NullPointerException success) {}
-
-        joinPool(p);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.execute(null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
+        }
     }
 
     /**
