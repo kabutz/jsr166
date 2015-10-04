@@ -306,10 +306,11 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        RejectedExecutionHandler h = new NoOpREHandler();
-        p.setRejectedExecutionHandler(h);
-        assertSame(h, p.getRejectedExecutionHandler());
-        joinPool(p);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            RejectedExecutionHandler handler = new NoOpREHandler();
+            p.setRejectedExecutionHandler(handler);
+            assertSame(handler, p.getRejectedExecutionHandler());
+        }
     }
 
     /**

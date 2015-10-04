@@ -427,14 +427,14 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * getRejectedExecutionHandler returns handler in constructor if not set
      */
     public void testGetRejectedExecutionHandler() {
-        final RejectedExecutionHandler h = new NoOpREHandler();
+        final RejectedExecutionHandler handler = new NoOpREHandler();
         final ThreadPoolExecutor p =
             new CustomTPE(1, 2,
                           LONG_DELAY_MS, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(10),
-                          h);
+                          handler);
         try (PoolCleaner cleaner = cleaner(p)) {
-            assertSame(h, p.getRejectedExecutionHandler());
+            assertSame(handler, p.getRejectedExecutionHandler());
         }
     }
 
@@ -443,11 +443,15 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * getRejectedExecutionHandler
      */
     public void testSetRejectedExecutionHandler() {
-        ThreadPoolExecutor p = new CustomTPE(1,2,LONG_DELAY_MS, MILLISECONDS, new ArrayBlockingQueue<Runnable>(10));
-        RejectedExecutionHandler h = new NoOpREHandler();
-        p.setRejectedExecutionHandler(h);
-        assertSame(h, p.getRejectedExecutionHandler());
-        joinPool(p);
+        final ThreadPoolExecutor p =
+            new CustomTPE(1, 2,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(10));
+        try (PoolCleaner cleaner = cleaner(p)) {
+            RejectedExecutionHandler handler = new NoOpREHandler();
+            p.setRejectedExecutionHandler(handler);
+            assertSame(handler, p.getRejectedExecutionHandler());
+        }
     }
 
     /**
