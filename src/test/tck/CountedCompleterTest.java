@@ -49,7 +49,7 @@ public class CountedCompleterTest extends JSR166TestCase {
     }
 
     private void testInvokeOnPool(ForkJoinPool pool, ForkJoinTask a) {
-        try {
+        try (PoolCleaner cleaner = cleaner(pool)) {
             assertFalse(a.isDone());
             assertFalse(a.isCompletedNormally());
             assertFalse(a.isCompletedAbnormally());
@@ -65,8 +65,6 @@ public class CountedCompleterTest extends JSR166TestCase {
             assertFalse(a.isCancelled());
             assertNull(a.getException());
             assertNull(a.getRawResult());
-        } finally {
-            joinPool(pool);
         }
     }
 

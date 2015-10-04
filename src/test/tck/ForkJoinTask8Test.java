@@ -74,7 +74,7 @@ public class ForkJoinTask8Test extends JSR166TestCase {
     }
 
     private void testInvokeOnPool(ForkJoinPool pool, RecursiveAction a) {
-        try {
+        try (PoolCleaner cleaner = cleaner(pool)) {
             assertFalse(a.isDone());
             assertFalse(a.isCompletedNormally());
             assertFalse(a.isCompletedAbnormally());
@@ -90,8 +90,6 @@ public class ForkJoinTask8Test extends JSR166TestCase {
             assertFalse(a.isCancelled());
             assertNull(a.getException());
             assertNull(a.getRawResult());
-        } finally {
-            joinPool(pool);
         }
     }
 
@@ -1165,31 +1163,29 @@ public class ForkJoinTask8Test extends JSR166TestCase {
         final ForkJoinTask b = ForkJoinTask.adapt(awaiter(done));
         final ForkJoinTask c = ForkJoinTask.adapt(awaiter(done));
         final ForkJoinPool p = singletonPool();
-        Thread external = new Thread(new CheckedRunnable() {
-            public void realRun() {
-                p.execute(a);
-                p.execute(b);
-                p.execute(c);
-            }});
-        RecursiveAction s = new CheckedRecursiveAction() {
-            protected void realCompute() {
-                external.start();
-                try {
-                    external.join();
-                } catch (Exception ex) {
-                    threadUnexpectedException(ex);
-                }
-                assertTrue(p.hasQueuedSubmissions());
-                assertTrue(Thread.currentThread() instanceof ForkJoinWorkerThread);
-                ForkJoinTask r = ForkJoinTask.pollSubmission();
-                assertTrue(r == a || r == b || r == c);
-                assertFalse(r.isDone());
-            }};
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            Thread external = new Thread(new CheckedRunnable() {
+                public void realRun() {
+                    p.execute(a);
+                    p.execute(b);
+                    p.execute(c);
+                }});
+            RecursiveAction s = new CheckedRecursiveAction() {
+                protected void realCompute() {
+                    external.start();
+                    try {
+                        external.join();
+                    } catch (Exception ex) {
+                        threadUnexpectedException(ex);
+                    }
+                    assertTrue(p.hasQueuedSubmissions());
+                    assertTrue(Thread.currentThread() instanceof ForkJoinWorkerThread);
+                    ForkJoinTask r = ForkJoinTask.pollSubmission();
+                    assertTrue(r == a || r == b || r == c);
+                    assertFalse(r.isDone());
+                }};
             p.invoke(s);
-        } finally {
             done.countDown();
-            joinPool(p);
         }
     }
 

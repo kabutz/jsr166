@@ -590,7 +590,7 @@ public class JSR166TestCase extends TestCase {
     }
 
     /**
-     * Finds missing try { ... } finally { joinPool(e); }
+     * Finds missing PoolCleaners
      */
     void checkForkJoinPoolThreadLeaks() throws InterruptedException {
         Thread[] survivors = new Thread[7];
