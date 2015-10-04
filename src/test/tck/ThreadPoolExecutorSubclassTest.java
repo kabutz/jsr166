@@ -1170,8 +1170,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                 p.execute(tasks[i]);
             for (int i = 1; i < tasks.length; i++)
                 assertTrue(tasks[i].done);
-            // tasks[0] is waiting in queue
-            assertFalse(tasks[0].done);
+            assertFalse(tasks[0].done); // waiting in queue
             done.countDown();
         }
     }
@@ -1180,25 +1179,27 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * executor using DiscardPolicy drops task if saturated.
      */
     public void testSaturatedExecute3() {
-        RejectedExecutionHandler h = new CustomTPE.DiscardPolicy();
-        ThreadPoolExecutor p =
+        final TrackedNoOpRunnable[] tasks = new TrackedNoOpRunnable[5];
+        for (int i = 0; i < tasks.length; ++i)
+            tasks[i] = new TrackedNoOpRunnable();
+        final ThreadPoolExecutor p =
             new CustomTPE(1, 1,
                           LONG_DELAY_MS, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(1),
-                          h);
-        try {
-            TrackedNoOpRunnable[] tasks = new TrackedNoOpRunnable[5];
-            for (int i = 0; i < tasks.length; ++i)
-                tasks[i] = new TrackedNoOpRunnable();
-            p.execute(new TrackedLongRunnable());
+                          new CustomTPE.DiscardPolicy());
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch done = new CountDownLatch(1);
+            p.execute(awaiter(done));
+
             for (TrackedNoOpRunnable task : tasks)
                 p.execute(task);
-            for (TrackedNoOpRunnable task : tasks)
-                assertFalse(task.done);
-            try { p.shutdownNow(); } catch (SecurityException ok) { return; }
-        } finally {
-            joinPool(p);
+            for (int i = 1; i < tasks.length; i++)
+                assertFalse(tasks[i].done);
+            done.countDown();
         }
+        for (int i = 1; i < tasks.length; i++)
+            assertFalse(tasks[i].done);
+        assertTrue(tasks[0].done); // was waiting in queue
     }
 
     /**
