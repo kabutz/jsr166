@@ -603,22 +603,32 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
     public void testTimedInvokeAll6() throws Exception {
         ExecutorService e = new DirectExecutorService();
         try {
-            long timeout = timeoutMillis();
-            List<Callable<String>> tasks = new ArrayList<>();
-            tasks.add(new StringTask("0"));
-            tasks.add(Executors.callable(possiblyInterruptedRunnable(timeout),
-                                         TEST_STRING));
-            tasks.add(new StringTask("2"));
-            long startTime = System.nanoTime();
-            List<Future<String>> futures =
-                e.invokeAll(tasks, timeout, MILLISECONDS);
-            assertEquals(tasks.size(), futures.size());
-            assertTrue(millisElapsedSince(startTime) >= timeout);
-            for (Future future : futures)
-                assertTrue(future.isDone());
-            assertEquals("0", futures.get(0).get());
-            assertEquals(TEST_STRING, futures.get(1).get());
-            assertTrue(futures.get(2).isCancelled());
+            for (long timeout = timeoutMillis();;) {
+                List<Callable<String>> tasks = new ArrayList<>();
+                tasks.add(new StringTask("0"));
+                tasks.add(Executors.callable(possiblyInterruptedRunnable(timeout),
+                                             TEST_STRING));
+                tasks.add(new StringTask("2"));
+                long startTime = System.nanoTime();
+                List<Future<String>> futures =
+                    e.invokeAll(tasks, timeout, MILLISECONDS);
+                assertEquals(tasks.size(), futures.size());
+                assertTrue(millisElapsedSince(startTime) >= timeout);
+                for (Future future : futures)
+                    assertTrue(future.isDone());
+                try {
+                    assertEquals("0", futures.get(0).get());
+                    assertEquals(TEST_STRING, futures.get(1).get());
+                } catch (CancellationException retryWithLongerTimeout) {
+                    // unusual delay before starting second task
+                    timeout *= 2;
+                    if (timeout >= LONG_DELAY_MS / 2)
+                        fail("expected exactly one task to be cancelled");
+                    continue;
+                }
+                assertTrue(futures.get(2).isCancelled());
+                break;
+            }
         } finally {
             joinPool(e);
         }
