@@ -1238,12 +1238,10 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                                    new ArrayBlockingQueue<Runnable>(1), h);
 
         try { p.shutdown(); } catch (SecurityException ok) { return; }
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
             TrackedNoOpRunnable r = new TrackedNoOpRunnable();
             p.execute(r);
             assertFalse(r.done);
-        } finally {
-            joinPool(p);
         }
     }
 
