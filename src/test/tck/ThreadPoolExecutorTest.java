@@ -132,17 +132,25 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      */
     public void testPrestartCoreThread() {
         final ThreadPoolExecutor p =
-            new ThreadPoolExecutor(2, 2,
+            new ThreadPoolExecutor(2, 6,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        assertEquals(0, p.getPoolSize());
-        assertTrue(p.prestartCoreThread());
-        assertEquals(1, p.getPoolSize());
-        assertTrue(p.prestartCoreThread());
-        assertEquals(2, p.getPoolSize());
-        assertFalse(p.prestartCoreThread());
-        assertEquals(2, p.getPoolSize());
-        joinPool(p);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertEquals(0, p.getPoolSize());
+            assertTrue(p.prestartCoreThread());
+            assertEquals(1, p.getPoolSize());
+            assertTrue(p.prestartCoreThread());
+            assertEquals(2, p.getPoolSize());
+            assertFalse(p.prestartCoreThread());
+            assertEquals(2, p.getPoolSize());
+            p.setCorePoolSize(4);
+            assertTrue(p.prestartCoreThread());
+            assertEquals(3, p.getPoolSize());
+            assertTrue(p.prestartCoreThread());
+            assertEquals(4, p.getPoolSize());
+            assertFalse(p.prestartCoreThread());
+            assertEquals(4, p.getPoolSize());
+        }
     }
 
     /**
