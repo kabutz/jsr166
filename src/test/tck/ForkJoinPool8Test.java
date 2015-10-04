@@ -1489,7 +1489,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      */
     public void testAwaitQuiescence1() throws Exception {
         final ForkJoinPool p = new ForkJoinPool();
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
             final long startTime = System.nanoTime();
             assertTrue(p.isQuiescent());
             ForkJoinTask a = new CheckedRecursiveAction() {
@@ -1530,8 +1530,6 @@ public class ForkJoinPool8Test extends JSR166TestCase {
             assertFalse(p.isShutdown());
             assertFalse(p.isTerminating());
             assertFalse(p.isTerminated());
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -1549,7 +1547,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
              "java.util.concurrent.ForkJoinPool.common.parallelism")))
             return;
         final ForkJoinPool p = new ForkJoinPool();
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
             assertTrue(p.isQuiescent());
             final long startTime = System.nanoTime();
             ForkJoinTask a = new CheckedRecursiveAction() {
@@ -1582,8 +1580,6 @@ public class ForkJoinPool8Test extends JSR166TestCase {
             assertFalse(p.isShutdown());
             assertFalse(p.isTerminating());
             assertFalse(p.isTerminated());
-        } finally {
-            joinPool(p);
         }
     }
 
