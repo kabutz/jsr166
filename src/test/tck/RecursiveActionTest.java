@@ -46,14 +46,12 @@ public class RecursiveActionTest extends JSR166TestCase {
     }
 
     private void testInvokeOnPool(ForkJoinPool pool, RecursiveAction a) {
-        try {
+        try (PoolCleaner cleaner = cleaner(pool)) {
             checkNotDone(a);
 
             assertNull(pool.invoke(a));
 
             checkCompletedNormally(a);
-        } finally {
-            joinPool(pool);
         }
     }
 
