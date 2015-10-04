@@ -367,9 +367,13 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * getKeepAliveTime returns value given in constructor if not otherwise set
      */
     public void testGetKeepAliveTime() {
-        ThreadPoolExecutor p = new CustomTPE(2, 2, 1000, MILLISECONDS, new ArrayBlockingQueue<Runnable>(10));
-        assertEquals(1, p.getKeepAliveTime(SECONDS));
-        joinPool(p);
+        ThreadPoolExecutor p =
+            new CustomTPE(2, 2,
+                          1000, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(10));
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertEquals(1, p.getKeepAliveTime(SECONDS));
+        }
     }
 
     /**
