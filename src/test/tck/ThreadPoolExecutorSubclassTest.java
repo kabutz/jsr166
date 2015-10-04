@@ -354,7 +354,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * getCorePoolSize returns size given in constructor if not otherwise set
      */
     public void testGetCorePoolSize() {
-        ThreadPoolExecutor p =
+        final ThreadPoolExecutor p =
             new CustomTPE(1, 1,
                           LONG_DELAY_MS, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(10));
@@ -367,7 +367,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * getKeepAliveTime returns value given in constructor if not otherwise set
      */
     public void testGetKeepAliveTime() {
-        ThreadPoolExecutor p =
+        final ThreadPoolExecutor p =
             new CustomTPE(2, 2,
                           1000, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(10));
@@ -380,8 +380,8 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * getThreadFactory returns factory in constructor if not set
      */
     public void testGetThreadFactory() {
-        ThreadFactory threadFactory = new SimpleThreadFactory();
-        ThreadPoolExecutor p =
+        final ThreadFactory threadFactory = new SimpleThreadFactory();
+        final ThreadPoolExecutor p =
             new CustomTPE(1, 2,
                           LONG_DELAY_MS, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(10),
@@ -396,7 +396,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * setThreadFactory sets the thread factory returned by getThreadFactory
      */
     public void testSetThreadFactory() {
-        ThreadPoolExecutor p =
+        final ThreadPoolExecutor p =
             new CustomTPE(1, 2,
                           LONG_DELAY_MS, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(10));
@@ -411,7 +411,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * setThreadFactory(null) throws NPE
      */
     public void testSetThreadFactoryNull() {
-        ThreadPoolExecutor p =
+        final ThreadPoolExecutor p =
             new CustomTPE(1, 2,
                           LONG_DELAY_MS, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(10));
@@ -427,10 +427,15 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * getRejectedExecutionHandler returns handler in constructor if not set
      */
     public void testGetRejectedExecutionHandler() {
-        RejectedExecutionHandler h = new NoOpREHandler();
-        ThreadPoolExecutor p = new CustomTPE(1,2,LONG_DELAY_MS, MILLISECONDS, new ArrayBlockingQueue<Runnable>(10), h);
-        assertSame(h, p.getRejectedExecutionHandler());
-        joinPool(p);
+        final RejectedExecutionHandler h = new NoOpREHandler();
+        final ThreadPoolExecutor p =
+            new CustomTPE(1, 2,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(10),
+                          h);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertSame(h, p.getRejectedExecutionHandler());
+        }
     }
 
     /**

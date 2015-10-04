@@ -286,14 +286,15 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * getRejectedExecutionHandler returns handler in constructor if not set
      */
     public void testGetRejectedExecutionHandler() {
-        final RejectedExecutionHandler h = new NoOpREHandler();
+        final RejectedExecutionHandler handler = new NoOpREHandler();
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10),
-                                   h);
-        assertSame(h, p.getRejectedExecutionHandler());
-        joinPool(p);
+                                   handler);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertSame(handler, p.getRejectedExecutionHandler());
+        }
     }
 
     /**
