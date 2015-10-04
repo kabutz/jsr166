@@ -411,13 +411,15 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * setThreadFactory(null) throws NPE
      */
     public void testSetThreadFactoryNull() {
-        ThreadPoolExecutor p = new CustomTPE(1,2,LONG_DELAY_MS, MILLISECONDS, new ArrayBlockingQueue<Runnable>(10));
-        try {
-            p.setThreadFactory(null);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(p);
+        ThreadPoolExecutor p =
+            new CustomTPE(1, 2,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(10));
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.setThreadFactory(null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 

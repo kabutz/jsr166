@@ -274,12 +274,11 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
-            p.setThreadFactory(null);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(p);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.setThreadFactory(null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
