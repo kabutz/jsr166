@@ -99,17 +99,13 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * execute successfully executes a runnable
      */
     public void testExecute() throws InterruptedException {
-        CustomExecutor p = new CustomExecutor(1);
-        final CountDownLatch done = new CountDownLatch(1);
-        final Runnable task = new CheckedRunnable() {
-            public void realRun() {
-                done.countDown();
-            }};
-        try {
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch done = new CountDownLatch(1);
+            final Runnable task = new CheckedRunnable() {
+                public void realRun() { done.countDown(); }};
             p.execute(task);
-            assertTrue(done.await(SMALL_DELAY_MS, MILLISECONDS));
-        } finally {
-            joinPool(p);
+            assertTrue(done.await(LONG_DELAY_MS, MILLISECONDS));
         }
     }
 
@@ -117,10 +113,10 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * delayed schedule of callable successfully executes after delay
      */
     public void testSchedule1() throws Exception {
-        CustomExecutor p = new CustomExecutor(1);
-        final long startTime = System.nanoTime();
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final long startTime = System.nanoTime();
+            final CountDownLatch done = new CountDownLatch(1);
             Callable task = new CheckedCallable<Boolean>() {
                 public Boolean realCall() {
                     done.countDown();
@@ -131,8 +127,6 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             assertSame(Boolean.TRUE, f.get());
             assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
             assertTrue(done.await(0L, MILLISECONDS));
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -140,10 +134,10 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * delayed schedule of runnable successfully executes after delay
      */
     public void testSchedule3() throws Exception {
-        CustomExecutor p = new CustomExecutor(1);
-        final long startTime = System.nanoTime();
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final long startTime = System.nanoTime();
+            final CountDownLatch done = new CountDownLatch(1);
             Runnable task = new CheckedRunnable() {
                 public void realRun() {
                     done.countDown();
@@ -153,8 +147,6 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             await(done);
             assertNull(f.get(LONG_DELAY_MS, MILLISECONDS));
             assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -162,10 +154,10 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * scheduleAtFixedRate executes runnable after given initial delay
      */
     public void testSchedule4() throws InterruptedException {
-        CustomExecutor p = new CustomExecutor(1);
-        final long startTime = System.nanoTime();
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final long startTime = System.nanoTime();
+            final CountDownLatch done = new CountDownLatch(1);
             Runnable task = new CheckedRunnable() {
                 public void realRun() {
                     done.countDown();
@@ -177,8 +169,6 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             await(done);
             assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
             f.cancel(true);
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -186,10 +176,10 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * scheduleWithFixedDelay executes runnable after given initial delay
      */
     public void testSchedule5() throws InterruptedException {
-        CustomExecutor p = new CustomExecutor(1);
-        final long startTime = System.nanoTime();
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final long startTime = System.nanoTime();
+            final CountDownLatch done = new CountDownLatch(1);
             Runnable task = new CheckedRunnable() {
                 public void realRun() {
                     done.countDown();
@@ -201,8 +191,6 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             await(done);
             assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
             f.cancel(true);
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -215,8 +203,8 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * scheduleAtFixedRate executes series of tasks at given rate
      */
     public void testFixedRateSequence() throws InterruptedException {
-        CustomExecutor p = new CustomExecutor(1);
-        try {
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
             for (int delay = 1; delay <= LONG_DELAY_MS; delay *= 3) {
                 long startTime = System.nanoTime();
                 int cycles = 10;
@@ -234,8 +222,6 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                     return;
             }
             throw new AssertionError("unexpected execution rate");
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -243,8 +229,8 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * scheduleWithFixedDelay executes series of tasks with given period
      */
     public void testFixedDelaySequence() throws InterruptedException {
-        CustomExecutor p = new CustomExecutor(1);
-        try {
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
             for (int delay = 1; delay <= LONG_DELAY_MS; delay *= 3) {
                 long startTime = System.nanoTime();
                 int cycles = 10;
@@ -262,8 +248,6 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                     return;
             }
             throw new AssertionError("unexpected execution rate");
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -271,106 +255,107 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * execute(null) throws NPE
      */
     public void testExecuteNull() throws InterruptedException {
-        CustomExecutor se = new CustomExecutor(1);
-        try {
-            se.execute(null);
-            shouldThrow();
-        } catch (NullPointerException success) {}
-        joinPool(se);
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.execute(null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
+        }
     }
 
     /**
      * schedule(null) throws NPE
      */
     public void testScheduleNull() throws InterruptedException {
-        CustomExecutor se = new CustomExecutor(1);
-        try {
-            TrackedCallable callable = null;
-            Future f = se.schedule(callable, SHORT_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (NullPointerException success) {}
-        joinPool(se);
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                TrackedCallable callable = null;
+                Future f = p.schedule(callable, SHORT_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (NullPointerException success) {}
+        }
     }
 
     /**
      * execute throws RejectedExecutionException if shutdown
      */
     public void testSchedule1_RejectedExecutionException() {
-        CustomExecutor se = new CustomExecutor(1);
-        try {
-            se.shutdown();
-            se.schedule(new NoOpRunnable(),
-                        MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (RejectedExecutionException success) {
-        } catch (SecurityException ok) {
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.shutdown();
+                p.schedule(new NoOpRunnable(),
+                           MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (RejectedExecutionException success) {
+            } catch (SecurityException ok) {}
         }
-
-        joinPool(se);
     }
 
     /**
      * schedule throws RejectedExecutionException if shutdown
      */
     public void testSchedule2_RejectedExecutionException() {
-        CustomExecutor se = new CustomExecutor(1);
-        try {
-            se.shutdown();
-            se.schedule(new NoOpCallable(),
-                        MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (RejectedExecutionException success) {
-        } catch (SecurityException ok) {
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.shutdown();
+                p.schedule(new NoOpCallable(),
+                           MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (RejectedExecutionException success) {
+            } catch (SecurityException ok) {}
         }
-        joinPool(se);
     }
 
     /**
      * schedule callable throws RejectedExecutionException if shutdown
      */
     public void testSchedule3_RejectedExecutionException() {
-        CustomExecutor se = new CustomExecutor(1);
-        try {
-            se.shutdown();
-            se.schedule(new NoOpCallable(),
-                        MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (RejectedExecutionException success) {
-        } catch (SecurityException ok) {
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.shutdown();
+                p.schedule(new NoOpCallable(),
+                           MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (RejectedExecutionException success) {
+            } catch (SecurityException ok) {}
         }
-        joinPool(se);
     }
 
     /**
      * scheduleAtFixedRate throws RejectedExecutionException if shutdown
      */
     public void testScheduleAtFixedRate1_RejectedExecutionException() {
-        CustomExecutor se = new CustomExecutor(1);
-        try {
-            se.shutdown();
-            se.scheduleAtFixedRate(new NoOpRunnable(),
-                                   MEDIUM_DELAY_MS, MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (RejectedExecutionException success) {
-        } catch (SecurityException ok) {
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.shutdown();
+                p.scheduleAtFixedRate(new NoOpRunnable(),
+                                      MEDIUM_DELAY_MS, MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (RejectedExecutionException success) {
+            } catch (SecurityException ok) {}
         }
-        joinPool(se);
     }
 
     /**
      * scheduleWithFixedDelay throws RejectedExecutionException if shutdown
      */
     public void testScheduleWithFixedDelay1_RejectedExecutionException() {
-        CustomExecutor se = new CustomExecutor(1);
-        try {
-            se.shutdown();
-            se.scheduleWithFixedDelay(new NoOpRunnable(),
-                                      MEDIUM_DELAY_MS, MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (RejectedExecutionException success) {
-        } catch (SecurityException ok) {
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.shutdown();
+                p.scheduleWithFixedDelay(new NoOpRunnable(),
+                                         MEDIUM_DELAY_MS, MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (RejectedExecutionException success) {
+            } catch (SecurityException ok) {}
         }
-        joinPool(se);
     }
 
     /**
@@ -379,9 +364,9 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      */
     public void testGetActiveCount() throws InterruptedException {
         final ThreadPoolExecutor p = new CustomExecutor(2);
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadStarted = new CountDownLatch(1);
+            final CountDownLatch done = new CountDownLatch(1);
             assertEquals(0, p.getActiveCount());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
@@ -391,9 +376,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                 }});
             assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(1, p.getActiveCount());
-        } finally {
             done.countDown();
-            joinPool(p);
         }
     }
 
@@ -403,10 +386,10 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      */
     public void testGetCompletedTaskCount() throws InterruptedException {
         final ThreadPoolExecutor p = new CustomExecutor(2);
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        final CountDownLatch threadProceed = new CountDownLatch(1);
-        final CountDownLatch threadDone = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadStarted = new CountDownLatch(1);
+            final CountDownLatch threadProceed = new CountDownLatch(1);
+            final CountDownLatch threadDone = new CountDownLatch(1);
             assertEquals(0, p.getCompletedTaskCount());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
@@ -425,8 +408,6 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                     fail("timed out");
                 Thread.yield();
             }
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -434,9 +415,10 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * getCorePoolSize returns size given in constructor if not otherwise set
      */
     public void testGetCorePoolSize() {
-        CustomExecutor p = new CustomExecutor(1);
-        assertEquals(1, p.getCorePoolSize());
-        joinPool(p);
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertEquals(1, p.getCorePoolSize());
+        }
     }
 
     /**
@@ -446,9 +428,9 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
     public void testGetLargestPoolSize() throws InterruptedException {
         final int THREADS = 3;
         final ThreadPoolExecutor p = new CustomExecutor(THREADS);
-        final CountDownLatch threadsStarted = new CountDownLatch(THREADS);
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadsStarted = new CountDownLatch(THREADS);
+            final CountDownLatch done = new CountDownLatch(1);
             assertEquals(0, p.getLargestPoolSize());
             for (int i = 0; i < THREADS; i++)
                 p.execute(new CheckedRunnable() {
@@ -459,11 +441,9 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                     }});
             assertTrue(threadsStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(THREADS, p.getLargestPoolSize());
-        } finally {
             done.countDown();
-            joinPool(p);
-            assertEquals(THREADS, p.getLargestPoolSize());
         }
+        assertEquals(THREADS, p.getLargestPoolSize());
     }
 
     /**
@@ -472,9 +452,9 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      */
     public void testGetPoolSize() throws InterruptedException {
         final ThreadPoolExecutor p = new CustomExecutor(1);
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadStarted = new CountDownLatch(1);
+            final CountDownLatch done = new CountDownLatch(1);
             assertEquals(0, p.getPoolSize());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
@@ -484,9 +464,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                 }});
             assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(1, p.getPoolSize());
-        } finally {
             done.countDown();
-            joinPool(p);
         }
     }
 
@@ -496,10 +474,10 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      */
     public void testGetTaskCount() throws InterruptedException {
         final ThreadPoolExecutor p = new CustomExecutor(1);
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        final CountDownLatch done = new CountDownLatch(1);
-        final int TASKS = 5;
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadStarted = new CountDownLatch(1);
+            final CountDownLatch done = new CountDownLatch(1);
+            final int TASKS = 5;
             assertEquals(0, p.getTaskCount());
             for (int i = 0; i < TASKS; i++)
                 p.execute(new CheckedRunnable() {
@@ -509,9 +487,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                     }});
             assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(TASKS, p.getTaskCount());
-        } finally {
             done.countDown();
-            joinPool(p);
         }
     }
 
@@ -519,34 +495,35 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * getThreadFactory returns factory in constructor if not set
      */
     public void testGetThreadFactory() {
-        ThreadFactory tf = new SimpleThreadFactory();
-        CustomExecutor p = new CustomExecutor(1, tf);
-        assertSame(tf, p.getThreadFactory());
-        joinPool(p);
+        final ThreadFactory threadFactory = new SimpleThreadFactory();
+        final CustomExecutor p = new CustomExecutor(1, threadFactory);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertSame(threadFactory, p.getThreadFactory());
+        }
     }
 
     /**
      * setThreadFactory sets the thread factory returned by getThreadFactory
      */
     public void testSetThreadFactory() {
-        ThreadFactory tf = new SimpleThreadFactory();
-        CustomExecutor p = new CustomExecutor(1);
-        p.setThreadFactory(tf);
-        assertSame(tf, p.getThreadFactory());
-        joinPool(p);
+        final ThreadFactory threadFactory = new SimpleThreadFactory();
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            p.setThreadFactory(threadFactory);
+            assertSame(threadFactory, p.getThreadFactory());
+        }
     }
 
     /**
      * setThreadFactory(null) throws NPE
      */
     public void testSetThreadFactoryNull() {
-        CustomExecutor p = new CustomExecutor(1);
-        try {
-            p.setThreadFactory(null);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(p);
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.setThreadFactory(null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -554,14 +531,12 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * isShutdown is false before shutdown, true after
      */
     public void testIsShutdown() {
-        CustomExecutor p = new CustomExecutor(1);
-        try {
+        final CustomExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
             assertFalse(p.isShutdown());
-        }
-        finally {
             try { p.shutdown(); } catch (SecurityException ok) { return; }
+            assertTrue(p.isShutdown());
         }
-        assertTrue(p.isShutdown());
     }
 
     /**
@@ -569,10 +544,10 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      */
     public void testIsTerminated() throws InterruptedException {
         final ThreadPoolExecutor p = new CustomExecutor(1);
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        final CountDownLatch done = new CountDownLatch(1);
-        assertFalse(p.isTerminated());
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadStarted = new CountDownLatch(1);
+            final CountDownLatch done = new CountDownLatch(1);
+            assertFalse(p.isTerminated());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
                     assertFalse(p.isTerminated());
@@ -582,11 +557,10 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertFalse(p.isTerminating());
             done.countDown();
-        } finally {
             try { p.shutdown(); } catch (SecurityException ok) { return; }
+            assertTrue(p.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
+            assertTrue(p.isTerminated());
         }
-        assertTrue(p.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
-        assertTrue(p.isTerminated());
     }
 
     /**
@@ -594,9 +568,9 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      */
     public void testIsTerminating() throws InterruptedException {
         final ThreadPoolExecutor p = new CustomExecutor(1);
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadStarted = new CountDownLatch(1);
+            final CountDownLatch done = new CountDownLatch(1);
             assertFalse(p.isTerminating());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
@@ -607,22 +581,21 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertFalse(p.isTerminating());
             done.countDown();
-        } finally {
             try { p.shutdown(); } catch (SecurityException ok) { return; }
+            assertTrue(p.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
+            assertTrue(p.isTerminated());
+            assertFalse(p.isTerminating());
         }
-        assertTrue(p.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
-        assertTrue(p.isTerminated());
-        assertFalse(p.isTerminating());
     }
 
     /**
      * getQueue returns the work queue, which contains queued tasks
      */
     public void testGetQueue() throws InterruptedException {
-        ScheduledThreadPoolExecutor p = new CustomExecutor(1);
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        final ScheduledThreadPoolExecutor p = new CustomExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadStarted = new CountDownLatch(1);
+            final CountDownLatch done = new CountDownLatch(1);
             ScheduledFuture[] tasks = new ScheduledFuture[5];
             for (int i = 0; i < tasks.length; i++) {
                 Runnable r = new CheckedRunnable() {
@@ -636,9 +609,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             BlockingQueue<Runnable> q = p.getQueue();
             assertTrue(q.contains(tasks[tasks.length - 1]));
             assertFalse(q.contains(tasks[0]));
-        } finally {
             done.countDown();
-            joinPool(p);
         }
     }
 
@@ -647,10 +618,10 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      */
     public void testRemove() throws InterruptedException {
         final ScheduledThreadPoolExecutor p = new CustomExecutor(1);
-        ScheduledFuture[] tasks = new ScheduledFuture[5];
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            ScheduledFuture[] tasks = new ScheduledFuture[5];
+            final CountDownLatch threadStarted = new CountDownLatch(1);
+            final CountDownLatch done = new CountDownLatch(1);
             for (int i = 0; i < tasks.length; i++) {
                 Runnable r = new CheckedRunnable() {
                     public void realRun() throws InterruptedException {
@@ -670,9 +641,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             assertTrue(q.contains((Runnable)tasks[3]));
             assertTrue(p.remove((Runnable)tasks[3]));
             assertFalse(q.contains((Runnable)tasks[3]));
-        } finally {
             done.countDown();
-            joinPool(p);
         }
     }
 
@@ -680,7 +649,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * purge removes cancelled tasks from the queue
      */
     public void testPurge() throws InterruptedException {
-        CustomExecutor p = new CustomExecutor(1);
+        final CustomExecutor p = new CustomExecutor(1);
         ScheduledFuture[] tasks = new ScheduledFuture[5];
         for (int i = 0; i < tasks.length; i++)
             tasks[i] = p.schedule(new SmallPossiblyInterruptedRunnable(),
@@ -748,7 +717,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * and those tasks are drained from the queue
      */
     public void testShutdownNow_delayedTasks() throws InterruptedException {
-        CustomExecutor p = new CustomExecutor(1);
+        final CustomExecutor p = new CustomExecutor(1);
         List<ScheduledFuture> tasks = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             Runnable r = new NoOpRunnable();
@@ -875,13 +844,11 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * completed submit of callable returns result
      */
     public void testSubmitCallable() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
             Future<String> future = e.submit(new StringTask());
             String result = future.get();
             assertSame(TEST_STRING, result);
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -889,13 +856,11 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * completed submit of runnable returns successfully
      */
     public void testSubmitRunnable() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
             Future<?> future = e.submit(new NoOpRunnable());
             future.get();
             assertTrue(future.isDone());
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -903,13 +868,11 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * completed submit of (runnable, result) returns result
      */
     public void testSubmitRunnable2() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
             Future<String> future = e.submit(new NoOpRunnable(), TEST_STRING);
             String result = future.get();
             assertSame(TEST_STRING, result);
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -917,13 +880,12 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * invokeAny(null) throws NPE
      */
     public void testInvokeAny1() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
-            e.invokeAny(null);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            try {
+                e.invokeAny(null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -931,13 +893,12 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * invokeAny(empty collection) throws IAE
      */
     public void testInvokeAny2() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
-            e.invokeAny(new ArrayList<Callable<String>>());
-            shouldThrow();
-        } catch (IllegalArgumentException success) {
-        } finally {
-            joinPool(e);
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            try {
+                e.invokeAny(new ArrayList<Callable<String>>());
+                shouldThrow();
+            } catch (IllegalArgumentException success) {}
         }
     }
 
@@ -945,18 +906,17 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * invokeAny(c) throws NPE if c has null elements
      */
     public void testInvokeAny3() throws Exception {
-        CountDownLatch latch = new CountDownLatch(1);
-        ExecutorService e = new CustomExecutor(2);
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(latchAwaitingStringTask(latch));
-        l.add(null);
-        try {
-            e.invokeAny(l);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(latchAwaitingStringTask(latch));
+            l.add(null);
+            try {
+                e.invokeAny(l);
+                shouldThrow();
+            } catch (NullPointerException success) {}
             latch.countDown();
-            joinPool(e);
         }
     }
 
@@ -964,16 +924,16 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * invokeAny(c) throws ExecutionException if no task completes
      */
     public void testInvokeAny4() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(new NPETask());
-        try {
-            e.invokeAny(l);
-            shouldThrow();
-        } catch (ExecutionException success) {
-            assertTrue(success.getCause() instanceof NullPointerException);
-        } finally {
-            joinPool(e);
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(new NPETask());
+            try {
+                e.invokeAny(l);
+                shouldThrow();
+            } catch (ExecutionException success) {
+                assertTrue(success.getCause() instanceof NullPointerException);
+            }
         }
     }
 
@@ -981,15 +941,13 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * invokeAny(c) returns result of some task
      */
     public void testInvokeAny5() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
             List<Callable<String>> l = new ArrayList<Callable<String>>();
             l.add(new StringTask());
             l.add(new StringTask());
             String result = e.invokeAny(l);
             assertSame(TEST_STRING, result);
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -997,13 +955,12 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * invokeAll(null) throws NPE
      */
     public void testInvokeAll1() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
-            e.invokeAll(null);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            try {
+                e.invokeAll(null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -1011,12 +968,10 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * invokeAll(empty collection) returns empty collection
      */
     public void testInvokeAll2() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
             List<Future<String>> r = e.invokeAll(new ArrayList<Callable<String>>());
             assertTrue(r.isEmpty());
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1024,16 +979,15 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * invokeAll(c) throws NPE if c has null elements
      */
     public void testInvokeAll3() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(new StringTask());
-        l.add(null);
-        try {
-            e.invokeAll(l);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(new StringTask());
+            l.add(null);
+            try {
+                e.invokeAll(l);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -1041,18 +995,18 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * get of invokeAll(c) throws exception on failed task
      */
     public void testInvokeAll4() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(new NPETask());
-        List<Future<String>> futures = e.invokeAll(l);
-        assertEquals(1, futures.size());
-        try {
-            futures.get(0).get();
-            shouldThrow();
-        } catch (ExecutionException success) {
-            assertTrue(success.getCause() instanceof NullPointerException);
-        } finally {
-            joinPool(e);
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(new NPETask());
+            List<Future<String>> futures = e.invokeAll(l);
+            assertEquals(1, futures.size());
+            try {
+                futures.get(0).get();
+                shouldThrow();
+            } catch (ExecutionException success) {
+                assertTrue(success.getCause() instanceof NullPointerException);
+            }
         }
     }
 
@@ -1060,8 +1014,8 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * invokeAll(c) returns results of all completed tasks
      */
     public void testInvokeAll5() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
             List<Callable<String>> l = new ArrayList<Callable<String>>();
             l.add(new StringTask());
             l.add(new StringTask());
@@ -1069,8 +1023,6 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             assertEquals(2, futures.size());
             for (Future<String> future : futures)
                 assertSame(TEST_STRING, future.get());
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1078,13 +1030,12 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * timed invokeAny(null) throws NPE
      */
     public void testTimedInvokeAny1() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
-            e.invokeAny(null, MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            try {
+                e.invokeAny(null, MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -1092,15 +1043,14 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * timed invokeAny(,,null) throws NPE
      */
     public void testTimedInvokeAnyNullTimeUnit() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(new StringTask());
-        try {
-            e.invokeAny(l, MEDIUM_DELAY_MS, null);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(new StringTask());
+            try {
+                e.invokeAny(l, MEDIUM_DELAY_MS, null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -1108,13 +1058,12 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * timed invokeAny(empty collection) throws IAE
      */
     public void testTimedInvokeAny2() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
-            e.invokeAny(new ArrayList<Callable<String>>(), MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (IllegalArgumentException success) {
-        } finally {
-            joinPool(e);
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            try {
+                e.invokeAny(new ArrayList<Callable<String>>(), MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (IllegalArgumentException success) {}
         }
     }
 
@@ -1123,17 +1072,16 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      */
     public void testTimedInvokeAny3() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        ExecutorService e = new CustomExecutor(2);
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(latchAwaitingStringTask(latch));
-        l.add(null);
-        try {
-            e.invokeAny(l, MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(latchAwaitingStringTask(latch));
+            l.add(null);
+            try {
+                e.invokeAny(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (NullPointerException success) {}
             latch.countDown();
-            joinPool(e);
         }
     }
 
@@ -1141,16 +1089,16 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * timed invokeAny(c) throws ExecutionException if no task completes
      */
     public void testTimedInvokeAny4() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(new NPETask());
-        try {
-            e.invokeAny(l, MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (ExecutionException success) {
-            assertTrue(success.getCause() instanceof NullPointerException);
-        } finally {
-            joinPool(e);
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(new NPETask());
+            try {
+                e.invokeAny(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (ExecutionException success) {
+                assertTrue(success.getCause() instanceof NullPointerException);
+            }
         }
     }
 
@@ -1158,15 +1106,13 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * timed invokeAny(c) returns result of some task
      */
     public void testTimedInvokeAny5() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
             List<Callable<String>> l = new ArrayList<Callable<String>>();
             l.add(new StringTask());
             l.add(new StringTask());
             String result = e.invokeAny(l, MEDIUM_DELAY_MS, MILLISECONDS);
             assertSame(TEST_STRING, result);
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1174,13 +1120,12 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * timed invokeAll(null) throws NPE
      */
     public void testTimedInvokeAll1() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
-            e.invokeAll(null, MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            try {
+                e.invokeAll(null, MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -1188,15 +1133,14 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * timed invokeAll(,,null) throws NPE
      */
     public void testTimedInvokeAllNullTimeUnit() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(new StringTask());
-        try {
-            e.invokeAll(l, MEDIUM_DELAY_MS, null);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(new StringTask());
+            try {
+                e.invokeAll(l, MEDIUM_DELAY_MS, null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -1204,12 +1148,10 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * timed invokeAll(empty collection) returns empty collection
      */
     public void testTimedInvokeAll2() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
             List<Future<String>> r = e.invokeAll(new ArrayList<Callable<String>>(), MEDIUM_DELAY_MS, MILLISECONDS);
             assertTrue(r.isEmpty());
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1217,16 +1159,15 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * timed invokeAll(c) throws NPE if c has null elements
      */
     public void testTimedInvokeAll3() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(new StringTask());
-        l.add(null);
-        try {
-            e.invokeAll(l, MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(new StringTask());
+            l.add(null);
+            try {
+                e.invokeAll(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -1234,19 +1175,19 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * get of element of invokeAll(c) throws exception on failed task
      */
     public void testTimedInvokeAll4() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(new NPETask());
-        List<Future<String>> futures =
-            e.invokeAll(l, MEDIUM_DELAY_MS, MILLISECONDS);
-        assertEquals(1, futures.size());
-        try {
-            futures.get(0).get();
-            shouldThrow();
-        } catch (ExecutionException success) {
-            assertTrue(success.getCause() instanceof NullPointerException);
-        } finally {
-            joinPool(e);
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(new NPETask());
+            List<Future<String>> futures =
+                e.invokeAll(l, MEDIUM_DELAY_MS, MILLISECONDS);
+            assertEquals(1, futures.size());
+            try {
+                futures.get(0).get();
+                shouldThrow();
+            } catch (ExecutionException success) {
+                assertTrue(success.getCause() instanceof NullPointerException);
+            }
         }
     }
 
@@ -1254,8 +1195,8 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * timed invokeAll(c) returns results of all completed tasks
      */
     public void testTimedInvokeAll5() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
             List<Callable<String>> l = new ArrayList<Callable<String>>();
             l.add(new StringTask());
             l.add(new StringTask());
@@ -1264,8 +1205,6 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             assertEquals(2, futures.size());
             for (Future<String> future : futures)
                 assertSame(TEST_STRING, future.get());
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1273,8 +1212,8 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * timed invokeAll(c) cancels tasks not completed by timeout
      */
     public void testTimedInvokeAll6() throws Exception {
-        ExecutorService e = new CustomExecutor(2);
-        try {
+        final ExecutorService e = new CustomExecutor(2);
+        try (PoolCleaner cleaner = cleaner(e)) {
             for (long timeout = timeoutMillis();;) {
                 List<Callable<String>> tasks = new ArrayList<>();
                 tasks.add(new StringTask("0"));
@@ -1298,8 +1237,6 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                         fail("expected exactly one task to be cancelled");
                 }
             }
-        } finally {
-            joinPool(e);
         }
     }
 
