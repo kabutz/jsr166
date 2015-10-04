@@ -981,9 +981,8 @@ public class ForkJoinPoolTest extends JSR166TestCase {
      * timed invokeAll(c) returns results of all completed tasks in c
      */
     public void testTimedInvokeAll5() throws Throwable {
-        try (PoolCleaner<ForkJoinPool> cleaner
-             = cleaner(new ForkJoinPool(1))) {
-            ForkJoinPool e = cleaner.pool;
+        ForkJoinPool e = new ForkJoinPool(1);
+        try (PoolCleaner<ForkJoinPool> cleaner = cleaner(e)) {
             List<Callable<String>> l = new ArrayList<Callable<String>>();
             l.add(new StringTask());
             l.add(new StringTask());

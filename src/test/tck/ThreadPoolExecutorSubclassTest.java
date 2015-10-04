@@ -230,15 +230,14 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * execute successfully executes a runnable
      */
     public void testExecute() throws InterruptedException {
-        try (PoolCleaner<CustomTPE> cleaner =
-             cleaner(new CustomTPE(1, 1,
-                                   2 * LONG_DELAY_MS, MILLISECONDS,
-                                   new ArrayBlockingQueue<Runnable>(10)))) {
-            final ThreadPoolExecutor p = cleaner.pool;
+        final ThreadPoolExecutor p =
+            new CustomTPE(1, 1,
+                          2 * LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(10));
+        try (PoolCleaner<ThreadPoolExecutor> cleaner = cleaner(p)) {
             final CountDownLatch done = new CountDownLatch(1);
             final Runnable task = new CheckedRunnable() {
-                public void realRun() { done.countDown();
-                }};
+                public void realRun() { done.countDown(); }};
             p.execute(task);
             assertTrue(done.await(LONG_DELAY_MS, MILLISECONDS));
         }
