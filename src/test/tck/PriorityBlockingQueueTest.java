@@ -624,22 +624,22 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
     public void testPollInExecutor() {
         final PriorityBlockingQueue q = new PriorityBlockingQueue(2);
         final CheckedBarrier threadsStarted = new CheckedBarrier(2);
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        executor.execute(new CheckedRunnable() {
-            public void realRun() throws InterruptedException {
-                assertNull(q.poll());
-                threadsStarted.await();
-                assertSame(one, q.poll(LONG_DELAY_MS, MILLISECONDS));
-                checkEmpty(q);
-            }});
+        final ExecutorService executor = Executors.newFixedThreadPool(2);
+        try (PoolCleaner cleaner = cleaner(executor)) {
+            executor.execute(new CheckedRunnable() {
+                public void realRun() throws InterruptedException {
+                    assertNull(q.poll());
+                    threadsStarted.await();
+                    assertSame(one, q.poll(LONG_DELAY_MS, MILLISECONDS));
+                    checkEmpty(q);
+                }});
 
-        executor.execute(new CheckedRunnable() {
-            public void realRun() throws InterruptedException {
-                threadsStarted.await();
-                q.put(one);
-            }});
-
-        joinPool(executor);
+            executor.execute(new CheckedRunnable() {
+                public void realRun() throws InterruptedException {
+                    threadsStarted.await();
+                    q.put(one);
+                }});
+        }
     }
 
     /**

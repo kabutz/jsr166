@@ -653,22 +653,22 @@ public class DelayQueueTest extends JSR166TestCase {
     public void testPollInExecutor() {
         final DelayQueue q = new DelayQueue();
         final CheckedBarrier threadsStarted = new CheckedBarrier(2);
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        executor.execute(new CheckedRunnable() {
-            public void realRun() throws InterruptedException {
-                assertNull(q.poll());
-                threadsStarted.await();
-                assertNotNull(q.poll(LONG_DELAY_MS, MILLISECONDS));
-                checkEmpty(q);
-            }});
+        final ExecutorService executor = Executors.newFixedThreadPool(2);
+        try (PoolCleaner cleaner = cleaner(executor)) {
+            executor.execute(new CheckedRunnable() {
+                public void realRun() throws InterruptedException {
+                    assertNull(q.poll());
+                    threadsStarted.await();
+                    assertNotNull(q.poll(LONG_DELAY_MS, MILLISECONDS));
+                    checkEmpty(q);
+                }});
 
-        executor.execute(new CheckedRunnable() {
-            public void realRun() throws InterruptedException {
-                threadsStarted.await();
-                q.put(new PDelay(1));
-            }});
-
-        joinPool(executor);
+            executor.execute(new CheckedRunnable() {
+                public void realRun() throws InterruptedException {
+                    threadsStarted.await();
+                    q.put(new PDelay(1));
+                }});
+        }
     }
 
     /**
