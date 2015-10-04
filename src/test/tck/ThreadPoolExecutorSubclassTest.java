@@ -678,16 +678,16 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             new CustomTPE(1, 1,
                           LONG_DELAY_MS, MILLISECONDS,
                           q);
-        Runnable[] tasks = new Runnable[6];
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            Runnable[] tasks = new Runnable[6];
+            final CountDownLatch threadStarted = new CountDownLatch(1);
+            final CountDownLatch done = new CountDownLatch(1);
             for (int i = 0; i < tasks.length; i++) {
                 tasks[i] = new CheckedRunnable() {
-                        public void realRun() throws InterruptedException {
-                            threadStarted.countDown();
-                            done.await();
-                        }};
+                    public void realRun() throws InterruptedException {
+                        threadStarted.countDown();
+                        done.await();
+                    }};
                 p.execute(tasks[i]);
             }
             assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
@@ -700,9 +700,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             assertTrue(q.contains(tasks[3]));
             assertTrue(p.remove(tasks[3]));
             assertFalse(q.contains(tasks[3]));
-        } finally {
             done.countDown();
-            joinPool(p);
         }
     }
 
@@ -717,8 +715,8 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             new CustomTPE(1, 1,
                           LONG_DELAY_MS, MILLISECONDS,
                           q);
-        FutureTask[] tasks = new FutureTask[5];
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            FutureTask[] tasks = new FutureTask[5];
             for (int i = 0; i < tasks.length; i++) {
                 Callable task = new CheckedCallable<Boolean>() {
                     public Boolean realCall() throws InterruptedException {
@@ -742,9 +740,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             p.purge();         // Nothing to do
             assertEquals(tasks.length - 3, q.size());
             assertEquals(tasks.length - 2, p.getTaskCount());
-        } finally {
             done.countDown();
-            joinPool(p);
         }
     }
 
