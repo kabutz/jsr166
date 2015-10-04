@@ -217,8 +217,9 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        assertEquals(1, p.getCorePoolSize());
-        joinPool(p);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertEquals(1, p.getCorePoolSize());
+        }
     }
 
     /**

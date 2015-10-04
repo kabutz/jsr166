@@ -354,9 +354,13 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * getCorePoolSize returns size given in constructor if not otherwise set
      */
     public void testGetCorePoolSize() {
-        ThreadPoolExecutor p = new CustomTPE(1, 1, LONG_DELAY_MS, MILLISECONDS, new ArrayBlockingQueue<Runnable>(10));
-        assertEquals(1, p.getCorePoolSize());
-        joinPool(p);
+        ThreadPoolExecutor p =
+            new CustomTPE(1, 1,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(10));
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertEquals(1, p.getCorePoolSize());
+        }
     }
 
     /**
