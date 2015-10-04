@@ -239,15 +239,16 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * getThreadFactory returns factory in constructor if not set
      */
     public void testGetThreadFactory() {
-        ThreadFactory tf = new SimpleThreadFactory();
+        ThreadFactory threadFactory = new SimpleThreadFactory();
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10),
-                                   tf,
+                                   threadFactory,
                                    new NoOpREHandler());
-        assertSame(tf, p.getThreadFactory());
-        joinPool(p);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertSame(threadFactory, p.getThreadFactory());
+        }
     }
 
     /**
@@ -258,10 +259,11 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        ThreadFactory tf = new SimpleThreadFactory();
-        p.setThreadFactory(tf);
-        assertSame(tf, p.getThreadFactory());
-        joinPool(p);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            ThreadFactory threadFactory = new SimpleThreadFactory();
+            p.setThreadFactory(threadFactory);
+            assertSame(threadFactory, p.getThreadFactory());
+        }
     }
 
     /**
