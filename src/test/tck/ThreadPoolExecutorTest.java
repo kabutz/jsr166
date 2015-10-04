@@ -1074,8 +1074,8 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1));
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch done = new CountDownLatch(1);
             Runnable task = new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
                     done.await();
@@ -1089,9 +1089,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                 } catch (RejectedExecutionException success) {}
                 assertTrue(p.getTaskCount() <= 2);
             }
-        } finally {
             done.countDown();
-            joinPool(p);
         }
     }
 
@@ -1103,8 +1101,8 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1));
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch done = new CountDownLatch(1);
             Runnable task = new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
                     done.await();
@@ -1118,9 +1116,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                 } catch (RejectedExecutionException success) {}
                 assertTrue(p.getTaskCount() <= 2);
             }
-        } finally {
             done.countDown();
-            joinPool(p);
         }
     }
 
@@ -1322,14 +1318,12 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(2, 3,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
-            p.setMaximumPoolSize(1);
-            shouldThrow();
-        } catch (IllegalArgumentException success) {
-        } finally {
-            try { p.shutdown(); } catch (SecurityException ok) { return; }
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.setMaximumPoolSize(1);
+                shouldThrow();
+            } catch (IllegalArgumentException success) {}
         }
-        joinPool(p);
     }
 
     /**
@@ -1341,14 +1335,12 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(2, 3,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
-            p.setMaximumPoolSize(-1);
-            shouldThrow();
-        } catch (IllegalArgumentException success) {
-        } finally {
-            try { p.shutdown(); } catch (SecurityException ok) { return; }
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.setMaximumPoolSize(-1);
+                shouldThrow();
+            } catch (IllegalArgumentException success) {}
         }
-        joinPool(p);
     }
 
     /**
@@ -1360,23 +1352,24 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        for (int s = 1; s < 5; s++) {
-            p.setMaximumPoolSize(s);
-            p.setCorePoolSize(s);
-            try {
-                p.setMaximumPoolSize(s - 1);
-                shouldThrow();
-            } catch (IllegalArgumentException success) {}
-            assertEquals(s, p.getCorePoolSize());
-            assertEquals(s, p.getMaximumPoolSize());
-            try {
-                p.setCorePoolSize(s + 1);
-                shouldThrow();
-            } catch (IllegalArgumentException success) {}
-            assertEquals(s, p.getCorePoolSize());
-            assertEquals(s, p.getMaximumPoolSize());
+        try (PoolCleaner cleaner = cleaner(p)) {
+            for (int s = 1; s < 5; s++) {
+                p.setMaximumPoolSize(s);
+                p.setCorePoolSize(s);
+                try {
+                    p.setMaximumPoolSize(s - 1);
+                    shouldThrow();
+                } catch (IllegalArgumentException success) {}
+                assertEquals(s, p.getCorePoolSize());
+                assertEquals(s, p.getMaximumPoolSize());
+                try {
+                    p.setCorePoolSize(s + 1);
+                    shouldThrow();
+                } catch (IllegalArgumentException success) {}
+                assertEquals(s, p.getCorePoolSize());
+                assertEquals(s, p.getMaximumPoolSize());
+            }
         }
-        joinPool(p);
     }
 
     /**
@@ -1388,14 +1381,12 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(2, 3,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
-            p.setKeepAliveTime(-1,MILLISECONDS);
-            shouldThrow();
-        } catch (IllegalArgumentException success) {
-        } finally {
-            try { p.shutdown(); } catch (SecurityException ok) { return; }
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.setKeepAliveTime(-1, MILLISECONDS);
+                shouldThrow();
+            } catch (IllegalArgumentException success) {}
         }
-        joinPool(p);
     }
 
     /**
@@ -1403,9 +1394,11 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      */
     public void testTerminated() {
         ExtendedTPE p = new ExtendedTPE();
-        try { p.shutdown(); } catch (SecurityException ok) { return; }
-        assertTrue(p.terminatedCalled());
-        joinPool(p);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try { p.shutdown(); } catch (SecurityException ok) { return; }
+            assertTrue(p.terminatedCalled());
+            assertTrue(p.isShutdown());
+        }
     }
 
     /**
@@ -1413,7 +1406,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      */
     public void testBeforeAfter() throws InterruptedException {
         ExtendedTPE p = new ExtendedTPE();
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
             final CountDownLatch done = new CountDownLatch(1);
             p.execute(new CheckedRunnable() {
                 public void realRun() {
@@ -1423,9 +1416,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             assertEquals(0, done.getCount());
             assertTrue(p.afterCalled());
             assertTrue(p.beforeCalled());
-            try { p.shutdown(); } catch (SecurityException ok) { return; }
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -1433,16 +1423,14 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * completed submit of callable returns result
      */
     public void testSubmitCallable() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
+        try (PoolCleaner cleaner = cleaner(e)) {
             Future<String> future = e.submit(new StringTask());
             String result = future.get();
             assertSame(TEST_STRING, result);
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1450,16 +1438,14 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * completed submit of runnable returns successfully
      */
     public void testSubmitRunnable() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
+        try (PoolCleaner cleaner = cleaner(e)) {
             Future<?> future = e.submit(new NoOpRunnable());
             future.get();
             assertTrue(future.isDone());
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1467,16 +1453,14 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * completed submit of (runnable, result) returns result
      */
     public void testSubmitRunnable2() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
+        try (PoolCleaner cleaner = cleaner(e)) {
             Future<String> future = e.submit(new NoOpRunnable(), TEST_STRING);
             String result = future.get();
             assertSame(TEST_STRING, result);
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1484,16 +1468,15 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * invokeAny(null) throws NPE
      */
     public void testInvokeAny1() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
-            e.invokeAny(null);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            try {
+                e.invokeAny(null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -1501,16 +1484,15 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * invokeAny(empty collection) throws IAE
      */
     public void testInvokeAny2() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
-            e.invokeAny(new ArrayList<Callable<String>>());
-            shouldThrow();
-        } catch (IllegalArgumentException success) {
-        } finally {
-            joinPool(e);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            try {
+                e.invokeAny(new ArrayList<Callable<String>>());
+                shouldThrow();
+            } catch (IllegalArgumentException success) {}
         }
     }
 
@@ -1523,16 +1505,15 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(latchAwaitingStringTask(latch));
-        l.add(null);
-        try {
-            e.invokeAny(l);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(latchAwaitingStringTask(latch));
+            l.add(null);
+            try {
+                e.invokeAny(l);
+                shouldThrow();
+            } catch (NullPointerException success) {}
             latch.countDown();
-            joinPool(e);
         }
     }
 
@@ -1540,19 +1521,19 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * invokeAny(c) throws ExecutionException if no task completes
      */
     public void testInvokeAny4() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(new NPETask());
-        try {
-            e.invokeAny(l);
-            shouldThrow();
-        } catch (ExecutionException success) {
-            assertTrue(success.getCause() instanceof NullPointerException);
-        } finally {
-            joinPool(e);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(new NPETask());
+            try {
+                e.invokeAny(l);
+                shouldThrow();
+            } catch (ExecutionException success) {
+                assertTrue(success.getCause() instanceof NullPointerException);
+            }
         }
     }
 
@@ -1560,18 +1541,16 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * invokeAny(c) returns result of some task
      */
     public void testInvokeAny5() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
+        try (PoolCleaner cleaner = cleaner(e)) {
             List<Callable<String>> l = new ArrayList<Callable<String>>();
             l.add(new StringTask());
             l.add(new StringTask());
             String result = e.invokeAny(l);
             assertSame(TEST_STRING, result);
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1579,16 +1558,15 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * invokeAll(null) throws NPE
      */
     public void testInvokeAll1() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
-            e.invokeAll(null);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            try {
+                e.invokeAll(null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -1596,15 +1574,13 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * invokeAll(empty collection) returns empty collection
      */
     public void testInvokeAll2() throws InterruptedException {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
+        try (PoolCleaner cleaner = cleaner(e)) {
             List<Future<String>> r = e.invokeAll(new ArrayList<Callable<String>>());
             assertTrue(r.isEmpty());
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1612,19 +1588,18 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * invokeAll(c) throws NPE if c has null elements
      */
     public void testInvokeAll3() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(new StringTask());
-        l.add(null);
-        try {
-            e.invokeAll(l);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(new StringTask());
+            l.add(null);
+            try {
+                e.invokeAll(l);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -1632,11 +1607,11 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * get of element of invokeAll(c) throws exception on failed task
      */
     public void testInvokeAll4() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
+        try (PoolCleaner cleaner = cleaner(e)) {
             List<Callable<String>> l = new ArrayList<Callable<String>>();
             l.add(new NPETask());
             List<Future<String>> futures = e.invokeAll(l);
@@ -1647,8 +1622,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             } catch (ExecutionException success) {
                 assertTrue(success.getCause() instanceof NullPointerException);
             }
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1656,11 +1629,11 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * invokeAll(c) returns results of all completed tasks
      */
     public void testInvokeAll5() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
+        try (PoolCleaner cleaner = cleaner(e)) {
             List<Callable<String>> l = new ArrayList<Callable<String>>();
             l.add(new StringTask());
             l.add(new StringTask());
@@ -1668,8 +1641,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             assertEquals(2, futures.size());
             for (Future<String> future : futures)
                 assertSame(TEST_STRING, future.get());
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1677,16 +1648,15 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * timed invokeAny(null) throws NPE
      */
     public void testTimedInvokeAny1() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
-            e.invokeAny(null, MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            try {
+                e.invokeAny(null, MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -1694,18 +1664,17 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * timed invokeAny(,,null) throws NPE
      */
     public void testTimedInvokeAnyNullTimeUnit() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(new StringTask());
-        try {
-            e.invokeAny(l, MEDIUM_DELAY_MS, null);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(new StringTask());
+            try {
+                e.invokeAny(l, MEDIUM_DELAY_MS, null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -1713,16 +1682,16 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * timed invokeAny(empty collection) throws IAE
      */
     public void testTimedInvokeAny2() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
-            e.invokeAny(new ArrayList<Callable<String>>(), MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (IllegalArgumentException success) {
-        } finally {
-            joinPool(e);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            try {
+                e.invokeAny(new ArrayList<Callable<String>>(),
+                            MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (IllegalArgumentException success) {}
         }
     }
 
@@ -1735,16 +1704,15 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(latchAwaitingStringTask(latch));
-        l.add(null);
-        try {
-            e.invokeAny(l, MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(latchAwaitingStringTask(latch));
+            l.add(null);
+            try {
+                e.invokeAny(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (NullPointerException success) {}
             latch.countDown();
-            joinPool(e);
         }
     }
 
@@ -1752,19 +1720,19 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * timed invokeAny(c) throws ExecutionException if no task completes
      */
     public void testTimedInvokeAny4() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(new NPETask());
-        try {
-            e.invokeAny(l, MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (ExecutionException success) {
-            assertTrue(success.getCause() instanceof NullPointerException);
-        } finally {
-            joinPool(e);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(new NPETask());
+            try {
+                e.invokeAny(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (ExecutionException success) {
+                assertTrue(success.getCause() instanceof NullPointerException);
+            }
         }
     }
 
@@ -1772,18 +1740,16 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * timed invokeAny(c) returns result of some task
      */
     public void testTimedInvokeAny5() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
+        try (PoolCleaner cleaner = cleaner(e)) {
             List<Callable<String>> l = new ArrayList<Callable<String>>();
             l.add(new StringTask());
             l.add(new StringTask());
             String result = e.invokeAny(l, MEDIUM_DELAY_MS, MILLISECONDS);
             assertSame(TEST_STRING, result);
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1791,16 +1757,15 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * timed invokeAll(null) throws NPE
      */
     public void testTimedInvokeAll1() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
-            e.invokeAll(null, MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            try {
+                e.invokeAll(null, MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -1808,18 +1773,17 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * timed invokeAll(,,null) throws NPE
      */
     public void testTimedInvokeAllNullTimeUnit() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(new StringTask());
-        try {
-            e.invokeAll(l, MEDIUM_DELAY_MS, null);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(new StringTask());
+            try {
+                e.invokeAll(l, MEDIUM_DELAY_MS, null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -1827,15 +1791,14 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * timed invokeAll(empty collection) returns empty collection
      */
     public void testTimedInvokeAll2() throws InterruptedException {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
-            List<Future<String>> r = e.invokeAll(new ArrayList<Callable<String>>(), MEDIUM_DELAY_MS, MILLISECONDS);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Future<String>> r = e.invokeAll(new ArrayList<Callable<String>>(),
+                                                 MEDIUM_DELAY_MS, MILLISECONDS);
             assertTrue(r.isEmpty());
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1843,19 +1806,18 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * timed invokeAll(c) throws NPE if c has null elements
      */
     public void testTimedInvokeAll3() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(new StringTask());
-        l.add(null);
-        try {
-            e.invokeAll(l, MEDIUM_DELAY_MS, MILLISECONDS);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(e);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(new StringTask());
+            l.add(null);
+            try {
+                e.invokeAll(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
@@ -1863,22 +1825,22 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * get of element of invokeAll(c) throws exception on failed task
      */
     public void testTimedInvokeAll4() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        List<Callable<String>> l = new ArrayList<Callable<String>>();
-        l.add(new NPETask());
-        List<Future<String>> futures =
-            e.invokeAll(l, MEDIUM_DELAY_MS, MILLISECONDS);
-        assertEquals(1, futures.size());
-        try {
-            futures.get(0).get();
-            shouldThrow();
-        } catch (ExecutionException success) {
-            assertTrue(success.getCause() instanceof NullPointerException);
-        } finally {
-            joinPool(e);
+        try (PoolCleaner cleaner = cleaner(e)) {
+            List<Callable<String>> l = new ArrayList<Callable<String>>();
+            l.add(new NPETask());
+            List<Future<String>> futures =
+                e.invokeAll(l, MEDIUM_DELAY_MS, MILLISECONDS);
+            assertEquals(1, futures.size());
+            try {
+                futures.get(0).get();
+                shouldThrow();
+            } catch (ExecutionException success) {
+                assertTrue(success.getCause() instanceof NullPointerException);
+            }
         }
     }
 
@@ -1886,11 +1848,11 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * timed invokeAll(c) returns results of all completed tasks
      */
     public void testTimedInvokeAll5() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
+        try (PoolCleaner cleaner = cleaner(e)) {
             List<Callable<String>> l = new ArrayList<Callable<String>>();
             l.add(new StringTask());
             l.add(new StringTask());
@@ -1899,8 +1861,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             assertEquals(2, futures.size());
             for (Future<String> future : futures)
                 assertSame(TEST_STRING, future.get());
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1908,11 +1868,11 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * timed invokeAll(c) cancels tasks not completed by timeout
      */
     public void testTimedInvokeAll6() throws Exception {
-        ExecutorService e =
+        final ExecutorService e =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try {
+        try (PoolCleaner cleaner = cleaner(e)) {
             for (long timeout = timeoutMillis();;) {
                 List<Callable<String>> tasks = new ArrayList<>();
                 tasks.add(new StringTask("0"));
@@ -1936,8 +1896,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                         fail("expected exactly one task to be cancelled");
                 }
             }
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1951,7 +1909,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new LinkedBlockingQueue<Runnable>(),
                                    new FailingThreadFactory());
-        try {
+        try (PoolCleaner cleaner = cleaner(e)) {
             final int TASKS = 100;
             final CountDownLatch done = new CountDownLatch(TASKS);
             for (int k = 0; k < TASKS; ++k)
@@ -1960,8 +1918,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                         done.countDown();
                     }});
             assertTrue(done.await(LONG_DELAY_MS, MILLISECONDS));
-        } finally {
-            joinPool(e);
         }
     }
 
@@ -1973,8 +1929,9 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(2, 2,
                                    1000, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        assertFalse(p.allowsCoreThreadTimeOut());
-        joinPool(p);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertFalse(p.allowsCoreThreadTimeOut());
+        }
     }
 
     /**
@@ -1986,8 +1943,8 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(2, 10,
                                    keepAliveTime, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadStarted = new CountDownLatch(1);
             p.allowCoreThreadTimeOut(true);
             p.execute(new CheckedRunnable() {
                 public void realRun() {
@@ -2002,8 +1959,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                 Thread.yield();
             assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             assertEquals(0, p.getPoolSize());
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -2016,8 +1971,8 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(2, 10,
                                    keepAliveTime, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadStarted = new CountDownLatch(1);
             p.allowCoreThreadTimeOut(false);
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
@@ -2026,8 +1981,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                 }});
             delay(2 * keepAliveTime);
             assertTrue(p.getPoolSize() >= 1);
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -2046,7 +1999,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 30,
                                    60, SECONDS,
                                    new ArrayBlockingQueue(30));
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
             for (int i = 0; i < nTasks; ++i) {
                 for (;;) {
                     try {
@@ -2058,8 +2011,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             }
             // enough time to run all tasks
             assertTrue(done.await(nTasks * SHORT_DELAY_MS, MILLISECONDS));
-        } finally {
-            joinPool(p);
         }
     }
 
@@ -2071,7 +2022,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new LinkedBlockingQueue<Runnable>());
-        try {
+        try (PoolCleaner cleaner = cleaner(e)) {
             final CountDownLatch blockerStarted = new CountDownLatch(1);
             final CountDownLatch done = new CountDownLatch(1);
             final List<Future<?>> futures = new ArrayList<>();
@@ -2098,8 +2049,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                 assertTrue(future.isDone());
             }
             done.countDown();
-        } finally {
-            joinPool(e);
         }
     }
 
