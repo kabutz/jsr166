@@ -184,10 +184,10 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        final CountDownLatch threadProceed = new CountDownLatch(1);
-        final CountDownLatch threadDone = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadStarted = new CountDownLatch(1);
+            final CountDownLatch threadProceed = new CountDownLatch(1);
+            final CountDownLatch threadDone = new CountDownLatch(1);
             assertEquals(0, p.getCompletedTaskCount());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
@@ -206,8 +206,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                     fail("timed out");
                 Thread.yield();
             }
-        } finally {
-            joinPool(p);
         }
     }
 
