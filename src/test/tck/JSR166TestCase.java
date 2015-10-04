@@ -770,15 +770,14 @@ public class JSR166TestCase extends TestCase {
     /**
      * Allows use of try-with-resources with per-test thread pools.
      */
-    class PoolCleaner<T extends ExecutorService>
-            implements AutoCloseable {
-        public final T pool;
-        public PoolCleaner(T pool) { this.pool = pool; }
+    class PoolCleaner implements AutoCloseable {
+        private final ExecutorService pool;
+        public PoolCleaner(ExecutorService pool) { this.pool = pool; }
         public void close() { joinPool(pool); }
     }
 
-    <T extends ExecutorService> PoolCleaner<T> cleaner(T pool) {
-        return new PoolCleaner<T>(pool);
+    PoolCleaner cleaner(ExecutorService pool) {
+        return new PoolCleaner(pool);
     }
 
     /**
@@ -813,9 +812,8 @@ public class JSR166TestCase extends TestCase {
      * necessarily individually slow because they must block.
      */
     void testInParallel(Action ... actions) {
-        try (PoolCleaner<ExecutorService> cleaner
-             = cleaner(Executors.newCachedThreadPool())) {
-            ExecutorService pool = cleaner.pool;
+        ExecutorService pool = Executors.newCachedThreadPool();
+        try (PoolCleaner cleaner = cleaner(pool)) {
             ArrayList<Future<?>> futures = new ArrayList<>(actions.length);
             for (final Action action : actions)
                 futures.add(pool.submit(new CheckedRunnable() {

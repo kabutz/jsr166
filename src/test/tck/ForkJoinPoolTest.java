@@ -982,7 +982,7 @@ public class ForkJoinPoolTest extends JSR166TestCase {
      */
     public void testTimedInvokeAll5() throws Throwable {
         ForkJoinPool e = new ForkJoinPool(1);
-        try (PoolCleaner<ForkJoinPool> cleaner = cleaner(e)) {
+        try (PoolCleaner cleaner = cleaner(e)) {
             List<Callable<String>> l = new ArrayList<Callable<String>>();
             l.add(new StringTask());
             l.add(new StringTask());
