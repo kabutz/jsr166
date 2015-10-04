@@ -1319,9 +1319,9 @@ public class JSR166TestCase extends TestCase {
     }
 
     class LatchAwaiter extends CheckedRunnable {
-        final static int NEW = 0;
-        final static int RUNNING = 1;
-        final static int DONE = 2;
+        static final int NEW = 0;
+        static final int RUNNING = 1;
+        static final int DONE = 2;
         final CountDownLatch latch;
         int state = NEW;
         LatchAwaiter(CountDownLatch latch) { this.latch = latch; }
@@ -1331,7 +1331,7 @@ public class JSR166TestCase extends TestCase {
             state = 2;
         }
     }
-    
+
     public LatchAwaiter awaiter(CountDownLatch latch) {
         return new LatchAwaiter(latch);
     }
