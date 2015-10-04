@@ -458,13 +458,15 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * setRejectedExecutionHandler(null) throws NPE
      */
     public void testSetRejectedExecutionHandlerNull() {
-        ThreadPoolExecutor p = new CustomTPE(1,2,LONG_DELAY_MS, MILLISECONDS, new ArrayBlockingQueue<Runnable>(10));
-        try {
-            p.setRejectedExecutionHandler(null);
-            shouldThrow();
-        } catch (NullPointerException success) {
-        } finally {
-            joinPool(p);
+        final ThreadPoolExecutor p =
+            new CustomTPE(1, 2,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(10));
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.setRejectedExecutionHandler(null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
         }
     }
 
