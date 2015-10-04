@@ -426,10 +426,11 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        assertFalse(p.isShutdown());
-        try { p.shutdown(); } catch (SecurityException ok) { return; }
-        assertTrue(p.isShutdown());
-        joinPool(p);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertFalse(p.isShutdown());
+            try { p.shutdown(); } catch (SecurityException ok) { return; }
+            assertTrue(p.isShutdown());
+        }
     }
 
     /**

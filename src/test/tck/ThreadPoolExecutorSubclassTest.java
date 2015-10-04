@@ -569,12 +569,15 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * isShutdown is false before shutdown, true after
      */
     public void testIsShutdown() {
-
-        ThreadPoolExecutor p = new CustomTPE(1, 1, LONG_DELAY_MS, MILLISECONDS, new ArrayBlockingQueue<Runnable>(10));
-        assertFalse(p.isShutdown());
-        try { p.shutdown(); } catch (SecurityException ok) { return; }
-        assertTrue(p.isShutdown());
-        joinPool(p);
+        final ThreadPoolExecutor p =
+            new CustomTPE(1, 1,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(10));
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertFalse(p.isShutdown());
+            try { p.shutdown(); } catch (SecurityException ok) { return; }
+            assertTrue(p.isShutdown());
+        }
     }
 
     /**
