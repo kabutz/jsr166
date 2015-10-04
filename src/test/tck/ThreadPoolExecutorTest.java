@@ -1070,7 +1070,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * submit(runnable) throws RejectedExecutionException if saturated.
      */
     public void testSaturatedSubmitRunnable() {
-        ThreadPoolExecutor p =
+        final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1));
@@ -1099,7 +1099,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * submit(callable) throws RejectedExecutionException if saturated.
      */
     public void testSaturatedSubmitCallable() {
-        ThreadPoolExecutor p =
+        final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1));
@@ -1214,7 +1214,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * execute throws RejectedExecutionException if shutdown
      */
     public void testRejectedExecutionExceptionOnShutdown() {
-        ThreadPoolExecutor p =
+        final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1));
@@ -1301,7 +1301,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * setCorePoolSize of negative value throws IllegalArgumentException
      */
     public void testCorePoolSizeIllegalArgumentException() {
-        ThreadPoolExecutor p =
+        final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
@@ -1320,7 +1320,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * given a value less the core pool size
      */
     public void testMaximumPoolSizeIllegalArgumentException() {
-        ThreadPoolExecutor p =
+        final ThreadPoolExecutor p =
             new ThreadPoolExecutor(2, 3,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
@@ -1339,7 +1339,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * if given a negative value
      */
     public void testMaximumPoolSizeIllegalArgumentException2() {
-        ThreadPoolExecutor p =
+        final ThreadPoolExecutor p =
             new ThreadPoolExecutor(2, 3,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
@@ -1358,7 +1358,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * max pool size result in IllegalArgumentException.
      */
     public void testPoolSizeInvariants() {
-        ThreadPoolExecutor p =
+        final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
@@ -1386,7 +1386,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * when given a negative value
      */
     public void testKeepAliveTimeIllegalArgumentException() {
-        ThreadPoolExecutor p =
+        final ThreadPoolExecutor p =
             new ThreadPoolExecutor(2, 3,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
