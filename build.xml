@@ -236,7 +236,7 @@
 
       <include name="*.java"/>
       <compilerarg value="-XDignore.symbol.file=true"/>
-      <compilerarg value="-Xlint:all,-unchecked,-rawtypes,-serial,-deprecation"/>
+      <compilerarg value="-Xlint:all,-unchecked,-rawtypes,-serial,-deprecation,-try"/>
       <compilerarg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
       <compilerarg value="-Xoverride:${build.classes.dir}" if:set="modules"/>
       <compilerarg line="${build.args}"/>
