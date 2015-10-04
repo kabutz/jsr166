@@ -41,15 +41,13 @@ public class RecursiveTaskTest extends JSR166TestCase {
     }
 
     private <T> T testInvokeOnPool(ForkJoinPool pool, RecursiveTask<T> a) {
-        try {
+        try (PoolCleaner cleaner = cleaner(pool)) {
             checkNotDone(a);
 
             T result = pool.invoke(a);
 
             checkCompletedNormally(a, result);
             return result;
-        } finally {
-            joinPool(pool);
         }
     }
 

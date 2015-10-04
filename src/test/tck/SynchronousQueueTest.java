@@ -469,24 +469,24 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testOfferInExecutor_fair() { testOfferInExecutor(true); }
     public void testOfferInExecutor(boolean fair) {
         final SynchronousQueue q = new SynchronousQueue(fair);
-        ExecutorService executor = Executors.newFixedThreadPool(2);
         final CheckedBarrier threadsStarted = new CheckedBarrier(2);
+        final ExecutorService executor = Executors.newFixedThreadPool(2);
+        try (PoolCleaner cleaner = cleaner(executor)) {
 
-        executor.execute(new CheckedRunnable() {
-            public void realRun() throws InterruptedException {
-                assertFalse(q.offer(one));
-                threadsStarted.await();
-                assertTrue(q.offer(one, LONG_DELAY_MS, MILLISECONDS));
-                assertEquals(0, q.remainingCapacity());
-            }});
+            executor.execute(new CheckedRunnable() {
+                public void realRun() throws InterruptedException {
+                    assertFalse(q.offer(one));
+                    threadsStarted.await();
+                    assertTrue(q.offer(one, LONG_DELAY_MS, MILLISECONDS));
+                    assertEquals(0, q.remainingCapacity());
+                }});
 
-        executor.execute(new CheckedRunnable() {
-            public void realRun() throws InterruptedException {
-                threadsStarted.await();
-                assertSame(one, q.take());
-            }});
-
-        joinPool(executor);
+            executor.execute(new CheckedRunnable() {
+                public void realRun() throws InterruptedException {
+                    threadsStarted.await();
+                    assertSame(one, q.take());
+                }});
+        }
     }
 
     /**
@@ -497,22 +497,22 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testPollInExecutor(boolean fair) {
         final SynchronousQueue q = new SynchronousQueue(fair);
         final CheckedBarrier threadsStarted = new CheckedBarrier(2);
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        executor.execute(new CheckedRunnable() {
-            public void realRun() throws InterruptedException {
-                assertNull(q.poll());
-                threadsStarted.await();
-                assertSame(one, q.poll(LONG_DELAY_MS, MILLISECONDS));
-                assertTrue(q.isEmpty());
-            }});
+        final ExecutorService executor = Executors.newFixedThreadPool(2);
+        try (PoolCleaner cleaner = cleaner(executor)) {
+            executor.execute(new CheckedRunnable() {
+                public void realRun() throws InterruptedException {
+                    assertNull(q.poll());
+                    threadsStarted.await();
+                    assertSame(one, q.poll(LONG_DELAY_MS, MILLISECONDS));
+                    assertTrue(q.isEmpty());
+                }});
 
-        executor.execute(new CheckedRunnable() {
-            public void realRun() throws InterruptedException {
-                threadsStarted.await();
-                q.put(one);
-            }});
-
-        joinPool(executor);
+            executor.execute(new CheckedRunnable() {
+                public void realRun() throws InterruptedException {
+                    threadsStarted.await();
+                    q.put(one);
+                }});
+        }
     }
 
     /**

@@ -438,10 +438,12 @@ public class ScheduledExecutorTest extends JSR166TestCase {
      * getThreadFactory returns factory in constructor if not set
      */
     public void testGetThreadFactory() throws InterruptedException {
-        ThreadFactory threadFactory = new SimpleThreadFactory();
-        ScheduledThreadPoolExecutor p = new ScheduledThreadPoolExecutor(1, threadFactory);
-        assertSame(threadFactory, p.getThreadFactory());
-        joinPool(p);
+        final ThreadFactory threadFactory = new SimpleThreadFactory();
+        final ScheduledThreadPoolExecutor p =
+            new ScheduledThreadPoolExecutor(1, threadFactory);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertSame(threadFactory, p.getThreadFactory());
+        }
     }
 
     /**
