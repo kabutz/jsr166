@@ -457,7 +457,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                         done.await();
                         assertEquals(THREADS, p.getLargestPoolSize());
                     }});
-            assertTrue(threadsStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadsStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(THREADS, p.getLargestPoolSize());
         } finally {
             done.countDown();
