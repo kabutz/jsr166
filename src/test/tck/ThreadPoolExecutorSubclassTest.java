@@ -645,9 +645,9 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             new CustomTPE(1, 1,
                           LONG_DELAY_MS, MILLISECONDS,
                           q);
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadStarted = new CountDownLatch(1);
+            final CountDownLatch done = new CountDownLatch(1);
             FutureTask[] tasks = new FutureTask[5];
             for (int i = 0; i < tasks.length; i++) {
                 Callable task = new CheckedCallable<Boolean>() {
@@ -665,9 +665,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             assertFalse(q.contains(tasks[0]));
             assertTrue(q.contains(tasks[tasks.length - 1]));
             assertEquals(tasks.length - 1, q.size());
-        } finally {
             done.countDown();
-            joinPool(p);
         }
     }
 
