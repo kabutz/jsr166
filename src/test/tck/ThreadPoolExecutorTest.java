@@ -1043,12 +1043,12 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * execute throws RejectedExecutionException if saturated.
      */
     public void testSaturatedExecute() {
-        ThreadPoolExecutor p =
+        final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1));
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch done = new CountDownLatch(1);
             Runnable task = new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
                     done.await();
@@ -1062,9 +1062,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                 } catch (RejectedExecutionException success) {}
                 assertTrue(p.getTaskCount() <= 2);
             }
-        } finally {
             done.countDown();
-            joinPool(p);
         }
     }
 
