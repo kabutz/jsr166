@@ -588,9 +588,9 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             new CustomTPE(1, 1,
                           LONG_DELAY_MS, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(10));
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadStarted = new CountDownLatch(1);
+            final CountDownLatch done = new CountDownLatch(1);
             assertFalse(p.isTerminating());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
@@ -601,12 +601,11 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertFalse(p.isTerminating());
             done.countDown();
-        } finally {
             try { p.shutdown(); } catch (SecurityException ok) { return; }
+            assertTrue(p.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
+            assertTrue(p.isTerminated());
+            assertFalse(p.isTerminating());
         }
-        assertTrue(p.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
-        assertTrue(p.isTerminated());
-        assertFalse(p.isTerminating());
     }
 
     /**
