@@ -480,9 +480,9 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             new CustomTPE(THREADS, THREADS,
                           LONG_DELAY_MS, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(10));
-        final CountDownLatch threadsStarted = new CountDownLatch(THREADS);
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadsStarted = new CountDownLatch(THREADS);
+            final CountDownLatch done = new CountDownLatch(1);
             assertEquals(0, p.getLargestPoolSize());
             for (int i = 0; i < THREADS; i++)
                 p.execute(new CheckedRunnable() {
@@ -491,13 +491,11 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                         done.await();
                         assertEquals(THREADS, p.getLargestPoolSize());
                     }});
-            assertTrue(threadsStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadsStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(THREADS, p.getLargestPoolSize());
-        } finally {
-            done.countDown();
-            joinPool(p);
-            assertEquals(THREADS, p.getLargestPoolSize());
+            done.countDown();   // release pool
         }
+        assertEquals(THREADS, p.getLargestPoolSize());
     }
 
     /**
