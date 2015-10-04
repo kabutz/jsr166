@@ -1219,12 +1219,12 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1));
         try { p.shutdown(); } catch (SecurityException ok) { return; }
-        try {
-            p.execute(new NoOpRunnable());
-            shouldThrow();
-        } catch (RejectedExecutionException success) {}
-
-        joinPool(p);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.execute(new NoOpRunnable());
+                shouldThrow();
+            } catch (RejectedExecutionException success) {}
+        }
     }
 
     /**

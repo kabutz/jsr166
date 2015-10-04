@@ -1236,15 +1236,17 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * execute throws RejectedExecutionException if shutdown
      */
     public void testRejectedExecutionExceptionOnShutdown() {
-        ThreadPoolExecutor p =
-            new CustomTPE(1,1,LONG_DELAY_MS, MILLISECONDS,new ArrayBlockingQueue<Runnable>(1));
+        final ThreadPoolExecutor p =
+            new CustomTPE(1, 1,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(1));
         try { p.shutdown(); } catch (SecurityException ok) { return; }
-        try {
-            p.execute(new NoOpRunnable());
-            shouldThrow();
-        } catch (RejectedExecutionException success) {}
-
-        joinPool(p);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            try {
+                p.execute(new NoOpRunnable());
+                shouldThrow();
+            } catch (RejectedExecutionException success) {}
+        }
     }
 
     /**
