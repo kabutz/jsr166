@@ -366,8 +366,13 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(2, 3,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        assertEquals(3, p.getMaximumPoolSize());
-        joinPool(p);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertEquals(3, p.getMaximumPoolSize());
+            p.setMaximumPoolSize(5);
+            assertEquals(5, p.getMaximumPoolSize());
+            p.setMaximumPoolSize(4);
+            assertEquals(4, p.getMaximumPoolSize());
+        }
     }
 
     /**

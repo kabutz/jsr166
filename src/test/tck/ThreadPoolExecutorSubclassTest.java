@@ -503,9 +503,17 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * otherwise set
      */
     public void testGetMaximumPoolSize() {
-        ThreadPoolExecutor p = new CustomTPE(2, 2, LONG_DELAY_MS, MILLISECONDS, new ArrayBlockingQueue<Runnable>(10));
-        assertEquals(2, p.getMaximumPoolSize());
-        joinPool(p);
+        final ThreadPoolExecutor p =
+            new CustomTPE(2, 3,
+                          LONG_DELAY_MS, MILLISECONDS,
+                          new ArrayBlockingQueue<Runnable>(10));
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertEquals(3, p.getMaximumPoolSize());
+            p.setMaximumPoolSize(5);
+            assertEquals(5, p.getMaximumPoolSize());
+            p.setMaximumPoolSize(4);
+            assertEquals(4, p.getMaximumPoolSize());
+        }
     }
 
     /**
