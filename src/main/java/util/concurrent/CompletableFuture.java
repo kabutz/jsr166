@@ -421,6 +421,12 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     static final int ASYNC  =  1;
     static final int NESTED = -1;
 
+    /**
+     * Spins before blocking in waitingGet
+     */
+    static final int SPINS = (Runtime.getRuntime().availableProcessors() > 1 ?
+                              1 << 8 : 0);
+
     /* ------------- Base Completion classes and operations -------------- */
 
     @SuppressWarnings("serial")
@@ -1724,13 +1730,10 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     private Object waitingGet(boolean interruptible) {
         Signaller q = null;
         boolean queued = false;
-        int spins = -1;
+        int spins = SPINS;
         Object r;
         while ((r = result) == null) {
-            if (spins < 0)
-                spins = (Runtime.getRuntime().availableProcessors() > 1) ?
-                    1 << 8 : 0; // Use brief spin-wait on multiprocessors
-            else if (spins > 0) {
+            if (spins > 0) {
                 if (ThreadLocalRandom.nextSecondarySeed() >= 0)
                     --spins;
             }
@@ -1741,7 +1744,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
             else {
                 try {
                     ForkJoinPool.managedBlock(q);
-                } catch (InterruptedException ie) {
+                } catch (InterruptedException ie) { // currently cannot happen
                     q.interrupted = true;
                 }
                 if (q.interrupted && interruptible)
