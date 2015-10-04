@@ -525,9 +525,9 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             new CustomTPE(1, 1,
                           LONG_DELAY_MS, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(10));
-        final CountDownLatch threadStarted = new CountDownLatch(1);
-        final CountDownLatch done = new CountDownLatch(1);
-        try {
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final CountDownLatch threadStarted = new CountDownLatch(1);
+            final CountDownLatch done = new CountDownLatch(1);
             assertEquals(0, p.getPoolSize());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
@@ -535,11 +535,9 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                     assertEquals(1, p.getPoolSize());
                     done.await();
                 }});
-            assertTrue(threadStarted.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(1, p.getPoolSize());
-        } finally {
-            done.countDown();
-            joinPool(p);
+            done.countDown();   // release pool
         }
     }
 
