@@ -641,7 +641,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(poolSize, poolSize,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        CountDownLatch threadsStarted = new CountDownLatch(poolSize);
+        final CountDownLatch threadsStarted = new CountDownLatch(poolSize);
         Runnable waiter = new CheckedRunnable() { public void realRun() {
             threadsStarted.countDown();
             try {

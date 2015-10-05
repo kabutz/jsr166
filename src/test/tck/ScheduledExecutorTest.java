@@ -632,7 +632,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         final AtomicInteger ran = new AtomicInteger(0);
         final ScheduledThreadPoolExecutor p =
             new ScheduledThreadPoolExecutor(poolSize);
-        CountDownLatch threadsStarted = new CountDownLatch(poolSize);
+        final CountDownLatch threadsStarted = new CountDownLatch(poolSize);
         Runnable waiter = new CheckedRunnable() { public void realRun() {
             threadsStarted.countDown();
             try {
