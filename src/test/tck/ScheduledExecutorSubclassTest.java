@@ -473,22 +473,35 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * submitted
      */
     public void testGetTaskCount() throws InterruptedException {
+        final int TASKS = 3;
+        final CountDownLatch done = new CountDownLatch(1);
         final ThreadPoolExecutor p = new CustomExecutor(1);
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             final CountDownLatch threadStarted = new CountDownLatch(1);
-            final CountDownLatch done = new CountDownLatch(1);
-            final int TASKS = 5;
             assertEquals(0, p.getTaskCount());
-            for (int i = 0; i < TASKS; i++)
+            assertEquals(0, p.getCompletedTaskCount());
+            p.execute(new CheckedRunnable() {
+                public void realRun() throws InterruptedException {
+                    threadStarted.countDown();
+                    done.await();
+                }});
+            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
+            assertEquals(1, p.getTaskCount());
+            assertEquals(0, p.getCompletedTaskCount());
+            for (int i = 0; i < TASKS; i++) {
+                assertEquals(1 + i, p.getTaskCount());
                 p.execute(new CheckedRunnable() {
                     public void realRun() throws InterruptedException {
                         threadStarted.countDown();
+                        assertEquals(1 + TASKS, p.getTaskCount());
                         done.await();
                     }});
-            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
-            assertEquals(TASKS, p.getTaskCount());
-            done.countDown();
+            }
+            assertEquals(1 + TASKS, p.getTaskCount());
+            assertEquals(0, p.getCompletedTaskCount());
         }
+        assertEquals(1 + TASKS, p.getTaskCount());
+        assertEquals(1 + TASKS, p.getCompletedTaskCount());
     }
 
     /**

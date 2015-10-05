@@ -398,24 +398,38 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * getTaskCount increases, but doesn't overestimate, when tasks submitted
      */
     public void testGetTaskCount() throws InterruptedException {
+        final int TASKS = 3;
+        final CountDownLatch done = new CountDownLatch(1);
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             final CountDownLatch threadStarted = new CountDownLatch(1);
-            final CountDownLatch done = new CountDownLatch(1);
             assertEquals(0, p.getTaskCount());
+            assertEquals(0, p.getCompletedTaskCount());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
                     threadStarted.countDown();
-                    assertEquals(1, p.getTaskCount());
                     done.await();
                 }});
-            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertEquals(1, p.getTaskCount());
-            done.countDown();
+            assertEquals(0, p.getCompletedTaskCount());
+            for (int i = 0; i < TASKS; i++) {
+                assertEquals(1 + i, p.getTaskCount());
+                p.execute(new CheckedRunnable() {
+                    public void realRun() throws InterruptedException {
+                        threadStarted.countDown();
+                        assertEquals(1 + TASKS, p.getTaskCount());
+                        done.await();
+                    }});
+            }
+            assertEquals(1 + TASKS, p.getTaskCount());
+            assertEquals(0, p.getCompletedTaskCount());
         }
+        assertEquals(1 + TASKS, p.getTaskCount());
+        assertEquals(1 + TASKS, p.getCompletedTaskCount());
     }
 
     /**
