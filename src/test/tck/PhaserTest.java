@@ -685,7 +685,7 @@ public class PhaserTest extends JSR166TestCase {
         for (Phaser phaser : phasers) {
             assertEquals(-42, phaser.awaitAdvance(-42));
             assertEquals(-42, phaser.awaitAdvanceInterruptibly(-42));
-            assertEquals(-42, phaser.awaitAdvanceInterruptibly(-42, SMALL_DELAY_MS, MILLISECONDS));
+            assertEquals(-42, phaser.awaitAdvanceInterruptibly(-42, MEDIUM_DELAY_MS, MILLISECONDS));
         }
 
         for (Phaser child : onePartyChildren)
@@ -693,10 +693,10 @@ public class PhaserTest extends JSR166TestCase {
         for (Phaser phaser : phasers) {
             assertEquals(-42, phaser.awaitAdvance(-42));
             assertEquals(-42, phaser.awaitAdvanceInterruptibly(-42));
-            assertEquals(-42, phaser.awaitAdvanceInterruptibly(-42, SMALL_DELAY_MS, MILLISECONDS));
+            assertEquals(-42, phaser.awaitAdvanceInterruptibly(-42, MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(1, phaser.awaitAdvance(0));
             assertEquals(1, phaser.awaitAdvanceInterruptibly(0));
-            assertEquals(1, phaser.awaitAdvanceInterruptibly(0, SMALL_DELAY_MS, MILLISECONDS));
+            assertEquals(1, phaser.awaitAdvanceInterruptibly(0, MEDIUM_DELAY_MS, MILLISECONDS));
         }
 
         for (Phaser child : onePartyChildren)
@@ -704,13 +704,13 @@ public class PhaserTest extends JSR166TestCase {
         for (Phaser phaser : phasers) {
             assertEquals(-42, phaser.awaitAdvance(-42));
             assertEquals(-42, phaser.awaitAdvanceInterruptibly(-42));
-            assertEquals(-42, phaser.awaitAdvanceInterruptibly(-42, SMALL_DELAY_MS, MILLISECONDS));
+            assertEquals(-42, phaser.awaitAdvanceInterruptibly(-42, MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(2, phaser.awaitAdvance(0));
             assertEquals(2, phaser.awaitAdvanceInterruptibly(0));
-            assertEquals(2, phaser.awaitAdvanceInterruptibly(0, SMALL_DELAY_MS, MILLISECONDS));
+            assertEquals(2, phaser.awaitAdvanceInterruptibly(0, MEDIUM_DELAY_MS, MILLISECONDS));
             assertEquals(2, phaser.awaitAdvance(1));
             assertEquals(2, phaser.awaitAdvanceInterruptibly(1));
-            assertEquals(2, phaser.awaitAdvanceInterruptibly(1, SMALL_DELAY_MS, MILLISECONDS));
+            assertEquals(2, phaser.awaitAdvanceInterruptibly(1, MEDIUM_DELAY_MS, MILLISECONDS));
         }
     }
 

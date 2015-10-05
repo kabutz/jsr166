@@ -48,7 +48,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
             final Runnable task = new CheckedRunnable() {
                 public void realRun() { done.countDown(); }};
             p.execute(task);
-            assertTrue(done.await(SMALL_DELAY_MS, MILLISECONDS));
+            assertTrue(done.await(LONG_DELAY_MS, MILLISECONDS));
         }
     }
 

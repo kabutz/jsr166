@@ -826,7 +826,7 @@ public class JSR166TestCase extends TestCase {
                 } finally {
                     // last resort, for the benefit of subsequent tests
                     pool.shutdownNow();
-                    pool.awaitTermination(SMALL_DELAY_MS, MILLISECONDS);
+                    pool.awaitTermination(MEDIUM_DELAY_MS, MILLISECONDS);
                 }
             }
         } catch (SecurityException ok) {
