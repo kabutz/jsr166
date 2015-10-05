@@ -262,7 +262,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                     assertEquals(1, p.getActiveCount());
                     done.await();
                 }});
-            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertEquals(1, p.getActiveCount());
             done.countDown();
         }
@@ -491,7 +491,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                         done.await();
                         assertEquals(THREADS, p.getLargestPoolSize());
                     }});
-            assertTrue(threadsStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
+            assertTrue(threadsStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertEquals(THREADS, p.getLargestPoolSize());
             done.countDown();   // release pool
         }
@@ -535,7 +535,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                     assertEquals(1, p.getPoolSize());
                     done.await();
                 }});
-            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertEquals(1, p.getPoolSize());
             done.countDown();   // release pool
         }
@@ -612,7 +612,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                     threadStarted.countDown();
                     done.await();
                 }});
-            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertFalse(p.isTerminating());
             done.countDown();
             try { p.shutdown(); } catch (SecurityException ok) { return; }
@@ -640,7 +640,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                     threadStarted.countDown();
                     done.await();
                 }});
-            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertFalse(p.isTerminating());
             done.countDown();
             try { p.shutdown(); } catch (SecurityException ok) { return; }
@@ -674,7 +674,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                 tasks[i] = new FutureTask(task);
                 p.execute(tasks[i]);
             }
-            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertSame(q, p.getQueue());
             assertFalse(q.contains(tasks[0]));
             assertTrue(q.contains(tasks[tasks.length - 1]));
@@ -704,7 +704,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                     }};
                 p.execute(tasks[i]);
             }
-            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertFalse(p.remove(tasks[0]));
             assertTrue(q.contains(tasks[4]));
             assertTrue(q.contains(tasks[3]));
