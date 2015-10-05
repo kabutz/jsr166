@@ -729,7 +729,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             new CustomTPE(1, 1,
                           LONG_DELAY_MS, MILLISECONDS,
                           q);
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             FutureTask[] tasks = new FutureTask[5];
             for (int i = 0; i < tasks.length; i++) {
                 Callable task = new CheckedCallable<Boolean>() {
@@ -741,7 +741,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                 tasks[i] = new FutureTask(task);
                 p.execute(tasks[i]);
             }
-            assertTrue(threadStarted.await(MEDIUM_DELAY_MS, MILLISECONDS));
+            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertEquals(tasks.length, p.getTaskCount());
             assertEquals(tasks.length - 1, q.size());
             assertEquals(1L, p.getActiveCount());
@@ -754,7 +754,6 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             p.purge();         // Nothing to do
             assertEquals(tasks.length - 3, q.size());
             assertEquals(tasks.length - 2, p.getTaskCount());
-            done.countDown();
         }
     }
 

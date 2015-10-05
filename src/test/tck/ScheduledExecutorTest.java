@@ -609,12 +609,15 @@ public class ScheduledExecutorTest extends JSR166TestCase {
      * purge eventually removes cancelled tasks from the queue
      */
     public void testPurge() throws InterruptedException {
-        ScheduledThreadPoolExecutor p = new ScheduledThreadPoolExecutor(1);
-        ScheduledFuture[] tasks = new ScheduledFuture[5];
-        for (int i = 0; i < tasks.length; i++)
-            tasks[i] = p.schedule(new SmallPossiblyInterruptedRunnable(),
-                                  LONG_DELAY_MS, MILLISECONDS);
-        try {
+        final ScheduledFuture[] tasks = new ScheduledFuture[5];
+        final Runnable releaser = new Runnable() { public void run() {
+            for (ScheduledFuture task : tasks)
+                if (task != null) task.cancel(true); }};
+        final ScheduledThreadPoolExecutor p = new ScheduledThreadPoolExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p, releaser)) {
+            for (int i = 0; i < tasks.length; i++)
+                tasks[i] = p.schedule(new SmallPossiblyInterruptedRunnable(),
+                                      LONG_DELAY_MS, MILLISECONDS);
             int max = tasks.length;
             if (tasks[4].cancel(true)) --max;
             if (tasks[3].cancel(true)) --max;
@@ -626,12 +629,8 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                 long count = p.getTaskCount();
                 if (count == max)
                     return;
-            } while (millisElapsedSince(startTime) < MEDIUM_DELAY_MS);
+            } while (millisElapsedSince(startTime) < LONG_DELAY_MS);
             fail("Purge failed to remove cancelled tasks");
-        } finally {
-            for (ScheduledFuture task : tasks)
-                task.cancel(true);
-            joinPool(p);
         }
     }
 
