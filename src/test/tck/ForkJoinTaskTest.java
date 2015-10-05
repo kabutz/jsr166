@@ -216,9 +216,9 @@ public class ForkJoinTaskTest extends JSR166TestCase {
             AtomicIntegerFieldUpdater.newUpdater(BinaryAsyncAction.class,
                                                  "controlState");
 
-        private BinaryAsyncAction parent;
+        private volatile BinaryAsyncAction parent;
 
-        private BinaryAsyncAction sibling;
+        private volatile BinaryAsyncAction sibling;
 
         protected BinaryAsyncAction() {
         }
