@@ -1632,9 +1632,9 @@ public class ForkJoinPool extends AbstractExecutorService {
             w.qlock = -1;                             // ensure set
             w.cancelAll();                            // cancel remaining tasks
         }
-        for (;;) {                                    // possibly replace
+        while (tryTerminate(false, false) >= 0) {     // possibly replace
             WorkQueue[] ws; int wl, sp; long c;
-            if (tryTerminate(false, false) || w == null || w.array == null ||
+            if (w == null || w.array == null ||
                 (runState & STOP) != 0 || (ws = workQueues) == null ||
                 (wl = ws.length) <= 0)                // already terminating
                 break;
@@ -1809,9 +1809,9 @@ public class ForkJoinPool extends AbstractExecutorService {
                          System.currentTimeMillis());
         if (w != null && w.scanState < 0) {
             int ss; AuxState aux;
-            if (runState < 0 && tryTerminate(false, false))
-                stat = w.qlock = -1;               // help terminate
-            else if ((stat = w.qlock) >= 0 && w.scanState < 0) {
+            if ((runState >= 0 ||
+                 (stat = tryTerminate(false, false)) > 0) &&
+                ((stat = w.qlock) >= 0 && w.scanState < 0)) {
                 w.parker = Thread.currentThread();
                 if (w.scanState < 0)
                     LockSupport.parkUntil(this, deadline);
@@ -2380,12 +2380,12 @@ public class ForkJoinPool extends AbstractExecutorService {
      * @param now if true, unconditionally terminate, else only
      * if no work and no active workers
      * @param enable if true, terminate when next possible
-     * @return true if now terminating or terminated
+     * @return -1 : terminating or terminated, 0: retry if internal caller, else 1
      */
-    private boolean tryTerminate(boolean now, boolean enable) {
+    private int tryTerminate(boolean now, boolean enable) {
         AuxState aux; int rs;
         if ((rs = runState) >= 0 && (!enable || this == common))
-            return false;
+            return 1;
         while ((aux = auxState) == null)
             tryInitialize(false);
         aux.lock();
@@ -2397,24 +2397,20 @@ public class ForkJoinPool extends AbstractExecutorService {
                     WorkQueue[] ws; WorkQueue w; int m, b, sp; long c;
                     long checkSum = ctl;
                     if ((int)(checkSum >> AC_SHIFT) + (config & SMASK) > 0)
-                        return false;             // still active workers
+                        return 0;                 // still active workers
                     if ((ws = workQueues) == null || (m = ws.length - 1) < 0)
                         break;                    // check queues
-                    boolean clean = true;
                     for (int i = 0; i <= m; ++i) {
                         if ((w = ws[i]) != null) {
                             checkSum += (b = w.base);
-                            if ((i & 1) == 0)
-                                w.qlock = -1;     // try to disable external
                             if (w.currentSteal != null || b != w.top) {
                                 if ((sp = (int)(c = ctl)) == 0 ||
                                     tryRelease(c, ws[m & sp], AC_UNIT))
-                                    return false; // arrange for recheck
-                                clean = false;    // rescan
+                                return 0;         // retry if internal caller
                             }
                         }
                     }
-                    if (clean && oldSum == (oldSum = checkSum))
+                    if (oldSum == (oldSum = checkSum))
                         break;
                 }
             }
@@ -2467,7 +2463,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                     tryRelease(c, ws[sp & m], AC_UNIT);
             }
         }
-        return true;
+        return -1;
     }
 
     // External operations
