@@ -776,8 +776,41 @@ public class JSR166TestCase extends TestCase {
         public void close() { joinPool(pool); }
     }
 
+    /**
+     * An extension of PoolCleaner that has an action to release the pool.
+     */
+    class PoolCleanerWithReleaser extends PoolCleaner {
+        private final Runnable releaser;
+        public PoolCleanerWithReleaser(ExecutorService pool, Runnable releaser) {
+            super(pool);
+            this.releaser = releaser;
+        }
+        public void close() {
+            try {
+                releaser.run();
+            } finally {
+                super.close();
+            }
+        }
+    }
+
     PoolCleaner cleaner(ExecutorService pool) {
         return new PoolCleaner(pool);
+    }
+
+    PoolCleaner cleaner(ExecutorService pool, Runnable releaser) {
+        return new PoolCleanerWithReleaser(pool, releaser);
+    }
+
+    PoolCleaner cleaner(ExecutorService pool, CountDownLatch latch) {
+        return new PoolCleanerWithReleaser(pool, releaser(latch));
+    }
+
+    Runnable releaser(final CountDownLatch latch) {
+        return new Runnable() { public void run() {
+            do { latch.countDown(); }
+            while (latch.getCount() > 0);
+        }};
     }
 
     /**
