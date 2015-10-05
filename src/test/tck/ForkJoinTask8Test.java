@@ -198,9 +198,9 @@ public class ForkJoinTask8Test extends JSR166TestCase {
 
     abstract static class BinaryAsyncAction extends ForkJoinTask<Void> {
 
-        private BinaryAsyncAction parent;
+        private volatile BinaryAsyncAction parent;
 
-        private BinaryAsyncAction sibling;
+        private volatile BinaryAsyncAction sibling;
 
         protected BinaryAsyncAction() {
             setForkJoinTaskTag(INITIAL_STATE);
