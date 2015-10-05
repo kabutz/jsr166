@@ -1024,14 +1024,14 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * get of submitted callable throws InterruptedException if interrupted
      */
     public void testInterruptedSubmit() throws InterruptedException {
+        final CountDownLatch done = new CountDownLatch(1);
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    60, SECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
 
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             final CountDownLatch threadStarted = new CountDownLatch(1);
-            final CountDownLatch done = new CountDownLatch(1);
             Thread t = newStartedThread(new CheckedInterruptedRunnable() {
                 public void realRun() throws Exception {
                     Callable task = new CheckedCallable<Boolean>() {
@@ -1043,10 +1043,9 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                     p.submit(task).get();
                 }});
 
-            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
+            await(threadStarted);
             t.interrupt();
-            awaitTermination(t, MEDIUM_DELAY_MS);
-            done.countDown();
+            awaitTermination(t);
         }
     }
 

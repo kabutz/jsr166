@@ -194,24 +194,23 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
         final CountDownLatch quittingTime = new CountDownLatch(1);
         final Callable<Void> awaiter = new CheckedCallable<Void>() {
             public Void realCall() throws InterruptedException {
-                quittingTime.await();
+                assertTrue(quittingTime.await(2*LONG_DELAY_MS, MILLISECONDS));
                 return null;
             }};
         final ExecutorService p
             = new ThreadPoolExecutor(1,1,60, TimeUnit.SECONDS,
                                      new ArrayBlockingQueue<Runnable>(10));
-        try (PoolCleaner cleaner = cleaner(p)) {
-            Thread t = new Thread(new CheckedInterruptedRunnable() {
+        try (PoolCleaner cleaner = cleaner(p, quittingTime)) {
+            Thread t = newStartedThread(new CheckedInterruptedRunnable() {
                 public void realRun() throws Exception {
                     Future<Void> future = p.submit(awaiter);
                     submitted.countDown();
                     future.get();
                 }});
-            t.start();
-            submitted.await();
+
+            await(submitted);
             t.interrupt();
-            t.join();
-            quittingTime.countDown();
+            awaitTermination(t);
         }
     }
 

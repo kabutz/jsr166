@@ -548,13 +548,13 @@ public class ForkJoinPoolTest extends JSR166TestCase {
     public void testInterruptedSubmit() throws InterruptedException {
         final CountDownLatch submitted    = new CountDownLatch(1);
         final CountDownLatch quittingTime = new CountDownLatch(1);
-        final ExecutorService p = new ForkJoinPool(1);
         final Callable<Void> awaiter = new CheckedCallable<Void>() {
             public Void realCall() throws InterruptedException {
-                assertTrue(quittingTime.await(MEDIUM_DELAY_MS, MILLISECONDS));
+                assertTrue(quittingTime.await(2*LONG_DELAY_MS, MILLISECONDS));
                 return null;
             }};
-        try {
+        final ExecutorService p = new ForkJoinPool(1);
+        try (PoolCleaner cleaner = cleaner(p, quittingTime)) {
             Thread t = new Thread(new CheckedInterruptedRunnable() {
                 public void realRun() throws Exception {
                     Future<Void> future = p.submit(awaiter);
@@ -562,12 +562,9 @@ public class ForkJoinPoolTest extends JSR166TestCase {
                     future.get();
                 }});
             t.start();
-            assertTrue(submitted.await(MEDIUM_DELAY_MS, MILLISECONDS));
+            await(submitted);
             t.interrupt();
-            t.join();
-        } finally {
-            quittingTime.countDown();
-            joinPool(p);
+            awaitTermination(t);
         }
     }
 
