@@ -476,14 +476,14 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      */
     public void testGetLargestPoolSize() throws InterruptedException {
         final int THREADS = 3;
+        final CountDownLatch done = new CountDownLatch(1);
         final ThreadPoolExecutor p =
             new CustomTPE(THREADS, THREADS,
                           LONG_DELAY_MS, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(10));
-        try (PoolCleaner cleaner = cleaner(p)) {
-            final CountDownLatch threadsStarted = new CountDownLatch(THREADS);
-            final CountDownLatch done = new CountDownLatch(1);
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             assertEquals(0, p.getLargestPoolSize());
+            final CountDownLatch threadsStarted = new CountDownLatch(THREADS);
             for (int i = 0; i < THREADS; i++)
                 p.execute(new CheckedRunnable() {
                     public void realRun() throws InterruptedException {
@@ -493,7 +493,6 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                     }});
             assertTrue(threadsStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertEquals(THREADS, p.getLargestPoolSize());
-            done.countDown();   // release pool
         }
         assertEquals(THREADS, p.getLargestPoolSize());
     }
@@ -521,14 +520,14 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
      * become active
      */
     public void testGetPoolSize() throws InterruptedException {
+        final CountDownLatch done = new CountDownLatch(1);
         final ThreadPoolExecutor p =
             new CustomTPE(1, 1,
                           LONG_DELAY_MS, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(10));
-        try (PoolCleaner cleaner = cleaner(p)) {
-            final CountDownLatch threadStarted = new CountDownLatch(1);
-            final CountDownLatch done = new CountDownLatch(1);
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             assertEquals(0, p.getPoolSize());
+            final CountDownLatch threadStarted = new CountDownLatch(1);
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
                     threadStarted.countDown();
@@ -537,7 +536,6 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                 }});
             assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertEquals(1, p.getPoolSize());
-            done.countDown();   // release pool
         }
     }
 
