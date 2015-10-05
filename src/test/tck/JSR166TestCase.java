@@ -201,6 +201,8 @@ public class JSR166TestCase extends TestCase {
                         ("Looks like we're stuck running test: "
                          + lastTestCase);
                     dumpTestThreads();
+                    // one stack dump is probably enough; more would be spam
+                    break;
                 }
                 lastTestCase = currentTestCase;
             }}};
