@@ -101,13 +101,13 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * thread becomes active
      */
     public void testGetActiveCount() throws InterruptedException {
+        final CountDownLatch done = new CountDownLatch(1);
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(2, 2,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             final CountDownLatch threadStarted = new CountDownLatch(1);
-            final CountDownLatch done = new CountDownLatch(1);
             assertEquals(0, p.getActiveCount());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
@@ -117,7 +117,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                 }});
             await(threadStarted);
             assertEquals(1, p.getActiveCount());
-            done.countDown();
         }
     }
 
@@ -537,14 +536,14 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * getQueue returns the work queue, which contains queued tasks
      */
     public void testGetQueue() throws InterruptedException {
+        final CountDownLatch done = new CountDownLatch(1);
         final BlockingQueue<Runnable> q = new ArrayBlockingQueue<Runnable>(10);
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    q);
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             final CountDownLatch threadStarted = new CountDownLatch(1);
-            final CountDownLatch done = new CountDownLatch(1);
             FutureTask[] tasks = new FutureTask[5];
             for (int i = 0; i < tasks.length; i++) {
                 Callable task = new CheckedCallable<Boolean>() {
@@ -562,7 +561,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             assertFalse(q.contains(tasks[0]));
             assertTrue(q.contains(tasks[tasks.length - 1]));
             assertEquals(tasks.length - 1, q.size());
-            done.countDown();
         }
     }
 
@@ -570,15 +568,15 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * remove(task) removes queued task, and fails to remove active task
      */
     public void testRemove() throws InterruptedException {
+        final CountDownLatch done = new CountDownLatch(1);
         BlockingQueue<Runnable> q = new ArrayBlockingQueue<Runnable>(10);
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    q);
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             Runnable[] tasks = new Runnable[6];
             final CountDownLatch threadStarted = new CountDownLatch(1);
-            final CountDownLatch done = new CountDownLatch(1);
             for (int i = 0; i < tasks.length; i++) {
                 tasks[i] = new CheckedRunnable() {
                     public void realRun() throws InterruptedException {
@@ -597,7 +595,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             assertTrue(q.contains(tasks[3]));
             assertTrue(p.remove(tasks[3]));
             assertFalse(q.contains(tasks[3]));
-            done.countDown();
         }
     }
 
@@ -1053,12 +1050,12 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * execute throws RejectedExecutionException if saturated.
      */
     public void testSaturatedExecute() {
+        final CountDownLatch done = new CountDownLatch(1);
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1));
-        try (PoolCleaner cleaner = cleaner(p)) {
-            final CountDownLatch done = new CountDownLatch(1);
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             Runnable task = new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
                     await(done);
@@ -1072,7 +1069,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                 } catch (RejectedExecutionException success) {}
                 assertTrue(p.getTaskCount() <= 2);
             }
-            done.countDown();
         }
     }
 
@@ -1080,12 +1076,12 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * submit(runnable) throws RejectedExecutionException if saturated.
      */
     public void testSaturatedSubmitRunnable() {
+        final CountDownLatch done = new CountDownLatch(1);
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1));
-        try (PoolCleaner cleaner = cleaner(p)) {
-            final CountDownLatch done = new CountDownLatch(1);
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             Runnable task = new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
                     await(done);
@@ -1099,7 +1095,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                 } catch (RejectedExecutionException success) {}
                 assertTrue(p.getTaskCount() <= 2);
             }
-            done.countDown();
         }
     }
 
@@ -1107,12 +1102,12 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * submit(callable) throws RejectedExecutionException if saturated.
      */
     public void testSaturatedSubmitCallable() {
+        final CountDownLatch done = new CountDownLatch(1);
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1));
-        try (PoolCleaner cleaner = cleaner(p)) {
-            final CountDownLatch done = new CountDownLatch(1);
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             Runnable task = new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
                     await(done);
@@ -1126,7 +1121,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                 } catch (RejectedExecutionException success) {}
                 assertTrue(p.getTaskCount() <= 2);
             }
-            done.countDown();
         }
     }
 
@@ -1163,6 +1157,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * executor using DiscardPolicy drops task if saturated.
      */
     public void testSaturatedExecute3() {
+        final CountDownLatch done = new CountDownLatch(1);
         final TrackedNoOpRunnable[] tasks = new TrackedNoOpRunnable[5];
         for (int i = 0; i < tasks.length; ++i)
             tasks[i] = new TrackedNoOpRunnable();
@@ -1171,15 +1166,13 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                           LONG_DELAY_MS, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(1),
                           new ThreadPoolExecutor.DiscardPolicy());
-        try (PoolCleaner cleaner = cleaner(p)) {
-            final CountDownLatch done = new CountDownLatch(1);
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             p.execute(awaiter(done));
 
             for (TrackedNoOpRunnable task : tasks)
                 p.execute(task);
             for (int i = 1; i < tasks.length; i++)
                 assertFalse(tasks[i].done);
-            done.countDown();
         }
         for (int i = 1; i < tasks.length; i++)
             assertFalse(tasks[i].done);
@@ -1199,7 +1192,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1),
                                    new ThreadPoolExecutor.DiscardOldestPolicy());
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             assertEquals(LatchAwaiter.NEW, r1.state);
             assertEquals(LatchAwaiter.NEW, r2.state);
             assertEquals(LatchAwaiter.NEW, r3.state);
@@ -1209,7 +1202,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             p.execute(r3);
             assertFalse(p.getQueue().contains(r2));
             assertTrue(p.getQueue().contains(r3));
-            done.countDown();
         }
         assertEquals(LatchAwaiter.DONE, r1.state);
         assertEquals(LatchAwaiter.NEW, r2.state);
@@ -2028,13 +2020,13 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * get(cancelled task) throws CancellationException
      */
     public void testGet_cancelled() throws Exception {
+        final CountDownLatch done = new CountDownLatch(1);
         final ExecutorService e =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new LinkedBlockingQueue<Runnable>());
-        try (PoolCleaner cleaner = cleaner(e)) {
+        try (PoolCleaner cleaner = cleaner(e, done)) {
             final CountDownLatch blockerStarted = new CountDownLatch(1);
-            final CountDownLatch done = new CountDownLatch(1);
             final List<Future<?>> futures = new ArrayList<>();
             for (int i = 0; i < 2; i++) {
                 Runnable r = new CheckedRunnable() { public void realRun()
@@ -2058,7 +2050,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                 assertTrue(future.isCancelled());
                 assertTrue(future.isDone());
             }
-            done.countDown();
         }
     }
 
