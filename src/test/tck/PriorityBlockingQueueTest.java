@@ -393,25 +393,23 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
         final CountDownLatch aboutToWait = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
+                long startTime = System.nanoTime();
                 for (int i = 0; i < SIZE; ++i) {
-                    long t0 = System.nanoTime();
                     assertEquals(i, (int) q.poll(LONG_DELAY_MS, MILLISECONDS));
-                    assertTrue(millisElapsedSince(t0) < SMALL_DELAY_MS);
                 }
-                long t0 = System.nanoTime();
                 aboutToWait.countDown();
                 try {
                     q.poll(LONG_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (InterruptedException success) {
-                    assertTrue(millisElapsedSince(t0) < MEDIUM_DELAY_MS);
+                    assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
                 }
             }});
 
         aboutToWait.await();
-        waitForThreadToEnterWaitState(t, SMALL_DELAY_MS);
+        waitForThreadToEnterWaitState(t, LONG_DELAY_MS);
         t.interrupt();
-        awaitTermination(t, MEDIUM_DELAY_MS);
+        awaitTermination(t);
     }
 
     /**

@@ -451,15 +451,13 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
         final CountDownLatch aboutToWait = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
-                for (int i = 0; i < SIZE; ++i) {
-                    long startTime = System.nanoTime();
-                    assertEquals(i, (int) q.poll(2*LONG_DELAY_MS, MILLISECONDS));
-                    assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
-                }
                 long startTime = System.nanoTime();
+                for (int i = 0; i < SIZE; ++i) {
+                    assertEquals(i, (int) q.poll(LONG_DELAY_MS, MILLISECONDS));
+                }
                 aboutToWait.countDown();
                 try {
-                    q.poll(2*LONG_DELAY_MS, MILLISECONDS);
+                    q.poll(LONG_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (InterruptedException success) {
                     assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
@@ -469,7 +467,7 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
         await(aboutToWait);
         waitForThreadToEnterWaitState(t, LONG_DELAY_MS);
         t.interrupt();
-        awaitTermination(t, LONG_DELAY_MS);
+        awaitTermination(t);
         checkEmpty(q);
     }
 
