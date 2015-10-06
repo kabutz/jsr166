@@ -526,8 +526,6 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      * @return the exception, or null if none
      */
     private Throwable getThrowableException() {
-        if ((status & DONE_MASK) != EXCEPTIONAL)
-            return null;
         int h = System.identityHashCode(this);
         ExceptionNode e;
         final ReentrantLock lock = exceptionTableLock;
@@ -618,8 +616,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      * A version of "sneaky throw" to relay exceptions.
      */
     static void rethrow(Throwable ex) {
-        if (ex != null)
-            ForkJoinTask.<RuntimeException>uncheckedThrow(ex);
+        ForkJoinTask.<RuntimeException>uncheckedThrow(ex);
     }
 
     /**
@@ -628,8 +625,11 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      * unchecked exceptions.
      */
     @SuppressWarnings("unchecked") static <T extends Throwable>
-        void uncheckedThrow(Throwable t) throws T {
-        throw (T)t; // rely on vacuous cast
+    void uncheckedThrow(Throwable t) throws T {
+        if (t != null)
+            throw (T)t; // rely on vacuous cast
+        else
+            throw new Error("Unknown Exception");
     }
 
     /**
@@ -964,11 +964,10 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     public final V get() throws InterruptedException, ExecutionException {
         int s = (Thread.currentThread() instanceof ForkJoinWorkerThread) ?
             doJoin() : externalInterruptibleAwaitDone();
-        Throwable ex;
         if ((s &= DONE_MASK) == CANCELLED)
             throw new CancellationException();
-        if (s == EXCEPTIONAL && (ex = getThrowableException()) != null)
-            throw new ExecutionException(ex);
+        if (s == EXCEPTIONAL)
+            throw new ExecutionException(getThrowableException());
         return getRawResult();
     }
 
@@ -1023,13 +1022,11 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         if (s >= 0)
             s = status;
         if ((s &= DONE_MASK) != NORMAL) {
-            Throwable ex;
             if (s == CANCELLED)
                 throw new CancellationException();
             if (s != EXCEPTIONAL)
                 throw new TimeoutException();
-            if ((ex = getThrowableException()) != null)
-                throw new ExecutionException(ex);
+            throw new ExecutionException(getThrowableException());
         }
         return getRawResult();
     }
