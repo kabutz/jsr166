@@ -1168,16 +1168,22 @@ public class ScheduledExecutorTest extends JSR166TestCase {
      * timed invokeAll(c) cancels tasks not completed by timeout
      */
     public void testTimedInvokeAll6() throws Exception {
-        final ExecutorService e = new ScheduledThreadPoolExecutor(2);
-        try (PoolCleaner cleaner = cleaner(e)) {
-            for (long timeout = timeoutMillis();;) {
+        for (long timeout = timeoutMillis();;) {
+            final CountDownLatch done = new CountDownLatch(1);
+            final Callable<String> waiter = new CheckedCallable<String>() {
+                public String realCall() {
+                    try { done.await(LONG_DELAY_MS, MILLISECONDS); }
+                    catch (InterruptedException ok) {}
+                    return "1"; }};
+            final ExecutorService p = new ScheduledThreadPoolExecutor(2);
+            try (PoolCleaner cleaner = cleaner(p, done)) {
                 List<Callable<String>> tasks = new ArrayList<>();
                 tasks.add(new StringTask("0"));
-                tasks.add(Executors.callable(new LongPossiblyInterruptedRunnable(), TEST_STRING));
+                tasks.add(waiter);
                 tasks.add(new StringTask("2"));
                 long startTime = System.nanoTime();
                 List<Future<String>> futures =
-                    e.invokeAll(tasks, timeout, MILLISECONDS);
+                    p.invokeAll(tasks, timeout, MILLISECONDS);
                 assertEquals(tasks.size(), futures.size());
                 assertTrue(millisElapsedSince(startTime) >= timeout);
                 for (Future future : futures)
