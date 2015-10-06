@@ -96,17 +96,17 @@ public class ForkJoinTaskTest extends JSR166TestCase {
 
         {
             Thread.currentThread().interrupt();
-            long t0 = System.nanoTime();
+            long startTime = System.nanoTime();
             assertSame(expected, a.join());
-            assertTrue(millisElapsedSince(t0) < SMALL_DELAY_MS);
+            assertTrue(millisElapsedSince(startTime) < SMALL_DELAY_MS);
             Thread.interrupted();
         }
 
         {
             Thread.currentThread().interrupt();
-            long t0 = System.nanoTime();
+            long startTime = System.nanoTime();
             a.quietlyJoin();        // should be no-op
-            assertTrue(millisElapsedSince(t0) < SMALL_DELAY_MS);
+            assertTrue(millisElapsedSince(startTime) < SMALL_DELAY_MS);
             Thread.interrupted();
         }
 
@@ -139,9 +139,9 @@ public class ForkJoinTaskTest extends JSR166TestCase {
         Thread.interrupted();
 
         {
-            long t0 = System.nanoTime();
+            long startTime = System.nanoTime();
             a.quietlyJoin();        // should be no-op
-            assertTrue(millisElapsedSince(t0) < SMALL_DELAY_MS);
+            assertTrue(millisElapsedSince(startTime) < SMALL_DELAY_MS);
         }
 
         try {
@@ -177,9 +177,9 @@ public class ForkJoinTaskTest extends JSR166TestCase {
         Thread.interrupted();
 
         {
-            long t0 = System.nanoTime();
+            long startTime = System.nanoTime();
             a.quietlyJoin();        // should be no-op
-            assertTrue(millisElapsedSince(t0) < SMALL_DELAY_MS);
+            assertTrue(millisElapsedSince(startTime) < SMALL_DELAY_MS);
         }
 
         try {

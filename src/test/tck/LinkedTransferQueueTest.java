@@ -313,9 +313,9 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
             public void realRun() throws InterruptedException {
                 Thread.currentThread().interrupt();
                 for (int i = 0; i < SIZE; ++i) {
-                    long t0 = System.nanoTime();
+                    long startTime = System.nanoTime();
                     assertEquals(i, (int) q.poll(LONG_DELAY_MS, MILLISECONDS));
-                    assertTrue(millisElapsedSince(t0) < SMALL_DELAY_MS);
+                    assertTrue(millisElapsedSince(startTime) < SMALL_DELAY_MS);
                 }
                 try {
                     q.poll(MEDIUM_DELAY_MS, MILLISECONDS);
@@ -969,10 +969,10 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
 
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
-                long t0 = System.nanoTime();
+                long startTime = System.nanoTime();
                 assertFalse(q.tryTransfer(new Object(),
                                           timeoutMillis(), MILLISECONDS));
-                assertTrue(millisElapsedSince(t0) >= timeoutMillis());
+                assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
                 checkEmpty(q);
             }});
 
@@ -1011,9 +1011,9 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
         final LinkedTransferQueue q = new LinkedTransferQueue();
         assertTrue(q.offer(four));
         assertEquals(1, q.size());
-        long t0 = System.nanoTime();
+        long startTime = System.nanoTime();
         assertFalse(q.tryTransfer(five, timeoutMillis(), MILLISECONDS));
-        assertTrue(millisElapsedSince(t0) >= timeoutMillis());
+        assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
         assertEquals(1, q.size());
         assertSame(four, q.poll());
         assertNull(q.poll());
