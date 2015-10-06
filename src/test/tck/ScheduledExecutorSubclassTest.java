@@ -105,7 +105,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             final Runnable task = new CheckedRunnable() {
                 public void realRun() { done.countDown(); }};
             p.execute(task);
-            assertTrue(done.await(LONG_DELAY_MS, MILLISECONDS));
+            await(done);
         }
     }
 
@@ -113,10 +113,10 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * delayed schedule of callable successfully executes after delay
      */
     public void testSchedule1() throws Exception {
+        final CountDownLatch done = new CountDownLatch(1);
         final CustomExecutor p = new CustomExecutor(1);
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             final long startTime = System.nanoTime();
-            final CountDownLatch done = new CountDownLatch(1);
             Callable task = new CheckedCallable<Boolean>() {
                 public Boolean realCall() {
                     done.countDown();
@@ -126,7 +126,6 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             Future f = p.schedule(task, timeoutMillis(), MILLISECONDS);
             assertSame(Boolean.TRUE, f.get());
             assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
-            assertTrue(done.await(0L, MILLISECONDS));
         }
     }
 
@@ -213,7 +212,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                     public void realRun() { done.countDown(); }};
                 ScheduledFuture h =
                     p.scheduleAtFixedRate(task, 0, delay, MILLISECONDS);
-                done.await();
+                await(done);
                 h.cancel(true);
                 double normalizedTime =
                     (double) millisElapsedSince(startTime) / delay;
@@ -239,7 +238,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                     public void realRun() { done.countDown(); }};
                 ScheduledFuture h =
                     p.scheduleWithFixedDelay(task, 0, delay, MILLISECONDS);
-                done.await();
+                await(done);
                 h.cancel(true);
                 double normalizedTime =
                     (double) millisElapsedSince(startTime) / delay;
@@ -363,20 +362,19 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * thread becomes active
      */
     public void testGetActiveCount() throws InterruptedException {
+        final CountDownLatch done = new CountDownLatch(1);
         final ThreadPoolExecutor p = new CustomExecutor(2);
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             final CountDownLatch threadStarted = new CountDownLatch(1);
-            final CountDownLatch done = new CountDownLatch(1);
             assertEquals(0, p.getActiveCount());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
                     threadStarted.countDown();
                     assertEquals(1, p.getActiveCount());
-                    done.await();
+                    await(done);
                 }});
-            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
+            await(threadStarted);
             assertEquals(1, p.getActiveCount());
-            done.countDown();
         }
     }
 
@@ -427,21 +425,20 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      */
     public void testGetLargestPoolSize() throws InterruptedException {
         final int THREADS = 3;
+        final CountDownLatch done = new CountDownLatch(1);
         final ThreadPoolExecutor p = new CustomExecutor(THREADS);
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             final CountDownLatch threadsStarted = new CountDownLatch(THREADS);
-            final CountDownLatch done = new CountDownLatch(1);
             assertEquals(0, p.getLargestPoolSize());
             for (int i = 0; i < THREADS; i++)
                 p.execute(new CheckedRunnable() {
                     public void realRun() throws InterruptedException {
                         threadsStarted.countDown();
-                        done.await();
+                        await(done);
                         assertEquals(THREADS, p.getLargestPoolSize());
                     }});
             assertTrue(threadsStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertEquals(THREADS, p.getLargestPoolSize());
-            done.countDown();
         }
         assertEquals(THREADS, p.getLargestPoolSize());
     }
@@ -451,20 +448,19 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * become active
      */
     public void testGetPoolSize() throws InterruptedException {
+        final CountDownLatch done = new CountDownLatch(1);
         final ThreadPoolExecutor p = new CustomExecutor(1);
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             final CountDownLatch threadStarted = new CountDownLatch(1);
-            final CountDownLatch done = new CountDownLatch(1);
             assertEquals(0, p.getPoolSize());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
                     threadStarted.countDown();
                     assertEquals(1, p.getPoolSize());
-                    done.await();
+                    await(done);
                 }});
-            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
+            await(threadStarted);
             assertEquals(1, p.getPoolSize());
-            done.countDown();
         }
     }
 
@@ -483,9 +479,9 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
                     threadStarted.countDown();
-                    done.await();
+                    await(done);
                 }});
-            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
+            await(threadStarted);
             assertEquals(1, p.getTaskCount());
             assertEquals(0, p.getCompletedTaskCount());
             for (int i = 0; i < TASKS; i++) {
@@ -494,7 +490,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                     public void realRun() throws InterruptedException {
                         threadStarted.countDown();
                         assertEquals(1 + TASKS, p.getTaskCount());
-                        done.await();
+                        await(done);
                     }});
             }
             assertEquals(1 + TASKS, p.getTaskCount());
@@ -556,18 +552,18 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * isTerminated is false before termination, true after
      */
     public void testIsTerminated() throws InterruptedException {
+        final CountDownLatch done = new CountDownLatch(1);
         final ThreadPoolExecutor p = new CustomExecutor(1);
         try (PoolCleaner cleaner = cleaner(p)) {
             final CountDownLatch threadStarted = new CountDownLatch(1);
-            final CountDownLatch done = new CountDownLatch(1);
-            assertFalse(p.isTerminated());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
                     assertFalse(p.isTerminated());
                     threadStarted.countDown();
-                    done.await();
+                    await(done);
                 }});
-            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
+            await(threadStarted);
+            assertFalse(p.isTerminated());
             assertFalse(p.isTerminating());
             done.countDown();
             try { p.shutdown(); } catch (SecurityException ok) { return; }
@@ -580,16 +576,16 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * isTerminating is not true when running or when terminated
      */
     public void testIsTerminating() throws InterruptedException {
+        final CountDownLatch done = new CountDownLatch(1);
         final ThreadPoolExecutor p = new CustomExecutor(1);
         try (PoolCleaner cleaner = cleaner(p)) {
             final CountDownLatch threadStarted = new CountDownLatch(1);
-            final CountDownLatch done = new CountDownLatch(1);
             assertFalse(p.isTerminating());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
                     assertFalse(p.isTerminating());
                     threadStarted.countDown();
-                    done.await();
+                    await(done);
                 }});
             assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertFalse(p.isTerminating());
