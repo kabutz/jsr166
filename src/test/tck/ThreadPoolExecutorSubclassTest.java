@@ -1840,7 +1840,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             List<Callable<String>> l = new ArrayList<Callable<String>>();
             l.add(new NPETask());
             List<Future<String>> futures =
-                e.invokeAll(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAll(l, LONG_DELAY_MS, MILLISECONDS);
             assertEquals(1, futures.size());
             try {
                 futures.get(0).get();
