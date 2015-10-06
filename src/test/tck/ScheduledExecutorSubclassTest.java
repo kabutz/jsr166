@@ -601,10 +601,10 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * getQueue returns the work queue, which contains queued tasks
      */
     public void testGetQueue() throws InterruptedException {
+        final CountDownLatch done = new CountDownLatch(1);
         final ScheduledThreadPoolExecutor p = new CustomExecutor(1);
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             final CountDownLatch threadStarted = new CountDownLatch(1);
-            final CountDownLatch done = new CountDownLatch(1);
             ScheduledFuture[] tasks = new ScheduledFuture[5];
             for (int i = 0; i < tasks.length; i++) {
                 Runnable r = new CheckedRunnable() {
@@ -618,7 +618,6 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             BlockingQueue<Runnable> q = p.getQueue();
             assertTrue(q.contains(tasks[tasks.length - 1]));
             assertFalse(q.contains(tasks[0]));
-            done.countDown();
         }
     }
 
@@ -626,11 +625,11 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * remove(task) removes queued task, and fails to remove active task
      */
     public void testRemove() throws InterruptedException {
+        final CountDownLatch done = new CountDownLatch(1);
         final ScheduledThreadPoolExecutor p = new CustomExecutor(1);
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             ScheduledFuture[] tasks = new ScheduledFuture[5];
             final CountDownLatch threadStarted = new CountDownLatch(1);
-            final CountDownLatch done = new CountDownLatch(1);
             for (int i = 0; i < tasks.length; i++) {
                 Runnable r = new CheckedRunnable() {
                     public void realRun() throws InterruptedException {
@@ -650,7 +649,6 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             assertTrue(q.contains((Runnable)tasks[3]));
             assertTrue(p.remove((Runnable)tasks[3]));
             assertFalse(q.contains((Runnable)tasks[3]));
-            done.countDown();
         }
     }
 

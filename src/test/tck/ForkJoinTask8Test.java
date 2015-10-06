@@ -1163,7 +1163,7 @@ public class ForkJoinTask8Test extends JSR166TestCase {
         final ForkJoinTask b = ForkJoinTask.adapt(awaiter(done));
         final ForkJoinTask c = ForkJoinTask.adapt(awaiter(done));
         final ForkJoinPool p = singletonPool();
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             Thread external = new Thread(new CheckedRunnable() {
                 public void realRun() {
                     p.execute(a);
@@ -1185,7 +1185,6 @@ public class ForkJoinTask8Test extends JSR166TestCase {
                     assertFalse(r.isDone());
                 }};
             p.invoke(s);
-            done.countDown();
         }
     }
 
