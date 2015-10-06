@@ -256,23 +256,23 @@ public class ForkJoinPoolTest extends JSR166TestCase {
      */
     public void testSetUncaughtExceptionHandler() throws InterruptedException {
         final CountDownLatch uehInvoked = new CountDownLatch(1);
-        final Thread.UncaughtExceptionHandler eh =
+        final Thread.UncaughtExceptionHandler ueh =
             new Thread.UncaughtExceptionHandler() {
                 public void uncaughtException(Thread t, Throwable e) {
                     uehInvoked.countDown();
                 }};
         ForkJoinPool p = new ForkJoinPool(1, new FailingThreadFactory(),
-                                          eh, false);
-        try {
-            assertSame(eh, p.getUncaughtExceptionHandler());
+                                          ueh, false);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertSame(ueh, p.getUncaughtExceptionHandler());
             try {
-                p.execute(new FibTask(8));
-                assertTrue(uehInvoked.await(MEDIUM_DELAY_MS, MILLISECONDS));
-            } catch (RejectedExecutionException ok) {
+                try {
+                    p.execute(new FibTask(8));
+                    await(uehInvoked);
+                } catch (RejectedExecutionException ok) {}
+            } finally {
+                p.shutdownNow(); // failure might have prevented processing task
             }
-        } finally {
-            p.shutdownNow(); // failure might have prevented processing task
-            joinPool(p);
         }
     }
 
