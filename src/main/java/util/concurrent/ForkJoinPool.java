@@ -835,6 +835,7 @@ public class ForkJoinPool extends AbstractExecutorService {
          * @throws RejectedExecutionException if array cannot be resized
          */
         final void push(ForkJoinTask<?> task) {
+            U.storeFence();              // ensure safe publication
             int b = base, s = top, al, d; ForkJoinTask<?>[] a;
             if ((a = array) != null && (al = a.length) > 0) {
                 a[(al - 1) & s] = task;  // relaxed writes OK
