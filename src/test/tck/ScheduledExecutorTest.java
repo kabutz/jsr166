@@ -317,7 +317,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     assertEquals(1, p.getActiveCount());
                     await(done);
                 }});
-            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
+            await(threadStarted);
             assertEquals(1, p.getActiveCount());
             done.countDown();
         }
@@ -426,7 +426,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     threadStarted.countDown();
                     await(done);
                 }});
-            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
+            await(threadStarted);
             assertEquals(1, p.getTaskCount());
             assertEquals(0, p.getCompletedTaskCount());
             for (int i = 0; i < TASKS; i++) {
@@ -512,7 +512,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     threadStarted.countDown();
                     await(done);
                 }});
-            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
+            await(threadStarted);
             assertFalse(p.isTerminating());
             done.countDown();
             try { p.shutdown(); } catch (SecurityException ok) { return; }
@@ -536,7 +536,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     threadStarted.countDown();
                     await(done);
                 }});
-            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
+            await(threadStarted);
             assertFalse(p.isTerminating());
             done.countDown();
             try { p.shutdown(); } catch (SecurityException ok) { return; }
@@ -563,7 +563,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     }};
                 tasks[i] = p.schedule(r, 1, MILLISECONDS);
             }
-            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
+            await(threadStarted);
             BlockingQueue<Runnable> q = p.getQueue();
             assertTrue(q.contains(tasks[tasks.length - 1]));
             assertFalse(q.contains(tasks[0]));
@@ -588,7 +588,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     }};
                 tasks[i] = p.schedule(r, 1, MILLISECONDS);
             }
-            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
+            await(threadStarted);
             BlockingQueue<Runnable> q = p.getQueue();
             assertFalse(p.remove((Runnable)tasks[0]));
             assertTrue(q.contains((Runnable)tasks[4]));
