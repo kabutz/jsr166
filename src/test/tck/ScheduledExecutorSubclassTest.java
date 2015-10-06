@@ -610,7 +610,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                 Runnable r = new CheckedRunnable() {
                     public void realRun() throws InterruptedException {
                         threadStarted.countDown();
-                        done.await();
+                        await(done);
                     }};
                 tasks[i] = p.schedule(r, 1, MILLISECONDS);
             }
@@ -635,7 +635,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                 Runnable r = new CheckedRunnable() {
                     public void realRun() throws InterruptedException {
                         threadStarted.countDown();
-                        done.await();
+                        await(done);
                     }};
                 tasks[i] = p.schedule(r, 1, MILLISECONDS);
             }

@@ -156,7 +156,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     public void realRun() { done.countDown(); }};
                 ScheduledFuture h =
                     p.scheduleAtFixedRate(task, 0, delay, MILLISECONDS);
-                done.await();
+                await(done);
                 h.cancel(true);
                 double normalizedTime =
                     (double) millisElapsedSince(startTime) / delay;
@@ -182,7 +182,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     public void realRun() { done.countDown(); }};
                 ScheduledFuture h =
                     p.scheduleWithFixedDelay(task, 0, delay, MILLISECONDS);
-                done.await();
+                await(done);
                 h.cancel(true);
                 double normalizedTime =
                     (double) millisElapsedSince(startTime) / delay;
@@ -315,7 +315,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                 public void realRun() throws InterruptedException {
                     threadStarted.countDown();
                     assertEquals(1, p.getActiveCount());
-                    done.await();
+                    await(done);
                 }});
             assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertEquals(1, p.getActiveCount());
@@ -379,7 +379,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                 p.execute(new CheckedRunnable() {
                     public void realRun() throws InterruptedException {
                         threadsStarted.countDown();
-                        done.await();
+                        await(done);
                         assertEquals(THREADS, p.getLargestPoolSize());
                     }});
             assertTrue(threadsStarted.await(LONG_DELAY_MS, MILLISECONDS));
@@ -403,7 +403,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                 public void realRun() throws InterruptedException {
                     threadStarted.countDown();
                     assertEquals(1, p.getPoolSize());
-                    done.await();
+                    await(done);
                 }});
             assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertEquals(1, p.getPoolSize());
@@ -426,7 +426,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
                     threadStarted.countDown();
-                    done.await();
+                    await(done);
                 }});
             assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertEquals(1, p.getTaskCount());
@@ -437,7 +437,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     public void realRun() throws InterruptedException {
                         threadStarted.countDown();
                         assertEquals(1 + TASKS, p.getTaskCount());
-                        done.await();
+                        await(done);
                     }});
             }
             assertEquals(1 + TASKS, p.getTaskCount());
@@ -512,7 +512,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                 public void realRun() throws InterruptedException {
                     assertFalse(p.isTerminated());
                     threadStarted.countDown();
-                    done.await();
+                    await(done);
                 }});
             assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertFalse(p.isTerminating());
@@ -536,7 +536,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                 public void realRun() throws InterruptedException {
                     assertFalse(p.isTerminating());
                     threadStarted.countDown();
-                    done.await();
+                    await(done);
                 }});
             assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
             assertFalse(p.isTerminating());
@@ -561,7 +561,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                 Runnable r = new CheckedRunnable() {
                     public void realRun() throws InterruptedException {
                         threadStarted.countDown();
-                        done.await();
+                        await(done);
                     }};
                 tasks[i] = p.schedule(r, 1, MILLISECONDS);
             }
@@ -586,7 +586,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                 Runnable r = new CheckedRunnable() {
                     public void realRun() throws InterruptedException {
                         threadStarted.countDown();
-                        done.await();
+                        await(done);
                     }};
                 tasks[i] = p.schedule(r, 1, MILLISECONDS);
             }
