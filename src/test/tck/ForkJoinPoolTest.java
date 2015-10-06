@@ -64,10 +64,12 @@ public class ForkJoinPoolTest extends JSR166TestCase {
         }
     }
 
+    static class MyError extends Error {}
+
     // to test handlers
     static class FailingFJWSubclass extends ForkJoinWorkerThread {
         public FailingFJWSubclass(ForkJoinPool p) { super(p) ; }
-        protected void onStart() { super.onStart(); throw new Error(); }
+        protected void onStart() { super.onStart(); throw new MyError(); }
     }
 
     static class FailingThreadFactory
@@ -259,6 +261,8 @@ public class ForkJoinPoolTest extends JSR166TestCase {
         final Thread.UncaughtExceptionHandler ueh =
             new Thread.UncaughtExceptionHandler() {
                 public void uncaughtException(Thread t, Throwable e) {
+                    threadAssertTrue(e instanceof MyError);
+                    threadAssertTrue(t instanceof FailingFJWSubclass);
                     uehInvoked.countDown();
                 }};
         ForkJoinPool p = new ForkJoinPool(1, new FailingThreadFactory(),
@@ -266,10 +270,8 @@ public class ForkJoinPoolTest extends JSR166TestCase {
         try (PoolCleaner cleaner = cleaner(p)) {
             assertSame(ueh, p.getUncaughtExceptionHandler());
             try {
-                try {
-                    p.execute(new FibTask(8));
-                    await(uehInvoked);
-                } catch (RejectedExecutionException ok) {}
+                p.execute(new FibTask(8));
+                await(uehInvoked);
             } finally {
                 p.shutdownNow(); // failure might have prevented processing task
             }
