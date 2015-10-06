@@ -2394,7 +2394,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         if ((rs & STOP) == 0) {
             if (!now) {                           // check quiescence
                 for (long oldSum = 0L;;) {        // repeat until stable
-                    WorkQueue[] ws; WorkQueue w; int m, b, sp; long c;
+                    WorkQueue[] ws; WorkQueue w; int m, b;
                     long checkSum = ctl;
                     if ((int)(checkSum >> AC_SHIFT) + (config & SMASK) > 0)
                         return 0;                 // still active workers
@@ -2403,11 +2403,8 @@ public class ForkJoinPool extends AbstractExecutorService {
                     for (int i = 0; i <= m; ++i) {
                         if ((w = ws[i]) != null) {
                             checkSum += (b = w.base);
-                            if (w.currentSteal != null || b != w.top) {
-                                if ((sp = (int)(c = ctl)) == 0 ||
-                                    tryRelease(c, ws[m & sp], AC_UNIT))
+                            if (w.currentSteal != null || b != w.top)
                                 return 0;         // retry if internal caller
-                            }
                         }
                     }
                     if (oldSum == (oldSum = checkSum))
