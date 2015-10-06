@@ -373,7 +373,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         final ThreadPoolExecutor p = new ScheduledThreadPoolExecutor(THREADS);
         final CountDownLatch threadsStarted = new CountDownLatch(THREADS);
         final CountDownLatch done = new CountDownLatch(1);
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             assertEquals(0, p.getLargestPoolSize());
             for (int i = 0; i < THREADS; i++)
                 p.execute(new CheckedRunnable() {
@@ -382,9 +382,8 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                         await(done);
                         assertEquals(THREADS, p.getLargestPoolSize());
                     }});
-            assertTrue(threadsStarted.await(LONG_DELAY_MS, MILLISECONDS));
+            await(threadsStarted);
             assertEquals(THREADS, p.getLargestPoolSize());
-            done.countDown();
         }
         assertEquals(THREADS, p.getLargestPoolSize());
     }
@@ -397,7 +396,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         final ThreadPoolExecutor p = new ScheduledThreadPoolExecutor(1);
         final CountDownLatch threadStarted = new CountDownLatch(1);
         final CountDownLatch done = new CountDownLatch(1);
-        try (PoolCleaner cleaner = cleaner(p)) {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
             assertEquals(0, p.getPoolSize());
             p.execute(new CheckedRunnable() {
                 public void realRun() throws InterruptedException {
@@ -405,9 +404,8 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     assertEquals(1, p.getPoolSize());
                     await(done);
                 }});
-            assertTrue(threadStarted.await(LONG_DELAY_MS, MILLISECONDS));
+            await(threadStarted);
             assertEquals(1, p.getPoolSize());
-            done.countDown();
         }
     }
 
@@ -654,7 +652,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         }};
         for (int i = 0; i < count; i++)
             p.execute(waiter);
-        assertTrue(threadsStarted.await(LONG_DELAY_MS, MILLISECONDS));
+        await(threadsStarted);
         assertEquals(poolSize, p.getActiveCount());
         assertEquals(0, p.getCompletedTaskCount());
         final List<Runnable> queuedTasks;
