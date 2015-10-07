@@ -153,7 +153,7 @@ public class ConcurrentAssociateTest {
             }
             throw new AssertionError("timed out");
         }
-           
+
 //         } catch (CompletionException e) {
 //             Throwable t = e.getCause();
 //             if (t instanceof AssociationFailure) {
