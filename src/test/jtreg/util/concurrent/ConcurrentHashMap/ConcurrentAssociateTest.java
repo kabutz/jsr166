@@ -94,12 +94,15 @@ public class ConcurrentAssociateTest {
     }
 
     private static void test(String desc, BiConsumer<ConcurrentMap<Object, Object>, Object> associator) {
+        long startTime = System.nanoTime();
         System.err.printf("%s: availableProcessors=%d%n",
                           desc,
                           Runtime.getRuntime().availableProcessors());
         for (int i = 0; i < I; i++) {
             testOnce(desc, associator);
         }
+        System.err.printf("Elapsed millis=%d%n",
+                          TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
     }
 
     static class AssociationFailure extends RuntimeException {
