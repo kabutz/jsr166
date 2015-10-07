@@ -31,10 +31,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 
 /**
  * @test
@@ -89,6 +94,9 @@ public class ConcurrentAssociateTest {
     }
 
     private static void test(String desc, BiConsumer<ConcurrentMap<Object, Object>, Object> associator) {
+        System.err.printf("%s: availableProcessors=%d%n",
+                          desc,
+                          Runtime.getRuntime().availableProcessors());
         for (int i = 0; i < I; i++) {
             testOnce(desc, associator);
         }
@@ -106,7 +114,10 @@ public class ConcurrentAssociateTest {
 
         Supplier<Runnable> sr = () -> () -> {
             try {
-                s.await();
+                if (!s.await(100, TimeUnit.SECONDS)) {
+                    dumpTestThreads();
+                    throw new AssertionError("timed out");
+                }
             }
             catch (InterruptedException e) {
             }
@@ -126,21 +137,55 @@ public class ConcurrentAssociateTest {
                 .mapToObj(i -> sr.get())
                 .map(CompletableFuture::runAsync);
 
-        CompletableFuture all = CompletableFuture.allOf(
-                runners.toArray(CompletableFuture[]::new));
+        CompletableFuture[] futures = runners.toArray(CompletableFuture[]::new);
+        CompletableFuture all = CompletableFuture.allOf(futures);
 
         // Trigger the runners to start associating
         s.countDown();
         try {
-            all.join();
-        } catch (CompletionException e) {
-            Throwable t = e.getCause();
-            if (t instanceof AssociationFailure) {
-                throw (AssociationFailure) t;
+            all.get(100, TimeUnit.SECONDS);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            dumpTestThreads();
+            for (CompletableFuture future : futures) {
+                try { System.err.println(future.getNow("not yet complete")); }
+                catch (Throwable tt) { tt.printStackTrace(); }
             }
-            else {
-                throw e;
-            }
+            throw new AssertionError("timed out");
         }
+           
+//         } catch (CompletionException e) {
+//             Throwable t = e.getCause();
+//             if (t instanceof AssociationFailure) {
+//                 throw (AssociationFailure) t;
+//             }
+//             else {
+//                 throw e;
+//             }
+//         }
+    }
+
+    /**
+     * A debugging tool to print stack traces of most threads, as jstack does.
+     * Uninteresting threads are filtered out.
+     */
+    static void dumpTestThreads() {
+        ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+        System.err.println("------ stacktrace dump start ------");
+        for (ThreadInfo info : threadMXBean.dumpAllThreads(true, true)) {
+            String name = info.getThreadName();
+            if ("Signal Dispatcher".equals(name))
+                continue;
+            if ("Reference Handler".equals(name)
+                && info.getLockName().startsWith("java.lang.ref.Reference$Lock"))
+                continue;
+            if ("Finalizer".equals(name)
+                && info.getLockName().startsWith("java.lang.ref.ReferenceQueue$Lock"))
+                continue;
+            if ("checkForWedgedTest".equals(name))
+                continue;
+            System.err.print(info);
+        }
+        System.err.println("------ stacktrace dump end ------");
     }
 }
