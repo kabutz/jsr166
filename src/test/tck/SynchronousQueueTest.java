@@ -257,7 +257,6 @@ public class SynchronousQueueTest extends JSR166TestCase {
                 pleaseOffer.countDown();
                 startTime = System.nanoTime();
                 assertSame(zero, q.poll(LONG_DELAY_MS, MILLISECONDS));
-                assertTrue(millisElapsedSince(startTime) < MEDIUM_DELAY_MS);
 
                 Thread.currentThread().interrupt();
                 try {
@@ -272,13 +271,15 @@ public class SynchronousQueueTest extends JSR166TestCase {
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
+
+                assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         await(pleaseOffer);
         long startTime = System.nanoTime();
         try { assertTrue(q.offer(zero, LONG_DELAY_MS, MILLISECONDS)); }
         catch (InterruptedException e) { threadUnexpectedException(e); }
-        assertTrue(millisElapsedSince(startTime) < MEDIUM_DELAY_MS);
+        assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
 
         await(pleaseInterrupt);
         assertThreadStaysAlive(t);
