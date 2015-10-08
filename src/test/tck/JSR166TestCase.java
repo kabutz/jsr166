@@ -20,6 +20,8 @@ import java.lang.management.ThreadMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.security.Permission;
 import java.security.PermissionCollection;
@@ -52,6 +54,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import junit.framework.AssertionFailedError;
@@ -207,6 +210,7 @@ public class JSR166TestCase extends TestCase {
                          + lastTestCase + " (" + currentRun + "/" + runsPerTest + ")");
                     System.err.println("availableProcessors=" +
                         Runtime.getRuntime().availableProcessors());
+                    System.err.printf("cpu model = %s%n", cpuModel());
                     dumpTestThreads();
                     // one stack dump is probably enough; more would be spam
                     break;
@@ -216,6 +220,16 @@ public class JSR166TestCase extends TestCase {
         Thread thread = new Thread(checkForWedgedTest, "checkForWedgedTest");
         thread.setDaemon(true);
         thread.start();
+    }
+
+    public static String cpuModel() {
+        try {
+            Matcher matcher = Pattern.compile("model name\\s*: (.*)")
+                .matcher(new String(
+                     Files.readAllBytes(Paths.get("/proc/cpuinfo")), "UTF-8"));
+            matcher.find();
+            return matcher.group(1);
+        } catch (Exception ex) { return null; }
     }
 
     public void runBare() throws Throwable {
