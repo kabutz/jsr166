@@ -188,7 +188,9 @@ public class JSR166TestCase extends TestCase {
         return (regex == null) ? null : Pattern.compile(regex);
     }
 
+    // Instrumentation to debug very rare, but very annoying hung test runs.
     static volatile TestCase currentTestCase;
+    static volatile int currentRun = 0;
     static {
         Runnable checkForWedgedTest = new Runnable() { public void run() {
             // avoid spurious reports with enormous runsPerTest
@@ -197,9 +199,12 @@ public class JSR166TestCase extends TestCase {
                 try { MINUTES.sleep(timeoutMinutes); }
                 catch (InterruptedException unexpected) { break; }
                 if (lastTestCase == currentTestCase) {
+                    System.err.printf(
+                        "Looks like we're stuck running test: %s (%d/%d)%n",
+                        lastTestCase, currentRun, runsPerTest);
                     System.err.println
                         ("Looks like we're stuck running test: "
-                         + lastTestCase);
+                         + lastTestCase + " (" + currentRun + "/" + runsPerTest + ")");
                     System.err.println("availableProcessors=" +
                         Runtime.getRuntime().availableProcessors());
                     dumpTestThreads();
@@ -222,6 +227,7 @@ public class JSR166TestCase extends TestCase {
 
     protected void runTest() throws Throwable {
         for (int i = 0; i < runsPerTest; i++) {
+            currentRun = i;
             if (profileTests)
                 runTestProfiled();
             else
