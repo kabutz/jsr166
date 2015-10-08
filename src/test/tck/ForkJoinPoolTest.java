@@ -840,11 +840,13 @@ public class ForkJoinPoolTest extends JSR166TestCase {
     public void testTimedInvokeAny5() throws Throwable {
         ExecutorService e = new ForkJoinPool(1);
         try (PoolCleaner cleaner = cleaner(e)) {
+            long startTime = System.nanoTime();
             List<Callable<String>> l = new ArrayList<Callable<String>>();
             l.add(new StringTask());
             l.add(new StringTask());
-            String result = e.invokeAny(l, MEDIUM_DELAY_MS, MILLISECONDS);
+            String result = e.invokeAny(l, LONG_DELAY_MS, MILLISECONDS);
             assertSame(TEST_STRING, result);
+            assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
         }
     }
 
