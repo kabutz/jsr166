@@ -1727,14 +1727,16 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
         try (PoolCleaner cleaner = cleaner(e)) {
+            long startTime = System.nanoTime();
             List<Callable<String>> l = new ArrayList<Callable<String>>();
             l.add(new NPETask());
             try {
-                e.invokeAny(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAny(l, LONG_DELAY_MS, MILLISECONDS);
                 shouldThrow();
             } catch (ExecutionException success) {
                 assertTrue(success.getCause() instanceof NullPointerException);
             }
+            assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
         }
     }
 
