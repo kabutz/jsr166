@@ -200,6 +200,8 @@ public class JSR166TestCase extends TestCase {
                     System.err.println
                         ("Looks like we're stuck running test: "
                          + lastTestCase);
+                    System.err.println("availableProcessors=" +
+                        Runtime.getRuntime().availableProcessors());
                     dumpTestThreads();
                     // one stack dump is probably enough; more would be spam
                     break;
