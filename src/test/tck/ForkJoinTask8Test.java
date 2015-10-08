@@ -317,6 +317,7 @@ public class ForkJoinTask8Test extends JSR166TestCase {
             }
             catch (Throwable ex) {
                 compareAndSetForkJoinTaskTag(INITIAL_STATE, EXCEPTION_STATE);
+                throw new Error(ex);
             }
             return false;
         }
