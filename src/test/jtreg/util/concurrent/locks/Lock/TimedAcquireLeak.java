@@ -28,12 +28,32 @@
  * @author Martin Buchholz
  */
 
-import java.util.*;
-import java.util.regex.*;
-import java.util.concurrent.*;
-import java.util.concurrent.locks.*;
-import static java.util.concurrent.TimeUnit.*;
-import java.io.*;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.Reader;
+import java.lang.ref.WeakReference;
+import java.util.Random;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TimedAcquireLeak {
     static String javahome() {
@@ -99,12 +119,29 @@ public class TimedAcquireLeak {
         return result;
     }
 
+    /** No guarantees, but effective in practice. */
+    private static void forceFullGc() {
+        CountDownLatch finalizeDone = new CountDownLatch(1);
+        WeakReference<?> ref = new WeakReference<Object>(new Object() {
+            protected void finalize() { finalizeDone.countDown(); }});
+        try {
+            for (int i = 0; i < 10; i++) {
+                System.gc();
+                if (finalizeDone.await(1L, SECONDS) && ref.get() == null) {
+                    System.runFinalization(); // try to pick up stragglers
+                    return;
+                }
+            }
+        } catch (InterruptedException unexpected) {
+            throw new AssertionError("unexpected InterruptedException");
+        }
+        throw new AssertionError("failed to do a \"full\" gc");
+    }
+
     // To be called exactly twice by the child process
     public static void rendezvousChild() {
         try {
-            for (int i = 0; i < 100; i++) {
-                System.gc(); System.runFinalization(); Thread.sleep(50);
-            }
+            forceFullGc();
             System.out.write((byte)'\n'); System.out.flush();
             System.in.read();
         } catch (Throwable t) { throw new Error(t); }
@@ -169,6 +206,10 @@ public class TimedAcquireLeak {
         check(Math.abs(n1 - n0) < 2); // Almost always n0 == n1
         check(n1 < 20);
         drainers.shutdown();
+        if (!drainers.awaitTermination(10L, SECONDS)) {
+            drainers.shutdownNow(); // last resort
+            throw new AssertionError("thread pool did not terminate");
+        }
     }
 
     //----------------------------------------------------------------
