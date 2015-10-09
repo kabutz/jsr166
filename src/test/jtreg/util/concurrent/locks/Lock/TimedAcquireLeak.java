@@ -202,8 +202,11 @@ public class TimedAcquireLeak {
         failed += p.exitValue();
 
         // Check that no objects were leaked.
+        //
+        // TODO: This test is very brittle, depending on current JDK
+        // implementation, and needing occasional adjustment.
         System.out.printf("%d -> %d%n", n0, n1);
-        check(Math.abs(n1 - n0) < 2); // Almost always n0 == n1
+        check(Math.abs(n1 - n0) < 3); // Almost always n0 == n1
         check(n1 < 20);
         drainers.shutdown();
         if (!drainers.awaitTermination(10L, SECONDS)) {
