@@ -205,9 +205,6 @@ public class JSR166TestCase extends TestCase {
                     System.err.printf(
                         "Looks like we're stuck running test: %s (%d/%d)%n",
                         lastTestCase, currentRun, runsPerTest);
-                    System.err.println
-                        ("Looks like we're stuck running test: "
-                         + lastTestCase + " (" + currentRun + "/" + runsPerTest + ")");
                     System.err.println("availableProcessors=" +
                         Runtime.getRuntime().availableProcessors());
                     System.err.printf("cpu model = %s%n", cpuModel());
