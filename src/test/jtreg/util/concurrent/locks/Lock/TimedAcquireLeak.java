@@ -114,8 +114,7 @@ public class TimedAcquireLeak {
                                   Callable<T> callable) throws Throwable {
         p.getInputStream().read();
         T result = callable.call();
-        OutputStream os = p.getOutputStream();
-        os.write((byte)'\n'); os.flush();
+        sendByte(p.getOutputStream());
         return result;
     }
 
@@ -142,7 +141,7 @@ public class TimedAcquireLeak {
     public static void rendezvousChild() {
         try {
             forceFullGc();
-            System.out.write((byte)'\n'); System.out.flush();
+            sendByte(System.out);
             System.in.read();
         } catch (Throwable t) { throw new Error(t); }
     }
@@ -151,6 +150,12 @@ public class TimedAcquireLeak {
         Matcher matcher = Pattern.compile(regex).matcher(s);
         matcher.find();
         return matcher.group(group);
+    }
+
+    /** It's all about sending a message! */
+    static void sendByte(OutputStream s) throws IOException {
+        s.write('!');
+        s.flush();
     }
 
     static int objectsInUse(final Process child,
@@ -190,6 +195,9 @@ public class TimedAcquireLeak {
             childClassName, uniqueID
         };
         final Process p = new ProcessBuilder(jobCmd).start();
+        // Ensure subprocess jvm has started, so that jps can find it
+        p.getInputStream().read();
+        sendByte(p.getOutputStream());
 
         final String childPid =
             match(commandOutputOf(jps, "-m"),
@@ -229,6 +237,10 @@ public class TimedAcquireLeak {
         }
 
         public static void main(String[] args) throws Throwable {
+            // Synchronize with parent process, so that jps can find us
+            sendByte(System.out);
+            System.in.read();
+
             final ReentrantLock lock = new ReentrantLock();
             lock.lock();
 
