@@ -196,8 +196,11 @@ public class JSR166TestCase extends TestCase {
     // static volatile int currentRun = 0;
     static {
         Runnable checkForWedgedTest = new Runnable() { public void run() {
-            // avoid spurious reports with enormous runsPerTest
-            final int timeoutMinutes = Math.max(runsPerTest / 10, 1);
+            // Avoid spurious reports with enormous runsPerTest.
+            // A single test case run should never take more than 1 second.
+            // But let's cap it at the high end too ...
+            final int timeoutMinutes =
+                Math.min(15, Math.max(runsPerTest / 60, 1));
             for (TestCase lastTestCase = currentTestCase;;) {
                 try { MINUTES.sleep(timeoutMinutes); }
                 catch (InterruptedException unexpected) { break; }
