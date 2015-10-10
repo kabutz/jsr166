@@ -8,7 +8,7 @@
  * @test
  * @bug 8054446 8137184 8137185
  * @summary Regression test for memory leak in remove(Object)
- * @run main/othervm -Xmx2m RemoveLeak
+ * @run main/othervm -Xmx2200k RemoveLeak
  */
 
 import java.util.concurrent.ConcurrentLinkedQueue;
