@@ -86,7 +86,7 @@ public final class CancelledLockLoops {
                 lock.unlock();
             }
             if (c != 2)
-                throw new Error("Completed != 2");
+                throw new Error("Completed == " + c + "; expected 2");
             int r = result;
             if (r == 0) // avoid overoptimization
                 System.out.println("useless result: " + r);
