@@ -64,7 +64,6 @@ public class MapCheck {
 
         TestTimer.printStats();
 
-
         if (doSerializeTest)
             stest(newMap(mapClass), size);
     }

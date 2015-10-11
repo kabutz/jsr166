@@ -27,7 +27,6 @@
  * @summary Test Collections.binarySearch() with a null comparator
  */
 
-
 import java.util.*;
 
 public class BinarySearchNullComparator {

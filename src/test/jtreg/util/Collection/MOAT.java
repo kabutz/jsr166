@@ -422,7 +422,6 @@ public class MOAT {
         catch (Throwable t) { unexpected(t); }
     }
 
-
     //----------------------------------------------------------------
     // If add("x") succeeds, contains("x") & remove("x") should succeed
     //----------------------------------------------------------------

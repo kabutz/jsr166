@@ -142,7 +142,6 @@ public class CheckedMapBash {
             fail("Iterator.remove() failed");
     }
 
-
     @DataProvider(name = "Bash.Supplier<Map<Integer,Integer>>", parallel = true)
     public static Iterator<Object[]> bashNavigableMapProvider() {
         ArrayList<Object[]> iters = new ArrayList<>(makeCheckedMaps());

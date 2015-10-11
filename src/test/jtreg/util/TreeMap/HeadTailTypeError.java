@@ -46,7 +46,6 @@ public class HeadTailTypeError {
         } catch (ClassCastException e) {
         }
 
-
         try {
             SortedMap m = new TreeMap(String.CASE_INSENSITIVE_ORDER);
             m.headMap(new Integer(0));

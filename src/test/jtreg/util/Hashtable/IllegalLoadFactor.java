@@ -26,8 +26,6 @@
    @summary Test for an illegalargumentexception on loadFactor
 */
 
-
-
 import java.util.*;
 
 /**
