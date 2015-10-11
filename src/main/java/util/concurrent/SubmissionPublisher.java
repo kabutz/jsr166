@@ -1572,8 +1572,8 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         private static final long TAIL;
         private static final long HEAD;
         private static final long DEMAND;
-        private static final int  ABASE;
-        private static final int  ASHIFT;
+        private static final int ABASE;
+        private static final int ASHIFT;
 
         static {
             try {

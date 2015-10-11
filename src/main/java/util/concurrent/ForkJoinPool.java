@@ -1310,9 +1310,9 @@ public class ForkJoinPool extends AbstractExecutorService {
 
         // Unsafe mechanics. Note that some are (and must be) the same as in FJP
         private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
-        private static final int  ABASE;
-        private static final int  ASHIFT;
         private static final long QLOCK;
+        private static final int ABASE;
+        private static final int ASHIFT;
         static {
             try {
                 QLOCK = U.objectFieldOffset
@@ -3435,8 +3435,8 @@ public class ForkJoinPool extends AbstractExecutorService {
     // Unsafe mechanics
     private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
     private static final long CTL;
-    private static final int  ABASE;
-    private static final int  ASHIFT;
+    private static final int ABASE;
+    private static final int ASHIFT;
 
     static {
         try {
