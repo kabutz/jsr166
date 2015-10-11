@@ -211,9 +211,9 @@ public class JSR166TestCase extends TestCase {
 //                     System.err.printf(
 //                         "Looks like we're stuck running test: %s (%d/%d)%n",
 //                         lastTestCase, currentRun, runsPerTest);
-                    System.err.println("availableProcessors=" +
-                        Runtime.getRuntime().availableProcessors());
-                    System.err.printf("cpu model = %s%n", cpuModel());
+//                     System.err.println("availableProcessors=" +
+//                         Runtime.getRuntime().availableProcessors());
+//                     System.err.printf("cpu model = %s%n", cpuModel());
                     dumpTestThreads();
                     // one stack dump is probably enough; more would be spam
                     break;
@@ -225,15 +225,15 @@ public class JSR166TestCase extends TestCase {
         thread.start();
     }
 
-    public static String cpuModel() {
-        try {
-            Matcher matcher = Pattern.compile("model name\\s*: (.*)")
-                .matcher(new String(
-                     Files.readAllBytes(Paths.get("/proc/cpuinfo")), "UTF-8"));
-            matcher.find();
-            return matcher.group(1);
-        } catch (Exception ex) { return null; }
-    }
+//     public static String cpuModel() {
+//         try {
+//             Matcher matcher = Pattern.compile("model name\\s*: (.*)")
+//                 .matcher(new String(
+//                      Files.readAllBytes(Paths.get("/proc/cpuinfo")), "UTF-8"));
+//             matcher.find();
+//             return matcher.group(1);
+//         } catch (Exception ex) { return null; }
+//     }
 
     public void runBare() throws Throwable {
         currentTestCase = this;
