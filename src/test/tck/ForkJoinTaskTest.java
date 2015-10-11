@@ -256,6 +256,14 @@ public class ForkJoinTaskTest extends JSR166TestCase {
             super.completeExceptionally(ex);
         }
 
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            if (super.cancel(mayInterruptIfRunning)) {
+                completeExceptionally(new FJException());
+                return true;
+            }
+            return false;
+        }
+        
         public final void complete() {
             BinaryAsyncAction a = this;
             for (;;) {
@@ -277,13 +285,12 @@ public class ForkJoinTaskTest extends JSR166TestCase {
         }
 
         public final void completeExceptionally(Throwable ex) {
-            BinaryAsyncAction a = this;
-            while (!a.isCompletedAbnormally()) {
+            for (BinaryAsyncAction a = this;;) {
                 a.completeThisExceptionally(ex);
                 BinaryAsyncAction s = a.sibling;
-                if (s != null)
-                    s.cancel(false);
-                if (!a.onException() || (a = a.parent) == null)
+                if (s != null && !s.isDone())
+                    s.completeExceptionally(ex);
+                if ((a = a.parent) == null)
                     break;
             }
         }

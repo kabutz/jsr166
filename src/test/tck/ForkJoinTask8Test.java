@@ -243,6 +243,14 @@ public class ForkJoinTask8Test extends JSR166TestCase {
             super.completeExceptionally(ex);
         }
 
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            if (super.cancel(mayInterruptIfRunning)) {
+                completeExceptionally(new FJException());
+                return true;
+            }
+            return false;
+        }
+        
         public final void complete() {
             BinaryAsyncAction a = this;
             for (;;) {
@@ -265,13 +273,12 @@ public class ForkJoinTask8Test extends JSR166TestCase {
         }
 
         public final void completeExceptionally(Throwable ex) {
-            BinaryAsyncAction a = this;
-            while (!a.isCompletedAbnormally()) {
+            for (BinaryAsyncAction a = this;;) {
                 a.completeThisExceptionally(ex);
                 BinaryAsyncAction s = a.sibling;
-                if (s != null)
-                    s.cancel(false);
-                if (!a.onException() || (a = a.parent) == null)
+                if (s != null && !s.isDone())
+                    s.completeExceptionally(ex);
+                if ((a = a.parent) == null)
                     break;
             }
         }
@@ -317,8 +324,9 @@ public class ForkJoinTask8Test extends JSR166TestCase {
             }
             catch (Throwable ex) {
                 compareAndSetForkJoinTaskTag(INITIAL_STATE, EXCEPTION_STATE);
-                throw new Error(ex);
             }
+            if (getForkJoinTaskTag() == EXCEPTION_STATE)
+                throw new FJException();
             return false;
         }
 
@@ -340,19 +348,26 @@ public class ForkJoinTask8Test extends JSR166TestCase {
         }
 
         public final boolean exec() {
-            FailingAsyncFib f = this;
-            int n = f.number;
-            if (n > 1) {
-                while (n > 1) {
-                    FailingAsyncFib p = f;
-                    FailingAsyncFib r = new FailingAsyncFib(n - 2);
-                    f = new FailingAsyncFib(--n);
-                    p.linkSubtasks(r, f);
-                    r.fork();
+            try {
+                FailingAsyncFib f = this;
+                int n = f.number;
+                if (n > 1) {
+                    while (n > 1) {
+                        FailingAsyncFib p = f;
+                        FailingAsyncFib r = new FailingAsyncFib(n - 2);
+                        f = new FailingAsyncFib(--n);
+                        p.linkSubtasks(r, f);
+                        r.fork();
+                    }
+                    f.number = n;
                 }
-                f.number = n;
+                f.complete();
             }
-            f.complete();
+            catch (Throwable ex) {
+                compareAndSetForkJoinTaskTag(INITIAL_STATE, EXCEPTION_STATE);
+            }
+            if (getForkJoinTaskTag() == EXCEPTION_STATE)
+                throw new FJException();
             return false;
         }
 
