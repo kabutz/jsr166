@@ -1007,7 +1007,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             return stat;
         }
 
-        /*
+        /**
          * Helper for sharedPush; called only when locked and resize
          * needed.
          */
