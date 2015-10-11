@@ -836,12 +836,12 @@ public class ForkJoinPool extends AbstractExecutorService {
          */
         final void push(ForkJoinTask<?> task) {
             U.storeFence();              // ensure safe publication
-            int b = base, s = top, al, d; ForkJoinTask<?>[] a;
+            int s = top, al, d; ForkJoinTask<?>[] a;
             if ((a = array) != null && (al = a.length) > 0) {
                 a[(al - 1) & s] = task;  // relaxed writes OK
                 top = s + 1;
                 ForkJoinPool p = pool;
-                if ((d = b - s) == 0 && p != null) {
+                if ((d = base - s) == 0 && p != null) {
                     U.fullFence();
                     p.signalWork();
                 }
@@ -960,9 +960,9 @@ public class ForkJoinPool extends AbstractExecutorService {
          * Returns next task, if one exists, in order specified by mode.
          */
         final ForkJoinTask<?> peek() {
-            int b = base, al; ForkJoinTask<?>[] a;
+            int al; ForkJoinTask<?>[] a;
             return ((a = array) != null && (al = a.length) > 0) ?
-                a[(al - 1) & (config < 0 ? b : top - 1)] : null;
+                a[(al - 1) & (config < 0 ? base : top - 1)] : null;
         }
 
         /**
