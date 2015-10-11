@@ -1139,12 +1139,12 @@ public class ForkJoinPool extends AbstractExecutorService {
         final void transferStealCount(ForkJoinPool p) {
             AuxState aux;
             if (p != null && (aux = p.auxState) != null) {
-                int s = nsteals;
+                long s = nsteals;
                 nsteals = 0;            // if negative, correct for overflow
-                long inc = (long)(s < 0 ? Integer.MAX_VALUE : s);
+                if (s < 0) s = Integer.MAX_VALUE;
                 aux.lock();
                 try {
-                    aux.stealCount += inc;
+                    aux.stealCount += s;
                 } finally {
                     aux.unlock();
                 }
