@@ -8,8 +8,8 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /**
- * Create PRODUCERS publishers each with CONSUMERS subscribers,
- * each sent ITEMS items, with CAP buffering; repeat REPS times
+ * Creates PRODUCERS publishers each with CONSUMERS subscribers,
+ * each sent ITEMS items, with CAP buffering; repeats REPS times
  */
 public class SubmissionPublisherLoops3 {
     static final int ITEMS      = 1 << 20;
