@@ -340,15 +340,12 @@ public class ForkJoinTaskTest extends JSR166TestCase {
         public final boolean exec() {
             AsyncFib f = this;
             int n = f.number;
-            if (n > 1) {
-                while (n > 1) {
-                    AsyncFib p = f;
-                    AsyncFib r = new AsyncFib(n - 2);
-                    f = new AsyncFib(--n);
-                    p.linkSubtasks(r, f);
-                    r.fork();
-                }
-                f.number = n;
+            while (n > 1) {
+                AsyncFib p = f;
+                AsyncFib r = new AsyncFib(n - 2);
+                f = new AsyncFib(--n);
+                p.linkSubtasks(r, f);
+                r.fork();
             }
             f.complete();
             return false;
@@ -368,15 +365,12 @@ public class ForkJoinTaskTest extends JSR166TestCase {
         public final boolean exec() {
             FailingAsyncFib f = this;
             int n = f.number;
-            if (n > 1) {
-                while (n > 1) {
-                    FailingAsyncFib p = f;
-                    FailingAsyncFib r = new FailingAsyncFib(n - 2);
-                    f = new FailingAsyncFib(--n);
-                    p.linkSubtasks(r, f);
-                    r.fork();
-                }
-                f.number = n;
+            while (n > 1) {
+                FailingAsyncFib p = f;
+                FailingAsyncFib r = new FailingAsyncFib(n - 2);
+                f = new FailingAsyncFib(--n);
+                p.linkSubtasks(r, f);
+                r.fork();
             }
             f.complete();
             return false;
