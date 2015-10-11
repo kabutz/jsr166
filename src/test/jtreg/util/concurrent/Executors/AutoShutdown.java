@@ -29,10 +29,10 @@
  * @author Martin Buchholz
  */
 
-import java.io.*;
-import java.util.*;
-import java.util.concurrent.*;
-import static java.util.concurrent.Executors.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import static java.util.concurrent.Executors.defaultThreadFactory;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import java.util.concurrent.Phaser;
 
 public class AutoShutdown {
