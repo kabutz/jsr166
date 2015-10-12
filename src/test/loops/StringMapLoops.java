@@ -217,6 +217,6 @@ public class StringMapLoops {
         // fill up remaining keys with path-like compounds of previous pairs
         int j = 0;
         while (k < n)
-            keys[k++] = (String) keys[j++] + "/" + (String) keys[j];
+            keys[k++] = keys[j++] + "/" + keys[j];
     }
 }
