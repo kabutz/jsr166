@@ -4,13 +4,24 @@
  * explained at http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-import java.lang.ref.*;
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.concurrent.*;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Queue;
+import java.util.Random;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CountDownLatch;
 
 /*
  * @test
+ * @bug 7014263
  * @summary White box testing of ArrayBlockingQueue iterators.
  */
 
