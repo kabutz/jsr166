@@ -289,17 +289,17 @@ public class ForkJoinPool extends AbstractExecutorService {
      * and their negations (used for thresholding) to fit into 16bit
      * subfields.
      *
-     * Field "runState" holds state bits (STARTED, STOP, etc).  After
-     * starting, the field is updated (only during shutdown) under the
-     * auxState lock.
+     * Field "runState" holds lifetime status, atomically and
+     * monotonically setting STARTED, SHUTDOWN, STOP, and finally
+     * TERMINATED bits.
      *
      * Field "auxState" is a ReentrantLock subclass that also
      * opportunistically holds some other bookkeeping fields accessed
      * only when locked.  It is mainly used to lock (infrequent)
-     * updates to runState and workQueues.  The auxState instance is
-     * itself lazily constructed (see tryInitialize), requiring a
-     * double-check-style bootstrapping use of field runState, and
-     * locking a private static.
+     * updates to workQueues.  The auxState instance is itself lazily
+     * constructed (see tryInitialize), requiring a double-check-style
+     * bootstrapping use of field runState, and locking a private
+     * static.
      *
      * Field "workQueues" holds references to WorkQueues.  It is
      * updated (only during worker creation and termination) under the
@@ -460,19 +460,18 @@ public class ForkJoinPool extends AbstractExecutorService {
      * thread, as well as every other worker thereafter terminating,
      * helps terminate others by setting their (qlock) status,
      * cancelling their unprocessed tasks, and waking them up, doing
-     * so repeatedly until stable (but with a loop bounded by the
-     * number of workers).  Calls to non-abrupt shutdown() preface
-     * this by checking whether termination should commence. This
-     * relies primarily on the active count bits of "ctl" maintaining
-     * consensus -- tryTerminate is called from awaitWork whenever
-     * quiescent. However, external submitters do not take part in
-     * this consensus.  So, tryTerminate sweeps through queues (until
-     * stable) to ensure lack of in-flight submissions and workers
-     * about to process them before triggering the "STOP" phase of
-     * termination. (Note: there is an intrinsic conflict if
-     * helpQuiescePool is called when shutdown is enabled. Both wait
-     * for quiescence, but tryTerminate is biased to not trigger until
-     * helpQuiescePool completes.)
+     * so repeatedly until stable. Calls to non-abrupt shutdown()
+     * preface this by checking whether termination should
+     * commence. This relies primarily on the active count bits of
+     * "ctl" maintaining consensus -- tryTerminate is called from
+     * awaitWork whenever quiescent. However, external submitters do
+     * not take part in this consensus.  So, tryTerminate sweeps
+     * through queues (until stable) to ensure lack of in-flight
+     * submissions and workers about to process them before triggering
+     * the "STOP" phase of termination. (Note: there is an intrinsic
+     * conflict if helpQuiescePool is called when shutdown is
+     * enabled. Both wait for quiescence, but tryTerminate is biased
+     * to not trigger until helpQuiescePool completes.)
      *
      * Joining Tasks
      * =============
@@ -1469,11 +1468,10 @@ public class ForkJoinPool extends AbstractExecutorService {
      * termination by external calls submitting tasks.
      */
     private void tryInitialize(boolean checkTermination) {
-        if ((runState & STARTED) == 0) { // bootstrap by locking static field
-            int rs; // create workQueues array with size a power of two
-            int p = config & SMASK; // ensure at least 2 slots
-            int n = (p > 1) ? p - 1 : 1;
-            n |= n >>> 1;
+        if (runState == 0) { // bootstrap by locking static field
+            int p = config & SMASK;
+            int n = (p > 1) ? p - 1 : 1; // ensure at least 2 slots
+            n |= n >>> 1;    // create workQueues array with size a power of two
             n |= n >>> 2;
             n |= n >>> 4;
             n |= n >>> 8;
@@ -1482,11 +1480,10 @@ public class ForkJoinPool extends AbstractExecutorService {
             AuxState aux = new AuxState();
             WorkQueue[] ws = new WorkQueue[n];
             synchronized (modifyThreadPermission) { // double-check
-                if (((rs = runState) & STARTED) == 0) {
-                    rs |= STARTED;
+                if (runState == 0) {
                     workQueues = ws;
                     auxState = aux;
-                    runState = rs;
+                    runState = STARTED;
                 }
             }
         }
@@ -1560,7 +1557,6 @@ public class ForkJoinPool extends AbstractExecutorService {
         WorkQueue w = new WorkQueue(this, wt);
         int i = 0;                                    // assign a pool index
         int mode = config & MODE_MASK;
-        int rs = runState;
         if ((aux = auxState) != null) {
             aux.lock();
             try {
@@ -1603,7 +1599,6 @@ public class ForkJoinPool extends AbstractExecutorService {
      */
     final void deregisterWorker(ForkJoinWorkerThread wt, Throwable ex) {
         WorkQueue w = null;
-        int rs = runState;
         if (wt != null && (w = wt.workQueue) != null) {
             AuxState aux; WorkQueue[] ws;          // remove index from array
             int idx = w.config & SMASK;
@@ -2375,22 +2370,21 @@ public class ForkJoinPool extends AbstractExecutorService {
      * @param now if true, unconditionally terminate, else only
      * if no work and no active workers
      * @param enable if true, terminate when next possible
-     * @return -1 : terminating or terminated, 0: retry if internal caller, else 1
+     * @return -1: terminating/terminated, 0: retry if internal caller, else 1
      */
     private int tryTerminate(boolean now, boolean enable) {
-        AuxState aux;
-        while ((aux = auxState) == null)
-            tryInitialize(false);                 // ensure initialized
+        int rs; // 3 phases: try to set SHUTDOWN, then STOP, then TERMINATED
 
-        if ((runState & SHUTDOWN) == 0) {
-            if (!enable || this == common)
+        while ((rs = runState) >= 0) {
+            if (!enable || this == common)        // cannot shutdown
                 return 1;
-            aux.lock();
-            runState = runState | SHUTDOWN;
-            aux.unlock();
+            else if (rs == 0)
+                tryInitialize(false);             // ensure initialized
+            else
+                U.compareAndSwapInt(this, RUNSTATE, rs, rs | SHUTDOWN);
         }
 
-        if ((runState & STOP) == 0) {
+        if ((rs & STOP) == 0) {                   // try to initiate termination
             if (!now) {                           // check quiescence
                 for (long oldSum = 0L;;) {        // repeat until stable
                     WorkQueue[] ws; WorkQueue w; int b;
@@ -2410,9 +2404,8 @@ public class ForkJoinPool extends AbstractExecutorService {
                         break;
                 }
             }
-            aux.lock();
-            runState = runState | STOP;
-            aux.unlock();
+            do {} while (!U.compareAndSwapInt(this, RUNSTATE,
+                                              rs = runState, rs | STOP));
         }
 
         for (long oldSum = 0L;;) {                // repeat until stable
@@ -2440,9 +2433,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
 
         if ((short)(ctl >>> TC_SHIFT) + (config & SMASK) <= 0) {
-            aux.lock();
-            runState |= TERMINATED;
-            aux.unlock();
+            runState = (STARTED | SHUTDOWN | STOP | TERMINATED); // final write
             synchronized (this) {
                 notifyAll();                      // for awaitTermination
             }
@@ -2469,7 +2460,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             q.qlock = 1;                   // lock queue
             boolean installed = false;
             aux.lock();
-            try {          // lock pool to install
+            try {                          // lock pool to install
                 WorkQueue[] ws;
                 if ((ws = workQueues) != null && index < ws.length &&
                     ws[index] == null) {
@@ -2512,11 +2503,10 @@ public class ForkJoinPool extends AbstractExecutorService {
                 tryInitialize(true);
             else if ((q = ws[k = (wl - 1) & r & SQMASK]) == null)
                 tryCreateExternalQueue(k);
-            else if ((stat = q.sharedPush(task)) <= 0) {
-                if ((runState & STOP) != 0)
-                    tryTerminate(false, false);
-                else if (stat == 0)
-                    signalWork();
+            else if ((stat = q.sharedPush(task)) < 0)
+                break;
+            else if (stat == 0) {
+                signalWork();
                 break;
             }
             else                          // move if busy
@@ -3435,6 +3425,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     // Unsafe mechanics
     private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
     private static final long CTL;
+    private static final long RUNSTATE;
     private static final int ABASE;
     private static final int ASHIFT;
 
@@ -3442,6 +3433,8 @@ public class ForkJoinPool extends AbstractExecutorService {
         try {
             CTL = U.objectFieldOffset
                 (ForkJoinPool.class.getDeclaredField("ctl"));
+            RUNSTATE = U.objectFieldOffset
+                (ForkJoinPool.class.getDeclaredField("runState"));
             ABASE = U.arrayBaseOffset(ForkJoinTask[].class);
             int scale = U.arrayIndexScale(ForkJoinTask[].class);
             if ((scale & (scale - 1)) != 0)
