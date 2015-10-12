@@ -21,11 +21,11 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.locks.LockSupport;
 
 public final class ParkLoops {
-    final static int THREADS = 4; // must be power of two
-    // final static int ITERS = 2_000_000;
-    // final static int TIMEOUT = 3500;  // in seconds
-    final static int ITERS = 100_000;
-    final static int TIMEOUT = 100;  // in seconds
+    static final int THREADS = 4; // must be power of two
+    // static final int ITERS = 2_000_000;
+    // static final int TIMEOUT = 3500;  // in seconds
+    static final int ITERS = 100_000;
+    static final int TIMEOUT = 100;  // in seconds
 
     static class Parker implements Runnable {
         static {
