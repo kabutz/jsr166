@@ -461,17 +461,17 @@ public class ForkJoinPool extends AbstractExecutorService {
      * helps terminate others by setting their (qlock) status,
      * cancelling their unprocessed tasks, and waking them up, doing
      * so repeatedly until stable. Calls to non-abrupt shutdown()
-     * preface this by checking whether termination should
-     * commence. This relies primarily on the active count bits of
-     * "ctl" maintaining consensus -- tryTerminate is called from
-     * awaitWork whenever quiescent. However, external submitters do
-     * not take part in this consensus.  So, tryTerminate sweeps
-     * through queues (until stable) to ensure lack of in-flight
-     * submissions and workers about to process them before triggering
-     * the "STOP" phase of termination. (Note: there is an intrinsic
-     * conflict if helpQuiescePool is called when shutdown is
-     * enabled. Both wait for quiescence, but tryTerminate is biased
-     * to not trigger until helpQuiescePool completes.)
+     * preface this by checking whether termination should commence.
+     * This relies primarily on the active count bits of "ctl"
+     * maintaining consensus -- tryTerminate is called from awaitWork
+     * whenever quiescent. However, external submitters do not take
+     * part in this consensus.  So, tryTerminate sweeps through queues
+     * (until stable) to ensure lack of in-flight submissions and
+     * workers about to process them before triggering the "STOP"
+     * phase of termination. (Note: there is an intrinsic conflict if
+     * helpQuiescePool is called when shutdown is enabled. Both wait
+     * for quiescence, but tryTerminate is biased to not trigger until
+     * helpQuiescePool completes.)
      *
      * Joining Tasks
      * =============
