@@ -299,6 +299,9 @@
 
     <sequential>
 
+    <!-- ant -Djtreg.verbose=time,fail,error jtreg -->
+    <property name="jtreg.verbose" value="nopass,fail,error"/>
+
     <local name="modules"/>
     <condition property="modules">
       <available file="${jdk@{target}.home}/jmods" type="dir"/>
@@ -316,7 +319,7 @@
       <arg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
       <arg value="-Xoverride:${build.classes.dir}" if:set="modules"/>
       <arg value="-agentvm"/>
-      <arg value="-verbose:nopass,fail,error"/>
+      <arg value="-verbose:${jtreg.verbose}"/>
       <arg value="-vmoptions:-esa -ea"/>
       <arg value="-automatic"/>
       <arg value="-k:!ignore"/>
