@@ -21,46 +21,83 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.locks.LockSupport;
 
 public final class ParkLoops {
-    public static void main(String[] args) throws Exception {
-        final int nThreads = 4; // must be power of two
-//         final int iters = 2_000_000;
-//         final int timeout = 3500;  // in seconds
-        final int iters = 100_000;
-        final int timeout = 100;  // in seconds
-        final ExecutorService pool = Executors.newCachedThreadPool();
-        final AtomicReferenceArray<Thread> threads
-            = new AtomicReferenceArray<>(nThreads);
-        final CountDownLatch done = new CountDownLatch(nThreads);
-        final Runnable parker = new Runnable() { public void run() {
+    final static int THREADS = 4; // must be power of two
+    // final static int ITERS = 2_000_000;
+    // final static int TIMEOUT = 3500;  // in seconds
+    final static int ITERS = 100_000;
+    final static int TIMEOUT = 100;  // in seconds
+
+    static class Parker implements Runnable {
+        static {
+            // Reduce the risk of rare disastrous classloading in first call to
+            // LockSupport.park: https://bugs.openjdk.java.net/browse/JDK-8074773
+            Class<?> ensureLoaded = LockSupport.class;
+        }
+
+        private final AtomicReferenceArray<Thread> threads;
+        private final CountDownLatch done;
+
+        Parker(AtomicReferenceArray<Thread> threads, CountDownLatch done) {
+            this.threads = threads;
+            this.done = done;
+        }
+
+        public void run() {
             final SimpleRandom rng = new SimpleRandom();
             final Thread current = Thread.currentThread();
-            for (int k = iters, j; k > 0; k--) {
+            for (int k = ITERS, j; k > 0; k--) {
                 do {
-                    j = rng.next() & (nThreads - 1);
+                    j = rng.next() & (THREADS - 1);
                 } while (!threads.compareAndSet(j, null, current));
                 do {                    // handle spurious wakeups
                     LockSupport.park();
                 } while (threads.get(j) == current);
             }
             done.countDown();
-        }};
-        final Runnable unparker = new Runnable() { public void run() {
+        }
+    }
+
+    static class Unparker implements Runnable {
+        static {
+            // Reduce the risk of rare disastrous classloading in first call to
+            // LockSupport.park: https://bugs.openjdk.java.net/browse/JDK-8074773
+            Class<?> ensureLoaded = LockSupport.class;
+        }
+
+        private final AtomicReferenceArray<Thread> threads;
+        private final CountDownLatch done;
+
+        Unparker(AtomicReferenceArray<Thread> threads, CountDownLatch done) {
+            this.threads = threads;
+            this.done = done;
+        }
+
+        public void run() {
             final SimpleRandom rng = new SimpleRandom();
             for (int n = 0; (n++ & 0xff) != 0 || done.getCount() > 0;) {
-                int j = rng.next() & (nThreads - 1);
+                int j = rng.next() & (THREADS - 1);
                 Thread parker = threads.get(j);
                 if (parker != null &&
                     threads.compareAndSet(j, parker, null)) {
                     LockSupport.unpark(parker);
                 }
             }
-        }};
-        for (int i = 0; i < nThreads; i++) {
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        final ExecutorService pool = Executors.newCachedThreadPool();
+        final AtomicReferenceArray<Thread> threads
+            = new AtomicReferenceArray<>(THREADS);
+        final CountDownLatch done = new CountDownLatch(THREADS);
+        final Runnable parker = new Parker(threads, done);
+        final Runnable unparker = new Unparker(threads, done);
+        for (int i = 0; i < THREADS; i++) {
             pool.submit(parker);
             pool.submit(unparker);
         }
         try {
-          if (!done.await(timeout, SECONDS)) {
+          if (!done.await(TIMEOUT, SECONDS)) {
             dumpAllStacks();
             throw new AssertionError("lost unpark");
           }
