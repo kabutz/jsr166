@@ -8,6 +8,7 @@
  * @test
  * @bug 8074773
  * @summary Stress test looks for lost unparks
+ * @run main/timeout=1200 ParkLoops
  */
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -25,7 +26,7 @@ public final class ParkLoops {
     // static final int ITERS = 2_000_000;
     // static final int TIMEOUT = 3500;  // in seconds
     static final int ITERS = 100_000;
-    static final int TIMEOUT = 100;  // in seconds
+    static final int TIMEOUT = 1000;  // in seconds
 
     static class Parker implements Runnable {
         static {
