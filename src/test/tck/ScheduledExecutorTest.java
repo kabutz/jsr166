@@ -1206,4 +1206,27 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         }
     }
 
+    /**
+     * A fixed delay task with overflowing period should not prevent a
+     * one-shot task from executing.
+     * https://bugs.openjdk.java.net/browse/JDK-8051859
+     */
+    public void testScheduleWithFixedDelay_overflow() throws Exception {
+        final CountDownLatch delayedDone = new CountDownLatch(1);
+        final CountDownLatch immediateDone = new CountDownLatch(1);
+        final ScheduledThreadPoolExecutor p = new ScheduledThreadPoolExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            final Runnable immediate = new Runnable() { public void run() {
+                immediateDone.countDown();
+            }};
+            final Runnable delayed = new Runnable() { public void run() {
+                delayedDone.countDown();
+                p.submit(immediate);
+            }};
+            p.scheduleWithFixedDelay(delayed, 0L, Long.MAX_VALUE, SECONDS);
+            await(delayedDone);
+            await(immediateDone);
+        }
+    }
+
 }

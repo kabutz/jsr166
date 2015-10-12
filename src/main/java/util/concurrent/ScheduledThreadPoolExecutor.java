@@ -596,7 +596,7 @@ public class ScheduledThreadPoolExecutor
             new ScheduledFutureTask<Void>(command,
                                           null,
                                           triggerTime(initialDelay, unit),
-                                          unit.toNanos(-delay),
+                                          -unit.toNanos(delay),
                                           sequencer.getAndIncrement());
         RunnableScheduledFuture<Void> t = decorateTask(command, sft);
         sft.outerTask = t;
