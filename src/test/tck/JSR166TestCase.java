@@ -1228,7 +1228,7 @@ public class JSR166TestCase extends TestCase {
         } finally {
             if (t.getState() != Thread.State.TERMINATED) {
                 t.interrupt();
-                threadFail("Test timed out");
+                threadFail("timed out waiting for thread to terminate");
             }
         }
     }
