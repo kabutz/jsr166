@@ -6,7 +6,7 @@
 
 /*
  * @test
- * @bug 8022642
+ * @bug 8022642 8065320
  * @summary Ensure relative sanity when zero core threads
  */
 
