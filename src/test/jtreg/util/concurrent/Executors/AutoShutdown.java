@@ -24,7 +24,7 @@
 /*
  * @test
  * @bug 6399443
- * @run main/othervm AutoShutdown
+ * @run main/othervm/timeout=1000 AutoShutdown
  * @summary Check for auto-shutdown and gc of singleThreadExecutors
  * @author Martin Buchholz
  */
@@ -43,7 +43,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 public class AutoShutdown {
 
     static void await(CountDownLatch latch) throws InterruptedException {
-        if (!latch.await(10L, TimeUnit.SECONDS))
+        if (!latch.await(100L, TimeUnit.SECONDS))
             throw new AssertionError("timed out waiting for latch");
     }
 
@@ -75,13 +75,13 @@ public class AutoShutdown {
         pleaseProceed.countDown();
         Arrays.fill(executors, null);   // make executors unreachable
         boolean done = false;
-        for (int i = 0; i < 10 && !done; i++) {
+        for (long timeout = 1L; !done && timeout <= 128L; timeout *= 2) {
             System.gc();
             done = true;
             for (WeakReference<Thread> ref : poolThreads) {
                 Thread thread = ref.get();
                 if (thread != null) {
-                    TimeUnit.SECONDS.timedJoin(thread, 1L);
+                    TimeUnit.SECONDS.timedJoin(thread, timeout);
                     if (thread.isAlive())
                         done = false;
                 }
