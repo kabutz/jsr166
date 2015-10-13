@@ -98,7 +98,7 @@ import java.util.Date;
  * <p>Note that {@code Condition} instances are just normal objects and can
  * themselves be used as the target in a {@code synchronized} statement,
  * and can have their own monitor {@link Object#wait wait} and
- * {@link Object#notify notification} methods invoked.
+ * {@link Object#notify notify} methods invoked.
  * Acquiring the monitor lock of a {@code Condition} instance, or using its
  * monitor methods, has no specified relationship with acquiring the
  * {@link Lock} associated with that {@code Condition} or the use of its
