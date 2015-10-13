@@ -319,15 +319,18 @@ public class ForkJoinPoolTest extends JSR166TestCase {
 
             assertTrue(p.isQuiescent());
             assertFalse(p.getAsyncMode());
-            assertEquals(0, p.getActiveThreadCount());
             assertEquals(0, p.getQueuedTaskCount());
             assertEquals(0, p.getQueuedSubmissionCount());
             assertFalse(p.hasQueuedSubmissions());
+            while (p.getActiveThreadCount() != 0
+                   && millisElapsedSince(startTime) < LONG_DELAY_MS)
+                Thread.yield();
             assertFalse(p.isShutdown());
             assertFalse(p.isTerminating());
             assertFalse(p.isTerminated());
             assertTrue(f.isDone());
             assertEquals(6765, (int) f.get());
+            assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
         }
     }
 
