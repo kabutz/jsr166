@@ -213,12 +213,26 @@ public class ForkJoinPoolTest extends JSR166TestCase {
      * getPoolSize returns number of started workers.
      */
     public void testGetPoolSize() {
-        ForkJoinPool p = new ForkJoinPool(1);
+        final CountDownLatch taskStarted = new CountDownLatch(1);
+        final CountDownLatch done = new CountDownLatch(1);
+        final ForkJoinPool p = new ForkJoinPool(1);
         try (PoolCleaner cleaner = cleaner(p)) {
             assertEquals(0, p.getActiveThreadCount());
-            Future<String> future = p.submit(new StringTask());
+            final Runnable task = new CheckedRunnable() {
+                public void realRun() throws InterruptedException {
+                    taskStarted.countDown();
+                    assertEquals(1, p.getPoolSize());
+                    assertEquals(1, p.getActiveThreadCount());
+                    done.await();
+                }};
+            Future<?> future = p.submit(task);
+            await(taskStarted);
             assertEquals(1, p.getPoolSize());
+            assertEquals(1, p.getActiveThreadCount());
+            done.countDown();
         }
+        assertEquals(0, p.getPoolSize());
+        assertEquals(0, p.getActiveThreadCount());
     }
 
     /**
