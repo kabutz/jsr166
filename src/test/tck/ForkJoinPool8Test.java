@@ -1520,16 +1520,17 @@ public class ForkJoinPool8Test extends JSR166TestCase {
                 assertFalse(p.isTerminated());
                 Thread.yield();
             }
-            assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             assertEquals(0, p.getQueuedTaskCount());
             assertFalse(p.getAsyncMode());
-            assertEquals(0, p.getActiveThreadCount());
-            assertEquals(0, p.getQueuedTaskCount());
             assertEquals(0, p.getQueuedSubmissionCount());
             assertFalse(p.hasQueuedSubmissions());
+            while (p.getActiveThreadCount() != 0
+                   && millisElapsedSince(startTime) < LONG_DELAY_MS)
+                Thread.yield();
             assertFalse(p.isShutdown());
             assertFalse(p.isTerminating());
             assertFalse(p.isTerminated());
+            assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
         }
     }
 
@@ -1568,18 +1569,19 @@ public class ForkJoinPool8Test extends JSR166TestCase {
                 }};
             p.execute(a);
             assertTrue(p.awaitQuiescence(LONG_DELAY_MS, MILLISECONDS));
-            assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             assertTrue(p.isQuiescent());
             assertTrue(a.isDone());
             assertEquals(0, p.getQueuedTaskCount());
             assertFalse(p.getAsyncMode());
-            assertEquals(0, p.getActiveThreadCount());
-            assertEquals(0, p.getQueuedTaskCount());
             assertEquals(0, p.getQueuedSubmissionCount());
             assertFalse(p.hasQueuedSubmissions());
+            while (p.getActiveThreadCount() != 0
+                   && millisElapsedSince(startTime) < LONG_DELAY_MS)
+                Thread.yield();
             assertFalse(p.isShutdown());
             assertFalse(p.isTerminating());
             assertFalse(p.isTerminated());
+            assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
         }
     }
 
