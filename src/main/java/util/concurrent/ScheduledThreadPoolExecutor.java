@@ -148,13 +148,6 @@ public class ScheduledThreadPoolExecutor
      */
     private static final AtomicLong sequencer = new AtomicLong();
 
-    /**
-     * Returns current nanosecond time.
-     */
-    static final long now() {
-        return System.nanoTime();
-    }
-
     private class ScheduledFutureTask<V>
             extends FutureTask<V> implements RunnableScheduledFuture<V> {
 
@@ -215,7 +208,7 @@ public class ScheduledThreadPoolExecutor
         }
 
         public long getDelay(TimeUnit unit) {
-            return unit.convert(time - now(), NANOSECONDS);
+            return unit.convert(time - System.nanoTime(), NANOSECONDS);
         }
 
         public int compareTo(Delayed other) {
@@ -499,7 +492,7 @@ public class ScheduledThreadPoolExecutor
      * Returns the nanoTime-based trigger time of a delayed action.
      */
     long triggerTime(long delay) {
-        return now() +
+        return System.nanoTime() +
             ((delay < (Long.MAX_VALUE >> 1)) ? delay : overflowFree(delay));
     }
 
