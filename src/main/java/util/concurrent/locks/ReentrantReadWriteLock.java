@@ -161,7 +161,7 @@ import java.util.concurrent.TimeUnit;
  *   }
  *   public String[] allKeys() {
  *     r.lock();
- *     try { return m.keySet().toArray(); }
+ *     try { return m.keySet().toArray(new String[0]); }
  *     finally { r.unlock(); }
  *   }
  *   public Data put(String key, Data value) {
