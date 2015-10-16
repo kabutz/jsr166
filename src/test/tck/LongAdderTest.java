@@ -62,7 +62,7 @@ public class LongAdderTest extends JSR166TestCase {
     }
 
     /**
-     * reset zeroes sum
+     * reset() causes subsequent sum() to return zero
      */
     public void testReset() {
         LongAdder ai = new LongAdder();
@@ -73,7 +73,7 @@ public class LongAdderTest extends JSR166TestCase {
     }
 
     /**
-     * sumThenReset returns sum then zeros
+     * sumThenReset() returns sum; subsequent sum() returns zero
      */
     public void testSumThenReset() {
         LongAdder ai = new LongAdder();

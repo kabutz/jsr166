@@ -42,7 +42,7 @@ public class DoubleAccumulatorTest extends JSR166TestCase {
     }
 
     /**
-     * reset zeroes get
+     * reset() causes subsequent get() to return zero
      */
     public void testReset() {
         DoubleAccumulator ai = new DoubleAccumulator(Double::max, 0.0);
@@ -53,7 +53,7 @@ public class DoubleAccumulatorTest extends JSR166TestCase {
     }
 
     /**
-     * getThenReset returns get then zeros
+     * getThenReset() returns current value; subsequent get() returns zero
      */
     public void testGetThenReset() {
         DoubleAccumulator ai = new DoubleAccumulator(Double::max, 0.0);

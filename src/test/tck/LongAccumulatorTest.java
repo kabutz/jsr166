@@ -42,7 +42,7 @@ public class LongAccumulatorTest extends JSR166TestCase {
     }
 
     /**
-     * reset zeroes get
+     * reset() causes subsequent get() to return zero
      */
     public void testReset() {
         LongAccumulator ai = new LongAccumulator(Long::max, 0L);
@@ -53,7 +53,7 @@ public class LongAccumulatorTest extends JSR166TestCase {
     }
 
     /**
-     * getThenReset returns get then zeros
+     * getThenReset() returns current value; subsequent get() returns zero
      */
     public void testGetThenReset() {
         LongAccumulator ai = new LongAccumulator(Long::max, 0L);

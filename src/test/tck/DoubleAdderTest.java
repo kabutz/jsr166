@@ -40,7 +40,7 @@ public class DoubleAdderTest extends JSR166TestCase {
     }
 
     /**
-     * reset zeroes sum
+     * reset() causes subsequent sum() to return zero
      */
     public void testReset() {
         DoubleAdder ai = new DoubleAdder();
@@ -51,7 +51,7 @@ public class DoubleAdderTest extends JSR166TestCase {
     }
 
     /**
-     * sumThenReset returns sum then zeros
+     * sumThenReset() returns sum; subsequent sum() returns zero
      */
     public void testSumThenReset() {
         DoubleAdder ai = new DoubleAdder();
