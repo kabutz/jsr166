@@ -53,7 +53,7 @@ public class CheckedMapBash {
             Object newHead;
             do {
                 newHead = new Integer(rnd.nextInt());
-            } while (m.containsKey(newHead));
+            } while (m.containsKey(newHead) || newHead.equals(nil));
             m.put(newHead, head);
             head = newHead;
         }
@@ -99,16 +99,16 @@ public class CheckedMapBash {
     }
 
     @Test(dataProvider = "Supplier<Map<Integer,Integer>>")
-    public static void testCheckeMap2(String description, Supplier<Map<Integer,Integer>> supplier) {
+    public static void testCheckedMap2(String description, Supplier<Map<Integer,Integer>> supplier) {
         Map m = supplier.get();
         for (int i=0; i<mapSize; i++)
             if (m.put(new Integer(i), new Integer(2*i)) != null)
-                fail("put returns a non-null value erroenously.");
+                fail("put returns a non-null value erroneously.");
         for (int i=0; i<2*mapSize; i++)
             if (m.containsValue(new Integer(i)) != (i%2==0))
                 fail("contains value "+i);
         if (m.put(nil, nil) == null)
-            fail("put returns a null value erroenously.");
+            fail("put returns a null value erroneously.");
         Map m2 = supplier.get(); m2.putAll(m);
         if (!m.equals(m2))
             fail("Clone not equal to original. (1)");
