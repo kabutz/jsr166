@@ -776,6 +776,27 @@ public class ForkJoinTaskTest extends JSR166TestCase {
     }
 
     /**
+     * completeExceptionally(null) surprisingly has the same effect as
+     * completeExceptionally(new RuntimeException())
+     */
+    public void testCompleteExceptionally_null() {
+        RecursiveAction a = new CheckedRecursiveAction() {
+            protected void realCompute() {
+                AsyncFib f = new AsyncFib(8);
+                f.completeExceptionally(null);
+                try {
+                    f.invoke();
+                    shouldThrow();
+                } catch (RuntimeException success) {
+                    assertSame(success.getClass(), RuntimeException.class);
+                    assertNull(success.getCause());
+                    checkCompletedAbnormally(f, success);
+                }
+            }};
+        testInvokeOnPool(mainPool(), a);
+    }
+
+    /**
      * invokeAll(t1, t2) invokes all task arguments
      */
     public void testInvokeAll2() {
