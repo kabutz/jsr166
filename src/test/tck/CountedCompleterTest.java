@@ -299,6 +299,7 @@ public class CountedCompleterTest extends JSR166TestCase {
     void testComplete(NoopCC cc, Object x, int pendingCount) {
         cc.setPendingCount(pendingCount);
         cc.checkCompletes(x);
+        assertEquals(pendingCount, cc.getPendingCount());
     }
 
     /**
