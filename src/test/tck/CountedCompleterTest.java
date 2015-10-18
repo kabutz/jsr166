@@ -335,10 +335,10 @@ public class CountedCompleterTest extends JSR166TestCase {
     public void testSetPendingCount() {
         NoopCC a = new NoopCC();
         assertEquals(0, a.getPendingCount());
-        a.setPendingCount(1);
-        assertEquals(1, a.getPendingCount());
-        a.setPendingCount(27);
-        assertEquals(27, a.getPendingCount());
+        for (int val : new int[] { -1, 0, 1, Integer.MIN_VALUE, Integer.MAX_VALUE }) {
+            a.setPendingCount(val);
+            assertEquals(val, a.getPendingCount());
+        }
     }
 
     /**
