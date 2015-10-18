@@ -147,7 +147,7 @@ public class CheckedMapBash {
         ArrayList<Object[]> iters = new ArrayList<>(makeCheckedMaps());
         iters.ensureCapacity(numItr * iters.size());
         for (int each=1; each < numItr; each++) {
-            iters.addAll( makeCheckedMaps());
+            iters.addAll(makeCheckedMaps());
         }
         return iters.iterator();
     }
@@ -158,19 +158,20 @@ public class CheckedMapBash {
     }
 
     public static Collection<Object[]> makeCheckedMaps() {
-        return Arrays.asList(
-            new Object[]{"Collections.checkedMap(HashMap)",
-                (Supplier) () -> {return Collections.checkedMap(new HashMap(), Integer.class, Integer.class);}},
-            new Object[]{"Collections.checkedMap(TreeMap(reverseOrder))",
-                (Supplier) () -> {return Collections.checkedMap(new TreeMap(Collections.reverseOrder()), Integer.class, Integer.class);}},
-            new Object[]{"Collections.checkedMap(TreeMap.descendingMap())",
-                (Supplier) () -> {return Collections.checkedMap(new TreeMap().descendingMap(), Integer.class, Integer.class);}},
-            new Object[]{"Collections.checkedNavigableMap(TreeMap)",
-                (Supplier) () -> {return Collections.checkedNavigableMap(new TreeMap(), Integer.class, Integer.class);}},
-            new Object[]{"Collections.checkedNavigableMap(TreeMap(reverseOrder))",
-                (Supplier) () -> {return Collections.checkedNavigableMap(new TreeMap(Collections.reverseOrder()), Integer.class, Integer.class);}},
-            new Object[]{"Collections.checkedNavigableMap(TreeMap.descendingMap())",
-                (Supplier) () -> {return Collections.checkedNavigableMap(new TreeMap().descendingMap(), Integer.class, Integer.class);}}
-            );
+        Object[][] params = {
+            {"Collections.checkedMap(HashMap)",
+             (Supplier) () -> Collections.checkedMap(new HashMap(), Integer.class, Integer.class)},
+            {"Collections.checkedMap(TreeMap(reverseOrder))",
+             (Supplier) () -> Collections.checkedMap(new TreeMap(Collections.reverseOrder()), Integer.class, Integer.class)},
+            {"Collections.checkedMap(TreeMap.descendingMap())",
+             (Supplier) () -> Collections.checkedMap(new TreeMap().descendingMap(), Integer.class, Integer.class)},
+            {"Collections.checkedNavigableMap(TreeMap)",
+             (Supplier) () -> Collections.checkedNavigableMap(new TreeMap(), Integer.class, Integer.class)},
+            {"Collections.checkedNavigableMap(TreeMap(reverseOrder))",
+             (Supplier) () -> Collections.checkedNavigableMap(new TreeMap(Collections.reverseOrder()), Integer.class, Integer.class)},
+            {"Collections.checkedNavigableMap(TreeMap.descendingMap())",
+             (Supplier) () -> Collections.checkedNavigableMap(new TreeMap().descendingMap(), Integer.class, Integer.class)},
+        };
+        return Arrays.asList(params);
     }
 }
