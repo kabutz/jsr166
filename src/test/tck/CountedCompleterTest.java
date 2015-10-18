@@ -278,6 +278,9 @@ public class CountedCompleterTest extends JSR166TestCase {
     final class NoopCC extends CheckedCC {
         NoopCC() { super(); }
         NoopCC(CountedCompleter p) { super(p); }
+        NoopCC(CountedCompleter p, int initialPendingCount) {
+            super(p, initialPendingCount);
+        }
         protected void realCompute() {}
     }
 
@@ -309,14 +312,20 @@ public class CountedCompleterTest extends JSR166TestCase {
     }
 
     /**
-     * completeExceptionally(null) throws NullPointerException
+     * completeExceptionally(null) surprisingly has the same effect as
+     * completeExceptionally(new RuntimeException())
      */
     public void testCompleteExceptionally_null() {
+        NoopCC a = new NoopCC();
+        a.completeExceptionally(null);
         try {
-            new NoopCC()
-                .checkCompletesExceptionally(null);
+            a.invoke();
             shouldThrow();
-        } catch (NullPointerException success) {}
+        } catch (RuntimeException success) {
+            assertSame(success.getClass(), RuntimeException.class);
+            assertNull(success.getCause());
+            a.checkCompletedExceptionally(success);
+        }
     }
 
     /**
@@ -347,14 +356,14 @@ public class CountedCompleterTest extends JSR166TestCase {
      * decrementPendingCountUnlessZero decrements reported pending
      * count unless zero
      */
-    public void testDecrementPendingCount() {
-        NoopCC a = new NoopCC();
-        assertEquals(0, a.getPendingCount());
-        a.addToPendingCount(1);
+    public void testDecrementPendingCountUnlessZero() {
+        NoopCC a = new NoopCC(null, 2);
+        assertEquals(2, a.getPendingCount());
+        assertEquals(2, a.decrementPendingCountUnlessZero());
         assertEquals(1, a.getPendingCount());
-        a.decrementPendingCountUnlessZero();
+        assertEquals(1, a.decrementPendingCountUnlessZero());
         assertEquals(0, a.getPendingCount());
-        a.decrementPendingCountUnlessZero();
+        assertEquals(0, a.decrementPendingCountUnlessZero());
         assertEquals(0, a.getPendingCount());
     }
 
