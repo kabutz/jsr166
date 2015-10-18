@@ -366,6 +366,9 @@ public class CountedCompleterTest extends JSR166TestCase {
         assertEquals(0, a.getPendingCount());
         assertEquals(0, a.decrementPendingCountUnlessZero());
         assertEquals(0, a.getPendingCount());
+        a.setPendingCount(-1);
+        assertEquals(-1, a.decrementPendingCountUnlessZero());
+        assertEquals(-2, a.getPendingCount());
     }
 
     /**
