@@ -155,15 +155,15 @@ public class CheckedSetBash {
         return Arrays.asList(
             new Object[]{"Collections.checkedSet(HashSet)",
                 (Supplier) () -> {return Collections.checkedSet(new HashSet(), Integer.class);}},
-            new Object[]{"Collections.checkedSet(TreeSet(reverseOrder)",
+            new Object[]{"Collections.checkedSet(TreeSet(reverseOrder))",
                 (Supplier) () -> {return Collections.checkedSet(new TreeSet(Collections.reverseOrder()), Integer.class);}},
-            new Object[]{"Collections.checkedSet(TreeSet).descendingSet()",
+            new Object[]{"Collections.checkedSet(TreeSet.descendingSet())",
                 (Supplier) () -> {return Collections.checkedSet(new TreeSet().descendingSet(), Integer.class);}},
             new Object[]{"Collections.checkedNavigableSet(TreeSet)",
                 (Supplier) () -> {return Collections.checkedNavigableSet(new TreeSet(), Integer.class);}},
-            new Object[]{"Collections.checkedNavigableSet(TreeSet(reverseOrder)",
+            new Object[]{"Collections.checkedNavigableSet(TreeSet(reverseOrder))",
                 (Supplier) () -> {return Collections.checkedNavigableSet(new TreeSet(Collections.reverseOrder()), Integer.class);}},
-            new Object[]{"Collections.checkedNavigableSet().descendingSet()",
+            new Object[]{"Collections.checkedNavigableSet(TreeSet.descendingSet())",
                 (Supplier) () -> {return Collections.checkedNavigableSet(new TreeSet().descendingSet(), Integer.class);}}
             );
     }
