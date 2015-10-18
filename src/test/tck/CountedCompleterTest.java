@@ -499,7 +499,7 @@ public class CountedCompleterTest extends JSR166TestCase {
     }
 
     /**
-     * quietlyCompleteRoot completes root task
+     * quietlyCompleteRoot completes root task and only root task
      */
     public void testQuietlyCompleteRoot() {
         NoopCC a = new NoopCC();
