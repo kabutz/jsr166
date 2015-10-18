@@ -423,12 +423,12 @@ public class RecursiveActionTest extends JSR166TestCase {
 
         t = newStartedThread(r);
         testInvokeOnPool(mainPool(), a);
-        awaitTermination(t, LONG_DELAY_MS);
+        awaitTermination(t);
 
         a.reinitialize();
         t = newStartedThread(r);
         testInvokeOnPool(singletonPool(), a);
-        awaitTermination(t, LONG_DELAY_MS);
+        awaitTermination(t);
     }
 
     /**
