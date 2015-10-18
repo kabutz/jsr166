@@ -231,9 +231,9 @@ package java.util.concurrent;
  * }}</pre>
  *
  * In this example, as well as others in which tasks have no other
- * effects except to compareAndSet a common result, the trailing
- * unconditional invocation of {@code tryComplete} could be made
- * conditional ({@code if (result.get() == null) tryComplete();})
+ * effects except to {@code compareAndSet} a common result, the
+ * trailing unconditional invocation of {@code tryComplete} could be
+ * made conditional ({@code if (result.get() == null) tryComplete();})
  * because no further bookkeeping is required to manage completions
  * once the root task completes.
  *
@@ -610,9 +610,9 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
 
     /**
      * If this task's pending count is zero, returns this task;
-     * otherwise decrements its pending count and returns {@code
-     * null}. This method is designed to be used with {@link
-     * #nextComplete} in completion traversal loops.
+     * otherwise decrements its pending count and returns {@code null}.
+     * This method is designed to be used with {@link #nextComplete} in
+     * completion traversal loops.
      *
      * @return this task, if pending count was zero, else {@code null}
      */
