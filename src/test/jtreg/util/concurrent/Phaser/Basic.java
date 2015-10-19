@@ -182,14 +182,24 @@ public class Basic {
             public void remove() {throw new UnsupportedOperationException();}};
     }
 
-    private static void realMain(String[] args) throws Throwable {
+//     static long millisElapsedSince(long startTime) {
+//         return NANOSECONDS.toMillis(System.nanoTime() - startTime);
+//     }
 
+//     static void trace(String msg, long startTime) {
+//         System.err.println(msg);
+//         System.err.println(""+millisElapsedSince(startTime));
+//     }
+
+    private static void realMain(String[] args) throws Throwable {
+        long startTime = System.nanoTime();
         Thread.currentThread().setName("mainThread");
 
         //----------------------------------------------------------------
         // Normal use
         //----------------------------------------------------------------
         try {
+            //trace("normal use", startTime);
             Phaser phaser = new Phaser(3);
             equal(phaser.getRegisteredParties(), 3);
             equal(phaser.getArrivedParties(), 0);
@@ -220,6 +230,7 @@ public class Basic {
         // One thread interrupted
         //----------------------------------------------------------------
         try {
+            //trace("1 thread interrupted", startTime);
             Phaser phaser = new Phaser(3);
             Iterator<Arriver> arrivers = arriverIterator(phaser);
             int phase = phaser.getPhase();
@@ -245,6 +256,7 @@ public class Basic {
         // Phaser is terminated while threads are waiting
         //----------------------------------------------------------------
         try {
+            //trace("terminated while waiting", startTime);
             for (int i = 0; i < 10; i++) {
                 Phaser phaser = new Phaser(3);
                 Iterator<Awaiter> awaiters = awaiterIterator(phaser);
@@ -268,6 +280,7 @@ public class Basic {
         // Adds new unarrived parties to this phaser
         //----------------------------------------------------------------
         try {
+            //trace("new unarrived parties", startTime);
             Phaser phaser = new Phaser(1);
             Iterator<Arriver> arrivers = arriverIterator(phaser);
             LinkedList<Arriver> arriverList = new LinkedList<Arriver>();
@@ -302,20 +315,21 @@ public class Basic {
         // One thread timed out
         //----------------------------------------------------------------
         try {
+            //trace("1 thread timed out", startTime);
             Phaser phaser = new Phaser(3);
             Iterator<Arriver> arrivers = arriverIterator(phaser);
-            for (long timeout : new long[] { 0L, 5L }) {
-                for (int i = 0; i < 2; i++) {
-                    Awaiter a1 = awaiter(phaser, timeout, SECONDS); a1.start();
-                    Arriver a2 = arrivers.next();                   a2.start();
-                    toTheStartingGate();
-                    a1.join();
-                    checkResult(a1, TimeoutException.class);
-                    phaser.arrive();
-                    a2.join();
-                    checkResult(a2, null);
-                    check(!phaser.isTerminated());
-                }
+            for (long timeout : new long[] { 0L, 12L }) {
+                Awaiter a1 = awaiter(phaser, timeout, MILLISECONDS);
+                a1.start();
+                Arriver a2 = arrivers.next();
+                a2.start();
+                toTheStartingGate();
+                a1.join();
+                checkResult(a1, TimeoutException.class);
+                phaser.arrive();
+                a2.join();
+                checkResult(a2, null);
+                check(!phaser.isTerminated());
             }
         } catch (Throwable t) { unexpected(t); }
 
@@ -323,6 +337,7 @@ public class Basic {
         // Barrier action completed normally
         //----------------------------------------------------------------
         try {
+            //trace("barrier action", startTime);
             final AtomicInteger count = new AtomicInteger(0);
             final Phaser[] kludge = new Phaser[1];
             Phaser phaser = new Phaser(3) {
