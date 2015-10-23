@@ -56,7 +56,7 @@ package java.util.concurrent.locks;
  *   // ensure request to unpark is visible to other threads
  *   ...
  *   LockSupport.park(this);
- * }</pre>
+ * }}</pre>
  *
  * where no actions by the thread publishing a request to unpark,
  * prior to the call to {@code park}, entail locking or blocking.
