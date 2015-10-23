@@ -277,10 +277,10 @@ public class JSR166TestCase extends TestCase {
         PithyResultPrinter(java.io.PrintStream writer) { super(writer); }
         long runTime;
         public void startTest(Test test) {}
-	protected void printHeader(long runTime) {
+        protected void printHeader(long runTime) {
             this.runTime = runTime; // defer printing for later
-	}
-	protected void printFooter(TestResult result) {
+        }
+        protected void printFooter(TestResult result) {
             if (result.wasSuccessful()) {
                 getWriter().println("OK (" + result.runCount() + " tests)"
                     + "  Time: " + elapsedTimeAsString(runTime));
