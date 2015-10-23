@@ -72,11 +72,6 @@ package java.util.concurrent.locks;
  *   private final Queue<Thread> waiters
  *     = new ConcurrentLinkedQueue<>();
  *
- *   static {
- *     // Reduce the risk of "lost unpark" due to classloading
- *     Class<?> ensureLoaded = LockSupport.class;
- *   }
- *
  *   public void lock() {
  *     boolean wasInterrupted = false;
  *     // publish current thread for unparkers
@@ -100,6 +95,11 @@ package java.util.concurrent.locks;
  *   public void unlock() {
  *     locked.set(false);
  *     LockSupport.unpark(waiters.peek());
+ *   }
+ *
+ *   static {
+ *     // Reduce the risk of "lost unpark" due to classloading
+ *     Class<?> ensureLoaded = LockSupport.class;
  *   }
  * }}</pre>
  */
