@@ -273,6 +273,34 @@ public class JSR166TestCase extends TestCase {
         main(suite(), args);
     }
 
+    static class PithyResultPrinter extends junit.textui.ResultPrinter {
+        PithyResultPrinter(java.io.PrintStream writer) { super(writer); }
+        long runTime;
+        public void startTest(Test test) {}
+	protected void printHeader(long runTime) {
+            this.runTime = runTime; // defer printing for later
+	}
+	protected void printFooter(TestResult result) {
+            if (result.wasSuccessful()) {
+                getWriter().println("OK (" + result.runCount() + " tests)"
+                    + "  Time: " + elapsedTimeAsString(runTime));
+            } else {
+                getWriter().println("Time: " + elapsedTimeAsString(runTime));
+                super.printFooter(result);
+            }
+        }
+    }
+
+    /**
+     * Returns a TestRunner that doesn't bother with unnecessary
+     * fluff, like printing a "." for each test case.
+     */
+    static junit.textui.TestRunner newPithyTestRunner() {
+        junit.textui.TestRunner runner = new junit.textui.TestRunner();
+        runner.setPrinter(new PithyResultPrinter(System.out));
+        return runner;
+    }
+
     /**
      * Runs all unit tests in the given test suite.
      * Actual behavior influenced by jsr166.* system properties.
@@ -284,7 +312,7 @@ public class JSR166TestCase extends TestCase {
             System.setSecurityManager(new SecurityManager());
         }
         for (int i = 0; i < suiteRuns; i++) {
-            TestResult result = junit.textui.TestRunner.run(suite);
+            TestResult result = newPithyTestRunner().doRun(suite);
             if (!result.wasSuccessful())
                 System.exit(1);
             System.gc();
