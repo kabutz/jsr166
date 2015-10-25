@@ -837,9 +837,9 @@ public class CompletableFutureTest extends JSR166TestCase {
         if (!createIncomplete) assertTrue(f.complete(v1));
         final CompletableFuture<Integer> g = f.exceptionally
             ((Throwable t) -> {
-                // Should not be called
                 a.getAndIncrement();
-                throw new AssertionError();
+                threadFail("should not be called");
+                return null;            // unreached
             });
         if (createIncomplete) assertTrue(f.complete(v1));
 

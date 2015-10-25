@@ -220,7 +220,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                     normalizedTime <= cycles)
                     return;
             }
-            throw new AssertionError("unexpected execution rate");
+            fail("unexpected execution rate");
         }
     }
 
@@ -246,7 +246,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                     normalizedTime <= cycles)
                     return;
             }
-            throw new AssertionError("unexpected execution rate");
+            fail("unexpected execution rate");
         }
     }
 
