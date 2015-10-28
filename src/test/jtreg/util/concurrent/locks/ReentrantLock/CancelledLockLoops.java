@@ -14,9 +14,12 @@
  * to complete.
  */
 
-import java.util.concurrent.*;
-import java.util.concurrent.locks.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Random;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.locks.ReentrantLock;
 
 public final class CancelledLockLoops {
     static final Random rng = new Random();
