@@ -101,7 +101,6 @@ public final class CancelledLockLoops {
                 int sum = v;
                 int x = 0;
                 int n = ITERS;
-                boolean done = false;
                 do {
                     try {
                         lock.lockInterruptibly();
