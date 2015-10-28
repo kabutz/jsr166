@@ -11,10 +11,21 @@
  * @summary  multiple producers and consumers using blocking queues
  */
 
-import java.util.concurrent.*;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.LinkedTransferQueue;
+import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 
 public class ProducerConsumerLoops {
-    static final int CAPACITY =      100;
+    static final int CAPACITY = 100;
 
     static final ExecutorService pool = Executors.newCachedThreadPool();
     static boolean print = false;
@@ -55,7 +66,7 @@ public class ProducerConsumerLoops {
             Thread.sleep(100);
         }
         pool.shutdown();
-        if (! pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS))
+        if (! pool.awaitTermination(60L, SECONDS))
             throw new Error();
    }
 

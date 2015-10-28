@@ -11,9 +11,13 @@
  * @summary multiple threads using a single lock
  */
 
-import java.util.concurrent.*;
-import java.util.concurrent.locks.*;
-import java.util.*;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 
 public final class SimpleReentrantLockLoops {
     static final ExecutorService pool = Executors.newCachedThreadPool();
@@ -39,7 +43,7 @@ public final class SimpleReentrantLockLoops {
             }
         }
         pool.shutdown();
-        if (! pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS))
+        if (! pool.awaitTermination(60L, SECONDS))
             throw new Error();
     }
 

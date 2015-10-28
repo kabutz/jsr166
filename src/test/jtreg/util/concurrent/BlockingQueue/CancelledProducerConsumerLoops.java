@@ -13,10 +13,21 @@
  * TIMEOUT msecs to complete.
  */
 
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.TimeUnit;
 
 public class CancelledProducerConsumerLoops {
-    static final int CAPACITY =      100;
+    static final int CAPACITY = 100;
     static final long TIMEOUT = 100;
 
     static final ExecutorService pool = Executors.newCachedThreadPool();

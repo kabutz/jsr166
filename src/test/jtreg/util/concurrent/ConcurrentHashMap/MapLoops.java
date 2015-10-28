@@ -17,8 +17,15 @@
  * parsing from command line.)
  */
 
-import java.util.*;
-import java.util.concurrent.*;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MapLoops {
     static int nkeys       = 10000;
@@ -93,7 +100,7 @@ public class MapLoops {
                 i = k;
         }
         pool.shutdown();
-        if (! pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS))
+        if (! pool.awaitTermination(60L, SECONDS))
             throw new Error();
 
         if (! throwables.isEmpty())

@@ -11,7 +11,12 @@
  * @summary checks to make sure a pipeline of exchangers passes data.
  */
 
-import java.util.concurrent.*;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Exchanger;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ExchangeLoops {
     static final ExecutorService pool = Executors.newCachedThreadPool();
@@ -39,7 +44,7 @@ public class ExchangeLoops {
             oneRun(i, iters);
         }
         pool.shutdown();
-        if (! pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS))
+        if (! pool.awaitTermination(60L, SECONDS))
             throw new Error();
    }
 

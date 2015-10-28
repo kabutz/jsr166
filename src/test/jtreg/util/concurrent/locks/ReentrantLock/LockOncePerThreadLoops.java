@@ -11,9 +11,13 @@
  * @summary Checks for missed signals by locking and unlocking each of an array of locks once per thread
  */
 
-import java.util.concurrent.*;
-import java.util.concurrent.locks.*;
-import java.util.*;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 
 public final class LockOncePerThreadLoops {
     static final ExecutorService pool = Executors.newCachedThreadPool();
@@ -38,7 +42,7 @@ public final class LockOncePerThreadLoops {
             Thread.sleep(100);
         }
         pool.shutdown();
-        if (! pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS))
+        if (! pool.awaitTermination(60L, SECONDS))
             throw new Error();
     }
 

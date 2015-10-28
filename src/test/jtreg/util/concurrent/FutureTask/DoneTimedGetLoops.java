@@ -11,9 +11,10 @@
  * will never throw TimeoutException.
  */
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class DoneTimedGetLoops {
