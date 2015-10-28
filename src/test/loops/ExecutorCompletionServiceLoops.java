@@ -7,7 +7,7 @@
 import java.util.concurrent.*;
 
 public class ExecutorCompletionServiceLoops {
-    static final int POOLSIZE =      100;
+    static final int POOLSIZE = 100;
     static final ExecutorService pool =
         Executors.newFixedThreadPool(POOLSIZE);
     static final ExecutorCompletionService<Integer> ecs =

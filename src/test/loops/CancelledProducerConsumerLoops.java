@@ -6,7 +6,7 @@
 import java.util.concurrent.*;
 
 public class CancelledProducerConsumerLoops {
-    static final int CAPACITY =      100;
+    static final int CAPACITY = 100;
     static final long TIMEOUT = 100;
 
     static final ExecutorService pool = Executors.newCachedThreadPool();
