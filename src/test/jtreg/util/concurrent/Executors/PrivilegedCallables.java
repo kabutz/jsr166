@@ -29,10 +29,18 @@
  * @author Martin Buchholz
  */
 
-import java.util.concurrent.*;
-import java.util.*;
-import java.security.*;
-import static java.util.concurrent.Executors.*;
+import static java.util.concurrent.Executors.privilegedCallable;
+import static java.util.concurrent.Executors.privilegedCallableUsingCurrentClassLoader;
+import static java.util.concurrent.Executors.privilegedThreadFactory;
+
+import java.security.AccessControlException;
+import java.security.CodeSource;
+import java.security.Permission;
+import java.security.PermissionCollection;
+import java.security.Permissions;
+import java.security.ProtectionDomain;
+import java.util.Random;
+import java.util.concurrent.Callable;
 
 public class PrivilegedCallables {
     Callable<Integer> real;

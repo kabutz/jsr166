@@ -11,7 +11,9 @@
  * @summary Check if ForkJoinPool table leaks thrown exceptions.
  * @run main/othervm/timeout=1200 -Xmx32m FJExceptionTableLeak
  */
-import java.util.concurrent.*;
+
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveAction;
 
 public class FJExceptionTableLeak {
     // TODO: make this test use less time!

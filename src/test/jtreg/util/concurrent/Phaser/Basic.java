@@ -11,13 +11,15 @@
  * @author Chris Hegarty
  */
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import static java.util.concurrent.TimeUnit.*;
 
 public class Basic {
 

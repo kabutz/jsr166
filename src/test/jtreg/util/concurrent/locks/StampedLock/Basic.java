@@ -38,10 +38,12 @@
  * @author Chris Hegarty
  */
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 import java.util.Iterator;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
-import static java.util.concurrent.TimeUnit.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;

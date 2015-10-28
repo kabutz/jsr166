@@ -28,8 +28,12 @@
  * @summary Check effectiveness of RemoveOnCancelPolicy
  */
 
-import java.util.concurrent.*;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Simple timer cancellation test. Submits tasks to a scheduled executor

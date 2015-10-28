@@ -9,8 +9,14 @@
  * @summary Ensure that waiting pool threads don't retain refs to tasks.
  */
 
-import java.lang.ref.*;
-import java.util.concurrent.*;
+import java.lang.ref.WeakReference;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.RunnableScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class GCRetention {
     /**

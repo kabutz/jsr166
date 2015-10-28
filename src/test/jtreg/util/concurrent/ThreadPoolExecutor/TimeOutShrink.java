@@ -28,8 +28,10 @@
  * @author Martin Buchholz
  */
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class TimeOutShrink {
     static void checkPoolSizes(ThreadPoolExecutor pool,
