@@ -41,7 +41,7 @@ public final class TimeoutLockLoops {
             Thread.sleep(10);
         }
         pool.shutdown();
-        if (! pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS))
+        if (! pool.awaitTermination(60L, TimeUnit.SECONDS))
             throw new Error();
     }
 
