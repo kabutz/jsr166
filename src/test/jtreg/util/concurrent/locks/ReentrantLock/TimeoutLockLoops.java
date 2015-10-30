@@ -53,6 +53,7 @@ public final class TimeoutLockLoops {
         private final LoopHelpers.BarrierTimer timer = new LoopHelpers.BarrierTimer();
         private final CyclicBarrier barrier;
         private final int nthreads;
+        private volatile Throwable fail = null;
         ReentrantLockLoop(int nthreads) {
             this.nthreads = nthreads;
             barrier = new CyclicBarrier(nthreads+1, timer);
@@ -80,6 +81,7 @@ public final class TimeoutLockLoops {
             int r = result;
             if (r == 0) // avoid overoptimization
                 System.out.println("useless result: " + r);
+            if (fail != null) throw new RuntimeException(fail);
         }
 
         public final void run() {
@@ -109,9 +111,9 @@ public final class TimeoutLockLoops {
                 barrier.await();
                 result += sum;
             }
-            catch (Exception ex) {
-                ex.printStackTrace();
-                return;
+            catch (Throwable ex) {
+                fail = ex;
+                throw new RuntimeException(ex);
             }
         }
     }
