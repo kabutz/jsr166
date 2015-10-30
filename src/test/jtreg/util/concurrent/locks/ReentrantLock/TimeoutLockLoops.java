@@ -14,6 +14,7 @@
  * another decade.
  */
 
+import java.util.SplittableRandom;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,7 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public final class TimeoutLockLoops {
     static final ExecutorService pool = Executors.newCachedThreadPool();
-    static final LoopHelpers.SimpleRandom rng = new LoopHelpers.SimpleRandom();
+    static final SplittableRandom rnd = new SplittableRandom();
     static boolean print = false;
     static final int ITERS = Integer.MAX_VALUE;
     static final long TIMEOUT = 100;
@@ -45,7 +46,7 @@ public final class TimeoutLockLoops {
     }
 
     static final class ReentrantLockLoop implements Runnable {
-        private int v = rng.next();
+        private int v = rnd.nextInt();
         private volatile boolean completed;
         private volatile int result = 17;
         private final ReentrantLock lock = new ReentrantLock();

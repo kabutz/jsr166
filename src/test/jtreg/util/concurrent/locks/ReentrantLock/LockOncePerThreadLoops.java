@@ -13,6 +13,7 @@
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+import java.util.SplittableRandom;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -21,7 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public final class LockOncePerThreadLoops {
     static final ExecutorService pool = Executors.newCachedThreadPool();
-    static final LoopHelpers.SimpleRandom rng = new LoopHelpers.SimpleRandom();
+    static final SplittableRandom rnd = new SplittableRandom();
     static boolean print = false;
     static int nlocks = 50000;
     static int nthreads = 100;
@@ -47,7 +48,7 @@ public final class LockOncePerThreadLoops {
     }
 
     static final class ReentrantLockLoop implements Runnable {
-        private int v = rng.next();
+        private int v = rnd.nextInt();
         private volatile int result = 17;
         final ReentrantLock[]locks = new ReentrantLock[nlocks];
 
