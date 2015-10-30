@@ -6,7 +6,7 @@
 
 /*
  * @test
- * @bug 4486658
+ * @bug 4486658 8040928 8140468
  * @summary tests ReentrantLock.lockInterruptibly.
  * Checks for responsiveness of locks to interrupts.
  */
