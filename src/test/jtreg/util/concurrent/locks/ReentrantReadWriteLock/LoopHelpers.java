@@ -3,12 +3,12 @@
  * Expert Group and released to the public domain, as explained at
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
-/**
- * Misc utilities in JSR166 performance tests
- */
 
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Misc utilities in JSR166 performance tests
+ */
 class LoopHelpers {
 
     // Some mindless computation to do between synchronizations...
