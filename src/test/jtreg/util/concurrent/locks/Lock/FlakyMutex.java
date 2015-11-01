@@ -91,7 +91,7 @@ public class FlakyMutex implements Lock {
                 } catch (Throwable t) { unexpected(t); }}});}
         barrier.await();
         es.shutdown();
-        check(es.awaitTermination(30, TimeUnit.SECONDS));
+        check(es.awaitTermination(30L, TimeUnit.SECONDS));
     }
 
     private static class FlakySync extends AbstractQueuedLongSynchronizer {

@@ -163,7 +163,7 @@ public class ThrowingTasks {
             equal(tpe.getActiveCount(), 0);
             equal(tpe.getPoolSize(), 0);
             equal(tpe.getTaskCount(), tpe.getCompletedTaskCount());
-            check(tpe.awaitTermination(0, TimeUnit.SECONDS));
+            check(tpe.awaitTermination(0L, TimeUnit.SECONDS));
         } catch (Throwable t) { unexpected(t); }
     }
 

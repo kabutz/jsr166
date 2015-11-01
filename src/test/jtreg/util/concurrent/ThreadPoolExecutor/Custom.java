@@ -106,7 +106,7 @@ public class Custom {
         equal(countExecutorThreads(), threadCount);
         equal(CustomTask.births.get(), threadCount);
         tpe.shutdown();
-        tpe.awaitTermination(120, TimeUnit.SECONDS);
+        tpe.awaitTermination(120L, TimeUnit.SECONDS);
         Thread.sleep(1000);
         equal(countExecutorThreads(), 0);
 
@@ -116,7 +116,7 @@ public class Custom {
         equal(CustomSTPE.decorations.get(), threadCount);
         equal(countExecutorThreads(), threadCount);
         stpe.shutdown();
-        stpe.awaitTermination(120, TimeUnit.SECONDS);
+        stpe.awaitTermination(120L, TimeUnit.SECONDS);
         Thread.sleep(1000);
         equal(countExecutorThreads(), 0);
 

@@ -89,7 +89,7 @@ public class GCRetention {
             Thread.sleep(10);
         }
         pool.shutdown();
-        pool.awaitTermination(10, TimeUnit.SECONDS);
+        pool.awaitTermination(10L, TimeUnit.SECONDS);
         if (cleared < size)
             throw new Error(String.format
                             ("references to %d/%d tasks retained (\"leaked\")",

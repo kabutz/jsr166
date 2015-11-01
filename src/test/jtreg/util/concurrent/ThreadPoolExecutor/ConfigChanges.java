@@ -94,7 +94,7 @@ public class ConfigChanges {
             equal(tpe.getActiveCount(), 0);
             equal(tpe.getPoolSize(), 0);
             equal(tpe.getTaskCount(), tpe.getCompletedTaskCount());
-            check(tpe.awaitTermination(0, SECONDS));
+            check(tpe.awaitTermination(0L, SECONDS));
         } catch (Throwable t) { unexpected(t); }
     }
 
