@@ -63,7 +63,7 @@ public class TimeOutShrink {
         Thread.sleep(100);
         checkPoolSizes(pool, n, n, 2*n);
         pool.shutdown();
-        pool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+        check(pool.awaitTermination(60L, TimeUnit.SECONDS));
     }
 
     //--------------------- Infrastructure ---------------------------
