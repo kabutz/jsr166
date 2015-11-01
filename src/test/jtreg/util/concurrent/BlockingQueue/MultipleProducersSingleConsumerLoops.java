@@ -7,10 +7,10 @@
 /*
  * @test
  * @bug 4486658
- * @run main/timeout=3600 MultipleProducersSingleConsumerLoops
  * @summary  multiple producers and single consumer using blocking queues
  */
 
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -24,9 +24,34 @@ import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.SynchronousQueue;
 
 public class MultipleProducersSingleConsumerLoops {
-    static final int CAPACITY = 100;
-    static final ExecutorService pool = Executors.newCachedThreadPool();
-    static boolean print = false;
+    static ExecutorService pool = Executors.newCachedThreadPool();
+
+    public static void main(String[] args) throws Exception {
+        final int maxProducers = (args.length > 0)
+            ? Integer.parseInt(args[0])
+            : 5;
+
+        for (int i = 1; i <= maxProducers; i += (i+1) >>> 1) {
+            // Adjust iterations to limit typical runs to <= 10 ms
+            oneRun(new ArrayBlockingQueue<Integer>(100), i, 300);
+            oneRun(new LinkedBlockingQueue<Integer>(100), i, 700);
+            oneRun(new LinkedBlockingDeque<Integer>(100), i , 500);
+            oneRun(new LinkedTransferQueue<Integer>(), i, 1000);
+
+            // Don't run PBQ since can legitimately run out of memory
+            //        oneRun(new PriorityBlockingQueue<Integer>(), i, iters);
+
+            oneRun(new SynchronousQueue<Integer>(), i, 700);
+            oneRun(new SynchronousQueue<Integer>(true), i, 200);
+            oneRun(new ArrayBlockingQueue<Integer>(100, true), i, 100);
+        }
+
+        pool.shutdown();
+        if (! pool.awaitTermination(60L, SECONDS))
+            throw new Error();
+        pool = null;
+    }
+
     static int producerSum;
     static int consumerSum;
 
@@ -43,64 +68,20 @@ public class MultipleProducersSingleConsumerLoops {
             throw new Error("CheckSum mismatch");
     }
 
-    public static void main(String[] args) throws Exception {
-        int maxProducers = 5;
-        int iters = 100000;
-
-        if (args.length > 0)
-            maxProducers = Integer.parseInt(args[0]);
-
-        print = false;
-        System.out.println("Warmup...");
-        oneTest(1, 10000);
-        Thread.sleep(100);
-        oneTest(2, 10000);
-        Thread.sleep(100);
-        print = true;
-
-        for (int i = 1; i <= maxProducers; i += (i+1) >>> 1) {
-            System.out.println("----------------------------------------");
-            System.out.println("Producers:" + i);
-            oneTest(i, iters);
-            Thread.sleep(100);
-        }
-        pool.shutdown();
-        if (! pool.awaitTermination(60L, SECONDS))
-            throw new Error();
-   }
-
-    static void oneTest(int producers, int iters) throws Exception {
-        oneRun(new ArrayBlockingQueue<Integer>(CAPACITY), producers, iters);
-        oneRun(new LinkedBlockingQueue<Integer>(CAPACITY), producers, iters);
-        oneRun(new LinkedBlockingDeque<Integer>(CAPACITY), producers, iters);
-        oneRun(new LinkedTransferQueue<Integer>(), producers, iters);
-
-        // Don't run PBQ since can legitimately run out of memory
-        //        if (print)
-        //            System.out.print("PriorityBlockingQueue   ");
-        //        oneRun(new PriorityBlockingQueue<Integer>(), producers, iters);
-
-        oneRun(new SynchronousQueue<Integer>(), producers, iters);
-        if (print)
-            System.out.println("fair implementations:");
-        oneRun(new SynchronousQueue<Integer>(true), producers, iters);
-        oneRun(new ArrayBlockingQueue<Integer>(CAPACITY, true), producers, iters);
-    }
-
     abstract static class Stage implements Runnable {
         final int iters;
         final BlockingQueue<Integer> queue;
         final CyclicBarrier barrier;
-        Stage(BlockingQueue<Integer> q, CyclicBarrier b, int iters) {
-            queue = q;
-            barrier = b;
+        Stage(BlockingQueue<Integer> queue, CyclicBarrier barrier, int iters) {
+            this.queue = queue;
+            this.barrier = barrier;
             this.iters = iters;
         }
     }
 
     static class Producer extends Stage {
-        Producer(BlockingQueue<Integer> q, CyclicBarrier b, int iters) {
-            super(q, b, iters);
+        Producer(BlockingQueue<Integer> queue, CyclicBarrier barrier, int iters) {
+            super(queue, barrier, iters);
         }
 
         public void run() {
@@ -125,8 +106,8 @@ public class MultipleProducersSingleConsumerLoops {
     }
 
     static class Consumer extends Stage {
-        Consumer(BlockingQueue<Integer> q, CyclicBarrier b, int iters) {
-            super(q, b, iters);
+        Consumer(BlockingQueue<Integer> queue, CyclicBarrier barrier, int iters) {
+            super(queue, barrier, iters);
         }
 
         public void run() {
@@ -144,24 +125,21 @@ public class MultipleProducersSingleConsumerLoops {
                 return;
             }
         }
-
     }
 
-    static void oneRun(BlockingQueue<Integer> q, int nproducers, int iters) throws Exception {
-        if (print)
-            System.out.printf("%-18s", q.getClass().getSimpleName());
+    static void oneRun(BlockingQueue<Integer> queue, int nproducers, int iters) throws Exception {
         LoopHelpers.BarrierTimer timer = new LoopHelpers.BarrierTimer();
         CyclicBarrier barrier = new CyclicBarrier(nproducers + 2, timer);
         for (int i = 0; i < nproducers; ++i) {
-            pool.execute(new Producer(q, barrier, iters));
+            pool.execute(new Producer(queue, barrier, iters));
         }
-        pool.execute(new Consumer(q, barrier, iters * nproducers));
+        pool.execute(new Consumer(queue, barrier, iters * nproducers));
         barrier.await();
         barrier.await();
-        long time = timer.getTime();
+        System.out.printf("%s, nproducers=%d:  %d ms%n",
+                          queue.getClass().getSimpleName(), nproducers,
+                          NANOSECONDS.toMillis(timer.getTime()));
         checkSum();
-        if (print)
-            System.out.println("\t: " + LoopHelpers.rightJustify(time / (iters * nproducers)) + " ns per transfer");
     }
 
 }
