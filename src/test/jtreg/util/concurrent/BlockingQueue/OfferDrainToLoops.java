@@ -7,7 +7,7 @@
 /*
  * @test
  * @bug 6805775 6815766
- * @run main OfferDrainToLoops 300
+ * @run main OfferDrainToLoops 100
  * @summary Test concurrent offer vs. drainTo
  */
 
