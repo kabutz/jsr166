@@ -114,7 +114,7 @@ public class Basic {
             test(executor);
         } finally {
             executor.shutdown();
-            executor.awaitTermination(30, SECONDS);
+            executor.awaitTermination(30L, SECONDS);
         }
     }
 

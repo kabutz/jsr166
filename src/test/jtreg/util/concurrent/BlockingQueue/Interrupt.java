@@ -71,7 +71,7 @@ public class Interrupt {
         checkInterrupted0(fs, immediateExecutor);
         checkInterrupted0(fs, delayedExecutor);
         stpe.shutdown();
-        check(stpe.awaitTermination(10, SECONDS));
+        check(stpe.awaitTermination(10L, SECONDS));
     }
 
     static void testQueue(final BlockingQueue<Object> q) {
