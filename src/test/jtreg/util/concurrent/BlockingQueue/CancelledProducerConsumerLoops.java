@@ -28,10 +28,12 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 public class CancelledProducerConsumerLoops {
+    static ExecutorService pool;
+
     public static void main(String[] args) throws Exception {
-        final ExecutorService pool = Executors.newCachedThreadPool();
         final int maxPairs = (args.length > 0) ? Integer.parseInt(args[0]) : 5;
 
+        pool = Executors.newCachedThreadPool();
         for (int i = 1; i <= maxPairs; i += (i+1) >>> 1) {
             final List<BlockingQueue<Integer>> queues = new ArrayList<>();
             queues.add(new ArrayBlockingQueue<Integer>(100));
@@ -41,14 +43,14 @@ public class CancelledProducerConsumerLoops {
             // unbounded queue implementations are prone to OOME:
             // PriorityBlockingQueue, LinkedTransferQueue
             for (BlockingQueue<Integer> queue : queues)
-                new CancelledProducerConsumerLoops(pool, i, queue).run();
+                new CancelledProducerConsumerLoops(i, queue).run();
         }
         pool.shutdown();
         if (! pool.awaitTermination(10L, TimeUnit.SECONDS))
             throw new AssertionError("timed out");
+        pool = null;
     }
 
-    final ExecutorService pool;
     final int npairs;
     final BlockingQueue<Integer> queue;
     final CountDownLatch producersInterrupted;
@@ -58,10 +60,7 @@ public class CancelledProducerConsumerLoops {
     final SplittableRandom rnd = new SplittableRandom();
     volatile boolean done = false;
 
-    CancelledProducerConsumerLoops(ExecutorService pool,
-                                   int npairs,
-                                   BlockingQueue<Integer> queue) {
-        this.pool = pool;
+    CancelledProducerConsumerLoops(int npairs, BlockingQueue<Integer> queue) {
         this.npairs = npairs;
         this.queue = queue;
         this.producersInterrupted = new CountDownLatch(npairs - 1);
