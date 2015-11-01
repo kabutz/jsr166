@@ -45,28 +45,6 @@ class LoopHelpers {
         return x;
     }
 
-    /**
-     * An actually useful random number generator, but unsynchronized.
-     * Basically same as java.util.Random.
-     */
-    public static class SimpleRandom {
-        private static final long multiplier = 0x5DEECE66DL;
-        private static final long addend = 0xBL;
-        private static final long mask = (1L << 48) - 1;
-        static final AtomicLong seq = new AtomicLong(1);
-        private long seed = System.nanoTime() + seq.getAndIncrement();
-
-        public void setSeed(long s) {
-            seed = s;
-        }
-
-        public int next() {
-            long nextseed = (seed * multiplier + addend) & mask;
-            seed = nextseed;
-            return ((int)(nextseed >>> 17)) & 0x7FFFFFFF;
-        }
-    }
-
     public static class BarrierTimer implements Runnable {
         public volatile long startTime;
         public volatile long endTime;

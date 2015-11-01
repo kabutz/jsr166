@@ -23,8 +23,8 @@ import java.util.Hashtable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
+import java.util.SplittableRandom;
 
 public class MapCheck {
 
@@ -584,12 +584,11 @@ public class MapCheck {
         Stats(double t) { least = t; }
     }
 
-    static Random rng = new Random();
-
     static void shuffle(Object[] keys) {
+        SplittableRandom rnd = new SplittableRandom();
         int size = keys.length;
         for (int i=size; i>1; i--) {
-            int r = rng.nextInt(i);
+            int r = rnd.nextInt(i);
             Object t = keys[i-1];
             keys[i-1] = keys[r];
             keys[r] = t;

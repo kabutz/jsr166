@@ -21,7 +21,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
+import java.util.SplittableRandom;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -109,17 +109,17 @@ public class MapLoops {
     }
 
     static Integer[] makeKeys(int n) {
-        LoopHelpers.SimpleRandom rng = new LoopHelpers.SimpleRandom();
+        SplittableRandom rnd = new SplittableRandom();
         Integer[] key = new Integer[n];
         for (int i = 0; i < key.length; ++i)
-            key[i] = new Integer(rng.next());
+            key[i] = new Integer(rnd.nextInt());
         return key;
     }
 
     static void shuffleKeys(Integer[] key) {
-        Random rng = new Random();
+        SplittableRandom rnd = new SplittableRandom();
         for (int i = key.length; i > 1; --i) {
-            int j = rng.nextInt(i);
+            int j = rnd.nextInt(i);
             Integer tmp = key[j];
             key[j] = key[i-1];
             key[i-1] = tmp;
@@ -135,8 +135,9 @@ public class MapLoops {
         //            map.put(key[j], key[j]);
         LoopHelpers.BarrierTimer timer = new LoopHelpers.BarrierTimer();
         CyclicBarrier barrier = new CyclicBarrier(i+1, timer);
+        SplittableRandom rnd = new SplittableRandom();
         for (int t = 0; t < i; ++t)
-            pool.execute(new Runner(map, key, barrier));
+            pool.execute(new Runner(map, key, barrier, rnd.split()));
         barrier.await();
         barrier.await();
         long time = timer.getTime();
@@ -150,21 +151,25 @@ public class MapLoops {
     static class Runner implements Runnable {
         final Map<Integer,Integer> map;
         final Integer[] key;
-        final LoopHelpers.SimpleRandom rng = new LoopHelpers.SimpleRandom();
         final CyclicBarrier barrier;
+        final SplittableRandom rnd;
         int position;
         int total;
 
-        Runner(Map<Integer,Integer> map, Integer[] key, CyclicBarrier barrier) {
+        Runner(Map<Integer,Integer> map,
+               Integer[] key,
+               CyclicBarrier barrier,
+               SplittableRandom rnd) {
             this.map = map;
             this.key = key;
             this.barrier = barrier;
+            this.rnd = rnd;
             position = key.length / 2;
         }
 
         int step() {
             // random-walk around key positions, bunching accesses
-            int r = rng.next();
+            int r = rnd.nextInt(Integer.MAX_VALUE);
             position += (r & 7) - 3;
             while (position >= key.length) position -= key.length;
             while (position < 0) position += key.length;

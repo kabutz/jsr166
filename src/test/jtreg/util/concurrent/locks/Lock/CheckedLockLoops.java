@@ -13,7 +13,7 @@
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-import java.util.concurrent.BrokenBarrierException;
+import java.util.SplittableRandom;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,7 +24,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public final class CheckedLockLoops {
     static final ExecutorService pool = Executors.newCachedThreadPool();
-    static final LoopHelpers.SimpleRandom rng = new LoopHelpers.SimpleRandom();
+    static final SplittableRandom rnd = new SplittableRandom();
     static boolean print = false;
     static boolean doBuiltin = false;
 
@@ -34,8 +34,6 @@ public final class CheckedLockLoops {
 
         if (args.length > 0)
             maxThreads = Integer.parseInt(args[0]);
-
-        rng.setSeed(3122688L);
 
         print = false;
         System.out.println("Warmup...");
@@ -60,7 +58,7 @@ public final class CheckedLockLoops {
     }
 
     static void oneTest(int nthreads, int iters) throws Exception {
-        int v = rng.next();
+        int v = rnd.nextInt();
         if (doBuiltin) {
             if (print)
                 System.out.print("builtin lock          ");
