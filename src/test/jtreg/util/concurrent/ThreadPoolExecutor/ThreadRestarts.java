@@ -12,6 +12,7 @@
  */
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -35,7 +36,8 @@ public class ThreadRestarts {
             MILLISECONDS.sleep(100L);
         } finally {
             stpe.shutdownNow();
-            stpe.awaitTermination(Long.MAX_VALUE, MILLISECONDS);
+            if (!stpe.awaitTermination(60L, SECONDS))
+                throw new AssertionError("timed out");
         }
         if (ctf.count.get() > 1)
             throw new AssertionError(
