@@ -52,7 +52,7 @@ public class PrivilegedCallables {
     final Random rnd = new Random();
 
     @SuppressWarnings("serial")
-    Throwable[] throwables = {
+    final Throwable[] throwables = {
         new Exception() {},
         new RuntimeException() {},
         new Error() {}
