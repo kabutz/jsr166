@@ -102,7 +102,7 @@ public class Count {
                     barrier.await();
                 } catch (Throwable t) { unexpected(t); }}});}
         es.shutdown();
-        check(es.awaitTermination(10, TimeUnit.SECONDS));
+        check(es.awaitTermination(10L, TimeUnit.SECONDS));
     }
 
     void testReentrantLocks(final boolean fair,

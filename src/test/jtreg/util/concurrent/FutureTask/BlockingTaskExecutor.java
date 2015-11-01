@@ -76,7 +76,7 @@ public class BlockingTaskExecutor {
         // are blocked.  This should cause the tasks to be
         // interrupted.
         executor.shutdownNow();
-        if (! executor.awaitTermination(5, TimeUnit.SECONDS))
+        if (! executor.awaitTermination(5L, TimeUnit.SECONDS))
             throw new Error("Executor stuck");
 
         // Wait for the invocation thread to complete.
