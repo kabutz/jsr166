@@ -115,8 +115,6 @@ public class DoneTimedGetLoops {
                 failed++;
                 for (StackTraceElement e : thread.getStackTrace())
                     System.err.println(e);
-                // Kludge alert
-                thread.stop();
                 thread.join(timeoutMillis);
             }
         }
