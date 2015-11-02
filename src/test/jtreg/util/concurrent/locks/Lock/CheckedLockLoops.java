@@ -58,7 +58,7 @@ public final class CheckedLockLoops {
 
         System.out.print("ReentrantReadWriteLock");
         new ReentrantReadWriteLockLoop().test(v, nthreads, iters);
-        
+
         System.out.print("Semaphore             ");
         new SemaphoreLoop().test(v, nthreads, iters);
 
