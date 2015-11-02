@@ -17,7 +17,7 @@ import java.util.concurrent.RecursiveAction;
 
 public class FJExceptionTableLeak {
     // This test was observed to fail with jdk7 -Xmx2200k,
-    // with STEPS = 220 and TASKS_PER_STEP = 100
+    // using STEPS = 220 and TASKS_PER_STEP = 100
     static final int STEPS = 500;
     static final int TASKS_PER_STEP = 100;
 
