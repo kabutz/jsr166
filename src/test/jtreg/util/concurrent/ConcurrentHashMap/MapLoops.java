@@ -28,11 +28,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MapLoops {
-    static int nkeys       = 10000;
+    static int nkeys       = 1000; // 10_000
     static int pinsert     = 60;
     static int premove     = 2;
     static int maxThreads  = 100;
-    static int nops        = 100000;
+    static int nops        = 10000; // 100_000
     static int removesPerMaxRandom;
     static int insertsPerMaxRandom;
 
@@ -84,7 +84,6 @@ public class MapLoops {
         int k = 1;
         int warmups = 2;
         for (int i = 1; i <= maxThreads;) {
-            Thread.sleep(100);
             test(i, nkeys, mapClass);
             if (warmups > 0)
                 --warmups;

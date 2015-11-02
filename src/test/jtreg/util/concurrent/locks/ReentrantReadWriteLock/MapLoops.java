@@ -7,7 +7,6 @@
 /*
  * @test
  * @bug 4486658
- * @run main/timeout=4700 MapLoops
  * @summary Exercise multithreaded maps, by default ConcurrentHashMap.
  * Multithreaded hash table test.  Each thread does a random walk
  * though elements of "key" array. On each iteration, it checks if
@@ -30,7 +29,7 @@ public class MapLoops {
     static int pinsert     = 60;
     static int premove     = 2;
     static int maxThreads  = 5;
-    static int nops        = 1000000;
+    static int nops        = 10000; // 1000000
     static int removesPerMaxRandom;
     static int insertsPerMaxRandom;
 
@@ -80,7 +79,6 @@ public class MapLoops {
             CyclicBarrier barrier = new CyclicBarrier(1, timer);
             new Runner(map, key, barrier, rnd.split()).run();
             map.clear();
-            Thread.sleep(100);
         }
 
         for (int i = 1; i <= maxThreads; i += (i+1) >>> 1) {
@@ -100,7 +98,7 @@ public class MapLoops {
             map.clear();
         }
         pool.shutdown();
-        if (! pool.awaitTermination(60L, SECONDS))
+        if (! pool.awaitTermination(10L, SECONDS))
             throw new Error();
     }
 
