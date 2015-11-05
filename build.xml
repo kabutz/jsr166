@@ -936,6 +936,7 @@
            debuglevel="${build.debuglevel}"
            deprecation="${build.deprecation}"
            source="6"
+           target="6"
            classpath=""
            bootclasspath="${bootclasspath6}"
            includeAntRuntime="false"
