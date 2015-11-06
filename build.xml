@@ -596,6 +596,7 @@
        debuglevel="${build.debuglevel}"
       deprecation="${build.deprecation}"
            source="${build.sourcelevel}"
+           target="${build.sourcelevel}"
              fork="true">
 
       <compilerarg line="${build.args}"/>
