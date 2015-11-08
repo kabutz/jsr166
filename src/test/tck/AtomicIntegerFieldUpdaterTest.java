@@ -13,13 +13,56 @@ import junit.framework.TestSuite;
 
 public class AtomicIntegerFieldUpdaterTest extends JSR166TestCase {
     volatile int x = 0;
+    protected volatile int protectedField;
+    private volatile int privateField;
     int w;
-    long z;
+    float z;
     public static void main(String[] args) {
         main(suite(), args);
     }
     public static Test suite() {
         return new TestSuite(AtomicIntegerFieldUpdaterTest.class);
+    }
+
+    // for testing subclass access
+    static class AtomicIntegerFieldUpdaterTestSubclass extends AtomicIntegerFieldUpdaterTest {
+        public void checkPrivateAccess() {
+            try {
+                AtomicIntegerFieldUpdater<AtomicIntegerFieldUpdaterTest> a =
+                    AtomicIntegerFieldUpdater.newUpdater
+                    (AtomicIntegerFieldUpdaterTest.class, "privateField");
+                shouldThrow();
+            } catch (RuntimeException success) {
+                assertNotNull(success.getCause());
+            }
+        }
+
+        public void checkCompareAndSetProtectedSub() {
+            AtomicIntegerFieldUpdater<AtomicIntegerFieldUpdaterTest> a;
+            a = updaterFor("protectedField");
+            protectedField = 1;
+            assertTrue(a.compareAndSet(this, 1, 2));
+            assertTrue(a.compareAndSet(this, 2, -4));
+            assertEquals(-4, a.get(this));
+            assertFalse(a.compareAndSet(this, -5, 7));
+            assertEquals(-4, a.get(this));
+            assertTrue(a.compareAndSet(this, -4, 7));
+            assertEquals(7, a.get(this));
+        }
+    }
+
+    static class UnrelatedClass {
+        public void checkPrivateAccess() {
+            Exception ex = null;
+            try {
+                AtomicIntegerFieldUpdater<AtomicIntegerFieldUpdaterTest> a =
+                    AtomicIntegerFieldUpdater.newUpdater
+                    (AtomicIntegerFieldUpdaterTest.class, "x");
+            } catch (RuntimeException rex) {
+                ex = rex;
+            }
+            if (ex != null) throw new Error();
+        }
     }
 
     AtomicIntegerFieldUpdater<AtomicIntegerFieldUpdaterTest> updaterFor(String fieldName) {
@@ -57,6 +100,23 @@ public class AtomicIntegerFieldUpdaterTest extends JSR166TestCase {
             updaterFor("w");
             shouldThrow();
         } catch (IllegalArgumentException success) {}
+    }
+
+    /**
+     * construction using private field from subclass throws RuntimeException
+     */
+    public void testPrivateFieldInSubclass() {
+        AtomicIntegerFieldUpdaterTestSubclass s =
+            new AtomicIntegerFieldUpdaterTestSubclass();
+        s.checkPrivateAccess();
+    }
+
+    /**
+     * construction from unrelated class throws RuntimeException
+     */
+    public void testUnrelatedClassAccess() {
+        UnrelatedClass s = new UnrelatedClass();
+        s.checkPrivateAccess();
     }
 
     /**
@@ -101,6 +161,33 @@ public class AtomicIntegerFieldUpdaterTest extends JSR166TestCase {
         assertEquals(-4, a.get(this));
         assertTrue(a.compareAndSet(this, -4, 7));
         assertEquals(7, a.get(this));
+    }
+
+    /**
+     * compareAndSet succeeds in changing protected field value if
+     * equal to expected else fails
+     */
+    public void testCompareAndSetProtected() {
+        AtomicIntegerFieldUpdater<AtomicIntegerFieldUpdaterTest> a;
+        a = updaterFor("protectedField");
+        protectedField = 1;
+        assertTrue(a.compareAndSet(this, 1, 2));
+        assertTrue(a.compareAndSet(this, 2, -4));
+        assertEquals(-4, a.get(this));
+        assertFalse(a.compareAndSet(this, -5, 7));
+        assertEquals(-4, a.get(this));
+        assertTrue(a.compareAndSet(this, -4, 7));
+        assertEquals(7, a.get(this));
+    }
+
+    /**
+     * compareAndSet succeeds in changing protected field value if
+     * equal to expected else fails
+     */
+    public void testCompareAndSetProtectedInSubclass() {
+        AtomicIntegerFieldUpdaterTestSubclass s =
+            new AtomicIntegerFieldUpdaterTestSubclass();
+        s.checkCompareAndSetProtectedSub();
     }
 
     /**
