@@ -387,7 +387,7 @@ public abstract class AtomicLongFieldUpdater<T> {
 
         /**
          * Checks that target argument is instance of cclass.  On
-         * failure, throws cause
+         * failure, throws cause.
          */
         private final void accessCheck(T obj) {
             if (!cclass.isInstance(obj))
@@ -396,7 +396,7 @@ public abstract class AtomicLongFieldUpdater<T> {
 
         /**
          * Throws access exception if accessCheck failed due to
-         * protected access, else ClassCastException
+         * protected access, else ClassCastException.
          */
         private final void throwAccessCheckException(T obj) {
             if (cclass == tclass)
@@ -521,7 +521,7 @@ public abstract class AtomicLongFieldUpdater<T> {
 
         /**
          * Checks that target argument is instance of cclass.  On
-         * failure, throws cause
+         * failure, throws cause.
          */
         private final void accessCheck(T obj) {
             if (!cclass.isInstance(obj))
@@ -530,7 +530,7 @@ public abstract class AtomicLongFieldUpdater<T> {
 
         /**
          * Returns access exception if accessCheck failed due to
-         * protected access, else ClassCastException
+         * protected access, else ClassCastException.
          */
         private final RuntimeException accessCheckException(T obj) {
             if (cclass == tclass)

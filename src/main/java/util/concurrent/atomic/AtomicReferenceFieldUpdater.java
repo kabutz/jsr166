@@ -341,7 +341,7 @@ public abstract class AtomicReferenceFieldUpdater<T,V> {
 
         /**
          * Checks that target argument is instance of cclass.  On
-         * failure, throws cause
+         * failure, throws cause.
          */
         private final void accessCheck(T obj) {
             if (!cclass.isInstance(obj))
@@ -350,7 +350,7 @@ public abstract class AtomicReferenceFieldUpdater<T,V> {
 
         /**
          * Throws access exception if accessCheck failed due to
-         * protected access, else ClassCastException
+         * protected access, else ClassCastException.
          */
         private final void throwAccessCheckException(T obj) {
             if (cclass == tclass)
