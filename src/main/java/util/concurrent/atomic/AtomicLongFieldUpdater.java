@@ -470,7 +470,7 @@ public abstract class AtomicLongFieldUpdater<T> {
     }
 
 
-    private final static class LockedUpdater<T> extends AtomicLongFieldUpdater<T> {
+    private static final class LockedUpdater<T> extends AtomicLongFieldUpdater<T> {
         private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
         private final long offset;
         /**
