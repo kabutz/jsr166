@@ -455,7 +455,6 @@ public abstract class AtomicLongFieldUpdater<T> {
             return getAndAdd(obj, -1);
         }
 
-
         public final long incrementAndGet(T obj) {
             return getAndAdd(obj, 1) + 1;
         }
@@ -468,7 +467,6 @@ public abstract class AtomicLongFieldUpdater<T> {
             return getAndAdd(obj, delta) + delta;
         }
     }
-
 
     private static final class LockedUpdater<T> extends AtomicLongFieldUpdater<T> {
         private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
