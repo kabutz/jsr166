@@ -52,16 +52,25 @@ public class AtomicLongFieldUpdaterTest extends JSR166TestCase {
     }
 
     static class UnrelatedClass {
-        public void checkPrivateAccess() {
-            Exception ex = null;
+        public void checkPackageAccess(AtomicLongFieldUpdaterTest obj) {
+            obj.x = 72L;
+            AtomicLongFieldUpdater<AtomicLongFieldUpdaterTest> a =
+                AtomicLongFieldUpdater.newUpdater
+                (AtomicLongFieldUpdaterTest.class, "x");
+            assertEquals(72L, a.get(obj));
+            assertTrue(a.compareAndSet(obj, 72L, 73L));
+            assertEquals(73L, a.get(obj));
+        }
+
+        public void checkPrivateAccess(AtomicLongFieldUpdaterTest obj) {
             try {
                 AtomicLongFieldUpdater<AtomicLongFieldUpdaterTest> a =
                     AtomicLongFieldUpdater.newUpdater
-                    (AtomicLongFieldUpdaterTest.class, "x");
-            } catch (RuntimeException rex) {
-                ex = rex;
+                    (AtomicLongFieldUpdaterTest.class, "privateField");
+                throw new AssertionError("should throw");
+            } catch (RuntimeException success) {
+                assertNotNull(success.getCause());
             }
-            if (ex != null) throw new Error();
         }
     }
 
@@ -112,11 +121,12 @@ public class AtomicLongFieldUpdaterTest extends JSR166TestCase {
     }
 
     /**
-     * construction from unrelated class throws RuntimeException
+     * construction from unrelated class; package access is allowed,
+     * private access is not
      */
     public void testUnrelatedClassAccess() {
-        UnrelatedClass s = new UnrelatedClass();
-        s.checkPrivateAccess();
+        new UnrelatedClass().checkPackageAccess(this);
+        new UnrelatedClass().checkPrivateAccess(this);
     }
 
     /**
