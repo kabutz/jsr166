@@ -175,6 +175,12 @@ public class JSR166TestCase extends TestCase {
     private static final int suiteRuns =
         Integer.getInteger("jsr166.suiteRuns", 1);
 
+    /**
+     * The scaling factor to apply to standard delays used in tests.
+     */
+    private static final int delayFactor =
+        Integer.getInteger("jsr166.delay.factor", 1);
+
     public JSR166TestCase() { super(); }
     public JSR166TestCase(String name) { super(name); }
 
@@ -548,11 +554,11 @@ public class JSR166TestCase extends TestCase {
     public static long LONG_DELAY_MS;
 
     /**
-     * Returns the shortest timed delay. This could
-     * be reimplemented to use for example a Property.
+     * Returns the shortest timed delay. This can be scaled up for
+     * slow machines using the jsr166.delay.factor system property.
      */
     protected long getShortDelay() {
-        return 50;
+        return 50 * delayFactor;
     }
 
     /**
