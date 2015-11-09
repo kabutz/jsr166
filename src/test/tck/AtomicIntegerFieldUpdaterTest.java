@@ -38,9 +38,10 @@ public class AtomicIntegerFieldUpdaterTest extends JSR166TestCase {
         }
 
         public void checkCompareAndSetProtectedSub() {
-            AtomicIntegerFieldUpdater<AtomicIntegerFieldUpdaterTest> a;
-            a = updaterFor("protectedField");
-            protectedField = 1;
+            AtomicIntegerFieldUpdater<AtomicIntegerFieldUpdaterTest> a =
+                AtomicIntegerFieldUpdater.newUpdater
+                (AtomicIntegerFieldUpdaterTest.class, "protectedField");
+            this.protectedField = 1;
             assertTrue(a.compareAndSet(this, 1, 2));
             assertTrue(a.compareAndSet(this, 2, -4));
             assertEquals(-4, a.get(this));
@@ -52,16 +53,25 @@ public class AtomicIntegerFieldUpdaterTest extends JSR166TestCase {
     }
 
     static class UnrelatedClass {
-        public void checkPrivateAccess() {
-            Exception ex = null;
+        public void checkPackageAccess(AtomicIntegerFieldUpdaterTest obj) {
+            obj.x = 72;
+            AtomicIntegerFieldUpdater<AtomicIntegerFieldUpdaterTest> a =
+                AtomicIntegerFieldUpdater.newUpdater
+                (AtomicIntegerFieldUpdaterTest.class, "x");
+            assertEquals(72, a.get(obj));
+            assertTrue(a.compareAndSet(obj, 72, 73));
+            assertEquals(73, a.get(obj));
+        }
+
+        public void checkPrivateAccess(AtomicIntegerFieldUpdaterTest obj) {
             try {
                 AtomicIntegerFieldUpdater<AtomicIntegerFieldUpdaterTest> a =
                     AtomicIntegerFieldUpdater.newUpdater
-                    (AtomicIntegerFieldUpdaterTest.class, "x");
-            } catch (RuntimeException rex) {
-                ex = rex;
+                    (AtomicIntegerFieldUpdaterTest.class, "privateField");
+                throw new AssertionError("should throw");
+            } catch (RuntimeException success) {
+                assertNotNull(success.getCause());
             }
-            if (ex != null) throw new Error();
         }
     }
 
@@ -112,11 +122,12 @@ public class AtomicIntegerFieldUpdaterTest extends JSR166TestCase {
     }
 
     /**
-     * construction from unrelated class throws RuntimeException
+     * construction from unrelated class; package access is allowed,
+     * private access is not
      */
     public void testUnrelatedClassAccess() {
-        UnrelatedClass s = new UnrelatedClass();
-        s.checkPrivateAccess();
+        new UnrelatedClass().checkPackageAccess(this);
+        new UnrelatedClass().checkPrivateAccess(this);
     }
 
     /**

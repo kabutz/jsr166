@@ -38,9 +38,10 @@ public class AtomicLongFieldUpdaterTest extends JSR166TestCase {
         }
 
         public void checkCompareAndSetProtectedSub() {
-            AtomicLongFieldUpdater<AtomicLongFieldUpdaterTest> a;
-            a = updaterFor("protectedField");
-            protectedField = 1;
+            AtomicLongFieldUpdater<AtomicLongFieldUpdaterTest> a =
+                AtomicLongFieldUpdater.newUpdater
+                (AtomicLongFieldUpdaterTest.class, "protectedField");
+            this.protectedField = 1;
             assertTrue(a.compareAndSet(this, 1, 2));
             assertTrue(a.compareAndSet(this, 2, -4));
             assertEquals(-4, a.get(this));
