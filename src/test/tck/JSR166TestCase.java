@@ -112,8 +112,7 @@ import junit.framework.TestSuite;
  * methods as there are exceptions the method can throw. Sometimes
  * there are multiple tests per JSR166 method when the different
  * "normal" behaviors differ significantly. And sometimes testcases
- * cover multiple methods when they cannot be tested in
- * isolation.
+ * cover multiple methods when they cannot be tested in isolation.
  *
  * <li>The documentation style for testcases is to provide as javadoc
  * a simple sentence or two describing the property that the testcase
