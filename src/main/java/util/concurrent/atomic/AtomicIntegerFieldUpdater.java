@@ -375,8 +375,7 @@ public abstract class AtomicIntegerFieldUpdater<T> {
                 throw new RuntimeException(ex);
             }
 
-            Class<?> fieldt = field.getType();
-            if (fieldt != int.class)
+            if (field.getType() != int.class)
                 throw new IllegalArgumentException("Must be integer type");
 
             if (!Modifier.isVolatile(modifiers))

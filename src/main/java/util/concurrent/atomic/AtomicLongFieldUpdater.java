@@ -373,8 +373,7 @@ public abstract class AtomicLongFieldUpdater<T> {
                 throw new RuntimeException(ex);
             }
 
-            Class<?> fieldt = field.getType();
-            if (fieldt != long.class)
+            if (field.getType() != long.class)
                 throw new IllegalArgumentException("Must be long type");
 
             if (!Modifier.isVolatile(modifiers))
@@ -505,8 +504,7 @@ public abstract class AtomicLongFieldUpdater<T> {
                 throw new RuntimeException(ex);
             }
 
-            Class<?> fieldt = field.getType();
-            if (fieldt != long.class)
+            if (field.getType() != long.class)
                 throw new IllegalArgumentException("Must be long type");
 
             if (!Modifier.isVolatile(modifiers))
