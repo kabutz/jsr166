@@ -3764,8 +3764,8 @@ public class CompletableFutureTest extends JSR166TestCase {
     }
 
     static class Monad {
-        static class MonadError extends Error {
-            public MonadError() { super("monadic zero"); }
+        static class ZeroException extends RuntimeException {
+            public ZeroException() { super("monadic zero"); }
         }
         // "return", "unit"
         static <T> CompletableFuture<T> unit(T value) {
@@ -3773,7 +3773,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
         // monadic zero ?
         static <T> CompletableFuture<T> zero() {
-            return failedFuture(new MonadError());
+            return failedFuture(new ZeroException());
         }
         // >=>
         static <T,U,V> Function<T, CompletableFuture<V>> compose
@@ -3787,7 +3787,7 @@ public class CompletableFutureTest extends JSR166TestCase {
                 f.getNow(null);
                 throw new AssertionFailedError("should throw");
             } catch (CompletionException success) {
-                assertTrue(success.getCause() instanceof MonadError);
+                assertTrue(success.getCause() instanceof ZeroException);
             }
         }
 
@@ -3827,9 +3827,16 @@ public class CompletableFutureTest extends JSR166TestCase {
                 else if (plus.firstFailure.compareAndSet(null, ex)) {
                     if (plus.isDone())
                         plus.firstFailure.set(null);
-                } else {
-                    // prefer failing with first failure
-                    plus.completeExceptionally(plus.firstFailure.getAndSet(null));
+                }
+                else {
+                    // first failure has precedence
+                    Throwable first = plus.firstFailure.getAndSet(null);
+
+                    // may fail with "Self-suppression not permitted"
+                    try { first.addSuppressed(ex); }
+                    catch (Exception ignored) {}
+
+                    plus.completeExceptionally(first);
                 }
             };
             f.whenComplete(action);
