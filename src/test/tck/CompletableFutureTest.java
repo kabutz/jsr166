@@ -1152,6 +1152,10 @@ public class CompletableFutureTest extends JSR166TestCase {
         assertEquals(1, a.get());
     }}
 
+    /**
+     * If a "handle action" throws an exception when triggered by
+     * a normal completion, it completes exceptionally
+     */
     public void testHandle_sourceCompletedNormallyActionFailed() {
         for (ExecutionMode m : ExecutionMode.values())
         for (boolean createIncomplete : new boolean[] { true, false })
