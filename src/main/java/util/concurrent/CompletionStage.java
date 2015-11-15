@@ -103,8 +103,8 @@ public interface CompletionStage<T> {
      * See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
      *
-     * @param fn the function to use to compute the value of
-     * the returned CompletionStage
+     * @param fn the function to use to compute the value of the
+     * returned CompletionStage
      * @param <U> the function's return type
      * @return the new CompletionStage
      */
@@ -119,8 +119,8 @@ public interface CompletionStage<T> {
      * See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
      *
-     * @param fn the function to use to compute the value of
-     * the returned CompletionStage
+     * @param fn the function to use to compute the value of the
+     * returned CompletionStage
      * @param <U> the function's return type
      * @return the new CompletionStage
      */
@@ -135,8 +135,8 @@ public interface CompletionStage<T> {
      * See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
      *
-     * @param fn the function to use to compute the value of
-     * the returned CompletionStage
+     * @param fn the function to use to compute the value of the
+     * returned CompletionStage
      * @param executor the executor to use for asynchronous execution
      * @param <U> the function's return type
      * @return the new CompletionStage
@@ -240,8 +240,8 @@ public interface CompletionStage<T> {
      * covering exceptional completion.
      *
      * @param other the other CompletionStage
-     * @param fn the function to use to compute the value of
-     * the returned CompletionStage
+     * @param fn the function to use to compute the value of the
+     * returned CompletionStage
      * @param <U> the type of the other CompletionStage's result
      * @param <V> the function's return type
      * @return the new CompletionStage
@@ -260,8 +260,8 @@ public interface CompletionStage<T> {
      * covering exceptional completion.
      *
      * @param other the other CompletionStage
-     * @param fn the function to use to compute the value of
-     * the returned CompletionStage
+     * @param fn the function to use to compute the value of the
+     * returned CompletionStage
      * @param <U> the type of the other CompletionStage's result
      * @param <V> the function's return type
      * @return the new CompletionStage
@@ -280,8 +280,8 @@ public interface CompletionStage<T> {
      * covering exceptional completion.
      *
      * @param other the other CompletionStage
-     * @param fn the function to use to compute the value of
-     * the returned CompletionStage
+     * @param fn the function to use to compute the value of the
+     * returned CompletionStage
      * @param executor the executor to use for asynchronous execution
      * @param <U> the type of the other CompletionStage's result
      * @param <V> the function's return type
@@ -400,8 +400,8 @@ public interface CompletionStage<T> {
      * covering exceptional completion.
      *
      * @param other the other CompletionStage
-     * @param fn the function to use to compute the value of
-     * the returned CompletionStage
+     * @param fn the function to use to compute the value of the
+     * returned CompletionStage
      * @param <U> the function's return type
      * @return the new CompletionStage
      */
@@ -419,8 +419,8 @@ public interface CompletionStage<T> {
      * covering exceptional completion.
      *
      * @param other the other CompletionStage
-     * @param fn the function to use to compute the value of
-     * the returned CompletionStage
+     * @param fn the function to use to compute the value of the
+     * returned CompletionStage
      * @param <U> the function's return type
      * @return the new CompletionStage
      */
@@ -438,8 +438,8 @@ public interface CompletionStage<T> {
      * covering exceptional completion.
      *
      * @param other the other CompletionStage
-     * @param fn the function to use to compute the value of
-     * the returned CompletionStage
+     * @param fn the function to use to compute the value of the
+     * returned CompletionStage
      * @param executor the executor to use for asynchronous execution
      * @param <U> the function's return type
      * @return the new CompletionStage
