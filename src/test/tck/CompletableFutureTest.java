@@ -7,6 +7,8 @@
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -39,6 +41,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import junit.framework.AssertionFailedError;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -3758,6 +3761,141 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
         if (!bugs.isEmpty())
             throw new Error("Methods did not throw UOE: " + bugs.toString());
+    }
+
+    static class Monad {
+        static class MonadError extends Error {
+            public MonadError() { super("monadic zero"); }
+        }
+        // "return", "unit"
+        static <T> CompletableFuture<T> unit(T value) {
+            return completedFuture(value);
+        }
+        // monadic zero ?
+        static <T> CompletableFuture<T> zero(T value) {
+            return failedFuture(new MonadError());
+        }
+        // >=>
+        static <T,U,V> Function<T, CompletableFuture<V>> compose
+            (Function<T, CompletableFuture<U>> f,
+             Function<U, CompletableFuture<V>> g) {
+            return (x) -> f.apply(x).thenCompose(g);
+        }
+
+        static void assertZero(CompletableFuture<?> f) {
+            try {
+                f.getNow(null);
+                throw new AssertionFailedError("should throw");
+            } catch (CompletionException success) {
+                assertTrue(success.getCause() instanceof MonadError);
+            }
+        }
+
+        static <T> void assertFutureEquals(CompletableFuture<T> f,
+                                           CompletableFuture<T> g) {
+            T fval = null, gval = null;
+            Throwable fex = null, gex = null;
+
+            try { fval = f.get(); }
+            catch (ExecutionException ex) { fex = ex.getCause(); }
+            catch (Throwable ex) { fex = ex; }
+
+            try { gval = g.get(); }
+            catch (ExecutionException ex) { gex = ex.getCause(); }
+            catch (Throwable ex) { gex = ex; }
+
+            if (fex != null || gex != null)
+                assertSame(fex.getClass(), gex.getClass());
+            else
+                assertEquals(fval, gval);
+        }
+
+        static class PlusFuture<T> extends CompletableFuture<T> {
+            AtomicReference<Throwable> firstFailure = new AtomicReference<>(null);
+        }
+
+        // Monadic "plus"
+        static <T> CompletableFuture<T> plus(CompletableFuture<? extends T> f,
+                                             CompletableFuture<? extends T> g) {
+            PlusFuture<T> plus = new PlusFuture<T>();
+            BiConsumer<T, Throwable> action = (T result, Throwable fail) -> {
+                if (result != null) {
+                    if (plus.complete(result))
+                        if (plus.firstFailure.get() != null)
+                            plus.firstFailure.set(null);
+                }
+                else if (plus.firstFailure.compareAndSet(null, fail)) {
+                    if (plus.isDone())
+                        plus.firstFailure.set(null);
+                } else {
+                    if (plus.completeExceptionally(fail))
+                        plus.firstFailure.set(null);
+                }
+            };
+            f.whenComplete(action);
+            g.whenComplete(action);
+            return plus;
+        }
+    }
+
+    /**
+     * CompletableFuture is an additive monad - sort of.
+     * https://en.wikipedia.org/wiki/Monad_(functional_programming)#Additive_monads
+     */
+    public void testAdditiveMonad() throws Throwable {
+        // Some mutually non-commutative functions
+        Function<Long, CompletableFuture<Long>> triple
+            = (x) -> completedFuture(3 * x);
+        Function<Long, CompletableFuture<Long>> inc
+            = (x) -> completedFuture(x + 1);
+
+        Function<Long, CompletableFuture<Long>> unit = Monad::unit;
+        Function<Long, CompletableFuture<Long>> zero = Monad::zero;
+
+        // unit is a right identity: m >>= unit === m
+        Monad.assertFutureEquals(
+            inc.apply(5L).thenCompose(unit),
+            inc.apply(5L));
+        // unit is a left identity: (unit x) >>= f === f x
+        Monad.assertFutureEquals(
+            unit.apply(5L).thenCompose(inc),
+            inc.apply(5L));
+        // associativity: (m >>= f) >>= g === m >>= ( \x -> (f x >>= g) )
+        Monad.assertFutureEquals(
+            unit.apply(5L).thenCompose(inc).thenCompose(triple),
+            unit.apply(5L).thenCompose((x) -> inc.apply(x).thenCompose(triple)));
+
+        // zero is a monadic zero
+        Monad.assertZero(zero.apply(5L));
+        // left zero: zero >>= f === zero
+        Monad.assertZero(zero.apply(5L).thenCompose(inc));
+        // right zero: f >>= zero === zero
+        Monad.assertZero(inc.apply(5L).thenCompose(zero));
+
+        // inc plus zero === inc
+        Monad.assertFutureEquals(
+            inc.apply(5L),
+            Monad.plus(inc.apply(5L), zero.apply(5L)));
+        // zero plus inc === inc
+        Monad.assertFutureEquals(
+            inc.apply(5L),
+            Monad.plus(zero.apply(5L), inc.apply(5L)));
+        // zero plus zero === zero
+        Monad.assertZero(Monad.plus(zero.apply(5L), zero.apply(5L)));
+        {
+            CompletableFuture<Long> f = Monad.plus(inc.apply(5L), inc.apply(8L));
+            assertTrue(f.get() == 6L || f.get() == 9L);
+        }
+
+        CompletableFuture<Long> godot = new CompletableFuture<>();
+        // inc plus godot === inc (doesn't wait for godot)
+        Monad.assertFutureEquals(
+            inc.apply(5L),
+            Monad.plus(inc.apply(5L), godot));
+        // godot plus inc === inc (doesn't wait for godot)
+        Monad.assertFutureEquals(
+            inc.apply(5L),
+            Monad.plus(godot, inc.apply(5L)));
     }
 
 //     static <U> U join(CompletionStage<U> stage) {
