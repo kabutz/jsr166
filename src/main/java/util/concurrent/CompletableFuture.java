@@ -771,6 +771,8 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
             } catch (Throwable ex) {
                 if (x == null)
                     x = ex;
+                else if (x != ex)
+                    x.addSuppressed(ex);
             }
             completeThrowable(x, r);
         }

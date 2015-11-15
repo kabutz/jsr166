@@ -77,7 +77,9 @@ import java.util.function.Function;
  * exception, then the stage completes exceptionally with this
  * exception unless the source stage also completed exceptionally, in
  * which case the exceptional completion from the source stage is
- * given preference and propagated to the dependent stage.
+ * given preference and propagated to the dependent stage, while the
+ * exception from the action is added to the source stage exception as
+ * a {@linkplain Throwable#addSuppressed suppressed exception}.
  *
  * </ul>
  *
