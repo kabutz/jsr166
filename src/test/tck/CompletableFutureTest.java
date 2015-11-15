@@ -876,6 +876,10 @@ public class CompletableFutureTest extends JSR166TestCase {
         assertEquals(1, a.get());
     }}
 
+    /**
+     * If an "exceptionally action" throws an exception, it completes
+     * exceptionally with that exception
+     */
     public void testExceptionally_exceptionalCompletionActionFailed() {
         for (boolean createIncomplete : new boolean[] { true, false })
     {
@@ -894,6 +898,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         if (createIncomplete) f.completeExceptionally(ex1);
 
         checkCompletedWithWrappedException(g, ex2);
+        checkCompletedExceptionally(f, ex1);
         assertEquals(1, a.get());
     }}
 
