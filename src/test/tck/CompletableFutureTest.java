@@ -982,7 +982,7 @@ public class CompletableFutureTest extends JSR166TestCase {
      * If a whenComplete action throws an exception when triggered by
      * a normal completion, it completes exceptionally
      */
-    public void testWhenComplete_actionFailed() {
+    public void testWhenComplete_sourceCompletedNormallyActionFailed() {
         for (boolean createIncomplete : new boolean[] { true, false })
         for (ExecutionMode m : ExecutionMode.values())
         for (Integer v1 : new Integer[] { 1, null })
