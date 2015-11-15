@@ -574,9 +574,8 @@ public interface CompletionStage<T> {
      * the CompletionStage returned by this method is completed with
      * the same value.
      *
-     * <p>Unlike other CompletionStage methods, the function must
-     * somehow ensure that its returned stage will be completed,
-     * since it is not accessible to the caller of this method.
+     * <p>To ensure progress, the supplied function must arrange
+     * eventual completion of its result.
      *
      * <p>This method is analogous to
      * {@link java.util.Optional#flatMap Optional.flatMap} and
@@ -604,9 +603,8 @@ public interface CompletionStage<T> {
      * the CompletionStage returned by this method is completed with
      * the same value.
      *
-     * <p>Unlike other CompletionStage methods, the function must
-     * somehow ensure that its returned stage will be completed,
-     * since it is not accessible to the caller of this method.
+     * <p>To ensure progress, the supplied function must arrange
+     * eventual completion of its result.
      *
      * <p>See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
@@ -629,9 +627,8 @@ public interface CompletionStage<T> {
      * the CompletionStage returned by this method is completed with
      * the same value.
      *
-     * <p>Unlike other CompletionStage methods, the function must
-     * somehow ensure that its returned stage will be completed,
-     * since it is not accessible to the caller of this method.
+     * <p>To ensure progress, the supplied function must arrange
+     * eventual completion of its result.
      *
      * <p>See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
