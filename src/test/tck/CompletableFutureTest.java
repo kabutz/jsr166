@@ -1010,9 +1010,9 @@ public class CompletableFutureTest extends JSR166TestCase {
     /**
      * If a whenComplete action throws an exception when triggered by
      * a source completion that also throws an exception, the source
-     * exception takes precedence.
+     * exception takes precedence (unlike handle)
      */
-    public void testWhenComplete_actionFailedSourceFailed() {
+    public void testWhenComplete_sourceFailedActionFailed() {
         for (boolean createIncomplete : new boolean[] { true, false })
         for (ExecutionMode m : ExecutionMode.values())
     {
@@ -1125,34 +1125,6 @@ public class CompletableFutureTest extends JSR166TestCase {
     }}
 
     /**
-     * handle result completes exceptionally if action does
-     */
-    public void testHandle_sourceFailedActionFailed() {
-        for (ExecutionMode m : ExecutionMode.values())
-        for (boolean createIncomplete : new boolean[] { true, false })
-    {
-        final CompletableFuture<Integer> f = new CompletableFuture<>();
-        final AtomicInteger a = new AtomicInteger(0);
-        final CFException ex1 = new CFException();
-        final CFException ex2 = new CFException();
-        if (!createIncomplete) f.completeExceptionally(ex1);
-        final CompletableFuture<Integer> g = m.handle
-            (f,
-             (Integer x, Throwable t) -> {
-                m.checkExecutionMode();
-                threadAssertNull(x);
-                threadAssertSame(ex1, t);
-                a.getAndIncrement();
-                throw ex2;
-            });
-        if (createIncomplete) f.completeExceptionally(ex1);
-
-        checkCompletedWithWrappedException(g, ex2);
-        checkCompletedExceptionally(f, ex1);
-        assertEquals(1, a.get());
-    }}
-
-    /**
      * If a "handle action" throws an exception when triggered by
      * a normal completion, it completes exceptionally
      */
@@ -1178,6 +1150,37 @@ public class CompletableFutureTest extends JSR166TestCase {
 
         checkCompletedWithWrappedException(g, ex);
         checkCompletedNormally(f, v1);
+        assertEquals(1, a.get());
+    }}
+
+    /**
+     * If a "handle action" throws an exception when triggered by
+     * a source completion that also throws an exception, the action
+     * exception takes precedence (unlike whenComplete)
+     */
+    public void testHandle_sourceFailedActionFailed() {
+        for (boolean createIncomplete : new boolean[] { true, false })
+        for (ExecutionMode m : ExecutionMode.values())
+    {
+        final AtomicInteger a = new AtomicInteger(0);
+        final CFException ex1 = new CFException();
+        final CFException ex2 = new CFException();
+        final CompletableFuture<Integer> f = new CompletableFuture<>();
+
+        if (!createIncomplete) f.completeExceptionally(ex1);
+        final CompletableFuture<Integer> g = m.handle
+            (f,
+             (Integer x, Throwable t) -> {
+                m.checkExecutionMode();
+                threadAssertNull(x);
+                threadAssertSame(ex1, t);
+                a.getAndIncrement();
+                throw ex2;
+            });
+        if (createIncomplete) f.completeExceptionally(ex1);
+
+        checkCompletedWithWrappedException(g, ex2);
+        checkCompletedExceptionally(f, ex1);
         assertEquals(1, a.get());
     }}
 
