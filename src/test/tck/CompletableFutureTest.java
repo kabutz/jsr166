@@ -3772,7 +3772,7 @@ public class CompletableFutureTest extends JSR166TestCase {
             return completedFuture(value);
         }
         // monadic zero ?
-        static <T> CompletableFuture<T> zero(T value) {
+        static <T> CompletableFuture<T> zero() {
             return failedFuture(new MonadError());
         }
         // >=>
@@ -3818,17 +3818,17 @@ public class CompletableFutureTest extends JSR166TestCase {
         static <T> CompletableFuture<T> plus(CompletableFuture<? extends T> f,
                                              CompletableFuture<? extends T> g) {
             PlusFuture<T> plus = new PlusFuture<T>();
-            BiConsumer<T, Throwable> action = (T result, Throwable fail) -> {
+            BiConsumer<T, Throwable> action = (T result, Throwable ex) -> {
                 if (result != null) {
                     if (plus.complete(result))
                         if (plus.firstFailure.get() != null)
                             plus.firstFailure.set(null);
                 }
-                else if (plus.firstFailure.compareAndSet(null, fail)) {
+                else if (plus.firstFailure.compareAndSet(null, ex)) {
                     if (plus.isDone())
                         plus.firstFailure.set(null);
                 } else {
-                    if (plus.completeExceptionally(fail))
+                    if (plus.completeExceptionally(ex))
                         plus.firstFailure.set(null);
                 }
             };
@@ -3843,59 +3843,59 @@ public class CompletableFutureTest extends JSR166TestCase {
      * https://en.wikipedia.org/wiki/Monad_(functional_programming)#Additive_monads
      */
     public void testAdditiveMonad() throws Throwable {
+        Function<Long, CompletableFuture<Long>> unit = Monad::unit;
+        CompletableFuture<Long> zero = Monad.zero();
+
         // Some mutually non-commutative functions
         Function<Long, CompletableFuture<Long>> triple
-            = (x) -> completedFuture(3 * x);
+            = (x) -> Monad.unit(3 * x);
         Function<Long, CompletableFuture<Long>> inc
-            = (x) -> completedFuture(x + 1);
-
-        Function<Long, CompletableFuture<Long>> unit = Monad::unit;
-        Function<Long, CompletableFuture<Long>> zero = Monad::zero;
+            = (x) -> Monad.unit(x + 1);
 
         // unit is a right identity: m >>= unit === m
-        Monad.assertFutureEquals(
-            inc.apply(5L).thenCompose(unit),
-            inc.apply(5L));
+        Monad.assertFutureEquals(inc.apply(5L).thenCompose(unit),
+                                 inc.apply(5L));
         // unit is a left identity: (unit x) >>= f === f x
-        Monad.assertFutureEquals(
-            unit.apply(5L).thenCompose(inc),
-            inc.apply(5L));
+        Monad.assertFutureEquals(unit.apply(5L).thenCompose(inc),
+                                 inc.apply(5L));
+
         // associativity: (m >>= f) >>= g === m >>= ( \x -> (f x >>= g) )
         Monad.assertFutureEquals(
             unit.apply(5L).thenCompose(inc).thenCompose(triple),
             unit.apply(5L).thenCompose((x) -> inc.apply(x).thenCompose(triple)));
 
-        // zero is a monadic zero
-        Monad.assertZero(zero.apply(5L));
-        // left zero: zero >>= f === zero
-        Monad.assertZero(zero.apply(5L).thenCompose(inc));
-        // right zero: f >>= zero === zero
-        Monad.assertZero(inc.apply(5L).thenCompose(zero));
+        // The case for CompletableFuture as an additive monad is weaker...
 
-        // inc plus zero === inc
-        Monad.assertFutureEquals(
-            inc.apply(5L),
-            Monad.plus(inc.apply(5L), zero.apply(5L)));
-        // zero plus inc === inc
-        Monad.assertFutureEquals(
-            inc.apply(5L),
-            Monad.plus(zero.apply(5L), inc.apply(5L)));
+        // zero is a monadic zero
+        Monad.assertZero(zero);
+
+        // left zero: zero >>= f === zero
+        Monad.assertZero(zero.thenCompose(inc));
+        // right zero: f >>= (\x -> zero) === zero
+        Monad.assertZero(inc.apply(5L).thenCompose((x) -> zero));
+
+        // f plus zero === f
+        Monad.assertFutureEquals(Monad.unit(5L),
+                                 Monad.plus(Monad.unit(5L), zero));
+        // zero plus f === f
+        Monad.assertFutureEquals(Monad.unit(5L),
+                                 Monad.plus(zero, Monad.unit(5L)));
         // zero plus zero === zero
-        Monad.assertZero(Monad.plus(zero.apply(5L), zero.apply(5L)));
+        Monad.assertZero(Monad.plus(zero, zero));
         {
-            CompletableFuture<Long> f = Monad.plus(inc.apply(5L), inc.apply(8L));
-            assertTrue(f.get() == 6L || f.get() == 9L);
+            CompletableFuture<Long> f = Monad.plus(Monad.unit(5L),
+                                                   Monad.unit(8L));
+            // non-determinism
+            assertTrue(f.get() == 5L || f.get() == 8L);
         }
 
         CompletableFuture<Long> godot = new CompletableFuture<>();
-        // inc plus godot === inc (doesn't wait for godot)
-        Monad.assertFutureEquals(
-            inc.apply(5L),
-            Monad.plus(inc.apply(5L), godot));
-        // godot plus inc === inc (doesn't wait for godot)
-        Monad.assertFutureEquals(
-            inc.apply(5L),
-            Monad.plus(godot, inc.apply(5L)));
+        // f plus godot === f (doesn't wait for godot)
+        Monad.assertFutureEquals(Monad.unit(5L),
+                                 Monad.plus(Monad.unit(5L), godot));
+        // godot plus f === f (doesn't wait for godot)
+        Monad.assertFutureEquals(Monad.unit(5L),
+                                 Monad.plus(godot, Monad.unit(5L)));
     }
 
 //     static <U> U join(CompletionStage<U> stage) {
