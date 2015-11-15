@@ -3819,7 +3819,7 @@ public class CompletableFutureTest extends JSR166TestCase {
                                              CompletableFuture<? extends T> g) {
             PlusFuture<T> plus = new PlusFuture<T>();
             BiConsumer<T, Throwable> action = (T result, Throwable ex) -> {
-                if (result != null) {
+                if (ex == null) {
                     if (plus.complete(result))
                         if (plus.firstFailure.get() != null)
                             plus.firstFailure.set(null);
@@ -3828,8 +3828,8 @@ public class CompletableFutureTest extends JSR166TestCase {
                     if (plus.isDone())
                         plus.firstFailure.set(null);
                 } else {
-                    if (plus.completeExceptionally(ex))
-                        plus.firstFailure.set(null);
+                    // prefer failing with first failure
+                    plus.completeExceptionally(plus.firstFailure.getAndSet(null));
                 }
             };
             f.whenComplete(action);
