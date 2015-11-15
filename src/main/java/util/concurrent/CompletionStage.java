@@ -25,10 +25,14 @@ import java.util.function.Function;
  * Function, Consumer, or Runnable (using methods with names including
  * <em>apply</em>, <em>accept</em>, or <em>run</em>, respectively)
  * depending on whether it requires arguments and/or produces results.
- * For example, {@code stage.thenApply(x -> square(x)).thenAccept(x ->
- * System.out.print(x)).thenRun(() -> System.out.println())}. An
- * additional form (<em>compose</em>) applies functions of stages
- * themselves, rather than their results.
+ * For example:
+ * <pre> {@code
+ * stage.thenApply(x -> square(x))
+ *      .thenAccept(x -> System.out.print(x))
+ *      .thenRun(() -> System.out.println())}</pre>
+ *
+ * An additional form (<em>compose</em>) allows the construction of
+ * computation pipelines from functions returning completion stages.
  *
  * <li>One stage's execution may be triggered by completion of a
  * single stage, or both of two stages, or either of two stages.
@@ -101,7 +105,11 @@ public interface CompletionStage<T> {
      * normally, is executed with this stage's result as the argument
      * to the supplied function.
      *
-     * See the {@link CompletionStage} documentation for rules
+     * <p>This method is analogous to
+     * {@link java.util.Optional#map Optional.map} and
+     * {@link java.util.stream.Stream#map Stream.map}.
+     *
+     * <p>See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
      *
      * @param fn the function to use to compute the value of the
@@ -557,48 +565,81 @@ public interface CompletionStage<T> {
          Executor executor);
 
     /**
-     * Returns a new CompletionStage that, when this stage completes
-     * normally, is executed with this stage's result as the argument
-     * to the supplied function.
+     * Returns a new CompletionStage that is completed with the same
+     * value as the CompletionStage returned by the given function.
      *
-     * See the {@link CompletionStage} documentation for rules
+     * <p>When this stage completes normally, the given function is
+     * invoked with this stage's result as the argument, returning
+     * another CompletionStage.  When that stage completes normally,
+     * the CompletionStage returned by this method is completed with
+     * the same value.
+     *
+     * <p>Unlike other CompletionStage methods, the function must
+     * somehow ensure that its returned stage will be completed,
+     * since it is not accessible to the caller of this method.
+     *
+     * <p>This method is analogous to
+     * {@link java.util.Optional#flatMap Optional.flatMap} and
+     * {@link java.util.stream.Stream#flatMap Stream.flatMap}.
+     *
+     * <p>See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
      *
-     * @param fn the function returning a new CompletionStage
+     * @param fn the function to use to compute another CompletionStage
      * @param <U> the type of the returned CompletionStage's result
-     * @return the CompletionStage
+     * @return the new CompletionStage
      */
     public <U> CompletionStage<U> thenCompose
         (Function<? super T, ? extends CompletionStage<U>> fn);
 
     /**
-     * Returns a new CompletionStage that, when this stage completes
-     * normally, is executed using this stage's default asynchronous
-     * execution facility, with this stage's result as the argument to the
-     * supplied function.
+     * Returns a new CompletionStage that is completed with the same
+     * value as the CompletionStage returned by the given function,
+     * executed using this stage's default asynchronous execution
+     * facility.
      *
-     * See the {@link CompletionStage} documentation for rules
+     * <p>When this stage completes normally, the given function is
+     * invoked with this stage's result as the argument, returning
+     * another CompletionStage.  When that stage completes normally,
+     * the CompletionStage returned by this method is completed with
+     * the same value.
+     *
+     * <p>Unlike other CompletionStage methods, the function must
+     * somehow ensure that its returned stage will be completed,
+     * since it is not accessible to the caller of this method.
+     *
+     * <p>See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
      *
-     * @param fn the function returning a new CompletionStage
+     * @param fn the function to use to compute another CompletionStage
      * @param <U> the type of the returned CompletionStage's result
-     * @return the CompletionStage
+     * @return the new CompletionStage
      */
     public <U> CompletionStage<U> thenComposeAsync
         (Function<? super T, ? extends CompletionStage<U>> fn);
 
     /**
-     * Returns a new CompletionStage that, when this stage completes
-     * normally, is executed using the supplied Executor, with this
-     * stage's result as the argument to the supplied function.
+     * Returns a new CompletionStage that is completed with the same
+     * value as the CompletionStage returned by the given function,
+     * executed using the supplied Executor.
      *
-     * See the {@link CompletionStage} documentation for rules
+     * <p>When this stage completes normally, the given function is
+     * invoked with this stage's result as the argument, returning
+     * another CompletionStage.  When that stage completes normally,
+     * the CompletionStage returned by this method is completed with
+     * the same value.
+     *
+     * <p>Unlike other CompletionStage methods, the function must
+     * somehow ensure that its returned stage will be completed,
+     * since it is not accessible to the caller of this method.
+     *
+     * <p>See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
      *
-     * @param fn the function returning a new CompletionStage
+     * @param fn the function to use to compute another CompletionStage
      * @param executor the executor to use for asynchronous execution
      * @param <U> the type of the returned CompletionStage's result
-     * @return the CompletionStage
+     * @return the new CompletionStage
      */
     public <U> CompletionStage<U> thenComposeAsync
         (Function<? super T, ? extends CompletionStage<U>> fn,
