@@ -74,8 +74,10 @@ import java.util.function.Function;
  * exceptionally, no guarantees are made about whether the dependent
  * stage completes normally or exceptionally. In the case of method
  * {@code whenComplete}, when the supplied action itself encounters an
- * exception, then the stage exceptionally completes with this
- * exception if not already completed exceptionally.
+ * exception, then the stage completes exceptionally with this
+ * exception unless the source stage also completed exceptionally, in
+ * which case the exceptional completion from the source stage is
+ * given preference and propagated to the dependent stage.
  *
  * </ul>
  *
