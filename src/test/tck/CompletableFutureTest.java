@@ -3826,29 +3826,33 @@ public class CompletableFutureTest extends JSR166TestCase {
             AtomicReference<Throwable> firstFailure = new AtomicReference<>(null);
         }
 
-        // Monadic "plus"
+        /** Implements "monadic plus". */
         static <T> CompletableFuture<T> plus(CompletableFuture<? extends T> f,
                                              CompletableFuture<? extends T> g) {
             PlusFuture<T> plus = new PlusFuture<T>();
             BiConsumer<T, Throwable> action = (T result, Throwable ex) -> {
-                if (ex == null) {
-                    if (plus.complete(result))
-                        if (plus.firstFailure.get() != null)
+                try {
+                    if (ex == null) {
+                        if (plus.complete(result))
+                            if (plus.firstFailure.get() != null)
+                                plus.firstFailure.set(null);
+                    }
+                    else if (plus.firstFailure.compareAndSet(null, ex)) {
+                        if (plus.isDone())
                             plus.firstFailure.set(null);
-                }
-                else if (plus.firstFailure.compareAndSet(null, ex)) {
-                    if (plus.isDone())
-                        plus.firstFailure.set(null);
-                }
-                else {
-                    // first failure has precedence
-                    Throwable first = plus.firstFailure.getAndSet(null);
+                    }
+                    else {
+                        // first failure has precedence
+                        Throwable first = plus.firstFailure.getAndSet(null);
 
-                    // may fail with "Self-suppression not permitted"
-                    try { first.addSuppressed(ex); }
-                    catch (Exception ignored) {}
+                        // may fail with "Self-suppression not permitted"
+                        try { first.addSuppressed(ex); }
+                        catch (Exception ignored) {}
 
-                    plus.completeExceptionally(first);
+                        plus.completeExceptionally(first);
+                    }
+                } catch (Throwable unexpected) {
+                    plus.completeExceptionally(unexpected);
                 }
             };
             f.whenComplete(action);
