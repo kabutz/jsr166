@@ -37,8 +37,7 @@ import java.util.function.Function;
  * <em>both</em> of two stages may <em>combine</em> their results or
  * effects, using correspondingly named methods. Those triggered by
  * <em>either</em> of two stages make no guarantees about which of the
- * results or effects are used for the dependent stage's
- * computation.
+ * results or effects are used for the dependent stage's computation.
  *
  * <li>Dependencies among stages control the triggering of
  * computations, but do not otherwise guarantee any particular
