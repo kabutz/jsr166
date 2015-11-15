@@ -17,7 +17,9 @@ import java.util.function.Function;
  * A stage completes upon termination of its computation, but this may
  * in turn trigger other dependent stages.  The functionality defined
  * in this interface takes only a few basic forms, which expand out to
- * a larger set of methods to capture a range of usage styles: <ul>
+ * a larger set of methods to capture a range of usage styles:
+ *
+ * <ul>
  *
  * <li>The computation performed by a stage may be expressed as a
  * Function, Consumer, or Runnable (using methods with names including
