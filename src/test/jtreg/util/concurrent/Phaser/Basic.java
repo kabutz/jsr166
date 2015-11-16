@@ -15,6 +15,9 @@
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.Phaser;
@@ -384,11 +387,34 @@ public class Basic {
     }
 
     //--------------------- Infrastructure ---------------------------
+
+    /**
+     * A debugging tool to print stack traces of most threads, as jstack does.
+     * Uninteresting threads are filtered out.
+     */
+    static void dumpTestThreads() {
+        ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+        System.err.println("------ stacktrace dump start ------");
+        for (ThreadInfo info : threadMXBean.dumpAllThreads(true, true)) {
+            String name = info.getThreadName();
+            if ("Signal Dispatcher".equals(name))
+                continue;
+            if ("Reference Handler".equals(name)
+                && info.getLockName().startsWith("java.lang.ref.Reference$Lock"))
+                continue;
+            if ("Finalizer".equals(name)
+                && info.getLockName().startsWith("java.lang.ref.ReferenceQueue$Lock"))
+                continue;
+            System.err.print(info);
+        }
+        System.err.println("------ stacktrace dump end ------");
+    }
+
     static volatile int passed = 0, failed = 0;
     static void pass() {passed++;}
     static void fail() {failed++; Thread.dumpStack();}
     static void fail(String msg) {System.out.println(msg); fail();}
-    static void unexpected(Throwable t) {failed++; t.printStackTrace();}
+    static void unexpected(Throwable t) {failed++; t.printStackTrace(); dumpTestThreads();}
     static void check(boolean cond) {if (cond) pass(); else fail();}
     static void equal(Object x, Object y) {
         if (x == null ? y == null : x.equals(y)) pass();
