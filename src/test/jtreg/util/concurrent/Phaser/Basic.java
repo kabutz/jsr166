@@ -71,7 +71,17 @@ public class Basic {
             boolean expectNextPhase = (startingGate.getUnarrivedParties() == 1);
             int phase = startingGate.getPhase();
             equal(phase, startingGate.arrive());
-            int awaitPhase = startingGate.awaitAdvance(phase);
+            int awaitPhase;
+            for (boolean interrupted = false;;) {
+                try {
+                    awaitPhase = startingGate.awaitAdvanceInterruptibly
+                        (phase, 30, SECONDS);
+                    if (interrupted) Thread.currentThread().interrupt();
+                    break;
+                } catch (InterruptedException ie) {
+                    interrupted = true;
+                }
+            }
             if (expectNextPhase) check(awaitPhase == phase + 1);
             else check(awaitPhase == phase || awaitPhase == phase + 1);
             pass();
