@@ -64,25 +64,20 @@ public class Basic {
     //----------------------------------------------------------------
     // Mechanism to get all test threads into "running" mode.
     //----------------------------------------------------------------
-    private static Phaser atTheStartingGate = new Phaser(3);
+    private static Phaser startingGate = new Phaser(3);
 
     private static void toTheStartingGate() {
         try {
-            boolean expectNextPhase = false;
-            if (atTheStartingGate.getUnarrivedParties() == 1) {
-                expectNextPhase = true;
-            }
-            int phase = atTheStartingGate.getPhase();
-            equal(phase, atTheStartingGate.arrive());
-            int awaitPhase = atTheStartingGate.awaitAdvanceInterruptibly
-                (phase, 30, SECONDS);
+            boolean expectNextPhase = (startingGate.getUnarrivedParties() == 1);
+            int phase = startingGate.getPhase();
+            equal(phase, startingGate.arrive());
+            int awaitPhase = startingGate.awaitAdvance(phase);
             if (expectNextPhase) check(awaitPhase == phase + 1);
             else check(awaitPhase == phase || awaitPhase == phase + 1);
-
             pass();
         } catch (Throwable t) {
             unexpected(t);
-           // reset(atTheStartingGate);
+            // reset(startingGate);
             throw new Error(t);
         }
     }
@@ -292,7 +287,7 @@ public class Basic {
             LinkedList<Arriver> arriverList = new LinkedList<Arriver>();
             int phase = phaser.getPhase();
             for (int i = 1; i < 5; i++) {
-                atTheStartingGate = new Phaser(1+(3*i));
+                startingGate = new Phaser(1+(3*i));
                 check(phaser.getPhase() == phase);
                 // register 3 more
                 phaser.register(); phaser.register(); phaser.register();
@@ -314,7 +309,7 @@ public class Basic {
                 arriverList.clear();
                 phase++;
             }
-            atTheStartingGate = new Phaser(3);
+            startingGate = new Phaser(3);
         } catch (Throwable t) { unexpected(t); }
 
         //----------------------------------------------------------------
@@ -404,6 +399,10 @@ public class Basic {
                 continue;
             if ("Finalizer".equals(name)
                 && info.getLockName().startsWith("java.lang.ref.ReferenceQueue$Lock"))
+                continue;
+            if ("process reaper".equals(name))
+                continue;
+            if (name != null && name.startsWith("ForkJoinPool.commonPool-worker"))
                 continue;
             System.err.print(info);
         }
