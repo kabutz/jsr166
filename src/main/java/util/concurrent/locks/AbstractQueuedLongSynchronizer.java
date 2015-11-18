@@ -893,7 +893,7 @@ public abstract class AbstractQueuedLongSynchronizer
 
     /**
      * Queries whether any threads have ever contended to acquire this
-     * synchronizer; that is if an acquire method has ever blocked.
+     * synchronizer; that is, if an acquire method has ever blocked.
      *
      * <p>In this implementation, this operation returns in
      * constant time.
