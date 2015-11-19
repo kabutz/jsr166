@@ -467,11 +467,16 @@ public class SemaphoreTest extends JSR166TestCase {
             clone.release();
             assertEquals(2, s.availablePermits());
             assertEquals(1, clone.availablePermits());
+            assertFalse(s.hasQueuedThreads());
+            assertFalse(clone.hasQueuedThreads());
+        } catch (InterruptedException e) { threadUnexpectedException(e); }
 
-            s = new Semaphore(0, fair);
+        {
+            PublicSemaphore s = new PublicSemaphore(0, fair);
             Thread t = newStartedThread(new InterruptibleLockRunnable(s));
-            waitForQueuedThreads(s);
-            clone = serialClone(s);
+            // waitForQueuedThreads(s); // suffers from "flicker", so ...
+            waitForQueuedThread(s, t);  // ... we use this instead
+            PublicSemaphore clone = serialClone(s);
             assertEquals(fair, s.isFair());
             assertEquals(fair, clone.isFair());
             assertEquals(0, s.availablePermits());
@@ -482,7 +487,7 @@ public class SemaphoreTest extends JSR166TestCase {
             awaitTermination(t);
             assertFalse(s.hasQueuedThreads());
             assertFalse(clone.hasQueuedThreads());
-        } catch (InterruptedException e) { threadUnexpectedException(e); }
+        }
     }
 
     /**
