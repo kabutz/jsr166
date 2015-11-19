@@ -1468,8 +1468,8 @@ public abstract class AbstractQueuedSynchronizer
      * <p>An invocation of this method is equivalent to (but may be
      * more efficient than):
      * <pre> {@code
-     * getFirstQueuedThread() != Thread.currentThread() &&
-     * hasQueuedThreads()}</pre>
+     * getFirstQueuedThread() != Thread.currentThread()
+     *   && hasQueuedThreads()}</pre>
      *
      * <p>Note that because cancellations due to interrupts and
      * timeouts may occur at any time, a {@code true} return does not
