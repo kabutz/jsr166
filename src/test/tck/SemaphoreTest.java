@@ -595,7 +595,7 @@ public class SemaphoreTest extends JSR166TestCase {
                 s.acquire(3);
             }});
 
-        waitForQueuedThreads(s);
+        waitForQueuedThread(s, t1);
 
         Thread t2 = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
