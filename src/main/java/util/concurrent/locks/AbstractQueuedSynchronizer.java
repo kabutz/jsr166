@@ -2070,7 +2070,7 @@ public abstract class AbstractQueuedSynchronizer
                     transferAfterCancelledWait(node);
                     break;
                 }
-                if (nanosTimeout >= SPIN_FOR_TIMEOUT_THRESHOLD)
+                if (nanosTimeout > SPIN_FOR_TIMEOUT_THRESHOLD)
                     LockSupport.parkNanos(this, nanosTimeout);
                 if ((interruptMode = checkInterruptWhileWaiting(node)) != 0)
                     break;
@@ -2158,7 +2158,7 @@ public abstract class AbstractQueuedSynchronizer
                     timedout = transferAfterCancelledWait(node);
                     break;
                 }
-                if (nanosTimeout >= SPIN_FOR_TIMEOUT_THRESHOLD)
+                if (nanosTimeout > SPIN_FOR_TIMEOUT_THRESHOLD)
                     LockSupport.parkNanos(this, nanosTimeout);
                 if ((interruptMode = checkInterruptWhileWaiting(node)) != 0)
                     break;
