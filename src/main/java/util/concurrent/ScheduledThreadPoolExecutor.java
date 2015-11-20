@@ -103,11 +103,10 @@ public class ScheduledThreadPoolExecutor
     /*
      * This class specializes ThreadPoolExecutor implementation by
      *
-     * 1. Using a custom task type, ScheduledFutureTask for
-     *    tasks, even those that don't require scheduling (i.e.,
-     *    those submitted using ExecutorService execute, not
-     *    ScheduledExecutorService methods) which are treated as
-     *    delayed tasks with a delay of zero.
+     * 1. Using a custom task type ScheduledFutureTask, even for tasks
+     *    that don't require scheduling because they are submitted
+     *    using ExecutorService rather than ScheduledExecutorService
+     *    methods, which are treated as tasks with a delay of zero.
      *
      * 2. Using a custom queue (DelayedWorkQueue), a variant of
      *    unbounded DelayQueue. The lack of capacity constraint and
@@ -154,11 +153,11 @@ public class ScheduledThreadPoolExecutor
         /** Sequence number to break ties FIFO */
         private final long sequenceNumber;
 
-        /** The time the task is enabled to execute in nanoTime units */
+        /** The nanoTime-based time when the task is enabled to execute. */
         private volatile long time;
 
         /**
-         * Period in nanoseconds for repeating tasks.
+         * Period for repeating tasks, in nanoseconds.
          * A positive value indicates fixed-rate execution.
          * A negative value indicates fixed-delay execution.
          * A value of 0 indicates a non-repeating (one-shot) task.
