@@ -250,6 +250,9 @@ public class ScheduledThreadPoolExecutor
         }
 
         public boolean cancel(boolean mayInterruptIfRunning) {
+            // The racy read of heapIndex below is benign:
+            // if heapIndex < 0, then OOTA guarantees that we have surely
+            // been removed; else we recheck under lock in remove()
             boolean cancelled = super.cancel(mayInterruptIfRunning);
             if (cancelled && removeOnCancel && heapIndex >= 0)
                 remove(this);
