@@ -2282,8 +2282,9 @@ public abstract class AbstractQueuedSynchronizer
      * Initializes head and tail fields on first contention.
      */
     private final void initializeSyncQueue() {
-        if (U.compareAndSwapObject(this, HEAD, null, new Node()))
-            tail = head;
+        Node h;
+        if (U.compareAndSwapObject(this, HEAD, null, (h = new Node())))
+            tail = h;
     }
 
     /**
