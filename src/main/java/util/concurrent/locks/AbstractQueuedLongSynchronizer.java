@@ -948,13 +948,11 @@ public abstract class AbstractQueuedLongSynchronizer
          * guaranteeing termination.
          */
 
-        Node t = tail;
         Thread firstThread = null;
-        while (t != null && t != head) {
-            Thread tt = t.thread;
-            if (tt != null)
-                firstThread = tt;
-            t = t.prev;
+        for (Node p = tail; p != null && p != head; p = p.prev) {
+            Thread t = p.thread;
+            if (t != null)
+                firstThread = t;
         }
         return firstThread;
     }
