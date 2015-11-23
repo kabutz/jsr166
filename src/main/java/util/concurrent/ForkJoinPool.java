@@ -1025,7 +1025,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
 
         /**
-         * Shared version of pop.
+         * Shared version of tryUnpush.
          */
         final boolean trySharedUnpush(ForkJoinTask<?> task) {
             boolean popped = false;
