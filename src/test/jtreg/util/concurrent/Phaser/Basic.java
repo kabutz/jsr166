@@ -13,6 +13,7 @@
  */
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.lang.management.ManagementFactory;
@@ -193,24 +194,25 @@ public class Basic {
             public void remove() {throw new UnsupportedOperationException();}};
     }
 
-//     static long millisElapsedSince(long startTime) {
-//         return NANOSECONDS.toMillis(System.nanoTime() - startTime);
-//     }
-
-//     static void trace(String msg, long startTime) {
-//         System.err.println(msg);
-//         System.err.println(""+millisElapsedSince(startTime));
-//     }
+    static class SimpleTimer {
+        long startTime = System.nanoTime();
+        long elapsedMillis() {
+            long now = System.nanoTime();
+            long elapsed = NANOSECONDS.toMillis(now - startTime);
+            startTime = now;
+            return elapsed;
+        }
+        void printElapsed() { System.out.println(elapsedMillis() + " ms"); }
+    }
 
     private static void realMain(String[] args) throws Throwable {
-        long startTime = System.nanoTime();
+        SimpleTimer timer = new SimpleTimer();
         Thread.currentThread().setName("mainThread");
 
         //----------------------------------------------------------------
-        // Normal use
+        System.out.print("Normal use: ");
         //----------------------------------------------------------------
         try {
-            //trace("normal use", startTime);
             Phaser phaser = new Phaser(3);
             equal(phaser.getRegisteredParties(), 3);
             equal(phaser.getArrivedParties(), 0);
@@ -236,12 +238,12 @@ public class Basic {
                 equal(phaser.getArrivedParties(), 0);
             }
         } catch (Throwable t) { unexpected(t); }
+        timer.printElapsed();
 
         //----------------------------------------------------------------
-        // One thread interrupted
+        System.out.print("One thread interrupted: ");
         //----------------------------------------------------------------
         try {
-            //trace("1 thread interrupted", startTime);
             Phaser phaser = new Phaser(3);
             Iterator<Arriver> arrivers = arriverIterator(phaser);
             int phase = phaser.getPhase();
@@ -262,12 +264,12 @@ public class Basic {
                 phase++;
             }
         } catch (Throwable t) { unexpected(t); }
+        timer.printElapsed();
 
         //----------------------------------------------------------------
-        // Phaser is terminated while threads are waiting
+        System.out.print("Phaser is terminated while threads are waiting: ");
         //----------------------------------------------------------------
         try {
-            //trace("terminated while waiting", startTime);
             for (int i = 0; i < 10; i++) {
                 Phaser phaser = new Phaser(3);
                 Iterator<Awaiter> awaiters = awaiterIterator(phaser);
@@ -286,12 +288,12 @@ public class Basic {
                 equal(phaser.getArrivedParties(), arrivedParties);
             }
         } catch (Throwable t) { unexpected(t); }
+        timer.printElapsed();
 
         //----------------------------------------------------------------
-        // Adds new unarrived parties to this phaser
+        System.out.print("Adds new unarrived parties to this phaser: ");
         //----------------------------------------------------------------
         try {
-            //trace("new unarrived parties", startTime);
             Phaser phaser = new Phaser(1);
             Iterator<Arriver> arrivers = arriverIterator(phaser);
             LinkedList<Arriver> arriverList = new LinkedList<Arriver>();
@@ -321,12 +323,12 @@ public class Basic {
             }
             startingGate = new Phaser(3);
         } catch (Throwable t) { unexpected(t); }
+        timer.printElapsed();
 
         //----------------------------------------------------------------
-        // One thread timed out
+        System.out.print("One thread timed out: ");
         //----------------------------------------------------------------
         try {
-            //trace("1 thread timed out", startTime);
             Phaser phaser = new Phaser(3);
             Iterator<Arriver> arrivers = arriverIterator(phaser);
             for (long timeout : new long[] { 0L, 12L }) {
@@ -343,12 +345,12 @@ public class Basic {
                 check(!phaser.isTerminated());
             }
         } catch (Throwable t) { unexpected(t); }
+        timer.printElapsed();
 
         //----------------------------------------------------------------
-        // Barrier action completed normally
+        System.out.print("Barrier action completed normally: ");
         //----------------------------------------------------------------
         try {
-            //trace("barrier action", startTime);
             final AtomicInteger count = new AtomicInteger(0);
             final Phaser[] kludge = new Phaser[1];
             Phaser phaser = new Phaser(3) {
@@ -388,6 +390,7 @@ public class Basic {
                     checkTerminated(phaser);
             }
         } catch (Throwable t) { unexpected(t); }
+        timer.printElapsed();
 
     }
 
