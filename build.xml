@@ -310,7 +310,9 @@
     <delete dir="@{workdir}/JTwork"   quiet="true"/>
     <delete dir="@{workdir}/JTreport" quiet="true"/>
     <mkdir dir="@{workdir}/JTwork/scratch"/>
-    <mkdir dir="@{workdir}/JTreport"/>
+    <!-- workaround for https://bugs.openjdk.java.net/browse/CODETOOLS-7901571 -->
+    <mkdir dir="@{workdir}/JTreport/html"/>
+    <mkdir dir="@{workdir}/JTreport/text"/>
     <jtreg dir="${jtreg@{target}.src.dir}"
            jdk="${jdk@{target}.home}"
            workDir="@{workdir}/JTwork"
