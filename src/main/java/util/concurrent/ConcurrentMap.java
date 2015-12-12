@@ -365,7 +365,7 @@ public interface ConcurrentMap<K,V> extends Map<K,V> {
      * <pre> {@code
      * V oldValue = map.get(key);
      * V newValue = remappingFunction.apply(key, oldValue);
-     * if (oldValue != null ) {
+     * if (oldValue != null) {
      *   if (newValue != null)
      *     map.replace(key, oldValue, newValue);
      *   else
