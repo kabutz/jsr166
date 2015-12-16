@@ -133,7 +133,7 @@ import java.util.concurrent.locks.LockSupport;
  * @since 1.7
  * @author Doug Lea
  */
-@sun.misc.Contended
+@jdk.internal.vm.annotation.Contended
 public class ForkJoinPool extends AbstractExecutorService {
 
     /*
@@ -752,7 +752,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * arrays sharing cache lines. The @Contended annotation alerts
      * JVMs to try to keep instances apart.
      */
-    @sun.misc.Contended
+    @jdk.internal.vm.annotation.Contended
     static final class WorkQueue {
 
         /**
@@ -789,8 +789,9 @@ public class ForkJoinPool extends AbstractExecutorService {
         final ForkJoinPool pool;   // the containing pool (may be null)
         final ForkJoinWorkerThread owner; // owning thread or null if shared
         volatile Thread parker;    // == owner during call to park; else null
-        volatile ForkJoinTask<?> currentJoin;  // task being joined in awaitJoin
-        @sun.misc.Contended("group2") // separate from other fields
+        volatile ForkJoinTask<?> currentJoin; // task being joined in awaitJoin
+
+        @jdk.internal.vm.annotation.Contended("group2") // segregate
         volatile ForkJoinTask<?> currentSteal; // nonnull when running some task
 
         WorkQueue(ForkJoinPool pool, ForkJoinWorkerThread owner) {
