@@ -9,7 +9,7 @@
  * @author Doug Lea
  * @bug 8004138
  * @summary Check if ForkJoinPool table leaks thrown exceptions.
- * @run main/othervm -Xmx8m FJExceptionTableLeak
+ * @run main/othervm -Xmx8m -Djava.util.concurrent.ForkJoinPool.common.parallelism=4 FJExceptionTableLeak
  */
 
 import java.util.concurrent.ForkJoinPool;
