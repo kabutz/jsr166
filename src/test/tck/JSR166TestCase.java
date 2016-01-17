@@ -6,6 +6,13 @@
  * Pat Fisher, Mike Judd.
  */
 
+/*
+ * @test
+ * @summary JSR-166 tck tests
+ * @build *
+ * @run junit/othervm/timeout=1000 JSR166TestCase
+ */
+
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
