@@ -77,9 +77,7 @@ import java.util.function.Function;
  * exception, then the stage completes exceptionally with this
  * exception unless the source stage also completed exceptionally, in
  * which case the exceptional completion from the source stage is
- * given preference and propagated to the dependent stage, while the
- * exception from the action is added to the source stage exception as
- * a {@linkplain Throwable#addSuppressed suppressed exception}.
+ * given preference and propagated to the dependent stage.
  *
  * </ul>
  *
@@ -668,11 +666,17 @@ public interface CompletionStage<T> {
      * <p>When this stage is complete, the given action is invoked
      * with the result (or {@code null} if none) and the exception (or
      * {@code null} if none) of this stage as arguments.  The returned
-     * stage is completed when the action returns.  If the supplied
-     * action itself encounters an exception, then the returned stage
-     * exceptionally completes with this exception unless this stage
-     * also completed exceptionally (in which case, the returned stage
-     * exceptionally completes with the original exception).
+     * stage is completed when the action returns.
+     *
+     * <p> Unlike method {@link #handle}, this method is not designed
+     * to translate completion outcomes, so the supplied action should
+     * not throw an exception. However, if it does, the following
+     * rules apply: if this stage completed normally but the supplied
+     * action throws an exception, then the returned stage completes
+     * exceptionally with the supplied action's exception. Or, if this
+     * stage completed exceptionally and the supplied action throws an
+     * exception, then the returned stage completes exceptionally with
+     * this stage's exception.
      *
      * @param action the action to perform
      * @return the new CompletionStage
@@ -688,9 +692,17 @@ public interface CompletionStage<T> {
      * <p>When this stage is complete, the given action is invoked with the
      * result (or {@code null} if none) and the exception (or {@code null}
      * if none) of this stage as arguments.  The returned stage is completed
-     * when the action returns.  If the supplied action itself encounters an
-     * exception, then the returned stage exceptionally completes with this
-     * exception unless this stage also completed exceptionally.
+     * when the action returns.
+     *
+     * <p> Unlike method {@link #handle}, this method is not designed
+     * to translate completion outcomes, so the supplied action should
+     * not throw an exception. However, if it does, the following
+     * rules apply: If this stage completed normally but the supplied
+     * action throws an exception, then the returned stage completes
+     * exceptionally with the supplied action's exception. Or, if this
+     * stage completed exceptionally and the supplied action throws an
+     * exception, then the returned stage completes exceptionally with
+     * this stage's exception.
      *
      * @param action the action to perform
      * @return the new CompletionStage
@@ -706,9 +718,17 @@ public interface CompletionStage<T> {
      * <p>When this stage is complete, the given action is invoked with the
      * result (or {@code null} if none) and the exception (or {@code null}
      * if none) of this stage as arguments.  The returned stage is completed
-     * when the action returns.  If the supplied action itself encounters an
-     * exception, then the returned stage exceptionally completes with this
-     * exception unless this stage also completed exceptionally.
+     * when the action returns.
+     *
+     * <p> Unlike method {@link #handle}, this method is not designed
+     * to translate completion outcomes, so the supplied action should
+     * not throw an exception. However, if it does, the following
+     * rules apply: If this stage completed normally but the supplied
+     * action throws an exception, then the returned stage completes
+     * exceptionally with the supplied action's exception. Or, if this
+     * stage completed exceptionally and the supplied action throws an
+     * exception, then the returned stage completes exceptionally with
+     * this stage's exception.
      *
      * @param action the action to perform
      * @param executor the executor to use for asynchronous execution
