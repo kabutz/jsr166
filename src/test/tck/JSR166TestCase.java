@@ -10,7 +10,7 @@
  * @test
  * @summary JSR-166 tck tests
  * @build *
- * @run junit/othervm/timeout=1000 JSR166TestCase
+ * @run junit/othervm/timeout=1000 -Djsr166.testImplementationDetails=true JSR166TestCase
  */
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
