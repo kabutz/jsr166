@@ -668,7 +668,7 @@ public interface CompletionStage<T> {
      * {@code null} if none) of this stage as arguments.  The returned
      * stage is completed when the action returns.
      *
-     * <p> Unlike method {@link #handle}, this method is not designed
+     * <p>Unlike method {@link #handle}, this method is not designed
      * to translate completion outcomes, so the supplied action should
      * not throw an exception. However, if it does, the following
      * rules apply: if this stage completed normally but the supplied
@@ -694,7 +694,7 @@ public interface CompletionStage<T> {
      * if none) of this stage as arguments.  The returned stage is completed
      * when the action returns.
      *
-     * <p> Unlike method {@link #handle}, this method is not designed
+     * <p>Unlike method {@link #handle}, this method is not designed
      * to translate completion outcomes, so the supplied action should
      * not throw an exception. However, if it does, the following
      * rules apply: If this stage completed normally but the supplied
@@ -720,7 +720,7 @@ public interface CompletionStage<T> {
      * if none) of this stage as arguments.  The returned stage is completed
      * when the action returns.
      *
-     * <p> Unlike method {@link #handle}, this method is not designed
+     * <p>Unlike method {@link #handle}, this method is not designed
      * to translate completion outcomes, so the supplied action should
      * not throw an exception. However, if it does, the following
      * rules apply: If this stage completed normally but the supplied
