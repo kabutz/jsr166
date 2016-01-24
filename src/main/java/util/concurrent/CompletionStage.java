@@ -263,9 +263,9 @@ public interface CompletionStage<T> {
 
     /**
      * Returns a new CompletionStage that, when this and the other
-     * given stage complete normally, is executed using this stage's
-     * default asynchronous execution facility, with the two results
-     * as arguments to the supplied function.
+     * given stage both complete normally, is executed using this
+     * stage's default asynchronous execution facility, with the two
+     * results as arguments to the supplied function.
      *
      * See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
@@ -283,9 +283,9 @@ public interface CompletionStage<T> {
 
     /**
      * Returns a new CompletionStage that, when this and the other
-     * given stage complete normally, is executed using the supplied
-     * executor, with the two results as arguments to the supplied
-     * function.
+     * given stage both complete normally, is executed using the
+     * supplied executor, with the two results as arguments to the
+     * supplied function.
      *
      * See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
@@ -323,9 +323,9 @@ public interface CompletionStage<T> {
 
     /**
      * Returns a new CompletionStage that, when this and the other
-     * given stage complete normally, is executed using this stage's
-     * default asynchronous execution facility, with the two results
-     * as arguments to the supplied action.
+     * given stage both complete normally, is executed using this
+     * stage's default asynchronous execution facility, with the two
+     * results as arguments to the supplied action.
      *
      * @param other the other CompletionStage
      * @param action the action to perform before completing the
@@ -339,9 +339,9 @@ public interface CompletionStage<T> {
 
     /**
      * Returns a new CompletionStage that, when this and the other
-     * given stage complete normally, is executed using the supplied
-     * executor, with the two results as arguments to the supplied
-     * action.
+     * given stage both complete normally, is executed using the
+     * supplied executor, with the two results as arguments to the
+     * supplied action.
      *
      * @param other the other CompletionStage
      * @param action the action to perform before completing the
@@ -371,8 +371,8 @@ public interface CompletionStage<T> {
                                               Runnable action);
     /**
      * Returns a new CompletionStage that, when this and the other
-     * given stage complete normally, executes the given action using
-     * this stage's default asynchronous execution facility.
+     * given stage both complete normally, executes the given action
+     * using this stage's default asynchronous execution facility.
      *
      * See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
@@ -387,8 +387,8 @@ public interface CompletionStage<T> {
 
     /**
      * Returns a new CompletionStage that, when this and the other
-     * given stage complete normally, executes the given action using
-     * the supplied executor.
+     * given stage both complete normally, executes the given action
+     * using the supplied executor.
      *
      * See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
