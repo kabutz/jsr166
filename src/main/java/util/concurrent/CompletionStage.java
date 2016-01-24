@@ -341,7 +341,7 @@ public interface CompletionStage<T> {
      * Returns a new CompletionStage that, when this and the other
      * given stage complete normally, is executed using the supplied
      * executor, with the two results as arguments to the supplied
-     * function.
+     * action.
      *
      * @param other the other CompletionStage
      * @param action the action to perform before completing the
@@ -499,7 +499,7 @@ public interface CompletionStage<T> {
      * Returns a new CompletionStage that, when either this or the
      * other given stage complete normally, is executed using the
      * supplied executor, with the corresponding result as argument to
-     * the supplied function.
+     * the supplied action.
      *
      * See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
