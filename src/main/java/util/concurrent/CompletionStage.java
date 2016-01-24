@@ -29,7 +29,7 @@ import java.util.function.Function;
  * <pre> {@code
  * stage.thenApply(x -> square(x))
  *      .thenAccept(x -> System.out.print(x))
- *      .thenRun(() -> System.out.println())}</pre>
+ *      .thenRun(() -> System.out.println());}</pre>
  *
  * An additional form (<em>compose</em>) allows the construction of
  * computation pipelines from functions returning completion stages.
