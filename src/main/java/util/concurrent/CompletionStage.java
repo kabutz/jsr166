@@ -34,7 +34,7 @@ import java.util.function.Function;
  * An additional form (<em>compose</em>) allows the construction of
  * computation pipelines from functions returning completion stages.
  *
- * <p>Any argument to a stage's computation is the result of a
+ * <p>Any argument to a stage's computation is the outcome of a
  * triggering stage's computation.
  *
  * <li>One stage's execution may be triggered by completion of a
