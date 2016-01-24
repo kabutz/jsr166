@@ -671,18 +671,61 @@ public interface CompletionStage<T> {
 
     /**
      * Returns a new CompletionStage that, when this stage completes
-     * exceptionally, is executed with this stage's exception as the
-     * argument to the supplied function.  Otherwise, if this stage
-     * completes normally, then the returned stage also completes
-     * normally with the same value.
+     * either normally or exceptionally, is executed with this stage's
+     * result and exception as arguments to the supplied function.
+     *
+     * <p>When this stage is complete, the given function is invoked
+     * with the result (or {@code null} if none) and the exception (or
+     * {@code null} if none) of this stage as arguments, and the
+     * function's result is used to complete the returned stage.
      *
      * @param fn the function to use to compute the value of the
-     * returned CompletionStage if this CompletionStage completed
-     * exceptionally
+     * returned CompletionStage
+     * @param <U> the function's return type
      * @return the new CompletionStage
      */
-    public CompletionStage<T> exceptionally
-        (Function<Throwable, ? extends T> fn);
+    public <U> CompletionStage<U> handle
+        (BiFunction<? super T, Throwable, ? extends U> fn);
+
+    /**
+     * Returns a new CompletionStage that, when this stage completes
+     * either normally or exceptionally, is executed using this stage's
+     * default asynchronous execution facility, with this stage's
+     * result and exception as arguments to the supplied function.
+     *
+     * <p>When this stage is complete, the given function is invoked
+     * with the result (or {@code null} if none) and the exception (or
+     * {@code null} if none) of this stage as arguments, and the
+     * function's result is used to complete the returned stage.
+     *
+     * @param fn the function to use to compute the value of the
+     * returned CompletionStage
+     * @param <U> the function's return type
+     * @return the new CompletionStage
+     */
+    public <U> CompletionStage<U> handleAsync
+        (BiFunction<? super T, Throwable, ? extends U> fn);
+
+    /**
+     * Returns a new CompletionStage that, when this stage completes
+     * either normally or exceptionally, is executed using the
+     * supplied executor, with this stage's result and exception as
+     * arguments to the supplied function.
+     *
+     * <p>When this stage is complete, the given function is invoked
+     * with the result (or {@code null} if none) and the exception (or
+     * {@code null} if none) of this stage as arguments, and the
+     * function's result is used to complete the returned stage.
+     *
+     * @param fn the function to use to compute the value of the
+     * returned CompletionStage
+     * @param executor the executor to use for asynchronous execution
+     * @param <U> the function's return type
+     * @return the new CompletionStage
+     */
+    public <U> CompletionStage<U> handleAsync
+        (BiFunction<? super T, Throwable, ? extends U> fn,
+         Executor executor);
 
     /**
      * Returns a new CompletionStage with the same result or exception as
@@ -765,61 +808,18 @@ public interface CompletionStage<T> {
 
     /**
      * Returns a new CompletionStage that, when this stage completes
-     * either normally or exceptionally, is executed with this stage's
-     * result and exception as arguments to the supplied function.
-     *
-     * <p>When this stage is complete, the given function is invoked
-     * with the result (or {@code null} if none) and the exception (or
-     * {@code null} if none) of this stage as arguments, and the
-     * function's result is used to complete the returned stage.
+     * exceptionally, is executed with this stage's exception as the
+     * argument to the supplied function.  Otherwise, if this stage
+     * completes normally, then the returned stage also completes
+     * normally with the same value.
      *
      * @param fn the function to use to compute the value of the
-     * returned CompletionStage
-     * @param <U> the function's return type
+     * returned CompletionStage if this CompletionStage completed
+     * exceptionally
      * @return the new CompletionStage
      */
-    public <U> CompletionStage<U> handle
-        (BiFunction<? super T, Throwable, ? extends U> fn);
-
-    /**
-     * Returns a new CompletionStage that, when this stage completes
-     * either normally or exceptionally, is executed using this stage's
-     * default asynchronous execution facility, with this stage's
-     * result and exception as arguments to the supplied function.
-     *
-     * <p>When this stage is complete, the given function is invoked
-     * with the result (or {@code null} if none) and the exception (or
-     * {@code null} if none) of this stage as arguments, and the
-     * function's result is used to complete the returned stage.
-     *
-     * @param fn the function to use to compute the value of the
-     * returned CompletionStage
-     * @param <U> the function's return type
-     * @return the new CompletionStage
-     */
-    public <U> CompletionStage<U> handleAsync
-        (BiFunction<? super T, Throwable, ? extends U> fn);
-
-    /**
-     * Returns a new CompletionStage that, when this stage completes
-     * either normally or exceptionally, is executed using the
-     * supplied executor, with this stage's result and exception as
-     * arguments to the supplied function.
-     *
-     * <p>When this stage is complete, the given function is invoked
-     * with the result (or {@code null} if none) and the exception (or
-     * {@code null} if none) of this stage as arguments, and the
-     * function's result is used to complete the returned stage.
-     *
-     * @param fn the function to use to compute the value of the
-     * returned CompletionStage
-     * @param executor the executor to use for asynchronous execution
-     * @param <U> the function's return type
-     * @return the new CompletionStage
-     */
-    public <U> CompletionStage<U> handleAsync
-        (BiFunction<? super T, Throwable, ? extends U> fn,
-         Executor executor);
+    public CompletionStage<T> exceptionally
+        (Function<Throwable, ? extends T> fn);
 
     /**
      * Returns a {@link CompletableFuture} maintaining the same
