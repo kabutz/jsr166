@@ -35,7 +35,7 @@ import java.util.function.Function;
  * computation pipelines from functions returning completion stages.
  *
  * <p>Any argument to a stage's computation is the result of a
- * predecessor stage's computation.
+ * triggering stage's computation.
  *
  * <li>One stage's execution may be triggered by completion of a
  * single stage, or both of two stages, or either of two stages.
