@@ -59,18 +59,17 @@ import java.util.function.Function;
  * properties, and might not even support concurrent execution, but
  * are arranged for processing in a way that accommodates asynchrony.
  *
- * <li>Two method forms support processing whether the triggering
- * stage completed normally or exceptionally: Method {@link
- * #whenComplete whenComplete} allows injection of an action
- * regardless of outcome, otherwise preserving the outcome in its
- * completion. Method {@link #handle handle} additionally allows the
- * stage to compute a replacement result that may enable further
- * processing by other dependent stages.  In all other cases, if a
- * stage's computation terminates abruptly with an (unchecked)
- * exception or error, then all dependent stages requiring its
- * completion complete exceptionally as well, with a {@link
- * CompletionException} holding the exception as its cause.  If a
- * stage is dependent on <em>both</em> of two stages, and both
+ * <li>Two method forms ({@link #handle handle} and {@link
+ * #whenComplete whenComplete}) support unconditional computation
+ * whether the triggering stage completed normally or exceptionally.
+ * Method {@link #exceptionally exceptionally} supports computation
+ * only when the triggering stage completes exceptionally, computing a
+ * replacement result, similarly to the java {@code catch} keyword.
+ * In all other cases, if a stage's computation terminates abruptly
+ * with an (unchecked) exception or error, then all dependent stages
+ * requiring its completion complete exceptionally as well, with a
+ * {@link CompletionException} holding the exception as its cause.  If
+ * a stage is dependent on <em>both</em> of two stages, and both
  * complete exceptionally, then the CompletionException may correspond
  * to either one of these exceptions.  If a stage is dependent on
  * <em>either</em> of two others, and only one of them completes
@@ -91,6 +90,23 @@ import java.util.function.Function;
  * {@code T}) for methods accepting them may be null, passing a null
  * value for any other parameter will result in a {@link
  * NullPointerException} being thrown.
+ *
+ * <p>Method form {@link #handle handle} is the most general way of
+ * creating a continuation stage, unconditionally performing a
+ * computation that is given both the result and exception (if any) of
+ * the triggering CompletionStage, and computing an arbitrary result.
+ * Method {@link #whenComplete whenComplete} is similar, but preserves
+ * the result of the triggering stage instead of computing a new one.
+ * Because a stage's normal result may be {@code null}, both methods
+ * should have a computation structured thus:
+ *
+ * <pre>{@code (result, exception) -> {
+ *   if (exception == null) {
+ *     // triggering stage completed normally
+ *   } else {
+ *     // triggering stage completed exceptionally
+ *   }
+ * }}</pre>
  *
  * <p>This interface does not define methods for initially creating,
  * forcibly completing normally or exceptionally, probing completion
