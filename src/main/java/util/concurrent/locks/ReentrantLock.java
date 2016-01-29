@@ -185,7 +185,6 @@ public class ReentrantLock implements Lock, java.io.Serializable {
                 acquire(1);
         }
 
-/// OPENJDK-9         @ReservedStackAccess
         protected final boolean tryAcquire(int acquires) {
             return nonfairTryAcquire(acquires);
         }
@@ -205,6 +204,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
          * Fair version of tryAcquire.  Don't grant access unless
          * recursive call or no waiters or is first.
          */
+/// OPENJDK-9         @ReservedStackAccess
         protected final boolean tryAcquire(int acquires) {
             final Thread current = Thread.currentThread();
             int c = getState();
