@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+/// OPENJDK-9 import jdk.internal.vm.annotation.ReservedStackAccess;
 
 /**
  * Provides a framework for implementing blocking locks and related
@@ -857,6 +858,7 @@ public abstract class AbstractQueuedSynchronizer
      * @param arg the acquire argument
      * @return {@code true} if interrupted while waiting
      */
+/// OPENJDK-9     @ReservedStackAccess
     final boolean acquireQueued(final Node node, int arg) {
         try {
             boolean interrupted = false;
@@ -1189,6 +1191,7 @@ public abstract class AbstractQueuedSynchronizer
      *        {@link #tryAcquire} but is otherwise uninterpreted and
      *        can represent anything you like.
      */
+/// OPENJDK-9     @ReservedStackAccess
     public final void acquire(int arg) {
         if (!tryAcquire(arg) &&
             acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
@@ -1252,6 +1255,7 @@ public abstract class AbstractQueuedSynchronizer
      *        can represent anything you like.
      * @return the value returned from {@link #tryRelease}
      */
+/// OPENJDK-9     @ReservedStackAccess
     public final boolean release(int arg) {
         if (tryRelease(arg)) {
             Node h = head;
@@ -1332,6 +1336,7 @@ public abstract class AbstractQueuedSynchronizer
      *        and can represent anything you like.
      * @return the value returned from {@link #tryReleaseShared}
      */
+/// OPENJDK-9     @ReservedStackAccess
     public final boolean releaseShared(int arg) {
         if (tryReleaseShared(arg)) {
             doReleaseShared();
