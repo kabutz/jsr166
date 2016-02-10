@@ -46,6 +46,7 @@ import java.util.stream.Stream;
  * @run testng/timeout=1200 ConcurrentAssociateTest
  * @summary Test that association operations, such as put and compute,
  * place entries in the map
+ * @modules java.management
  */
 @Test
 public class ConcurrentAssociateTest {
