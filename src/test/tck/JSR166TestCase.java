@@ -202,7 +202,7 @@ public class JSR166TestCase extends TestCase {
      */
     private static final float delayFactor =
         systemPropertyValue("jsr166.delay.factor", 1.0f);
-    
+
     /**
      * The timeout factor as used in the jtreg test harness.
      * See: http://openjdk.java.net/jtreg/tag-spec.html
