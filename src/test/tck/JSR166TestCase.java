@@ -585,7 +585,7 @@ public class JSR166TestCase extends TestCase {
     /**
      * Returns the shortest timed delay. This can be scaled up for
      * slow machines using the jsr166.delay.factor system property,
-     * or via jtreg's -timeoutFactor:<val> flag.
+     * or via jtreg's -timeoutFactor: flag.
      * http://openjdk.java.net/jtreg/command-help.html
      */
     protected long getShortDelay() {
