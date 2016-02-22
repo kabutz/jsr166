@@ -1466,14 +1466,18 @@ public class JSR166TestCase extends TestCase {
         return new LatchAwaiter(latch);
     }
 
-    public void await(CountDownLatch latch) {
+    public void await(CountDownLatch latch, long timeoutMillis) {
         try {
-            if (!latch.await(LONG_DELAY_MS, MILLISECONDS))
+            if (!latch.await(timeoutMillis, MILLISECONDS))
                 fail("timed out waiting for CountDownLatch for "
-                     + (LONG_DELAY_MS/1000) + " sec");
+                     + (timeoutMillis/1000) + " sec");
         } catch (Throwable fail) {
             threadUnexpectedException(fail);
         }
+    }
+
+    public void await(CountDownLatch latch) {
+        await(latch, LONG_DELAY_MS);
     }
 
     public void await(Semaphore semaphore) {
