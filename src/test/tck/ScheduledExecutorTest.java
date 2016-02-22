@@ -154,14 +154,14 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                 final CountDownLatch done = new CountDownLatch(cycles);
                 Runnable task = new CheckedRunnable() {
                     public void realRun() { done.countDown(); }};
-                ScheduledFuture h =
+                ScheduledFuture periodicTask =
                     p.scheduleAtFixedRate(task, 0, delay, MILLISECONDS);
                 await(done);
-                h.cancel(true);
-                double normalizedTime =
+                periodicTask.cancel(true);
+                double elapsedDelays =
                     (double) millisElapsedSince(startTime) / delay;
-                if (normalizedTime >= cycles - 1 &&
-                    normalizedTime <= cycles)
+                if (elapsedDelays >= cycles - 1 &&
+                    elapsedDelays <= cycles)
                     return;
             }
             fail("unexpected execution rate");
@@ -180,14 +180,14 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                 final CountDownLatch done = new CountDownLatch(cycles);
                 Runnable task = new CheckedRunnable() {
                     public void realRun() { done.countDown(); }};
-                ScheduledFuture h =
+                ScheduledFuture periodicTask =
                     p.scheduleWithFixedDelay(task, 0, delay, MILLISECONDS);
                 await(done);
-                h.cancel(true);
-                double normalizedTime =
+                periodicTask.cancel(true);
+                double elapsedDelays =
                     (double) millisElapsedSince(startTime) / delay;
-                if (normalizedTime >= cycles - 1 &&
-                    normalizedTime <= cycles)
+                if (elapsedDelays >= cycles - 1 &&
+                    elapsedDelays <= cycles)
                     return;
             }
             fail("unexpected execution rate");
