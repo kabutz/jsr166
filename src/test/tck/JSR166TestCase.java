@@ -61,6 +61,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -183,11 +184,31 @@ public class JSR166TestCase extends TestCase {
     private static final int suiteRuns =
         Integer.getInteger("jsr166.suiteRuns", 1);
 
+    private static float systemPropertyValue(String name, float defaultValue) {
+        String floatString = System.getProperty(name);
+        if (floatString == null)
+            return defaultValue;
+        try {
+            return Float.parseFloat(floatString);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException(
+                String.format("Bad float value in system property %s=%s",
+                              name, floatString));
+        }
+    }
+
     /**
      * The scaling factor to apply to standard delays used in tests.
      */
-    private static final int delayFactor =
-        Integer.getInteger("jsr166.delay.factor", 1);
+    private static final float delayFactor =
+        systemPropertyValue("jsr166.delay.factor", 1.0f);
+    
+    /**
+     * The timeout factor as used in the jtreg test harness.
+     * See: http://openjdk.java.net/jtreg/tag-spec.html
+     */
+    private static final float jtregTestTimeoutFactor
+        = systemPropertyValue("test.timeout.factor", 1.0f);
 
     public JSR166TestCase() { super(); }
     public JSR166TestCase(String name) { super(name); }
@@ -563,10 +584,12 @@ public class JSR166TestCase extends TestCase {
 
     /**
      * Returns the shortest timed delay. This can be scaled up for
-     * slow machines using the jsr166.delay.factor system property.
+     * slow machines using the jsr166.delay.factor system property,
+     * or via jtreg's -timeoutFactor:<val> flag.
+     * http://openjdk.java.net/jtreg/command-help.html
      */
     protected long getShortDelay() {
-        return 50 * delayFactor;
+        return (long) (50 * delayFactor * jtregTestTimeoutFactor);
     }
 
     /**
@@ -877,6 +900,14 @@ public class JSR166TestCase extends TestCase {
             do { latch.countDown(); }
             while (latch.getCount() > 0);
         }};
+    }
+
+    PoolCleaner cleaner(ExecutorService pool, AtomicBoolean flag) {
+        return new PoolCleanerWithReleaser(pool, releaser(flag));
+    }
+
+    Runnable releaser(final AtomicBoolean flag) {
+        return new Runnable() { public void run() { flag.set(true); }};
     }
 
     /**
