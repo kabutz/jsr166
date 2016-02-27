@@ -25,15 +25,21 @@
  * @test
  * @bug 6458662
  * @summary poolSize might shrink below corePoolSize after timeout
+ * @library /lib/testlibrary/
  * @author Martin Buchholz
  */
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import jdk.testlibrary.Utils;
 
 public class TimeOutShrink {
+    static final long LONG_DELAY_MS = Utils.adjustTimeout(10_000);
+
     static void checkPoolSizes(ThreadPoolExecutor pool,
                                int size, int core, int max) {
         equal(pool.getPoolSize(), size);
@@ -63,7 +69,7 @@ public class TimeOutShrink {
         Thread.sleep(100);
         checkPoolSizes(pool, n, n, 2*n);
         pool.shutdown();
-        check(pool.awaitTermination(60L, TimeUnit.SECONDS));
+        check(pool.awaitTermination(6 * LONG_DELAY_MS, MILLISECONDS));
     }
 
     //--------------------- Infrastructure ---------------------------

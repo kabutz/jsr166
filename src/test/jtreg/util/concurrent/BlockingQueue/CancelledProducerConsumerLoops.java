@@ -95,18 +95,18 @@ public class CancelledProducerConsumerLoops {
             assertCancelled(cons[i]);
         }
 
-        if (!producersInterrupted.await(10L, TimeUnit.SECONDS))
+        if (!producersInterrupted.await(LONG_DELAY_MS, MILLISECONDS))
             throw new AssertionError("timed out");
-        if (!consumersInterrupted.await(10L, TimeUnit.SECONDS))
+        if (!consumersInterrupted.await(LONG_DELAY_MS, MILLISECONDS))
             throw new AssertionError("timed out");
         if (prods[0].isDone() || prods[0].isCancelled())
             throw new AssertionError("completed too early");
 
         done = true;
 
-        if (! (prods[0].get(10L, TimeUnit.SECONDS) instanceof Integer))
+        if (! (prods[0].get(LONG_DELAY_MS, MILLISECONDS) instanceof Integer))
             throw new AssertionError("expected Integer");
-        if (! (cons[0].get(10L, TimeUnit.SECONDS) instanceof Integer))
+        if (! (cons[0].get(LONG_DELAY_MS, MILLISECONDS) instanceof Integer))
             throw new AssertionError("expected Integer");
     }
 
@@ -116,7 +116,7 @@ public class CancelledProducerConsumerLoops {
         if (!future.isCancelled())
             throw new AssertionError("not cancelled");
         try {
-            future.get(10L, TimeUnit.SECONDS);
+            future.get(LONG_DELAY_MS, MILLISECONDS);
             throw new AssertionError("should throw CancellationException");
         } catch (CancellationException success) {}
     }

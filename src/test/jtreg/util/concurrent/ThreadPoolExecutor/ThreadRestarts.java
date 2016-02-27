@@ -9,6 +9,7 @@
  * @test
  * @summary Only one thread should be created when a thread needs to
  * be kept alive to service a delayed task waiting in the queue.
+ * @library /lib/testlibrary/
  */
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -17,8 +18,11 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
+import jdk.testlibrary.Utils;
 
 public class ThreadRestarts {
+    static final long LONG_DELAY_MS = Utils.adjustTimeout(10_000);
+
     public static void main(String[] args) throws Exception {
         test(false);
         test(true);
@@ -33,10 +37,10 @@ public class ThreadRestarts {
             stpe.schedule(nop, 10*1000L, MILLISECONDS);
             stpe.setKeepAliveTime(1L, MILLISECONDS);
             stpe.allowCoreThreadTimeOut(allowTimeout);
-            MILLISECONDS.sleep(100L);
+            MILLISECONDS.sleep(12L);
         } finally {
             stpe.shutdownNow();
-            if (!stpe.awaitTermination(60L, SECONDS))
+            if (!stpe.awaitTermination(LONG_DELAY_MS, MILLISECONDS))
                 throw new AssertionError("timed out");
         }
         if (ctf.count.get() > 1)
