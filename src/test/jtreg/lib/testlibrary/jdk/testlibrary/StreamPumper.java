@@ -34,11 +34,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * @deprecated This class is deprecated. Use the one from
- *             {@code <root>/test/lib/share/classes/jdk/test/lib/process}
- */
-@Deprecated
 public final class StreamPumper implements Runnable {
 
     private static final int BUF_SIZE = 256;
@@ -82,7 +77,7 @@ public final class StreamPumper implements Runnable {
     private final Set<LinePump> linePumps = new HashSet<>();
 
     private final AtomicBoolean processing = new AtomicBoolean(false);
-    private final FutureTask<Void> processingTask = new FutureTask<>(this, null);
+    private final FutureTask<Void> processingTask = new FutureTask(this, null);
 
     public StreamPumper(InputStream in) {
         this.in = in;

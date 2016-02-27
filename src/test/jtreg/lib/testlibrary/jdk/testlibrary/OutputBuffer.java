@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2014, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -23,30 +23,9 @@
 
 package jdk.testlibrary;
 
-import java.io.ByteArrayOutputStream;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-
-/**
- * @deprecated This class is deprecated. Use the one from
- *             {@code <root>/test/lib/share/classes/jdk/test/lib/process}
- */
-@Deprecated
-class OutputBuffer {
-    private static class OutputBufferException extends RuntimeException {
-        private static final long serialVersionUID = 8528687792643129571L;
-
-        public OutputBufferException(Throwable cause) {
-            super(cause);
-        }
-    }
-
-    private final Process p;
-    private final Future<Void> outTask;
-    private final Future<Void> errTask;
-    private final ByteArrayOutputStream stderrBuffer = new ByteArrayOutputStream();
-    private final ByteArrayOutputStream stdoutBuffer = new ByteArrayOutputStream();
+public class OutputBuffer {
+    private final String stdout;
+    private final String stderr;
 
     /**
      * Create an OutputBuffer, a class for storing and managing stdout and
@@ -57,15 +36,9 @@ class OutputBuffer {
      * @param stderr
      *            stderr result
      */
-    OutputBuffer(Process p) {
-        this.p = p;
-        StreamPumper outPumper = new StreamPumper(p.getInputStream(),
-                stdoutBuffer);
-        StreamPumper errPumper = new StreamPumper(p.getErrorStream(),
-                stderrBuffer);
-
-        outTask = outPumper.process();
-        errTask = errPumper.process();
+    public OutputBuffer(String stdout, String stderr) {
+        this.stdout = stdout;
+        this.stderr = stderr;
     }
 
     /**
@@ -74,15 +47,7 @@ class OutputBuffer {
      * @return stdout result
      */
     public String getStdout() {
-        try {
-            outTask.get();
-            return stdoutBuffer.toString();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new OutputBufferException(e);
-        } catch (ExecutionException | CancellationException e) {
-            throw new OutputBufferException(e);
-        }
+        return stdout;
     }
 
     /**
@@ -91,23 +56,6 @@ class OutputBuffer {
      * @return stderr result
      */
     public String getStderr() {
-        try {
-            errTask.get();
-            return stderrBuffer.toString();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new OutputBufferException(e);
-        } catch (ExecutionException | CancellationException e) {
-            throw new OutputBufferException(e);
-        }
-    }
-
-    public int getExitValue() {
-        try {
-            return p.waitFor();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new OutputBufferException(e);
-        }
+        return stderr;
     }
 }

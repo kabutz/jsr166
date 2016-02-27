@@ -36,16 +36,11 @@ import java.util.Collections;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
 /**
  * Common library for various test helper functions.
- *
- * @deprecated This class is deprecated. Use the one from
- *             {@code <root>/test/lib/share/classes/jdk/test/lib}
  */
-@Deprecated
 public final class Utils {
 
     /**
@@ -62,6 +57,7 @@ public final class Utils {
      * Returns the value of 'test.java.opts'system property.
      */
     public static final String JAVA_OPTIONS = System.getProperty("test.java.opts", "").trim();
+
 
     /**
     * Returns the value of 'test.timeout.factor' system property
@@ -136,9 +132,7 @@ public final class Utils {
      * GC specified by the framework must first be removed.
      * @return A copy of given opts with all GC options removed.
      */
-    private static final Pattern useGcPattern = Pattern.compile(
-            "(?:\\-XX\\:[\\+\\-]Use.+GC)"
-            + "|(?:\\-Xconcgc)");
+    private static final Pattern useGcPattern = Pattern.compile("\\-XX\\:[\\+\\-]Use.+GC");
     public static List<String> removeGcOpts(List<String> opts) {
         List<String> optsWithoutGC = new ArrayList<String>();
         for (String opt : opts) {
@@ -247,6 +241,7 @@ public final class Utils {
      * @throws Exception If multiple matching jvms are found.
      */
     public static int tryFindJvmPid(String key) throws Throwable {
+        ProcessBuilder pb = null;
         OutputAnalyzer output = null;
         try {
             JDKToolLauncher jcmdLauncher = JDKToolLauncher.create("jcmd");
@@ -281,52 +276,6 @@ public final class Utils {
      */
     public static long adjustTimeout(long tOut) {
         return Math.round(tOut * Utils.TIMEOUT_FACTOR);
-    }
-
-    /**
-     * Wait for condition to be true
-     *
-     * @param condition, a condition to wait for
-     */
-    public static final void waitForCondition(BooleanSupplier condition) {
-        waitForCondition(condition, -1L, 100L);
-    }
-
-    /**
-     * Wait until timeout for condition to be true
-     *
-     * @param condition, a condition to wait for
-     * @param timeout a time in milliseconds to wait for condition to be true
-     * specifying -1 will wait forever
-     * @return condition value, to determine if wait was successfull
-     */
-    public static final boolean waitForCondition(BooleanSupplier condition,
-            long timeout) {
-        return waitForCondition(condition, timeout, 100L);
-    }
-
-    /**
-     * Wait until timeout for condition to be true for specified time
-     *
-     * @param condition, a condition to wait for
-     * @param timeout a time in milliseconds to wait for condition to be true,
-     * specifying -1 will wait forever
-     * @param sleepTime a time to sleep value in milliseconds
-     * @return condition value, to determine if wait was successfull
-     */
-    public static final boolean waitForCondition(BooleanSupplier condition,
-            long timeout, long sleepTime) {
-        long startTime = System.currentTimeMillis();
-        while (!(condition.getAsBoolean() || (timeout != -1L
-                && ((System.currentTimeMillis() - startTime) > timeout)))) {
-            try {
-                Thread.sleep(sleepTime);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new Error(e);
-            }
-        }
-        return condition.getAsBoolean();
     }
 
     /**
