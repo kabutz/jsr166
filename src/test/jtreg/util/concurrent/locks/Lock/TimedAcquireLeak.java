@@ -196,7 +196,7 @@ public class TimedAcquireLeak {
 
         final String[] jobCmd = {
             java, "-Xmx8m", "-XX:+UsePerfData",
-            "-classpath", System.getProperty("test.classes", "."),
+            "-classpath", System.getProperty("test.class.path"),
             childClassName, uniqueID
         };
         final Process p = new ProcessBuilder(jobCmd).start();
