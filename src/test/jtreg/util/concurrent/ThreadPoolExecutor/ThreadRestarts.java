@@ -22,6 +22,7 @@ import jdk.testlibrary.Utils;
 
 public class ThreadRestarts {
     static final long LONG_DELAY_MS = Utils.adjustTimeout(10_000);
+    static final long FAR_FUTURE_MS = 10 * LONG_DELAY_MS;
 
     public static void main(String[] args) throws Exception {
         test(false);
@@ -33,8 +34,9 @@ public class ThreadRestarts {
         ScheduledThreadPoolExecutor stpe
             = new ScheduledThreadPoolExecutor(10, ctf);
         try {
+            // schedule a dummy task in the "far future"
             Runnable nop = new Runnable() { public void run() {}};
-            stpe.schedule(nop, 10*1000L, MILLISECONDS);
+            stpe.schedule(nop, FAR_FUTURE_MS, MILLISECONDS);
             stpe.setKeepAliveTime(1L, MILLISECONDS);
             stpe.allowCoreThreadTimeOut(allowTimeout);
             MILLISECONDS.sleep(12L);
@@ -53,8 +55,9 @@ public class ThreadRestarts {
         final AtomicLong count = new AtomicLong(0L);
 
         public Thread newThread(Runnable r) {
-            Thread t = new Thread(r);
             count.getAndIncrement();
+            Thread t = new Thread(r);
+            t.setDaemon(true);
             return t;
         }
     }
