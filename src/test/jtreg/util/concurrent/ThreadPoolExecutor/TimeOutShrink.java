@@ -39,6 +39,7 @@ import jdk.testlibrary.Utils;
 
 public class TimeOutShrink {
     static final long LONG_DELAY_MS = Utils.adjustTimeout(10_000);
+    static final long KEEPALIVE_MS = 12L;
 
     static void checkPoolSizes(ThreadPoolExecutor pool,
                                int size, int core, int max) {
@@ -51,7 +52,8 @@ public class TimeOutShrink {
         final int n = 4;
         final CyclicBarrier barrier = new CyclicBarrier(2*n+1);
         final ThreadPoolExecutor pool
-            = new ThreadPoolExecutor(n, 2*n, 1L, TimeUnit.SECONDS,
+            = new ThreadPoolExecutor(n, 2*n,
+                                     KEEPALIVE_MS, MILLISECONDS,
                                      new SynchronousQueue<Runnable>());
         final Runnable r = new Runnable() { public void run() {
             try {
@@ -64,12 +66,16 @@ public class TimeOutShrink {
         barrier.await();
         checkPoolSizes(pool, 2*n, n, 2*n);
         barrier.await();
-        while (pool.getPoolSize() > n)
-            Thread.sleep(100);
-        Thread.sleep(100);
+        long nap = KEEPALIVE_MS + (KEEPALIVE_MS >> 2);
+        for (long sleepyTime = 0L; pool.getPoolSize() > n; ) {
+            check((sleepyTime += nap) <= LONG_DELAY_MS);
+            Thread.sleep(nap);
+        }
+        checkPoolSizes(pool, n, n, 2*n);
+        Thread.sleep(nap);
         checkPoolSizes(pool, n, n, 2*n);
         pool.shutdown();
-        check(pool.awaitTermination(6 * LONG_DELAY_MS, MILLISECONDS));
+        check(pool.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
     }
 
     //--------------------- Infrastructure ---------------------------
