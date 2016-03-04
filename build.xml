@@ -256,6 +256,7 @@
 	<syspropertyset id="system-properties-used-by-tck">
 	  <propertyref prefix="java.util.concurrent.ForkJoinPool"/>
 	  <propertyref prefix="jsr166."/>
+	  <propertyref name="test.timeout.factor"/>
 	</syspropertyset>
 
 	<classpath>
