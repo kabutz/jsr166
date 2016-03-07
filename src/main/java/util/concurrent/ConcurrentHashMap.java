@@ -2661,7 +2661,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns a list on non-TreeNodes replacing those in given list.
+     * Returns a list of non-TreeNodes replacing those in given list.
      */
     static <K,V> Node<K,V> untreeify(Node<K,V> b) {
         Node<K,V> hd = null, tl = null;
