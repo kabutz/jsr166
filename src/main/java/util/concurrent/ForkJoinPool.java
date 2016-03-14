@@ -255,11 +255,11 @@ public class ForkJoinPool extends AbstractExecutorService {
      * like workers except that they are restricted to executing local
      * tasks that they submitted.  Insertion of tasks in shared mode
      * requires a lock but we use only a simple spinlock (using field
-     * phase), because submitters encountering a busy queue move on to
-     * try or create other queues -- they block only when creating and
-     * registering new queues. Because it is used only as a spinlock,
-     * unlocking requires only a "releasing" store (using
-     * putOrderedInt).
+     * phase), because submitters encountering a busy queue move to a
+     * different position to use or create other queues -- they block
+     * only when creating and registering new queues. Because it is
+     * used only as a spinlock, unlocking requires only a "releasing"
+     * store (using putOrderedInt).
      *
      * Management
      * ==========
