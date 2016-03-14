@@ -954,7 +954,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
 
         /**
-         * If present, removes task from queue and executes
+         * If present, removes task from queue and executes it.
          */
         final void tryRemoveAndExec(ForkJoinTask<?> task) {
             ForkJoinTask<?>[] wa; int s, wal;
@@ -992,7 +992,7 @@ public class ForkJoinPool extends AbstractExecutorService {
 
         /**
          * Tries to steal and run tasks within the target's
-         * computation until done, not found, or limit exceeded
+         * computation until done, not found, or limit exceeded.
          *
          * @param task root of CountedCompleter computation
          * @param limit max runs, or zero for no limit
@@ -1040,7 +1040,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         // Operations on shared queues
 
         /**
-         * Tries to lock shared queue by CASing phase field
+         * Tries to lock shared queue by CASing phase field.
          */
         final boolean tryLockSharedQueue() {
             return U.compareAndSwapInt(this, PHASE, 0, QLOCK);
