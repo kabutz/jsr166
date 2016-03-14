@@ -3,6 +3,7 @@
  * Expert Group and released to the public domain, as explained at
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
+
 package java.util.concurrent;
 
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -503,7 +504,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * Bounds for the commonPool (see COMMON_MAX_SPARES) better enable
      * JVMs to cope with programming errors and abuse before running
      * out of resources to do so.
-
+     *
      * Common Pool
      * ===========
      *
@@ -1348,7 +1349,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         int fifo = mode & FIFO;
         String prefix = workerNamePrefix;
         if (prefix != null) {
-            synchronized(prefix) {
+            synchronized (prefix) {
                 WorkQueue[] ws = workQueues; int n;
                 int s = indexSeed += SEED_INCREMENT;
                 if (ws != null && (n = ws.length) > 1) {
@@ -1412,7 +1413,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             int idx = w.id & SMASK;
             if (lock != null) {
                 WorkQueue[] ws;                       // remove index from array
-                synchronized(lock) {
+                synchronized (lock) {
                     if ((ws = workQueues) != null && ws.length > idx &&
                         ws[idx] == w)
                         ws[idx] = null;
@@ -1950,7 +1951,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                     q.source = QUIET;
                     q.phase = QLOCK;          // lock queue
                     if (lock != null) {
-                        synchronized(lock) {  // lock pool to install
+                        synchronized (lock) { // lock pool to install
                             int i;
                             if ((ws = workQueues) != null &&
                                 (n = ws.length) > 0 &&
