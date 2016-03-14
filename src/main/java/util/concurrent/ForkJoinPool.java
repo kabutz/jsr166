@@ -1660,6 +1660,17 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
     }
 
+    /**
+     * Helps and/or blocks until the given task is done or timeout.
+     * First tries locally helping, then scans other queues for a task
+     * produced by one of w's stealers; compensating and blocking if
+     * none are found (rescanning if tryCompensate fails).
+     *
+     * @param w caller
+     * @param task the task
+     * @param deadline for timed waits, if nonzero
+     * @return task status on exit
+     */
     final int awaitJoin(WorkQueue w, ForkJoinTask<?> task, long deadline) {
         int s = 0;
         if (w != null && task != null &&
