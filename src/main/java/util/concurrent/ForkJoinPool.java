@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CountedCompleter;
 import java.util.concurrent.ForkJoinTask;
@@ -647,7 +648,6 @@ public class ForkJoinPool extends AbstractExecutorService {
     // Mode bits and sentinels, some also used in WorkQueue id and.source fields
     static final int OWNED        = 1;             // queue has owner thread
     static final int FIFO         = 1 << 16;       // fifo queue or access mode
-    static final int SATURATE     = 1 << 17;       // for tryCompensate
     static final int SHUTDOWN     = 1 << 18;
     static final int TERMINATED   = 1 << 19;
     static final int STOP         = 1 << 31;       // must be negative
@@ -1287,6 +1287,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     final String workerNamePrefix;       // for worker thread string; sync lock
     final ForkJoinWorkerThreadFactory factory;
     final UncaughtExceptionHandler ueh;  // per-worker UEH
+    final Predicate<? super ForkJoinPool> saturate;
 
     // Creating, registering and deregistering workers
 
@@ -1543,7 +1544,8 @@ public class ForkJoinPool extends AbstractExecutorService {
                 if (unstable || tc != 0 || ctl != c)
                     return 0;                    // inconsistent
                 else if (t + pc >= MAX_CAP || t >= (bounds >>> SWIDTH)) {
-                    if ((md & SATURATE) != 0)
+                    Predicate<? super ForkJoinPool> sat;
+                    if ((sat = saturate) != null && sat.test(this))
                         return -1;
                     else if (bc < pc) {          // lagging
                         Thread.yield();          // for retry spins
@@ -2166,7 +2168,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     public ForkJoinPool() {
         this(Math.min(MAX_CAP, Runtime.getRuntime().availableProcessors()),
              defaultForkJoinWorkerThreadFactory, null, false,
-             0, MAX_CAP, 1, false, DEFAULT_KEEPALIVE, TimeUnit.MILLISECONDS);
+             0, MAX_CAP, 1, null, DEFAULT_KEEPALIVE, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -2183,7 +2185,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      */
     public ForkJoinPool(int parallelism) {
         this(parallelism, defaultForkJoinWorkerThreadFactory, null, false,
-             0, MAX_CAP, 1, false, DEFAULT_KEEPALIVE, TimeUnit.MILLISECONDS);
+             0, MAX_CAP, 1, null, DEFAULT_KEEPALIVE, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -2216,7 +2218,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                         UncaughtExceptionHandler handler,
                         boolean asyncMode) {
         this(parallelism, factory, handler, asyncMode,
-             0, MAX_CAP, 1, false, DEFAULT_KEEPALIVE, TimeUnit.MILLISECONDS);
+             0, MAX_CAP, 1, null, DEFAULT_KEEPALIVE, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -2250,11 +2252,12 @@ public class ForkJoinPool extends AbstractExecutorService {
      * When the maximum is reached, attempts to replace blocked
      * threads fail.  (However, because creation and termination of
      * different threads may overlap, and may be managed by the given
-     * thread factory, this value may be transiently exceeded.)  The
-     * default for the common pool is {@code 256} plus the parallelism
-     * level. Using a value (for example {@code Integer.MAX_VALUE})
-     * larger than the implementation's total thread limit has the
-     * same effect as using this limit.
+     * thread factory, this value may be transiently exceeded.)  To
+     * arrange the same value as is used by default for the common
+     * pool, use {@code 256} plus the parallelism level. Using a value
+     * (for example {@code Integer.MAX_VALUE}) larger than the
+     * implementation's total thread limit has the same effect as
+     * using this limit (which is the default).
      *
      * @param minimumRunnable the minimum allowed number of core
      * threads not blocked by a join or {@link ManagedBlocker}.  To
@@ -2267,12 +2270,15 @@ public class ForkJoinPool extends AbstractExecutorService {
      * acceptable when submitted tasks cannot have dependencies
      * requiring additional threads.
      *
-     * @param rejectOnSaturation if true, attempts to create more than
-     * the maximum total allowed threads throw {@link
-     * RejectedExecutionException}. Otherwise, the pool continues to
-     * operate, but with fewer than the target number of runnable
-     * threads, so might not ensure progress.  For default value, use
-     * {@code true}.
+     * @param saturate if nonnull, a predicate invoked upon attempts
+     * to create more than the maximum total allowed threads.  By
+     * default, when a thread is about to block on a join or {@link
+     * ManagedBlocker}, but cannot be replaced because the
+     * maximumPoolSize would be exceeded, a {@link
+     * RejectedExecutionException} is thrown.  But if this predicate
+     * returns {@code true}, then no exception is thrown, so the pool
+     * continues to operate with fewer than the target number of
+     * runnable threads, which might not ensure progress.
      *
      * @param keepAliveTime the elapsed time since last use before
      * a thread is terminated (and then later replaced if needed).
@@ -2298,7 +2304,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                         int corePoolSize,
                         int maximumPoolSize,
                         int minimumRunnable,
-                        boolean rejectOnSaturation,
+                        Predicate<? super ForkJoinPool> saturate,
                         long keepAliveTime,
                         TimeUnit unit) {
         // check, encode, pack parameters
@@ -2313,9 +2319,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         int corep = Math.min(Math.max(corePoolSize, parallelism), MAX_CAP);
         long c = ((((long)(-corep)       << TC_SHIFT) & TC_MASK) |
                   (((long)(-parallelism) << RC_SHIFT) & RC_MASK));
-        int m = (parallelism |
-                 (asyncMode ? FIFO : 0) |
-                 (rejectOnSaturation ? 0 : SATURATE));
+        int m = parallelism | (asyncMode ? FIFO : 0);
         int maxSpares = Math.min(maximumPoolSize, MAX_CAP) - parallelism;
         int minAvail = Math.min(Math.max(minimumRunnable, 0), MAX_CAP);
         int b = ((minAvail - parallelism) & SMASK) | (maxSpares << SWIDTH);
@@ -2327,6 +2331,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         this.workerNamePrefix = prefix;
         this.factory = factory;
         this.ueh = handler;
+        this.saturate = saturate;
         this.keepAlive = ms;
         this.bounds = b;
         this.mode = m;
@@ -2384,6 +2389,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         this.workerNamePrefix = "ForkJoinPool.commonPool-worker-";
         this.factory = fac;
         this.ueh = handler;
+        this.saturate = null;
         this.keepAlive = DEFAULT_KEEPALIVE;
         this.bounds = b;
         this.mode = m;
