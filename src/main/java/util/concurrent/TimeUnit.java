@@ -46,136 +46,79 @@ public enum TimeUnit {
     /**
      * Time unit representing one thousandth of a microsecond.
      */
-    NANOSECONDS {
-        public long toNanos(long d)   { return d; }
-        public long toMicros(long d)  { return d/(C1/C0); }
-        public long toMillis(long d)  { return d/(C2/C0); }
-        public long toSeconds(long d) { return d/(C3/C0); }
-        public long toMinutes(long d) { return d/(C4/C0); }
-        public long toHours(long d)   { return d/(C5/C0); }
-        public long toDays(long d)    { return d/(C6/C0); }
-        public long convert(long d, TimeUnit u) { return u.toNanos(d); }
-        int excessNanos(long d, long m) { return (int)(d - (m*C2)); }
-    },
-
+    NANOSECONDS(1L), // (cannot use symbolic scale names here)
     /**
      * Time unit representing one thousandth of a millisecond.
      */
-    MICROSECONDS {
-        public long toNanos(long d)   { return x(d, C1/C0, MAX/(C1/C0)); }
-        public long toMicros(long d)  { return d; }
-        public long toMillis(long d)  { return d/(C2/C1); }
-        public long toSeconds(long d) { return d/(C3/C1); }
-        public long toMinutes(long d) { return d/(C4/C1); }
-        public long toHours(long d)   { return d/(C5/C1); }
-        public long toDays(long d)    { return d/(C6/C1); }
-        public long convert(long d, TimeUnit u) { return u.toMicros(d); }
-        int excessNanos(long d, long m) { return (int)((d*C1) - (m*C2)); }
-    },
-
+    MICROSECONDS(1000L),
     /**
      * Time unit representing one thousandth of a second.
      */
-    MILLISECONDS {
-        public long toNanos(long d)   { return x(d, C2/C0, MAX/(C2/C0)); }
-        public long toMicros(long d)  { return x(d, C2/C1, MAX/(C2/C1)); }
-        public long toMillis(long d)  { return d; }
-        public long toSeconds(long d) { return d/(C3/C2); }
-        public long toMinutes(long d) { return d/(C4/C2); }
-        public long toHours(long d)   { return d/(C5/C2); }
-        public long toDays(long d)    { return d/(C6/C2); }
-        public long convert(long d, TimeUnit u) { return u.toMillis(d); }
-        int excessNanos(long d, long m) { return 0; }
-    },
-
+    MILLISECONDS(1000L * 1000L),
     /**
      * Time unit representing one second.
      */
-    SECONDS {
-        public long toNanos(long d)   { return x(d, C3/C0, MAX/(C3/C0)); }
-        public long toMicros(long d)  { return x(d, C3/C1, MAX/(C3/C1)); }
-        public long toMillis(long d)  { return x(d, C3/C2, MAX/(C3/C2)); }
-        public long toSeconds(long d) { return d; }
-        public long toMinutes(long d) { return d/(C4/C3); }
-        public long toHours(long d)   { return d/(C5/C3); }
-        public long toDays(long d)    { return d/(C6/C3); }
-        public long convert(long d, TimeUnit u) { return u.toSeconds(d); }
-        int excessNanos(long d, long m) { return 0; }
-    },
-
+    SECONDS(1000L * 1000L * 1000L),
     /**
      * Time unit representing sixty seconds.
      * @since 1.6
      */
-    MINUTES {
-        public long toNanos(long d)   { return x(d, C4/C0, MAX/(C4/C0)); }
-        public long toMicros(long d)  { return x(d, C4/C1, MAX/(C4/C1)); }
-        public long toMillis(long d)  { return x(d, C4/C2, MAX/(C4/C2)); }
-        public long toSeconds(long d) { return x(d, C4/C3, MAX/(C4/C3)); }
-        public long toMinutes(long d) { return d; }
-        public long toHours(long d)   { return d/(C5/C4); }
-        public long toDays(long d)    { return d/(C6/C4); }
-        public long convert(long d, TimeUnit u) { return u.toMinutes(d); }
-        int excessNanos(long d, long m) { return 0; }
-    },
-
+    MINUTES(1000L * 1000L * 1000L * 60L),
     /**
      * Time unit representing sixty minutes.
      * @since 1.6
      */
-    HOURS {
-        public long toNanos(long d)   { return x(d, C5/C0, MAX/(C5/C0)); }
-        public long toMicros(long d)  { return x(d, C5/C1, MAX/(C5/C1)); }
-        public long toMillis(long d)  { return x(d, C5/C2, MAX/(C5/C2)); }
-        public long toSeconds(long d) { return x(d, C5/C3, MAX/(C5/C3)); }
-        public long toMinutes(long d) { return x(d, C5/C4, MAX/(C5/C4)); }
-        public long toHours(long d)   { return d; }
-        public long toDays(long d)    { return d/(C6/C5); }
-        public long convert(long d, TimeUnit u) { return u.toHours(d); }
-        int excessNanos(long d, long m) { return 0; }
-    },
-
+    HOURS(1000L * 1000L * 1000L * 60L * 60L),
     /**
      * Time unit representing twenty four hours.
      * @since 1.6
      */
-    DAYS {
-        public long toNanos(long d)   { return x(d, C6/C0, MAX/(C6/C0)); }
-        public long toMicros(long d)  { return x(d, C6/C1, MAX/(C6/C1)); }
-        public long toMillis(long d)  { return x(d, C6/C2, MAX/(C6/C2)); }
-        public long toSeconds(long d) { return x(d, C6/C3, MAX/(C6/C3)); }
-        public long toMinutes(long d) { return x(d, C6/C4, MAX/(C6/C4)); }
-        public long toHours(long d)   { return x(d, C6/C5, MAX/(C6/C5)); }
-        public long toDays(long d)    { return d; }
-        public long convert(long d, TimeUnit u) { return u.toDays(d); }
-        int excessNanos(long d, long m) { return 0; }
-    };
+    DAYS(1000L * 1000L * 1000L * 60L * 60L * 24L);
 
-    // Handy constants for conversion methods
-    static final long C0 = 1L;
-    static final long C1 = C0 * 1000L;
-    static final long C2 = C1 * 1000L;
-    static final long C3 = C2 * 1000L;
-    static final long C4 = C3 * 60L;
-    static final long C5 = C4 * 60L;
-    static final long C6 = C5 * 24L;
+    // Scales as constants
+    private static final long NANO_SCALE   = 1L;
+    private static final long MICRO_SCALE  = 1000L * NANO_SCALE;
+    private static final long MILLI_SCALE  = 1000L * MICRO_SCALE;
+    private static final long SECOND_SCALE = 1000L * MILLI_SCALE;
+    private static final long MINUTE_SCALE = 60L * SECOND_SCALE;
+    private static final long HOUR_SCALE   = 60L * MINUTE_SCALE;
+    private static final long DAY_SCALE    = 24L * HOUR_SCALE;
 
-    static final long MAX = Long.MAX_VALUE;
-
-    /**
-     * Scale d by m, checking for overflow.
-     * This has a short name to make above code more readable.
+    /*
+     * Instances cache conversion ratios and saturation cutoffs for
+     * the two units commonly used for JDK timing, used in methods
+     * toNanos and toMillis. Other cases compute them, in method cvt.
      */
-    static long x(long d, long m, long over) {
-        if (d > +over) return Long.MAX_VALUE;
-        if (d < -over) return Long.MIN_VALUE;
-        return d * m;
+
+    private final long scale;
+    private final long maxNanos;
+    private final long millisRatio;
+    private final long maxMillis;
+
+    TimeUnit(long scale) {
+        this.scale = scale;
+        this.maxNanos = Long.MAX_VALUE / scale;
+        long r = (scale >= MILLI_SCALE ? scale / MILLI_SCALE :
+                  MILLI_SCALE / scale);
+        this.millisRatio = r;
+        this.maxMillis = Long.MAX_VALUE / r;
     }
 
-    // To maintain full signature compatibility with 1.5, and to improve the
-    // clarity of the generated javadoc (see 6287639: Abstract methods in
-    // enum classes should not be listed as abstract), method convert
-    // etc. are not declared abstract but otherwise act as abstract methods.
+    /**
+     * General conversion utility.
+     *
+     * @param d duration
+     * @param dst result scale unit
+     * @param src source scale unit
+     */
+    private static long cvt(long d, long dst, long src) {
+        long r, m;
+        return ((src == dst) ? d :
+                (src < dst) ? d / (dst / src) :
+                (d > (m = Long.MAX_VALUE / (r = src / dst))) ? Long.MAX_VALUE :
+                (d < -m) ? Long.MIN_VALUE :
+                d * r);
+    }
 
     /**
      * Converts the given time duration in the given unit to this unit.
@@ -196,7 +139,7 @@ public enum TimeUnit {
      * overflow, or {@code Long.MAX_VALUE} if it would positively overflow.
      */
     public long convert(long sourceDuration, TimeUnit sourceUnit) {
-        throw new AbstractMethodError();
+        return cvt(sourceDuration, scale, sourceUnit.scale);
     }
 
     /**
@@ -208,7 +151,11 @@ public enum TimeUnit {
      * overflow, or {@code Long.MAX_VALUE} if it would positively overflow.
      */
     public long toNanos(long duration) {
-        throw new AbstractMethodError();
+        long s, m;
+        return (((s = scale) == NANO_SCALE) ? duration :
+                (duration > (m = maxNanos)) ? Long.MAX_VALUE :
+                (duration < -m) ? Long.MIN_VALUE :
+                duration * s);
     }
 
     /**
@@ -220,7 +167,7 @@ public enum TimeUnit {
      * overflow, or {@code Long.MAX_VALUE} if it would positively overflow.
      */
     public long toMicros(long duration) {
-        throw new AbstractMethodError();
+        return cvt(duration, MICRO_SCALE, scale);
     }
 
     /**
@@ -232,7 +179,12 @@ public enum TimeUnit {
      * overflow, or {@code Long.MAX_VALUE} if it would positively overflow.
      */
     public long toMillis(long duration) {
-        throw new AbstractMethodError();
+        long s, m;
+        return ( ((s = scale) == MILLI_SCALE) ? duration :
+                 (s < MILLI_SCALE) ? duration / millisRatio :
+                 (duration > (m = maxMillis)) ? Long.MAX_VALUE :
+                 (duration < -m) ? Long.MIN_VALUE :
+                 duration * millisRatio);
     }
 
     /**
@@ -244,7 +196,7 @@ public enum TimeUnit {
      * overflow, or {@code Long.MAX_VALUE} if it would positively overflow.
      */
     public long toSeconds(long duration) {
-        throw new AbstractMethodError();
+        return cvt(duration, SECOND_SCALE, scale);
     }
 
     /**
@@ -257,7 +209,7 @@ public enum TimeUnit {
      * @since 1.6
      */
     public long toMinutes(long duration) {
-        throw new AbstractMethodError();
+        return cvt(duration, MINUTE_SCALE, scale);
     }
 
     /**
@@ -270,7 +222,7 @@ public enum TimeUnit {
      * @since 1.6
      */
     public long toHours(long duration) {
-        throw new AbstractMethodError();
+        return cvt(duration, HOUR_SCALE, scale);
     }
 
     /**
@@ -281,7 +233,7 @@ public enum TimeUnit {
      * @since 1.6
      */
     public long toDays(long duration) {
-        throw new AbstractMethodError();
+        return cvt(duration, DAY_SCALE, scale);
     }
 
     /**
@@ -291,7 +243,12 @@ public enum TimeUnit {
      * @param m the number of milliseconds
      * @return the number of nanoseconds
      */
-    abstract int excessNanos(long d, long m);
+    private int excessNanos(long d, long m) {
+        long s;
+        return (((s = scale) == NANO_SCALE) ? (int)(d - (m * MILLI_SCALE)) :
+                (s == MICRO_SCALE) ? (int)((d * 1000L) - (m * MILLI_SCALE)) :
+                0);
+    }
 
     /**
      * Performs a timed {@link Object#wait(long, int) Object.wait}
