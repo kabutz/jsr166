@@ -445,6 +445,11 @@
       <arg value="implSpec:a:&lt;em&gt;Implementation Requirements:&lt;/em&gt;"/>
       <arg value="-tag"/>
       <arg value="implNote:a:&lt;em&gt;Implementation Note:&lt;/em&gt;"/>
+<!-- tags added in jdk9 -->
+      <arg value="-tag"/>
+      <arg value="revised:X"/>
+      <arg value="-tag"/>
+      <arg value="spec:X"/>
     </javadoc>
   </target>
 
