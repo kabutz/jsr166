@@ -113,11 +113,16 @@ public enum TimeUnit {
      */
     private static long cvt(long d, long dst, long src) {
         long r, m;
-        return ((src == dst) ? d :
-                (src < dst) ? d / (dst / src) :
-                (d > (m = Long.MAX_VALUE / (r = src / dst))) ? Long.MAX_VALUE :
-                (d < -m) ? Long.MIN_VALUE :
-                d * r);
+        if (src == dst)
+            return d;
+        else if (src < dst)
+            return d / (dst / src);
+        else if (d > (m = Long.MAX_VALUE / (r = src / dst)))
+            return Long.MAX_VALUE;
+        else if (d < -m)
+            return Long.MIN_VALUE;
+        else
+            return d * r;
     }
 
     /**
@@ -152,10 +157,14 @@ public enum TimeUnit {
      */
     public long toNanos(long duration) {
         long s, m;
-        return (((s = scale) == NANO_SCALE) ? duration :
-                (duration > (m = maxNanos)) ? Long.MAX_VALUE :
-                (duration < -m) ? Long.MIN_VALUE :
-                duration * s);
+        if ((s = scale) == NANO_SCALE)
+            return duration;
+        else if (duration > (m = maxNanos))
+            return Long.MAX_VALUE;
+        else if (duration < -m)
+            return Long.MIN_VALUE;
+        else
+            return duration * s;
     }
 
     /**
@@ -180,11 +189,16 @@ public enum TimeUnit {
      */
     public long toMillis(long duration) {
         long s, m;
-        return ( ((s = scale) == MILLI_SCALE) ? duration :
-                 (s < MILLI_SCALE) ? duration / millisRatio :
-                 (duration > (m = maxMillis)) ? Long.MAX_VALUE :
-                 (duration < -m) ? Long.MIN_VALUE :
-                 duration * millisRatio);
+        if ((s = scale) == MILLI_SCALE)
+            return duration;
+        else if (s < MILLI_SCALE)
+            return duration / millisRatio;
+        else if (duration > (m = maxMillis))
+            return Long.MAX_VALUE;
+        else if (duration < -m)
+            return Long.MIN_VALUE;
+        else
+            return duration * millisRatio;
     }
 
     /**
@@ -245,9 +259,12 @@ public enum TimeUnit {
      */
     private int excessNanos(long d, long m) {
         long s;
-        return (((s = scale) == NANO_SCALE) ? (int)(d - (m * MILLI_SCALE)) :
-                (s == MICRO_SCALE) ? (int)((d * 1000L) - (m * MILLI_SCALE)) :
-                0);
+        if ((s = scale) == NANO_SCALE)
+            return (int)(d - (m * MILLI_SCALE));
+        else if (s == MICRO_SCALE)
+            return (int)((d * 1000L) - (m * MILLI_SCALE));
+        else
+            return 0;
     }
 
     /**
