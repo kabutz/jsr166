@@ -27,12 +27,12 @@
   (e.g. mercurial forest) or a symlink to same.
 
   Alternatively, define ant variables thus:
-  ant -Djdk$N.home=...
+  ant -Djdk$N.home=... -Djdk$N.src.home=...
   for $N in 6 7 8 9 ...
 
   As of 2015-09, there is incomplete hacky support for jigsaw
   Build for jigsaw using something like:
-  ant -Djdk9.home="$HOME/jdk/jigsaw" -Djdk9.src.dir="$HOME/jdk/src/jigsaw" clean test dist
+  ant -Djdk9.home="$HOME/jdk/jigsaw" -Djdk9.src.home="$HOME/jdk/src/jigsaw" clean test dist
   "docs" target is still broken.
 ------------------------------------------------------------------------------
   </description>
@@ -85,16 +85,17 @@
   <macrodef name="defjdklocations">
     <attribute name="v"/>
     <sequential>
-    <property name="jdk@{v}.home"   location="${jdks.home}/jdk@{v}"/>
-    <property name="java@{v}"       location="${jdk@{v}.home}/bin/java"/>
-    <property name="javac@{v}"      location="${jdk@{v}.home}/bin/javac"/>
-    <property name="javadoc@{v}"    location="${jdk@{v}.home}/bin/javadoc"/>
+    <property name="jdk@{v}.home"     location="${jdks.home}/jdk@{v}"/>
+    <property name="java@{v}"         location="${jdk@{v}.home}/bin/java"/>
+    <property name="javac@{v}"        location="${jdk@{v}.home}/bin/javac"/>
+    <property name="javadoc@{v}"      location="${jdk@{v}.home}/bin/javadoc"/>
+    <property name="jdk@{v}.src.home" location="${jdks.home}/src/jdk@{v}"/>
     <local name="have.java.base"/>
     <available property="have.java.base"
-      file="${jdks.home}/src/jdk@{v}/jdk/src/java.base/share/classes" type="dir"/>
-    <property name="jdk@{v}src.dir" location="${jdks.home}/src/jdk@{v}/jdk/src/java.base/share/classes"
+      file="${jdk@{v}.src.home}/jdk/src/java.base/share/classes" type="dir"/>
+    <property name="jdk@{v}.src.dir" location="${jdk@{v}.src.home}/jdk/src/java.base/share/classes"
       if:set="have.java.base"/>
-    <property name="jdk@{v}src.dir" location="${jdks.home}/src/jdk@{v}/jdk/src/share/classes"
+    <property name="jdk@{v}.src.dir" location="${jdk@{v}.src.home}/jdk/src/share/classes"
       unless:set="have.java.base"/>
     <local name="modules"/>
     <available property="modules" file="${jdk@{v}.home}/jmods" type="dir"/>
@@ -427,7 +428,7 @@
              link="${java9.api.url}"
              overview="${src.dir}/intro.html"
              access="${build.javadoc.access}"
-             sourcepath="${src.dir}:${jdk9src.dir}"
+             sourcepath="${src.dir}:${jdk9.src.dir}"
              classpath=""
              executable="${javadoc9}">
       <fileset dir="${src.dir}" defaultexcludes="yes">
@@ -812,7 +813,7 @@
              link="${java7.api.url}"
              overview="${4jdk7src.dir}/intro.html"
              access="${build.javadoc.access}"
-             sourcepath="${4jdk7src.dir}:${jdk7src.dir}"
+             sourcepath="${4jdk7src.dir}:${jdk7.src.dir}"
              classpath=""
              executable="${javadoc7}">
       <fileset dir="${4jdk7src.dir}" defaultexcludes="yes">
@@ -906,7 +907,7 @@
              packagenames="jsr166x.*"
              link="${java.api.url}"
              access="${build.javadoc.access}"
-             sourcepath="${topsrc.dir}:${jdk6src.dir}"
+             sourcepath="${topsrc.dir}:${jdk6.src.dir}"
              bootclasspath="${bootclasspath6}"
              source="5"
              executable="${javadoc7}">
@@ -998,7 +999,7 @@
              packagenames="jsr166y.*"
              link="${java.api.url}"
              access="${build.javadoc.access}"
-             sourcepath="${topsrc.dir}:${jdk6src.dir}"
+             sourcepath="${topsrc.dir}:${jdk6.src.dir}"
              bootclasspath="${bootclasspath6}"
              source="6"
              executable="${javadoc7}">
@@ -1091,7 +1092,7 @@
              packagenames="extra166y.*"
              link="${java.api.url}"
              access="${build.javadoc.access}"
-             sourcepath="${topsrc.dir}:${jdk6src.dir}"
+             sourcepath="${topsrc.dir}:${jdk6.src.dir}"
              bootclasspath="${bootclasspath6}"
              source="6"
              executable="${javadoc7}">
@@ -1212,7 +1213,7 @@
              packagenames="jsr166e.*"
              link="${java.api.url}"
              access="${build.javadoc.access}"
-             sourcepath="${topsrc.dir}:${jdk6src.dir}"
+             sourcepath="${topsrc.dir}:${jdk6.src.dir}"
              source="${build.jsr166e.java.version}"
              executable="${javadoc7}">
       <arg line="-Xdocrootparent ${java.docroot.url}"/>
