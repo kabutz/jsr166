@@ -98,8 +98,9 @@ public enum TimeUnit {
     TimeUnit(long scale) {
         this.scale = scale;
         this.maxNanos = Long.MAX_VALUE / scale;
-        long r = (scale >= MILLI_SCALE ? scale / MILLI_SCALE :
-                  MILLI_SCALE / scale);
+        long r = (scale >= MILLI_SCALE)
+            ? scale / MILLI_SCALE
+            : MILLI_SCALE / scale;
         this.millisRatio = r;
         this.maxMillis = Long.MAX_VALUE / r;
     }
