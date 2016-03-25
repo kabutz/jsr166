@@ -86,23 +86,31 @@ public enum TimeUnit {
 
     /*
      * Instances cache conversion ratios and saturation cutoffs for
-     * the two units commonly used for JDK timing, used in methods
-     * toNanos and toMillis. Other cases compute them, in method cvt.
+     * the units most commonly used in conversion results, in methods
+     * toNanos, toMillis and toSeconds. Other cases compute them, in
+     * method cvt.
      */
 
     private final long scale;
     private final long maxNanos;
-    private final long millisRatio;
     private final long maxMillis;
+    private final long maxSecs;
+    private final int milliRatio;
+    private final int secRatio;
 
     TimeUnit(long scale) {
         this.scale = scale;
         this.maxNanos = Long.MAX_VALUE / scale;
-        long r = (scale >= MILLI_SCALE)
-            ? scale / MILLI_SCALE
-            : MILLI_SCALE / scale;
-        this.millisRatio = r;
-        this.maxMillis = Long.MAX_VALUE / r;
+        long mr = (scale >= MILLI_SCALE)
+            ? (scale / MILLI_SCALE)
+            : (MILLI_SCALE / scale);
+        this.milliRatio = (int)mr;
+        this.maxMillis = Long.MAX_VALUE / mr;
+        long sr = (scale >= SECOND_SCALE)
+            ? (scale / SECOND_SCALE)
+            : (SECOND_SCALE / scale);
+        this.secRatio = (int)sr;
+        this.maxSecs = Long.MAX_VALUE / sr;
     }
 
     /**
@@ -193,13 +201,13 @@ public enum TimeUnit {
         if ((s = scale) == MILLI_SCALE)
             return duration;
         else if (s < MILLI_SCALE)
-            return duration / millisRatio;
+            return duration / milliRatio;
         else if (duration > (m = maxMillis))
             return Long.MAX_VALUE;
         else if (duration < -m)
             return Long.MIN_VALUE;
         else
-            return duration * millisRatio;
+            return duration * milliRatio;
     }
 
     /**
@@ -211,7 +219,17 @@ public enum TimeUnit {
      * overflow, or {@code Long.MAX_VALUE} if it would positively overflow.
      */
     public long toSeconds(long duration) {
-        return cvt(duration, SECOND_SCALE, scale);
+        long s, m;
+        if ((s = scale) == SECOND_SCALE)
+            return duration;
+        else if (s < SECOND_SCALE)
+            return duration / secRatio;
+        else if (duration > (m = maxSecs))
+            return Long.MAX_VALUE;
+        else if (duration < -m)
+            return Long.MIN_VALUE;
+        else
+            return duration * secRatio;
     }
 
     /**
