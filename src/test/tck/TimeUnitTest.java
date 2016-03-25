@@ -294,7 +294,7 @@ public class TimeUnitTest extends JSR166TestCase {
         for (TimeUnit x : TimeUnit.values())
             for (TimeUnit y : TimeUnit.values()) {
                 long ratio = x.toNanos(1) / y.toNanos(1);
-                if (ratio > 1) {
+                if (ratio >= 1) {
                     assertEquals(ratio, y.convert(1, x));
                     assertEquals(1, x.convert(ratio, y));
                     long max = Long.MAX_VALUE/ratio;
@@ -302,11 +302,13 @@ public class TimeUnitTest extends JSR166TestCase {
                     assertEquals(-max * ratio, y.convert(-max, x));
                     assertEquals(max, x.convert(max * ratio, y));
                     assertEquals(-max, x.convert(-max * ratio, y));
-                    assertEquals(Long.MAX_VALUE, y.convert(max + 1, x));
-                    assertEquals(Long.MIN_VALUE, y.convert(-max - 1, x));
+                    if (max < Long.MAX_VALUE) {
+                        assertEquals(Long.MAX_VALUE, y.convert(max + 1, x));
+                        assertEquals(Long.MIN_VALUE, y.convert(-max - 1, x));
+                        assertEquals(Long.MIN_VALUE, y.convert(Long.MIN_VALUE + 1, x));
+                    }
                     assertEquals(Long.MAX_VALUE, y.convert(Long.MAX_VALUE, x));
                     assertEquals(Long.MIN_VALUE, y.convert(Long.MIN_VALUE, x));
-                    assertEquals(Long.MIN_VALUE, y.convert(Long.MIN_VALUE + 1, x));
                 }
             }
     }
@@ -323,15 +325,17 @@ public class TimeUnitTest extends JSR166TestCase {
 
         for (TimeUnit x : TimeUnit.values()) {
             long ratio = x.toNanos(1) / NANOSECONDS.toNanos(1);
-            if (ratio > 1) {
+            if (ratio >= 1) {
                 long max = Long.MAX_VALUE/ratio;
                 for (long z : new long[] {0, 1, -1, max, -max})
                     assertEquals(z * ratio, x.toNanos(z));
-                assertEquals(Long.MAX_VALUE, x.toNanos(max + 1));
-                assertEquals(Long.MIN_VALUE, x.toNanos(-max - 1));
+                if (max < Long.MAX_VALUE) {
+                    assertEquals(Long.MAX_VALUE, x.toNanos(max + 1));
+                    assertEquals(Long.MIN_VALUE, x.toNanos(-max - 1));
+                    assertEquals(Long.MIN_VALUE, x.toNanos(Long.MIN_VALUE + 1));
+                }
                 assertEquals(Long.MAX_VALUE, x.toNanos(Long.MAX_VALUE));
                 assertEquals(Long.MIN_VALUE, x.toNanos(Long.MIN_VALUE));
-                assertEquals(Long.MIN_VALUE, x.toNanos(Long.MIN_VALUE + 1));
                 if (max < Integer.MAX_VALUE) {
                     assertEquals(Long.MAX_VALUE, x.toNanos(Integer.MAX_VALUE));
                     assertEquals(Long.MIN_VALUE, x.toNanos(Integer.MIN_VALUE));
@@ -347,15 +351,17 @@ public class TimeUnitTest extends JSR166TestCase {
     public void testToMicrosSaturate() {
         for (TimeUnit x : TimeUnit.values()) {
             long ratio = x.toNanos(1) / MICROSECONDS.toNanos(1);
-            if (ratio > 1) {
+            if (ratio >= 1) {
                 long max = Long.MAX_VALUE/ratio;
                 for (long z : new long[] {0, 1, -1, max, -max})
                     assertEquals(z * ratio, x.toMicros(z));
-                assertEquals(Long.MAX_VALUE, x.toMicros(max + 1));
-                assertEquals(Long.MIN_VALUE, x.toMicros(-max - 1));
+                if (max < Long.MAX_VALUE) {
+                    assertEquals(Long.MAX_VALUE, x.toMicros(max + 1));
+                    assertEquals(Long.MIN_VALUE, x.toMicros(-max - 1));
+                    assertEquals(Long.MIN_VALUE, x.toMicros(Long.MIN_VALUE + 1));
+                }
                 assertEquals(Long.MAX_VALUE, x.toMicros(Long.MAX_VALUE));
                 assertEquals(Long.MIN_VALUE, x.toMicros(Long.MIN_VALUE));
-                assertEquals(Long.MIN_VALUE, x.toMicros(Long.MIN_VALUE + 1));
                 if (max < Integer.MAX_VALUE) {
                     assertEquals(Long.MAX_VALUE, x.toMicros(Integer.MAX_VALUE));
                     assertEquals(Long.MIN_VALUE, x.toMicros(Integer.MIN_VALUE));
@@ -371,15 +377,17 @@ public class TimeUnitTest extends JSR166TestCase {
     public void testToMillisSaturate() {
         for (TimeUnit x : TimeUnit.values()) {
             long ratio = x.toNanos(1) / MILLISECONDS.toNanos(1);
-            if (ratio > 1) {
+            if (ratio >= 1) {
                 long max = Long.MAX_VALUE/ratio;
                 for (long z : new long[] {0, 1, -1, max, -max})
                     assertEquals(z * ratio, x.toMillis(z));
-                assertEquals(Long.MAX_VALUE, x.toMillis(max + 1));
-                assertEquals(Long.MIN_VALUE, x.toMillis(-max - 1));
+                if (max < Long.MAX_VALUE) {
+                    assertEquals(Long.MAX_VALUE, x.toMillis(max + 1));
+                    assertEquals(Long.MIN_VALUE, x.toMillis(-max - 1));
+                    assertEquals(Long.MIN_VALUE, x.toMillis(Long.MIN_VALUE + 1));
+                }
                 assertEquals(Long.MAX_VALUE, x.toMillis(Long.MAX_VALUE));
                 assertEquals(Long.MIN_VALUE, x.toMillis(Long.MIN_VALUE));
-                assertEquals(Long.MIN_VALUE, x.toMillis(Long.MIN_VALUE + 1));
                 if (max < Integer.MAX_VALUE) {
                     assertEquals(Long.MAX_VALUE, x.toMillis(Integer.MAX_VALUE));
                     assertEquals(Long.MIN_VALUE, x.toMillis(Integer.MIN_VALUE));
@@ -395,15 +403,17 @@ public class TimeUnitTest extends JSR166TestCase {
     public void testToSecondsSaturate() {
         for (TimeUnit x : TimeUnit.values()) {
             long ratio = x.toNanos(1) / SECONDS.toNanos(1);
-            if (ratio > 1) {
+            if (ratio >= 1) {
                 long max = Long.MAX_VALUE/ratio;
                 for (long z : new long[] {0, 1, -1, max, -max})
                     assertEquals(z * ratio, x.toSeconds(z));
-                assertEquals(Long.MAX_VALUE, x.toSeconds(max + 1));
-                assertEquals(Long.MIN_VALUE, x.toSeconds(-max - 1));
+                if (max < Long.MAX_VALUE) {
+                    assertEquals(Long.MAX_VALUE, x.toSeconds(max + 1));
+                    assertEquals(Long.MIN_VALUE, x.toSeconds(-max - 1));
+                    assertEquals(Long.MIN_VALUE, x.toSeconds(Long.MIN_VALUE + 1));
+                }
                 assertEquals(Long.MAX_VALUE, x.toSeconds(Long.MAX_VALUE));
                 assertEquals(Long.MIN_VALUE, x.toSeconds(Long.MIN_VALUE));
-                assertEquals(Long.MIN_VALUE, x.toSeconds(Long.MIN_VALUE + 1));
                 if (max < Integer.MAX_VALUE) {
                     assertEquals(Long.MAX_VALUE, x.toSeconds(Integer.MAX_VALUE));
                     assertEquals(Long.MIN_VALUE, x.toSeconds(Integer.MIN_VALUE));
@@ -439,15 +449,17 @@ public class TimeUnitTest extends JSR166TestCase {
     public void testToHoursSaturate() {
         for (TimeUnit x : TimeUnit.values()) {
             long ratio = x.toNanos(1) / HOURS.toNanos(1);
-            if (ratio > 1) {
+            if (ratio >= 1) {
                 long max = Long.MAX_VALUE/ratio;
                 for (long z : new long[] {0, 1, -1, max, -max})
                     assertEquals(z * ratio, x.toHours(z));
-                assertEquals(Long.MAX_VALUE, x.toHours(max + 1));
-                assertEquals(Long.MIN_VALUE, x.toHours(-max - 1));
+                if (max < Long.MAX_VALUE) {
+                    assertEquals(Long.MAX_VALUE, x.toHours(max + 1));
+                    assertEquals(Long.MIN_VALUE, x.toHours(-max - 1));
+                    assertEquals(Long.MIN_VALUE, x.toHours(Long.MIN_VALUE + 1));
+                }
                 assertEquals(Long.MAX_VALUE, x.toHours(Long.MAX_VALUE));
                 assertEquals(Long.MIN_VALUE, x.toHours(Long.MIN_VALUE));
-                assertEquals(Long.MIN_VALUE, x.toHours(Long.MIN_VALUE + 1));
             }
         }
     }
