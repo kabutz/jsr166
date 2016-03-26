@@ -407,11 +407,6 @@
       <compilerarg line="${build.args}"/>
 
     </javac>
-
-    <!-- We need jdk9's Contended annotation, but at compile time only -->
-    <!--
-        <delete file="${destdir}/jdk/internal/vm/annotation/Contended.class"/>
-    -->
   </target>
 
 
