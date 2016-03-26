@@ -23,13 +23,10 @@
 
 package jdk.testlibrary;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,15 +34,18 @@ import java.util.concurrent.CountDownLatch;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import sun.management.VMManagement;
 
+/**
+ * @deprecated This class is deprecated. Use the one from
+ *             {@code <root>/test/lib/share/classes/jdk/test/lib/process}
+ */
+@Deprecated
 public final class ProcessTools {
     private static final class LineForwarder extends StreamPumper.LinePump {
         private final PrintStream ps;
@@ -74,7 +74,7 @@ public final class ProcessTools {
     public static Process startProcess(String name,
                                        ProcessBuilder processBuilder)
     throws IOException {
-        return startProcess(name, processBuilder, null);
+        return startProcess(name, processBuilder, (Consumer<String>)null);
     }
 
     /**
@@ -87,28 +87,17 @@ public final class ProcessTools {
      * @return Returns the initialized process
      * @throws IOException
      */
+    @SuppressWarnings("overloads")
     public static Process startProcess(String name,
                                        ProcessBuilder processBuilder,
                                        Consumer<String> consumer)
     throws IOException {
-        Process p = null;
         try {
-            p = startProcess(
-                name,
-                processBuilder,
-                line -> {
-                    if (consumer != null) {
-                        consumer.accept(line);
-                    }
-                    return false;
-                },
-                -1,
-                TimeUnit.NANOSECONDS
-            );
+            return startProcess(name, processBuilder, consumer, null, -1, TimeUnit.NANOSECONDS);
         } catch (InterruptedException | TimeoutException e) {
-            // can't ever happen
+            // will never happen
+            throw new RuntimeException(e);
         }
-        return p;
     }
 
     /**
@@ -124,7 +113,7 @@ public final class ProcessTools {
      *                      Used to determine the moment the target app is
      *                      properly warmed-up.
      *                      It can be null - in that case the warmup is skipped.
-     * @param timeout The timeout for the warmup waiting
+     * @param timeout The timeout for the warmup waiting; -1 = no wait; 0 = wait forever
      * @param unit The timeout {@linkplain TimeUnit}
      * @return Returns the initialized {@linkplain Process}
      * @throws IOException
@@ -137,12 +126,57 @@ public final class ProcessTools {
                                        long timeout,
                                        TimeUnit unit)
     throws IOException, InterruptedException, TimeoutException {
+        return startProcess(name, processBuilder, null, linePredicate, timeout, unit);
+    }
+
+    /**
+     * <p>Starts a process from its builder.</p>
+     * <span>The default redirects of STDOUT and STDERR are started</span>
+     * <p>
+     * It is possible to wait for the process to get to a warmed-up state
+     * via {@linkplain Predicate} condition on the STDOUT and monitor the
+     * in-streams via the provided {@linkplain Consumer}
+     * </p>
+     * @param name The process name
+     * @param processBuilder The process builder
+     * @param lineConsumer  The {@linkplain Consumer} the lines will be forwarded to
+     * @param linePredicate The {@linkplain Predicate} to use on the STDOUT
+     *                      Used to determine the moment the target app is
+     *                      properly warmed-up.
+     *                      It can be null - in that case the warmup is skipped.
+     * @param timeout The timeout for the warmup waiting; -1 = no wait; 0 = wait forever
+     * @param unit The timeout {@linkplain TimeUnit}
+     * @return Returns the initialized {@linkplain Process}
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws TimeoutException
+     */
+    public static Process startProcess(String name,
+                                       ProcessBuilder processBuilder,
+                                       final Consumer<String> lineConsumer,
+                                       final Predicate<String> linePredicate,
+                                       long timeout,
+                                       TimeUnit unit)
+    throws IOException, InterruptedException, TimeoutException {
+        System.out.println("["+name+"]:" + processBuilder.command().stream().collect(Collectors.joining(" ")));
         Process p = processBuilder.start();
         StreamPumper stdout = new StreamPumper(p.getInputStream());
         StreamPumper stderr = new StreamPumper(p.getErrorStream());
 
         stdout.addPump(new LineForwarder(name, System.out));
         stderr.addPump(new LineForwarder(name, System.err));
+        if (lineConsumer != null) {
+            StreamPumper.LinePump pump = new StreamPumper.LinePump() {
+                @Override
+                protected void processLine(String line) {
+                    lineConsumer.accept(line);
+                }
+            };
+            stdout.addPump(pump);
+            stderr.addPump(pump);
+        }
+
+
         CountDownLatch latch = new CountDownLatch(1);
         if (linePredicate != null) {
             StreamPumper.LinePump pump = new StreamPumper.LinePump() {
@@ -155,15 +189,20 @@ public final class ProcessTools {
             };
             stdout.addPump(pump);
             stderr.addPump(pump);
+        } else {
+            latch.countDown();
         }
-        Future<Void> stdoutTask = stdout.process();
-        Future<Void> stderrTask = stderr.process();
+        final Future<Void> stdoutTask = stdout.process();
+        final Future<Void> stderrTask = stderr.process();
 
         try {
             if (timeout > -1) {
-                long realTimeout = Math.round(timeout * Utils.TIMEOUT_FACTOR);
-                if (!latch.await(realTimeout, unit)) {
-                    throw new TimeoutException();
+                if (timeout == 0) {
+                    latch.await();
+                } else {
+                    if (!latch.await(Utils.adjustTimeout(timeout), unit)) {
+                        throw new TimeoutException();
+                    }
                 }
             }
         } catch (TimeoutException | InterruptedException e) {
@@ -171,61 +210,44 @@ public final class ProcessTools {
             for(Map.Entry<Thread, StackTraceElement[]> s : Thread.getAllStackTraces().entrySet()) {
                 printStack(s.getKey(), s.getValue());
             }
+
+            if (p.isAlive()) {
+                p.destroyForcibly();
+            }
+
             stdoutTask.cancel(true);
             stderrTask.cancel(true);
             throw e;
         }
 
-        return p;
+        return new ProcessImpl(p, stdoutTask, stderrTask);
     }
 
     /**
-     * Pumps stdout and stderr from running the process into a String.
-     *
-     * @param processBuilder
-     *            ProcessHandler to run.
-     * @return Output from process.
+     * <p>Starts a process from its builder.</p>
+     * <span>The default redirects of STDOUT and STDERR are started</span>
+     * <p>
+     * It is possible to wait for the process to get to a warmed-up state
+     * via {@linkplain Predicate} condition on the STDOUT. The warm-up will
+     * wait indefinitely.
+     * </p>
+     * @param name The process name
+     * @param processBuilder The process builder
+     * @param linePredicate The {@linkplain Predicate} to use on the STDOUT
+     *                      Used to determine the moment the target app is
+     *                      properly warmed-up.
+     *                      It can be null - in that case the warmup is skipped.
+     * @return Returns the initialized {@linkplain Process}
      * @throws IOException
-     *             If an I/O error occurs.
+     * @throws InterruptedException
+     * @throws TimeoutException
      */
-    public static OutputBuffer getOutput(ProcessBuilder processBuilder)
-            throws IOException {
-        return getOutput(processBuilder.start());
-    }
-
-    /**
-     * Pumps stdout and stderr the running process into a String.
-     *
-     * @param process
-     *            Process to pump.
-     * @return Output from process.
-     * @throws IOException
-     *             If an I/O error occurs.
-     */
-    public static OutputBuffer getOutput(Process process) throws IOException {
-        ByteArrayOutputStream stderrBuffer = new ByteArrayOutputStream();
-        ByteArrayOutputStream stdoutBuffer = new ByteArrayOutputStream();
-        StreamPumper outPumper = new StreamPumper(process.getInputStream(),
-                stdoutBuffer);
-        StreamPumper errPumper = new StreamPumper(process.getErrorStream(),
-                stderrBuffer);
-
-        Future<Void> outTask = outPumper.process();
-        Future<Void> errTask = errPumper.process();
-
-        try {
-            process.waitFor();
-            outTask.get();
-            errTask.get();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return null;
-        } catch (ExecutionException e) {
-            throw new IOException(e);
-        }
-
-        return new OutputBuffer(stdoutBuffer.toString(),
-                stderrBuffer.toString());
+    @SuppressWarnings("overloads")
+    public static Process startProcess(String name,
+                                       ProcessBuilder processBuilder,
+                                       final Predicate<String> linePredicate)
+    throws IOException, InterruptedException, TimeoutException {
+        return startProcess(name, processBuilder, linePredicate, 0, TimeUnit.SECONDS);
     }
 
     /**
@@ -233,22 +255,8 @@ public final class ProcessTools {
      *
      * @return Process id
      */
-    public static int getProcessId() throws Exception {
-
-        // Get the current process id using a reflection hack
-        RuntimeMXBean runtime = ManagementFactory.getRuntimeMXBean();
-        Field jvm = runtime.getClass().getDeclaredField("jvm");
-
-        jvm.setAccessible(true);
-        VMManagement mgmt = (sun.management.VMManagement) jvm.get(runtime);
-
-        Method pid_method = mgmt.getClass().getDeclaredMethod("getProcessId");
-
-        pid_method.setAccessible(true);
-
-        int pid = (Integer) pid_method.invoke(mgmt);
-
-        return pid;
+    public static long getProcessId() {
+        return ProcessHandle.current().getPid();
     }
 
     /**
@@ -269,16 +277,46 @@ public final class ProcessTools {
     }
 
     /**
-     * Create ProcessBuilder using the java launcher from the jdk to be tested
-     * and with any platform specific arguments prepended
+     * Create ProcessBuilder using the java launcher from the jdk to be tested,
+     * and with any platform specific arguments prepended.
+     *
+     * @param command Arguments to pass to the java command.
+     * @return The ProcessBuilder instance representing the java command.
      */
     public static ProcessBuilder createJavaProcessBuilder(String... command)
             throws Exception {
+        return createJavaProcessBuilder(false, command);
+    }
+
+    /**
+     * Create ProcessBuilder using the java launcher from the jdk to be tested,
+     * and with any platform specific arguments prepended.
+     *
+     * @param addTestVmAndJavaOptions If true, adds test.vm.opts and test.java.opts
+     *        to the java arguments.
+     * @param command Arguments to pass to the java command.
+     * @return The ProcessBuilder instance representing the java command.
+     */
+    public static ProcessBuilder createJavaProcessBuilder(boolean addTestVmAndJavaOptions, String... command) throws Exception {
         String javapath = JDKToolFinder.getJDKTool("java");
 
         ArrayList<String> args = new ArrayList<>();
         args.add(javapath);
         Collections.addAll(args, getPlatformSpecificVMArgs());
+
+        if (addTestVmAndJavaOptions) {
+            // -cp is needed to make sure the same classpath is used whether the test is
+            // run in AgentVM mode or OtherVM mode. It was added to the hotspot version
+            // of this API as part of 8077608. However, for the jdk version it is only
+            // added when addTestVmAndJavaOptions is true in order to minimize
+            // disruption to existing JDK tests, which have yet to be tested with -cp
+            // being added. At some point -cp should always be added to be consistent
+            // with what the hotspot version does.
+            args.add("-cp");
+            args.add(System.getProperty("java.class.path"));
+            Collections.addAll(args, Utils.getTestJavaOpts());
+        }
+
         Collections.addAll(args, command);
 
         // Reporting
@@ -302,41 +340,86 @@ public final class ProcessTools {
     }
 
     /**
-     * Executes a test jvm process, waits for it to finish and returns the process output.
-     * The default jvm options from jtreg, test.vm.opts and test.java.opts, are added.
+     * Executes a test java process, waits for it to finish and returns the process output.
+     * The default options from jtreg, test.vm.opts and test.java.opts, are added.
      * The java from the test.jdk is used to execute the command.
      *
      * The command line will be like:
      * {test.jdk}/bin/java {test.vm.opts} {test.java.opts} cmds
      *
+     * The java process will have exited before this method returns.
+     *
      * @param cmds User specifed arguments.
      * @return The output from the process.
      */
-    public static OutputAnalyzer executeTestJvm(String... cmds) throws Throwable {
-        ProcessBuilder pb = createJavaProcessBuilder(Utils.addTestJavaOpts(cmds));
+    public static OutputAnalyzer executeTestJava(String... options) throws Exception {
+        ProcessBuilder pb = createJavaProcessBuilder(Utils.addTestJavaOpts(options));
         return executeProcess(pb);
     }
 
     /**
-     * Executes a process, waits for it to finish and returns the process output.
-     * @param pb The ProcessBuilder to execute.
-     * @return The output from the process.
+     * @deprecated Use executeTestJava instead
      */
-    public static OutputAnalyzer executeProcess(ProcessBuilder pb) throws Throwable {
+    public static OutputAnalyzer executeTestJvm(String... options) throws Exception {
+        return executeTestJava(options);
+    }
+
+    /**
+     * Executes a process, waits for it to finish and returns the process output.
+     * The process will have exited before this method returns.
+     * @param pb The ProcessBuilder to execute.
+     * @return The {@linkplain OutputAnalyzer} instance wrapping the process.
+     */
+    public static OutputAnalyzer executeProcess(ProcessBuilder pb) throws Exception {
+        return executeProcess(pb, null);
+    }
+
+    /**
+     * Executes a process, pipe some text into its STDIN, waits for it
+     * to finish and returns the process output. The process will have exited
+     * before this method returns.
+     * @param pb The ProcessBuilder to execute.
+     * @param input The text to pipe into STDIN. Can be null.
+     * @return The {@linkplain OutputAnalyzer} instance wrapping the process.
+     */
+    public static OutputAnalyzer executeProcess(ProcessBuilder pb, String input)
+            throws Exception {
         OutputAnalyzer output = null;
+        Process p = null;
+        boolean failed = false;
         try {
-            output = new OutputAnalyzer(pb.start());
+            p = pb.start();
+            if (input != null) {
+                try (OutputStream os = p.getOutputStream();
+                        PrintStream ps = new PrintStream(os)) {
+                    ps.print(input);
+                    ps.flush();
+                }
+            }
+            output = new OutputAnalyzer(p);
+            p.waitFor();
+
             return output;
         } catch (Throwable t) {
+            if (p != null) {
+                p.destroyForcibly().waitFor();
+            }
+
+            failed = true;
             System.out.println("executeProcess() failed: " + t);
             throw t;
         } finally {
-            System.out.println(getProcessLog(pb, output));
+            if (failed) {
+                System.err.println(getProcessLog(pb, output));
+            }
         }
     }
 
     /**
      * Executes a process, waits for it to finish and returns the process output.
+     *
+     * The process will have exited before this method returns.
+     *
      * @param cmds The command line to execute.
      * @return The output from the process.
      */
@@ -360,6 +443,7 @@ public final class ProcessTools {
         logMsg.append("exitvalue: " + exitValue + nl);
         logMsg.append("stderr: " + stderr + nl);
         logMsg.append("stdout: " + stdout + nl);
+
         return logMsg.toString();
     }
 
@@ -411,5 +495,85 @@ public final class ProcessTools {
         OutputAnalyzer analyzer = ProcessTools.executeProcess(pb);
         System.out.println(analyzer.getOutput());
         return analyzer;
+    }
+
+    private static class ProcessImpl extends Process {
+
+        private final Process p;
+        private final Future<Void> stdoutTask;
+        private final Future<Void> stderrTask;
+
+        public ProcessImpl(Process p, Future<Void> stdoutTask, Future<Void> stderrTask) {
+            this.p = p;
+            this.stdoutTask = stdoutTask;
+            this.stderrTask = stderrTask;
+        }
+
+        @Override
+        public OutputStream getOutputStream() {
+            return p.getOutputStream();
+        }
+
+        @Override
+        public InputStream getInputStream() {
+            return p.getInputStream();
+        }
+
+        @Override
+        public InputStream getErrorStream() {
+            return p.getErrorStream();
+        }
+
+        @Override
+        public int waitFor() throws InterruptedException {
+            int rslt = p.waitFor();
+            waitForStreams();
+            return rslt;
+        }
+
+        @Override
+        public int exitValue() {
+            return p.exitValue();
+        }
+
+        @Override
+        public void destroy() {
+            p.destroy();
+        }
+
+        @Override
+        public long getPid() {
+            return p.getPid();
+        }
+
+        @Override
+        public boolean isAlive() {
+            return p.isAlive();
+        }
+
+        @Override
+        public Process destroyForcibly() {
+            return p.destroyForcibly();
+        }
+
+        @Override
+        public boolean waitFor(long timeout, TimeUnit unit) throws InterruptedException {
+            boolean rslt = p.waitFor(timeout, unit);
+            if (rslt) {
+                waitForStreams();
+            }
+            return rslt;
+        }
+
+        private void waitForStreams() throws InterruptedException {
+            try {
+                stdoutTask.get();
+            } catch (ExecutionException e) {
+            }
+            try {
+                stderrTask.get();
+            } catch (ExecutionException e) {
+            }
+        }
     }
 }
