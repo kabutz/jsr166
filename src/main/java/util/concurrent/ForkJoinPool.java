@@ -1276,7 +1276,7 @@ public class ForkJoinPool extends AbstractExecutorService {
 
     @jdk.internal.vm.annotation.Contended("fjpctl") // segregate
     volatile long ctl;                   // main pool control
-    
+
     // Creating, registering and deregistering workers
 
     /**
