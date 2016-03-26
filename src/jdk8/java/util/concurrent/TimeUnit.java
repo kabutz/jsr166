@@ -86,29 +86,29 @@ public enum TimeUnit {
 
     /*
      * Instances cache conversion ratios and saturation cutoffs for
-     * the units most commonly used in conversion results, in methods
-     * toNanos, toMillis and toSeconds. Other cases compute them, in
+     * the units up through SECONDS. Other cases compute them, in
      * method cvt.
      */
 
     private final long scale;
     private final long maxNanos;
+    private final long maxMicros;
     private final long maxMillis;
     private final long maxSecs;
-    private final int milliRatio;
-    private final int secRatio;
+    private final long microRatio;
+    private final int milliRatio;   // fits in 32 bits
+    private final int secRatio;     // fits in 32 bits
 
-    TimeUnit(long scale) {
-        this.scale = scale;
-        this.maxNanos = Long.MAX_VALUE / scale;
-        long mr = (scale >= MILLI_SCALE)
-            ? (scale / MILLI_SCALE)
-            : (MILLI_SCALE / scale);
+    TimeUnit(long s) {
+        this.scale = s;
+        this.maxNanos = Long.MAX_VALUE / s;
+        long ur = (s >= MICRO_SCALE) ? (s / MICRO_SCALE) : (MICRO_SCALE / s);
+        this.microRatio = ur;
+        this.maxMicros = Long.MAX_VALUE / ur;
+        long mr = (scale >= MILLI_SCALE) ? (s / MILLI_SCALE) : (MILLI_SCALE / s);
         this.milliRatio = (int)mr;
         this.maxMillis = Long.MAX_VALUE / mr;
-        long sr = (scale >= SECOND_SCALE)
-            ? (scale / SECOND_SCALE)
-            : (SECOND_SCALE / scale);
+        long sr = (s >= SECOND_SCALE) ? (s / SECOND_SCALE) : (SECOND_SCALE / s);
         this.secRatio = (int)sr;
         this.maxSecs = Long.MAX_VALUE / sr;
     }
@@ -153,7 +153,13 @@ public enum TimeUnit {
      * overflow, or {@code Long.MAX_VALUE} if it would positively overflow.
      */
     public long convert(long sourceDuration, TimeUnit sourceUnit) {
-        return cvt(sourceDuration, scale, sourceUnit.scale);
+        switch (this) {
+        case NANOSECONDS: return sourceUnit.toNanos(sourceDuration);
+        case MICROSECONDS: return sourceUnit.toMicros(sourceDuration);
+        case MILLISECONDS: return sourceUnit.toMillis(sourceDuration);
+        case SECONDS: return sourceUnit.toSeconds(sourceDuration);
+        default: return cvt(sourceDuration, scale, sourceUnit.scale);
+        }
     }
 
     /**
@@ -185,7 +191,17 @@ public enum TimeUnit {
      * overflow, or {@code Long.MAX_VALUE} if it would positively overflow.
      */
     public long toMicros(long duration) {
-        return cvt(duration, MICRO_SCALE, scale);
+        long s, m;
+        if ((s = scale) == MICRO_SCALE)
+            return duration;
+        else if (s < MICRO_SCALE)
+            return duration / microRatio;
+        else if (duration > (m = maxMicros))
+            return Long.MAX_VALUE;
+        else if (duration < -m)
+            return Long.MIN_VALUE;
+        else
+            return duration * microRatio;
     }
 
     /**
