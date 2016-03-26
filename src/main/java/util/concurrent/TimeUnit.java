@@ -154,10 +154,10 @@ public enum TimeUnit {
      */
     public long convert(long sourceDuration, TimeUnit sourceUnit) {
         switch (this) {
-        case NANOSECONDS: return sourceUnit.toNanos(sourceDuration);
+        case NANOSECONDS:  return sourceUnit.toNanos(sourceDuration);
         case MICROSECONDS: return sourceUnit.toMicros(sourceDuration);
         case MILLISECONDS: return sourceUnit.toMillis(sourceDuration);
-        case SECONDS: return sourceUnit.toSeconds(sourceDuration);
+        case SECONDS:      return sourceUnit.toSeconds(sourceDuration);
         default: return cvt(sourceDuration, scale, sourceUnit.scale);
         }
     }
