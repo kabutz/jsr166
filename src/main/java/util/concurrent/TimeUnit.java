@@ -105,7 +105,7 @@ public enum TimeUnit {
         long ur = (s >= MICRO_SCALE) ? (s / MICRO_SCALE) : (MICRO_SCALE / s);
         this.microRatio = ur;
         this.maxMicros = Long.MAX_VALUE / ur;
-        long mr = (scale >= MILLI_SCALE) ? (s / MILLI_SCALE) : (MILLI_SCALE / s);
+        long mr = (s >= MILLI_SCALE) ? (s / MILLI_SCALE) : (MILLI_SCALE / s);
         this.milliRatio = (int)mr;
         this.maxMillis = Long.MAX_VALUE / mr;
         long sr = (s >= SECOND_SCALE) ? (s / SECOND_SCALE) : (SECOND_SCALE / s);
