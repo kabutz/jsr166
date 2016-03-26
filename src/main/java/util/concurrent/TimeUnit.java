@@ -46,34 +46,34 @@ public enum TimeUnit {
     /**
      * Time unit representing one thousandth of a microsecond.
      */
-    NANOSECONDS(1L), // (cannot use symbolic scale names here)
+    NANOSECONDS(TimeUnit.NANO_SCALE),
     /**
      * Time unit representing one thousandth of a millisecond.
      */
-    MICROSECONDS(1000L),
+    MICROSECONDS(TimeUnit.MICRO_SCALE),
     /**
      * Time unit representing one thousandth of a second.
      */
-    MILLISECONDS(1000L * 1000L),
+    MILLISECONDS(TimeUnit.MILLI_SCALE),
     /**
      * Time unit representing one second.
      */
-    SECONDS(1000L * 1000L * 1000L),
+    SECONDS(TimeUnit.SECOND_SCALE),
     /**
      * Time unit representing sixty seconds.
      * @since 1.6
      */
-    MINUTES(1000L * 1000L * 1000L * 60L),
+    MINUTES(TimeUnit.MINUTE_SCALE),
     /**
      * Time unit representing sixty minutes.
      * @since 1.6
      */
-    HOURS(1000L * 1000L * 1000L * 60L * 60L),
+    HOURS(TimeUnit.HOUR_SCALE),
     /**
      * Time unit representing twenty four hours.
      * @since 1.6
      */
-    DAYS(1000L * 1000L * 1000L * 60L * 60L * 24L);
+    DAYS(TimeUnit.DAY_SCALE);
 
     // Scales as constants
     private static final long NANO_SCALE   = 1L;
