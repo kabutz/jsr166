@@ -117,8 +117,8 @@ public enum TimeUnit {
      * General conversion utility.
      *
      * @param d duration
-     * @param dst result scale unit
-     * @param src source scale unit
+     * @param dst result unit scale
+     * @param src source unit scale
      */
     private static long cvt(long d, long dst, long src) {
         long r, m;
