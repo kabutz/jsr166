@@ -671,9 +671,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * arrays sharing cache lines. The @Contended annotation alerts
      * JVMs to try to keep instances apart.
      */
-    // For now, using manual padding.
-    //    @jdk.internal.vm.annotation.Contended
-    //    @sun.misc.Contended
+    @jdk.internal.vm.annotation.Contended
     static final class WorkQueue {
 
         /**
@@ -697,8 +695,6 @@ public class ForkJoinPool extends AbstractExecutorService {
         static final int MAXIMUM_QUEUE_CAPACITY = 1 << 26; // 64M
 
         // Instance fields
-        volatile long pad00, pad01, pad02, pad03, pad04, pad05, pad06, pad07;
-        volatile long pad08, pad09, pad0a, pad0b, pad0c, pad0d, pad0e, pad0f;
         volatile int phase;        // versioned, negative: queued, 1: locked
         int stackPred;             // pool stack (ctl) predecessor link
         int nsteals;               // number of steals
@@ -709,8 +705,6 @@ public class ForkJoinPool extends AbstractExecutorService {
         ForkJoinTask<?>[] array;   // the elements (initially unallocated)
         final ForkJoinPool pool;   // the containing pool (may be null)
         final ForkJoinWorkerThread owner; // owning thread or null if shared
-        volatile Object pad10, pad11, pad12, pad13, pad14, pad15, pad16, pad17;
-        volatile Object pad18, pad19, pad1a, pad1b, pad1c, pad1d, pad1e, pad1f;
 
         WorkQueue(ForkJoinPool pool, ForkJoinWorkerThread owner) {
             this.pool = pool;
@@ -1269,15 +1263,6 @@ public class ForkJoinPool extends AbstractExecutorService {
 
     // Instance fields
 
-    // Segregate ctl field, For now using padding vs @Contended
-    //    @jdk.internal.vm.annotation.Contended("fjpctl")
-    //    @sun.misc.Contended("fjpctl")
-    volatile long pad00, pad01, pad02, pad03, pad04, pad05, pad06, pad07;
-    volatile long pad08, pad09, pad0a, pad0b, pad0c, pad0d, pad0e, pad0f;
-    volatile long ctl;                   // main pool control
-    volatile long pad10, pad11, pad12, pad13, pad14, pad15, pad16, pad17;
-    volatile long pad18, pad19, pad1a, pad1b, pad1c, pad1d, pad1e;
-
     volatile long stealCount;            // collects worker nsteals
     final long keepAlive;                // milliseconds before dropping if idle
     int indexSeed;                       // next worker index
@@ -1289,6 +1274,9 @@ public class ForkJoinPool extends AbstractExecutorService {
     final UncaughtExceptionHandler ueh;  // per-worker UEH
     final Predicate<? super ForkJoinPool> saturate;
 
+    @jdk.internal.vm.annotation.Contended("fjpctl") // segregate
+    volatile long ctl;                   // main pool control
+    
     // Creating, registering and deregistering workers
 
     /**
