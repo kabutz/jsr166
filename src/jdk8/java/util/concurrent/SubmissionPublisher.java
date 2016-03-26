@@ -946,7 +946,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
      * than users expect.
      */
     @SuppressWarnings("serial")
-    @sun.misc.Contended 
+    @sun.misc.Contended
     private static final class BufferedSubscription<T>
         implements Flow.Subscription, ForkJoinPool.ManagedBlocker {
         // Order-sensitive field declarations
