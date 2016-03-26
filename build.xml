@@ -219,7 +219,10 @@
     <attribute name="compile-target" default="@{target}"/>
     <attribute name="workdir"/>
     <attribute name="classes"/>
-    <attribute name="jvmflags" default="-ea -esa -Djsr166.testImplementationDetails=true"/>
+    <!--
+        <attribute name="jvmflags" default="-XX:+UseParallelGC -XX:-UseBiasedLocking -ea -esa -Djsr166.testImplementationDetails=true"/>
+    -->
+        <attribute name="jvmflags" default="-ea -esa -Djsr166.testImplementationDetails=true"/>
     <element name="javac-elements" optional="true"/>
 
     <sequential>
@@ -405,7 +408,9 @@
     </javac>
 
     <!-- We need jdk9's Contended annotation, but at compile time only -->
-    <delete file="${destdir}/jdk/internal/vm/annotation/Contended.class"/>
+    <!--
+        <delete file="${destdir}/jdk/internal/vm/annotation/Contended.class"/>
+    -->
   </target>
 
 
