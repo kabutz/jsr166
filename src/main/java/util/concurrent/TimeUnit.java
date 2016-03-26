@@ -149,8 +149,8 @@ public enum TimeUnit {
      * @param sourceDuration the time duration in the given {@code sourceUnit}
      * @param sourceUnit the unit of the {@code sourceDuration} argument
      * @return the converted duration in this unit,
-     * or {@code Long.MIN_VALUE} if conversion would negatively
-     * overflow, or {@code Long.MAX_VALUE} if it would positively overflow.
+     * or {@code Long.MIN_VALUE} if conversion would negatively overflow,
+     * or {@code Long.MAX_VALUE} if it would positively overflow.
      */
     public long convert(long sourceDuration, TimeUnit sourceUnit) {
         switch (this) {
@@ -167,8 +167,8 @@ public enum TimeUnit {
      * {@link #convert(long, TimeUnit) NANOSECONDS.convert(duration, this)}.
      * @param duration the duration
      * @return the converted duration,
-     * or {@code Long.MIN_VALUE} if conversion would negatively
-     * overflow, or {@code Long.MAX_VALUE} if it would positively overflow.
+     * or {@code Long.MIN_VALUE} if conversion would negatively overflow,
+     * or {@code Long.MAX_VALUE} if it would positively overflow.
      */
     public long toNanos(long duration) {
         long s, m;
@@ -187,8 +187,8 @@ public enum TimeUnit {
      * {@link #convert(long, TimeUnit) MICROSECONDS.convert(duration, this)}.
      * @param duration the duration
      * @return the converted duration,
-     * or {@code Long.MIN_VALUE} if conversion would negatively
-     * overflow, or {@code Long.MAX_VALUE} if it would positively overflow.
+     * or {@code Long.MIN_VALUE} if conversion would negatively overflow,
+     * or {@code Long.MAX_VALUE} if it would positively overflow.
      */
     public long toMicros(long duration) {
         long s, m;
@@ -209,8 +209,8 @@ public enum TimeUnit {
      * {@link #convert(long, TimeUnit) MILLISECONDS.convert(duration, this)}.
      * @param duration the duration
      * @return the converted duration,
-     * or {@code Long.MIN_VALUE} if conversion would negatively
-     * overflow, or {@code Long.MAX_VALUE} if it would positively overflow.
+     * or {@code Long.MIN_VALUE} if conversion would negatively overflow,
+     * or {@code Long.MAX_VALUE} if it would positively overflow.
      */
     public long toMillis(long duration) {
         long s, m;
@@ -231,8 +231,8 @@ public enum TimeUnit {
      * {@link #convert(long, TimeUnit) SECONDS.convert(duration, this)}.
      * @param duration the duration
      * @return the converted duration,
-     * or {@code Long.MIN_VALUE} if conversion would negatively
-     * overflow, or {@code Long.MAX_VALUE} if it would positively overflow.
+     * or {@code Long.MIN_VALUE} if conversion would negatively overflow,
+     * or {@code Long.MAX_VALUE} if it would positively overflow.
      */
     public long toSeconds(long duration) {
         long s, m;
@@ -253,8 +253,8 @@ public enum TimeUnit {
      * {@link #convert(long, TimeUnit) MINUTES.convert(duration, this)}.
      * @param duration the duration
      * @return the converted duration,
-     * or {@code Long.MIN_VALUE} if conversion would negatively
-     * overflow, or {@code Long.MAX_VALUE} if it would positively overflow.
+     * or {@code Long.MIN_VALUE} if conversion would negatively overflow,
+     * or {@code Long.MAX_VALUE} if it would positively overflow.
      * @since 1.6
      */
     public long toMinutes(long duration) {
@@ -266,8 +266,8 @@ public enum TimeUnit {
      * {@link #convert(long, TimeUnit) HOURS.convert(duration, this)}.
      * @param duration the duration
      * @return the converted duration,
-     * or {@code Long.MIN_VALUE} if conversion would negatively
-     * overflow, or {@code Long.MAX_VALUE} if it would positively overflow.
+     * or {@code Long.MIN_VALUE} if conversion would negatively overflow,
+     * or {@code Long.MAX_VALUE} if it would positively overflow.
      * @since 1.6
      */
     public long toHours(long duration) {
