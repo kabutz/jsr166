@@ -8,6 +8,7 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
+//import java.util.concurrent.atomic.LongAdder;
 import jsr166e.LongAdder;
 
 public class LongAdderDemo {
@@ -18,13 +19,13 @@ public class LongAdderDemo {
     public static void main(String[] args) {
         System.out.println("Warmup...");
         int half = NCPU > 1 ? NCPU / 2 : 1;
-        casTest(half, 1000);
+        //        casTest(half, 1000);
         adderTest(half, 1000);
 
         for (int reps = 0; reps < 2; ++reps) {
             System.out.println("Running...");
             for (int i = 1; i <= NCPU * 2; i <<= 1) {
-                casTest(i, INCS_PER_THREAD);
+                //                casTest(i, INCS_PER_THREAD);
                 adderTest(i, INCS_PER_THREAD);
             }
         }
