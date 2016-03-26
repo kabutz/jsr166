@@ -412,7 +412,7 @@
 
   <target name="jar"
           depends="compile"
-          description="Builds library jar from compiled sources">
+          description="Builds library jar for src/main from compiled sources">
 
     <jar destfile="${product.jar}">
       <fileset dir="${build.classes.dir}"/>
@@ -521,7 +521,7 @@
 
   <target name="tck"
 	  depends="jar"
-          description="Runs tck tests for main directly">
+          description="Runs tck tests for src/main directly">
 
     <run-tck-tests
       target="${build.main.java.version}"
@@ -545,7 +545,7 @@
 
   <target name="jtreg"
 	  depends="jar"
-          description="Runs jtreg tests for main using the jtreg ant task">
+          description="Runs jtreg tests for src/main using the jtreg ant task">
     <run-jtreg-tests
        target="${build.main.java.version}"
        workdir="${build.dir}"
@@ -554,34 +554,34 @@
 
   <target name="test"
           depends="tck, tck-parallelism-1, jtreg"
-          description="Runs tck and jtreg tests for main">
+          description="Runs tck and jtreg tests for src/main">
   </target>
 
-  <target name="jtreg8" description="Runs jtreg tests with jdk8">
+<!--   <target name="jtreg8" description="Runs jtreg tests with jdk8"> -->
 
-    <antcall target="jtreg">
-      <param name="build.main.java.version" value="8"/>
-      <param name="build.main.javac" value="${javac8}"/>
-    </antcall>
+<!--     <antcall target="jtreg"> -->
+<!--       <param name="build.main.java.version" value="8"/> -->
+<!--       <param name="build.main.javac" value="${javac8}"/> -->
+<!--     </antcall> -->
 
-  </target>
+<!--   </target> -->
 
-  <target name="test89"
-          description="Runs tck and jtreg tests for main for multiple java versions">
+<!--   <target name="test89" -->
+<!--           description="Runs tck and jtreg tests for src/main for multiple java versions"> -->
 
-    <antcall target="clean"/>
-    <antcall target="test">
-      <param name="build.main.java.version" value="8"/>
-      <param name="build.main.javac" value="${javac8}"/>
-    </antcall>
+<!--     <antcall target="clean"/> -->
+<!--     <antcall target="test"> -->
+<!--       <param name="build.main.java.version" value="8"/> -->
+<!--       <param name="build.main.javac" value="${javac8}"/> -->
+<!--     </antcall> -->
 
-    <antcall target="clean"/>
-    <antcall target="test">
-      <param name="build.main.java.version" value="9"/>
-      <param name="build.main.javac" value="${javac9}"/>
-    </antcall>
+<!--     <antcall target="clean"/> -->
+<!--     <antcall target="test"> -->
+<!--       <param name="build.main.java.version" value="9"/> -->
+<!--       <param name="build.main.javac" value="${javac9}"/> -->
+<!--     </antcall> -->
 
-  </target>
+<!--   </target> -->
 
 
 
