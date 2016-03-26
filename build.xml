@@ -69,6 +69,11 @@
   <property name="build.4jdk7.tck.classes.dir" location="${build.4jdk7.dir}/tck-classes"/>
   <property name="build.4jdk7.docs.dir"        location="${build.4jdk7.dir}/docs"/>
 
+  <property name="build.4jdk8.dir"             location="${build.dir}/jsr166-4jdk8"/>
+  <property name="build.4jdk8.classes.dir"     location="${build.4jdk8.dir}/classes"/>
+  <property name="build.4jdk8.tck.classes.dir" location="${build.4jdk8.dir}/tck-classes"/>
+  <property name="build.4jdk8.docs.dir"        location="${build.4jdk8.dir}/docs"/>
+
   <property name="build.jsr166x.dir"           location="${build.dir}/jsr166x"/>
   <property name="build.jsr166y.dir"           location="${build.dir}/jsr166y"/>
   <property name="build.jsr166e.dir"           location="${build.dir}/jsr166e"/>
@@ -135,13 +140,14 @@
   <property name="loops.src.dir"        location="${basedir}/src/loops"/>
   <property name="tck.src.dir"          location="${test.src.dir}/tck"/>
   <property name="jtreg7.src.dir"       location="${test.src.dir}/jtreg-jdk7"/>
-  <property name="jtreg8.src.dir"       location="${test.src.dir}/jtreg"/>
+  <property name="jtreg8.src.dir"       location="${test.src.dir}/jtreg-jdk8"/>
   <property name="jtreg9.src.dir"       location="${test.src.dir}/jtreg"/>
   <property name="jtreg.src.dir"        location="${jtreg9.src.dir}"/>
   <property name="lib.dir"              location="${basedir}/lib"/>
   <property name="dist.dir"             location="${basedir}/dist"/>
   <property name="topsrc.dir"           location="${basedir}/src"/>
   <property name="4jdk7src.dir"         location="${topsrc.dir}/jdk7"/>
+  <property name="4jdk8src.dir"         location="${topsrc.dir}/jdk8"/>
   <property name="jsr166xsrc.dir"       location="${topsrc.dir}/jsr166x"/>
   <property name="jsr166ysrc.dir"       location="${topsrc.dir}/jsr166y"/>
   <property name="jsr166esrc.dir"       location="${topsrc.dir}/jsr166e"/>
@@ -150,6 +156,7 @@
   <!-- Javadoc locations -->
   <property name="docs.dir"          location="${build.dir}/docs"/>
   <property name="4jdk7docs.dir"     location="${build.4jdk7.dir}/docs"/>
+  <property name="4jdk8docs.dir"     location="${build.4jdk8.dir}/docs"/>
   <property name="jsr166xdocs.dir"   location="${build.jsr166x.dir}/docs"/>
   <property name="jsr166ydocs.dir"   location="${build.jsr166y.dir}/docs"/>
   <property name="jsr166edocs.dir"   location="${build.jsr166e.dir}/docs"/>
@@ -157,6 +164,7 @@
 
   <property name="dist.docs.dir"          location="${dist.dir}/docs"/>
   <property name="dist.4jdk7docs.dir"     location="${dist.dir}/jsr166-4jdk7docs"/>
+  <property name="dist.4jdk8docs.dir"     location="${dist.dir}/jsr166-4jdk8docs"/>
   <property name="dist.jsr166xdocs.dir"   location="${dist.dir}/jsr166xdocs"/>
   <property name="dist.jsr166ydocs.dir"   location="${dist.dir}/jsr166ydocs"/>
   <property name="dist.jsr166edocs.dir"   location="${dist.dir}/jsr166edocs"/>
@@ -165,6 +173,7 @@
   <!-- Jar locations -->
   <property name="product.jar"      location="${build.dir}/jsr166.jar"/>
   <property name="4jdk7product.jar" location="${build.4jdk7.dir}/jsr166-4jdk7.jar"/>
+  <property name="4jdk8product.jar" location="${build.4jdk8.dir}/jsr166-4jdk8.jar"/>
   <property name="jsr166x.jar"      location="${build.jsr166x.dir}/jsr166x.jar"/>
   <property name="jsr166y.jar"      location="${build.jsr166y.dir}/jsr166y.jar"/>
   <property name="jsr166e.jar"      location="${build.jsr166e.dir}/jsr166e.jar"/>
@@ -176,7 +185,7 @@
   <property name="java6.docroot.url"      value="http://docs.oracle.com/javase/6/docs"/>
   <property name="java7.docroot.url"      value="http://docs.oracle.com/javase/7/docs"/>
   <property name="java8.docroot.url"      value="http://docs.oracle.com/javase/8/docs"/>
-  <!-- The expected canonical location does not yet exist as of 2015-11 -->
+  <!-- The expected canonical location does not yet exist as of 2016-03 -->
   <!-- <property name="java9.docroot.url" value="http://docs.oracle.com/javase/9/docs"/> -->
   <property name="java9.docroot.url"      value="http://download.java.net/jdk9/docs"/>
   <!-- Default jdk doc location (latest stable release seems best) -->
@@ -351,7 +360,7 @@
   <property name="build.main.javac" value="${javac9}"/>
 
   <target name="dists"
-          depends="dist, 4jdk7dist, jsr166edist, jsr166ydist, extra166ydist, jsr166xdist"
+          depends="dist, 4jdk8dist, 4jdk7dist, jsr166edist, jsr166ydist, extra166ydist, jsr166xdist"
           description="Builds all public jars and docs"/>
 
   <target name="compile"
@@ -652,6 +661,174 @@
     </javac>
 
   </target>
+
+
+  <!-- jsr166 4jdk8 -->
+
+  <target name="4jdk8compile"
+          depends="configure-compiler"
+          description="Compiles src/jdk8 sources, targeting jdk8">
+
+    <mkdir dir="${build.4jdk8.classes.dir}"/>
+
+    <javac srcdir="${4jdk8src.dir}"
+           destdir="${build.4jdk8.classes.dir}"
+           debug="${build.debug}"
+           debuglevel="${build.debuglevel}"
+           deprecation="${build.deprecation}"
+           source="8"
+           target="8"
+           classpath=""
+           bootclasspath="${bootclasspath8}"
+           includeAntRuntime="false"
+           includeJavaRuntime="false"
+           executable="${javac8}"
+           fork="true">
+
+      <include name="**/*.java"/>
+      <compilerarg value="-Xprefer:source"/>
+      <compilerarg value="-XDignore.symbol.file=true"/>
+      <compilerarg value="-Xlint:all"/>
+      <compilerarg value="-Werror"/>
+      <compilerarg line="${build.args}"/>
+
+    </javac>
+  </target>
+
+  <target name="4jdk8doclint"
+          depends="configure-compiler"
+          description="Finds doclint warnings">
+
+    <mkdir dir="${build.4jdk8.classes.dir}"/>
+
+    <javac srcdir="${4jdk8src.dir}"
+           destdir="${build.4jdk8.classes.dir}"
+           debug="${build.debug}"
+           debuglevel="${build.debuglevel}"
+           deprecation="${build.deprecation}"
+           source="8"
+           target="8"
+           classpath=""
+           bootclasspath="${bootclasspath8}"
+           includeAntRuntime="false"
+           includeJavaRuntime="false"
+           executable="${javac8}"
+           fork="true">
+
+      <include name="**/*.java"/>
+      <compilerarg value="-Xprefer:source"/>
+      <compilerarg value="-XDignore.symbol.file=true"/>
+      <compilerarg value="-Xlint:all"/>
+      <compilerarg value="-Xdoclint:all/protected"/>
+      <compilerarg line="${build.args}"/>
+
+    </javac>
+  </target>
+
+
+  <target name="4jdk8jar"
+          depends="4jdk8compile"
+          description="Builds library jar from compiled sources">
+
+    <jar destfile="${4jdk8product.jar}">
+      <fileset dir="${build.4jdk8.classes.dir}"/>
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
+      </manifest>
+    </jar>
+
+  </target>
+
+
+  <target name="4jdk8-tck"
+	  depends="4jdk8jar"
+          description="Runs tck tests for jsr166-4jdk8 directly">
+
+    <run-tck-tests
+      target="8"
+      workdir="${build.4jdk8.dir}"
+      classes="${4jdk8product.jar}">
+      <javac-elements>
+        <!-- JDK9+ test classes -->
+        <exclude name="*9Test.java"/>
+        <exclude name="*10Test.java"/>
+      </javac-elements>
+    </run-tck-tests>
+  </target>
+
+
+  <target name="4jdk8-jtreg"
+	  depends="4jdk8jar"
+          description="Runs jtreg tests for jsr166-4jdk8 using the jtreg ant task">
+    <run-jtreg-tests
+       target="8"
+       workdir="${build.4jdk8.dir}"
+       classes="${4jdk8product.jar}"/>
+  </target>
+
+
+  <target name="4jdk8-test"
+	  depends="4jdk8-tck, 4jdk8-jtreg"
+          description="Runs tck and jtreg tests for jsr166-4jdk8">
+  </target>
+
+
+  <target name="4jdk8docs"
+          description="Builds javadocs for src/jdk8 to dist dir">
+
+    <delete dir="${4jdk8docs.dir}"/>
+    <mkdir dir="${4jdk8docs.dir}"/>
+
+    <javadoc destdir="${4jdk8docs.dir}"
+             packagenames="none"
+             link="${java8.api.url}"
+             overview="${4jdk8src.dir}/intro.html"
+             access="${build.javadoc.access}"
+             sourcepath="${4jdk8src.dir}:${jdk8.src.dir}"
+             classpath=""
+             executable="${javadoc8}">
+      <fileset dir="${4jdk8src.dir}" defaultexcludes="yes">
+        <include name="**/*.java"/>
+      </fileset>
+      <arg line="-Xdocrootparent ${java8.docroot.url}"/>
+      <arg value="-XDignore.symbol.file=true"/>
+      <arg value="-tag"/>
+      <arg value="${javadoc.jls.option}"/>
+      <arg value="-tag"/>
+      <arg value="apiNote:a:&lt;em&gt;API Note:&lt;/em&gt;"/>
+      <arg value="-tag"/>
+      <arg value="implSpec:a:&lt;em&gt;Implementation Requirements:&lt;/em&gt;"/>
+      <arg value="-tag"/>
+      <arg value="implNote:a:&lt;em&gt;Implementation Note:&lt;/em&gt;"/>
+    </javadoc>
+  </target>
+
+
+  <target name="4jdk8dist"
+          depends="4jdk8dist-jar, 4jdk8dist-docs"
+          description="Puts all distributable products in single hierarchy"/>
+
+
+  <target name="4jdk8clean"
+          description="Removes all 4jdk8 build products">
+
+    <delete dir="${build.4jdk8.dir}"/>
+
+  </target>
+
+
+  <target name="4jdk8dist-jar"
+          depends="4jdk8clean, 4jdk8jar">
+    <copy file="${4jdk8product.jar}" todir="${dist.dir}"/>
+  </target>
+
+
+  <target name="4jdk8dist-docs"
+          depends="4jdk8clean, 4jdk8docs">
+    <mirror-dir src="${4jdk8docs.dir}" dst="${dist.4jdk8docs.dir}"/>
+  </target>
+
 
 
   <!-- jsr166 4jdk7 -->
