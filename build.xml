@@ -616,8 +616,8 @@
   <!-- Various demos and test programs -->
 
 
-  <target name="loops" depends="configure-compiler"
-          description="Benchmark from Doug Lea's AQS paper">
+  <!-- description="Benchmark from Doug Lea's AQS paper" -->
+  <target name="loops" depends="configure-compiler">
 
     <mkdir dir="${build.loops.dir}"/>
 
@@ -941,9 +941,9 @@
   </target>
 
 
+  <!-- Runs tck tests for jsr166-4jdk7 via junit task (dead experiment) -->
   <target name="4jdk7-tck-junit"
-          depends="4jdk7compile"
-          description="Runs tck tests for jsr166-4jdk7 via junit task (experimental)">
+          depends="4jdk7compile">
 
     <junit printsummary="true"
            showoutput="true"
