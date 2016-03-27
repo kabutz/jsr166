@@ -788,7 +788,8 @@
              access="${build.javadoc.access}"
              sourcepath="${4jdk8src.dir}:${jdk8.src.dir}"
              classpath=""
-             executable="${javadoc8}">
+             executable="${javadoc8}"
+             failonerror = "true">
       <fileset dir="${4jdk8src.dir}" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
@@ -993,7 +994,8 @@
              access="${build.javadoc.access}"
              sourcepath="${4jdk7src.dir}:${jdk7.src.dir}"
              classpath=""
-             executable="${javadoc7}">
+             executable="${javadoc7}"
+             failonerror = "true">
       <fileset dir="${4jdk7src.dir}" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
@@ -1088,7 +1090,8 @@
              sourcepath="${topsrc.dir}:${jdk6.src.dir}"
              bootclasspath="${bootclasspath6}"
              source="5"
-             executable="${javadoc7}">
+             executable="${javadoc7}"
+             failonerror = "true">
       <arg line="-Xdocrootparent ${java.docroot.url}"/>
       <arg value="-XDignore.symbol.file=true"/>
 
@@ -1180,7 +1183,8 @@
              sourcepath="${topsrc.dir}:${jdk6.src.dir}"
              bootclasspath="${bootclasspath6}"
              source="6"
-             executable="${javadoc7}">
+             executable="${javadoc7}"
+             failonerror = "true">
       <arg line="-Xdocrootparent ${java.docroot.url}"/>
       <arg value="-XDignore.symbol.file=true"/>
 
@@ -1393,7 +1397,8 @@
              access="${build.javadoc.access}"
              sourcepath="${topsrc.dir}:${jdk6.src.dir}"
              source="${build.jsr166e.java.version}"
-             executable="${javadoc7}">
+             executable="${javadoc7}"
+             failonerror = "true">
       <arg line="-Xdocrootparent ${java.docroot.url}"/>
       <arg value="-XDignore.symbol.file=true"/>
 
