@@ -99,7 +99,7 @@ public enum TimeUnit {
     private final int milliRatio;   // fits in 32 bits
     private final int secRatio;     // fits in 32 bits
 
-    TimeUnit(long s) {
+    private TimeUnit(long s) {
         this.scale = s;
         this.maxNanos = Long.MAX_VALUE / s;
         long ur = (s >= MICRO_SCALE) ? (s / MICRO_SCALE) : (MICRO_SCALE / s);
