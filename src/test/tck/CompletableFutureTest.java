@@ -3925,6 +3925,30 @@ public class CompletableFutureTest extends JSR166TestCase {
                                  Monad.plus(godot, Monad.unit(5L)));
     }
 
+    /**
+     * A single CompletableFuture with many dependents.
+     */
+    public void testManyDependents() throws Throwable {
+        final int n = 10_000;
+        final CompletableFuture<Void> head = new CompletableFuture<>();
+        final CompletableFuture<Void> incomplete = new CompletableFuture<>();
+        final CompletableFuture<Void> complete = CompletableFuture.completedFuture((Void)null);
+        final AtomicInteger count = new AtomicInteger(0);
+        for (int i = 0; i < n; i++) {
+            head.thenRun(() -> count.getAndIncrement());
+            head.thenAccept((x) -> count.getAndIncrement());
+            head.thenApply((x) -> count.getAndIncrement());
+            head.runAfterBoth(complete, () -> count.getAndIncrement());
+            head.thenAcceptBoth(complete, (x, y) -> count.getAndIncrement());
+            head.thenCombine(complete, (x, y) -> count.getAndIncrement());
+            head.runAfterEither(incomplete, () -> count.getAndIncrement());
+            head.acceptEither(incomplete, (x) -> count.getAndIncrement());
+            head.applyToEither(incomplete, (x) -> count.getAndIncrement());
+        }
+        head.complete(null);
+        assertEquals(9 * n, count.get());
+    }
+
 //     static <U> U join(CompletionStage<U> stage) {
 //         CompletableFuture<U> f = new CompletableFuture<>();
 //         stage.whenComplete((v, ex) -> {
