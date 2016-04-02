@@ -526,14 +526,14 @@
   </target>
 
   <target name="tck-parallelism-1"
-          description="Runs tck with given common pool parallelism">
+          description="Runs tck with common pool parallelism 1">
     <antcall target="tck">
       <param name="java.util.concurrent.ForkJoinPool.common.parallelism" value="1"/>
     </antcall>
   </target>
 
   <target name="tck-parallelism-0"
-          description="Runs tck with given common pool parallelism">
+          description="Runs tck with common pool parallelism 0">
     <antcall target="tck">
       <param name="java.util.concurrent.ForkJoinPool.common.parallelism" value="0"/>
     </antcall>
@@ -549,7 +549,7 @@
   </target>
 
   <target name="test"
-          depends="tck, tck-parallelism-1, jtreg"
+          depends="tck, tck-parallelism-1, tck-parallelism-0, jtreg"
           description="Runs tck and jtreg tests for src/main">
   </target>
 
