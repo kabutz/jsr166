@@ -420,12 +420,6 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     static final int ASYNC  =  1;
     static final int NESTED = -1;
 
-    /**
-     * Spins before blocking in waitingGet
-     */
-    static final int SPINS = (Runtime.getRuntime().availableProcessors() > 1 ?
-                              1 << 8 : 0);
-
     /* ------------- Base Completion classes and operations -------------- */
 
     @SuppressWarnings("serial")
@@ -618,8 +612,17 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         CompletableFuture<V> d = newIncompleteFuture();
         if (e != null || !d.uniApply(this, f, null)) {
             UniApply<T,V> c = new UniApply<T,V>(e, d, this, f);
-            push(c);
-            c.tryFire(SYNC);
+            if (e != null && result != null) {
+                try {
+                    e.execute(c);
+                } catch (Throwable ex) {
+                    d.completeThrowable(ex);
+                }
+            }
+            else {
+                push(c);
+                c.tryFire(SYNC);
+            }
         }
         return d;
     }
@@ -673,8 +676,17 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         CompletableFuture<Void> d = newIncompleteFuture();
         if (e != null || !d.uniAccept(this, f, null)) {
             UniAccept<T> c = new UniAccept<T>(e, d, this, f);
-            push(c);
-            c.tryFire(SYNC);
+            if (e != null && result != null) {
+                try {
+                    e.execute(c);
+                } catch (Throwable ex) {
+                    d.completeThrowable(ex);
+                }
+            }
+            else {
+                push(c);
+                c.tryFire(SYNC);
+            }
         }
         return d;
     }
@@ -721,8 +733,17 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         CompletableFuture<Void> d = newIncompleteFuture();
         if (e != null || !d.uniRun(this, f, null)) {
             UniRun<T> c = new UniRun<T>(e, d, this, f);
-            push(c);
-            c.tryFire(SYNC);
+            if (e != null && result != null) {
+                try {
+                    e.execute(c);
+                } catch (Throwable ex) {
+                    d.completeThrowable(ex);
+                }
+            }
+            else {
+                push(c);
+                c.tryFire(SYNC);
+            }
         }
         return d;
     }
@@ -784,8 +805,17 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         CompletableFuture<T> d = newIncompleteFuture();
         if (e != null || !d.uniWhenComplete(this, f, null)) {
             UniWhenComplete<T> c = new UniWhenComplete<T>(e, d, this, f);
-            push(c);
-            c.tryFire(SYNC);
+            if (e != null && result != null) {
+                try {
+                    e.execute(c);
+                } catch (Throwable ex) {
+                    d.completeThrowable(ex);
+                }
+            }
+            else {
+                push(c);
+                c.tryFire(SYNC);
+            }
         }
         return d;
     }
@@ -840,8 +870,17 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         CompletableFuture<V> d = newIncompleteFuture();
         if (e != null || !d.uniHandle(this, f, null)) {
             UniHandle<T,V> c = new UniHandle<T,V>(e, d, this, f);
-            push(c);
-            c.tryFire(SYNC);
+            if (e != null && result != null) {
+                try {
+                    e.execute(c);
+                } catch (Throwable ex) {
+                    d.completeThrowable(ex);
+                }
+            }
+            else {
+                push(c);
+                c.tryFire(SYNC);
+            }
         }
         return d;
     }
@@ -1000,7 +1039,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         if (f == null) throw new NullPointerException();
         Object r, s; Throwable x;
         CompletableFuture<V> d = newIncompleteFuture();
-        if (e == null && (r = result) != null) {
+        if ((r = result) != null && e == null) {
             if (r instanceof AltResult) {
                 if ((x = ((AltResult)r).ex) != null) {
                     d.result = encodeThrowable(x, r);
@@ -1025,8 +1064,17 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
             }
         }
         UniCompose<T,V> c = new UniCompose<T,V>(e, d, this, f);
-        push(c);
-        c.tryFire(SYNC);
+        if (r != null && e != null) {
+            try {
+                e.execute(new UniCompose<T,V>(null, d, this, f));
+            } catch (Throwable ex) {
+                d.completeThrowable(ex);
+            }
+        }
+        else {
+            push(c);
+            c.tryFire(SYNC);
+        }
         return d;
     }
 
@@ -1151,8 +1199,17 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         CompletableFuture<V> d = newIncompleteFuture();
         if (e != null || !d.biApply(this, b, f, null)) {
             BiApply<T,U,V> c = new BiApply<T,U,V>(e, d, this, b, f);
-            bipush(b, c);
-            c.tryFire(SYNC);
+            if (e != null && result != null && b.result != null) {
+                try {
+                    e.execute(c);
+                } catch (Throwable ex) {
+                    d.completeThrowable(ex);
+                }
+            }
+            else {
+                bipush(b, c);
+                c.tryFire(SYNC);
+            }
         }
         return d;
     }
@@ -1223,8 +1280,17 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         CompletableFuture<Void> d = newIncompleteFuture();
         if (e != null || !d.biAccept(this, b, f, null)) {
             BiAccept<T,U> c = new BiAccept<T,U>(e, d, this, b, f);
-            bipush(b, c);
-            c.tryFire(SYNC);
+            if (e != null && result != null && b.result != null) {
+                try {
+                    e.execute(c);
+                } catch (Throwable ex) {
+                    d.completeThrowable(ex);
+                }
+            }
+            else {
+                bipush(b, c);
+                c.tryFire(SYNC);
+            }
         }
         return d;
     }
@@ -1282,8 +1348,17 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         CompletableFuture<Void> d = newIncompleteFuture();
         if (e != null || !d.biRun(this, b, f, null)) {
             BiRun<T,?> c = new BiRun<>(e, d, this, b, f);
-            bipush(b, c);
-            c.tryFire(SYNC);
+            if (e != null && result != null && b.result != null) {
+                try {
+                    e.execute(c);
+                } catch (Throwable ex) {
+                    d.completeThrowable(ex);
+                }
+            }
+            else {
+                bipush(b, c);
+                c.tryFire(SYNC);
+            }
         }
         return d;
     }
@@ -1423,8 +1498,17 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         CompletableFuture<V> d = newIncompleteFuture();
         if (e != null || !d.orApply(this, b, f, null)) {
             OrApply<T,U,V> c = new OrApply<T,U,V>(e, d, this, b, f);
-            orpush(b, c);
-            c.tryFire(SYNC);
+            if (e != null && (result != null || b.result != null)) {
+                try {
+                    e.execute(c);
+                } catch (Throwable ex) {
+                    d.completeThrowable(ex);
+                }
+            }
+            else {
+                orpush(b, c);
+                c.tryFire(SYNC);
+            }
         }
         return d;
     }
@@ -1487,8 +1571,17 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         CompletableFuture<Void> d = newIncompleteFuture();
         if (e != null || !d.orAccept(this, b, f, null)) {
             OrAccept<T,U> c = new OrAccept<T,U>(e, d, this, b, f);
-            orpush(b, c);
-            c.tryFire(SYNC);
+            if (e != null && (result != null || b.result != null)) {
+                try {
+                    e.execute(c);
+                } catch (Throwable ex) {
+                    d.completeThrowable(ex);
+                }
+            }
+            else {
+                orpush(b, c);
+                c.tryFire(SYNC);
+            }
         }
         return d;
     }
@@ -1545,8 +1638,17 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         CompletableFuture<Void> d = newIncompleteFuture();
         if (e != null || !d.orRun(this, b, f, null)) {
             OrRun<T,?> c = new OrRun<>(e, d, this, b, f);
-            orpush(b, c);
-            c.tryFire(SYNC);
+            if (e != null && (result != null || b.result != null)) {
+                try {
+                    e.execute(c);
+                } catch (Throwable ex) {
+                    d.completeThrowable(ex);
+                }
+            }
+            else {
+                orpush(b, c);
+                c.tryFire(SYNC);
+            }
         }
         return d;
     }
@@ -1731,15 +1833,12 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     private Object waitingGet(boolean interruptible) {
         Signaller q = null;
         boolean queued = false;
-        int spins = SPINS;
         Object r;
         while ((r = result) == null) {
-            if (spins > 0) {
-                if (ThreadLocalRandom.nextSecondarySeed() >= 0)
-                    --spins;
-            }
-            else if (q == null)
+            if (q == null) {
                 q = new Signaller(interruptible, 0L, 0L);
+                ForkJoinPool.helpAsyncBlocker(defaultExecutor(), q);
+            }
             else if (!queued)
                 queued = tryPushStack(q);
             else {
@@ -1779,9 +1878,11 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
             Signaller q = null;
             boolean queued = false;
             Object r;
-            while ((r = result) == null) { // similar to untimed, without spins
-                if (q == null)
+            while ((r = result) == null) { // similar to untimed
+                if (q == null) {
                     q = new Signaller(true, nanos, deadline);
+                    ForkJoinPool.helpAsyncBlocker(defaultExecutor(), q);
+                }
                 else if (!queued)
                     queued = tryPushStack(q);
                 else if (q.nanos <= 0L)
