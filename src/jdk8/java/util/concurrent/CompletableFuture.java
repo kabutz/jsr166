@@ -207,11 +207,16 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * pointing back to its sources. So we null out fields as soon as
      * possible.  The screening checks needed anyway harmlessly ignore
      * null arguments that may have been obtained during races with
-     * threads nulling out fields.  We also try to unlink fired
-     * Completions from stacks that might never be popped (see method
-     * postFire).  Completion fields need not be declared as final or
-     * volatile because they are only visible to other threads upon
-     * safe publication.
+     * threads nulling out fields.  We also try to unlink non-isLive
+     * (fired or cancelled) Completions from stacks that might
+     * otherwise never be popped: Method cleanStack always unlinks non
+     * isLive completions from the head of stack; others may
+     * occasionally remain if racing with other cancellations or
+     * removals.
+     *
+     * Completion fields need not be declared as final or volatile
+     * because they are only visible to other threads upon safe
+     * publication.
      */
 
     volatile Object result;       // Either the result or boxed AltResult
@@ -448,6 +453,10 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         U.putOrderedObject(c, NEXT, next);
     }
 
+    static boolean casNext(Completion c, Completion cmp, Completion val) {
+        return U.compareAndSwapObject(c, NEXT, cmp, val);
+    }
+
     /**
      * Pops and tries to trigger all reachable dependents.  Call only
      * when known to be done.
@@ -468,32 +477,29 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
                         pushStack(h);
                         continue;
                     }
-                    h.next = null;    // detach
+                    casNext(h, t, null);    // try to detach
                 }
                 f = (d = h.tryFire(NESTED)) == null ? this : d;
             }
         }
     }
 
-    /** Traverses stack and unlinks dead Completions. */
+    /** Traverses stack and unlinks one or more dead Completions, if found. */
     final void cleanStack() {
-        for (Completion p = null, q = stack; q != null;) {
-            Completion s = q.next;
-            if (q.isLive()) {
-                p = q;
-                q = s;
-            }
-            else if (p == null) {
-                casStack(q, s);
-                q = stack;
-            }
-            else {
-                p.next = s;
-                if (p.isLive())
+        boolean unlinked = false;
+        Completion p;
+        while ((p = stack) != null && !p.isLive()) // ensure head of stack live
+            unlinked = casStack(p, p.next);
+        if (p != null && !unlinked) {              // try to unlink first nonlive
+            for (Completion q = p.next; q != null;) {
+                Completion s = q.next;
+                if (q.isLive()) {
+                    p = q;
                     q = s;
+                }
                 else {
-                    p = null;  // restart
-                    q = stack;
+                    casNext(p, q, s);
+                    break;
                 }
             }
         }
@@ -548,9 +554,10 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      */
     final CompletableFuture<T> postFire(CompletableFuture<?> a, int mode) {
         if (a != null && a.stack != null) {
-            if (a.result == null)
+            Object r;
+            if ((r = a.result) == null)
                 a.cleanStack();
-            else if (mode >= 0)
+            if (mode >= 0 && (r != null || a.result != null))
                 a.postComplete();
         }
         if (result != null && stack != null) {
@@ -1126,9 +1133,10 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     final CompletableFuture<T> postFire(CompletableFuture<?> a,
                                         CompletableFuture<?> b, int mode) {
         if (b != null && b.stack != null) { // clean second source
-            if (b.result == null)
+            Object r;
+            if ((r = b.result) == null)
                 b.cleanStack();
-            else if (mode >= 0)
+            if (mode >= 0 && (r != null || b.result != null))
                 b.postComplete();
         }
         return postFire(a, mode);
@@ -1851,16 +1859,14 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
                     break;
             }
         }
-        if (q != null) {
+        if (q != null && queued) {
             q.thread = null;
-            if (q.interrupted) {
-                if (interruptible)
-                    cleanStack();
-                else
-                    Thread.currentThread().interrupt();
-            }
+            if (!interruptible && q.interrupted)
+                Thread.currentThread().interrupt();
+            if (r == null)
+                cleanStack();
         }
-        if (r != null)
+        if (r != null || (r = result) != null)
             postComplete();
         return r;
     }
@@ -1897,12 +1903,13 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
                         break;
                 }
             }
-            if (q != null)
+            if (q != null && queued) {
                 q.thread = null;
-            if (r != null)
+                if (r == null)
+                    cleanStack();
+            }
+            if (r != null || (r = result) != null)
                 postComplete();
-            else
-                cleanStack();
             if (r != null || (q != null && q.interrupted))
                 return r;
         }
