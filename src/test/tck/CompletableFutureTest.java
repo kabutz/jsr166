@@ -3525,7 +3525,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         long timeoutMillis = timeoutMillis();
         CompletableFuture<Integer> f = new CompletableFuture<>();
         long startTime = System.nanoTime();
-        f.orTimeout(timeoutMillis, MILLISECONDS);
+        assertSame(f, f.orTimeout(timeoutMillis, MILLISECONDS));
         checkCompletedWithTimeoutException(f);
         assertTrue(millisElapsedSince(startTime) >= timeoutMillis);
     }
@@ -3540,8 +3540,8 @@ public class CompletableFutureTest extends JSR166TestCase {
         CompletableFuture<Integer> g = new CompletableFuture<>();
         long startTime = System.nanoTime();
         f.complete(v1);
-        f.orTimeout(LONG_DELAY_MS, MILLISECONDS);
-        g.orTimeout(LONG_DELAY_MS, MILLISECONDS);
+        assertSame(f, f.orTimeout(LONG_DELAY_MS, MILLISECONDS));
+        assertSame(g, g.orTimeout(LONG_DELAY_MS, MILLISECONDS));
         g.complete(v1);
         checkCompletedNormally(f, v1);
         checkCompletedNormally(g, v1);
@@ -3560,7 +3560,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         long timeoutMillis = timeoutMillis();
         CompletableFuture<Integer> f = new CompletableFuture<>();
         long startTime = System.nanoTime();
-        f.completeOnTimeout(v, timeoutMillis, MILLISECONDS);
+        assertSame(f, f.completeOnTimeout(v, timeoutMillis, MILLISECONDS));
         assertSame(v, f.join());
         assertTrue(millisElapsedSince(startTime) >= timeoutMillis);
         f.complete(99);         // should have no effect
@@ -3577,8 +3577,8 @@ public class CompletableFutureTest extends JSR166TestCase {
         CompletableFuture<Integer> g = new CompletableFuture<>();
         long startTime = System.nanoTime();
         f.complete(v1);
-        f.completeOnTimeout(-1, LONG_DELAY_MS, MILLISECONDS);
-        g.completeOnTimeout(-1, LONG_DELAY_MS, MILLISECONDS);
+        assertSame(f, f.completeOnTimeout(-1, LONG_DELAY_MS, MILLISECONDS));
+        assertSame(g, g.completeOnTimeout(-1, LONG_DELAY_MS, MILLISECONDS));
         g.complete(v1);
         checkCompletedNormally(f, v1);
         checkCompletedNormally(g, v1);
