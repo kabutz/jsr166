@@ -3556,6 +3556,9 @@ public class CompletableFutureTest extends JSR166TestCase {
                        () -> testCompleteOnTimeout_timesOut(null));
     }
 
+    /**
+     * completeOnTimeout completes with given value if not complete
+     */
     public void testCompleteOnTimeout_timesOut(Integer v) {
         long timeoutMillis = timeoutMillis();
         CompletableFuture<Integer> f = new CompletableFuture<>();
