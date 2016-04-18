@@ -49,6 +49,7 @@ public class SubmissionPublisherLoops1 {
         ExecutorService exec = ForkJoinPool.commonPool();
         for (int rep = 0; rep < reps; ++rep) {
             oneRun(exec);
+            System.out.println(exec);
             Thread.sleep(1000);
         }
         if (exec != ForkJoinPool.commonPool())
