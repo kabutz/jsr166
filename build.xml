@@ -38,7 +38,7 @@
 ------------------------------------------------------------------------------
   </description>
 
-  <!-- Display main targets by running 'ant -projecthelp' -->
+  <!-- Run 'ant -projecthelp' (default target) -->
   <target name="usage">
     <java classname="org.apache.tools.ant.Main">
       <arg value="-projecthelp" />
