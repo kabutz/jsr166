@@ -338,7 +338,7 @@ public abstract class AtomicIntegerFieldUpdater<T> {
      */
     private static final class AtomicIntegerFieldUpdaterImpl<T>
         extends AtomicIntegerFieldUpdater<T> {
-        private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+        private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
         private final long offset;
         /**
          * if field is protected, the subclass constructing updater, else
@@ -446,7 +446,7 @@ public abstract class AtomicIntegerFieldUpdater<T> {
 
         public final void lazySet(T obj, int newValue) {
             accessCheck(obj);
-            U.putOrderedInt(obj, offset, newValue);
+            U.putIntRelease(obj, offset, newValue);
         }
 
         public final int get(T obj) {

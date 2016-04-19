@@ -19,7 +19,7 @@ import java.util.function.LongUnaryOperator;
 public class AtomicLongArray implements java.io.Serializable {
     private static final long serialVersionUID = -2308431214976778248L;
 
-    private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
     private static final int ABASE;
     private static final int ASHIFT;
     private final long[] array;
@@ -106,7 +106,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * @since 1.6
      */
     public final void lazySet(int i, long newValue) {
-        U.putOrderedLong(array, checkedByteOffset(i), newValue);
+        U.putLongRelease(array, checkedByteOffset(i), newValue);
     }
 
     /**

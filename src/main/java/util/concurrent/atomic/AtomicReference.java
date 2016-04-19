@@ -20,7 +20,7 @@ import java.util.function.UnaryOperator;
 public class AtomicReference<V> implements java.io.Serializable {
     private static final long serialVersionUID = -1848883965231344442L;
 
-    private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
     private static final long VALUE;
 
     static {
@@ -74,7 +74,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      * @since 1.6
      */
     public final void lazySet(V newValue) {
-        U.putOrderedObject(this, VALUE, newValue);
+        U.putObjectRelease(this, VALUE, newValue);
     }
 
     /**

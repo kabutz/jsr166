@@ -260,7 +260,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * different position to use or create other queues -- they block
      * only when creating and registering new queues. Because it is
      * used only as a spinlock, unlocking requires only a "releasing"
-     * store (using putOrderedInt).
+     * store (using putIntRelease).
      *
      * Management
      * ==========
@@ -755,7 +755,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 long offset = ((long)index << ASHIFT) + ABASE;
                 ForkJoinPool p = pool;
                 top = s + 1;
-                U.putOrderedObject(a, offset, task);
+                U.putObjectRelease(a, offset, task);
                 if ((d = base - s) == 0 && p != null) {
                     U.fullFence();
                     p.signalWork();
@@ -973,7 +973,7 @@ public class ForkJoinPool extends AbstractExecutorService {
 
                                 int jindex = j & m;
                                 long jOffset = (jindex << ASHIFT) + ABASE;
-                                U.putOrderedObject(wa, jOffset, f);
+                                U.putObjectRelease(wa, jOffset, f);
                             }
                             U.storeFence();
                             t.doExec();
@@ -1057,7 +1057,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                         popped = true;
                         top = s;
                     }
-                    U.putOrderedInt(this, PHASE, 0);
+                    U.putIntRelease(this, PHASE, 0);
                 }
             }
             return popped;
@@ -1093,7 +1093,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                                             help = true;
                                             top = s - 1;
                                         }
-                                        U.putOrderedInt(this, PHASE, 0);
+                                        U.putIntRelease(this, PHASE, 0);
                                         if (help)
                                             t.doExec();
                                     }
@@ -1122,7 +1122,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
 
         // Unsafe mechanics. Note that some are (and must be) the same as in FJP
-        private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+        private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
         private static final long PHASE;
         private static final int ABASE;
         private static final int ASHIFT;
@@ -3193,7 +3193,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     // Unsafe mechanics
-    private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
     private static final long CTL;
     private static final long MODE;
     private static final int ABASE;

@@ -63,7 +63,7 @@ public class ForkJoinWorkerThread extends Thread {
     ForkJoinWorkerThread(ForkJoinPool pool, ThreadGroup threadGroup,
                          AccessControlContext acc) {
         super(threadGroup, null, "aForkJoinWorkerThread");
-        U.putOrderedObject(this, INHERITEDACCESSCONTROLCONTEXT, acc);
+        U.putObjectRelease(this, INHERITEDACCESSCONTROLCONTEXT, acc);
         eraseThreadLocals(); // clear before registering
         this.pool = pool;
         this.workQueue = pool.registerWorker(this);
@@ -156,7 +156,7 @@ public class ForkJoinWorkerThread extends Thread {
     }
 
     // Set up to allow setting thread fields in constructor
-    private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
     private static final long THREADLOCALS;
     private static final long INHERITABLETHREADLOCALS;
     private static final long INHERITEDACCESSCONTROLCONTEXT;
@@ -219,7 +219,7 @@ public class ForkJoinWorkerThread extends Thread {
          */
         private static ThreadGroup createThreadGroup() {
             try {
-                sun.misc.Unsafe u = sun.misc.Unsafe.getUnsafe();
+                jdk.internal.misc.Unsafe u = jdk.internal.misc.Unsafe.getUnsafe();
                 long tg = u.objectFieldOffset
                     (Thread.class.getDeclaredField("group"));
                 long gp = u.objectFieldOffset

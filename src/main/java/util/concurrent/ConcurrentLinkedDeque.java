@@ -280,7 +280,7 @@ public class ConcurrentLinkedDeque<E>
         }
 
         void lazySetNext(Node<E> val) {
-            U.putOrderedObject(this, NEXT, val);
+            U.putObjectRelease(this, NEXT, val);
         }
 
         boolean casNext(Node<E> cmp, Node<E> val) {
@@ -288,7 +288,7 @@ public class ConcurrentLinkedDeque<E>
         }
 
         void lazySetPrev(Node<E> val) {
-            U.putOrderedObject(this, PREV, val);
+            U.putObjectRelease(this, PREV, val);
         }
 
         boolean casPrev(Node<E> cmp, Node<E> val) {
@@ -297,7 +297,7 @@ public class ConcurrentLinkedDeque<E>
 
         // Unsafe mechanics
 
-        private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+        private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
         private static final long PREV;
         private static final long ITEM;
         private static final long NEXT;
@@ -1579,7 +1579,7 @@ public class ConcurrentLinkedDeque<E>
 
     // Unsafe mechanics
 
-    private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
     private static final long HEAD;
     private static final long TAIL;
     static {

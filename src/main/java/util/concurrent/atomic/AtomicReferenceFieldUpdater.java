@@ -255,7 +255,7 @@ public abstract class AtomicReferenceFieldUpdater<T,V> {
 
     private static final class AtomicReferenceFieldUpdaterImpl<T,V>
         extends AtomicReferenceFieldUpdater<T,V> {
-        private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+        private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
         private final long offset;
         /**
          * if field is protected, the subclass constructing updater, else
@@ -397,7 +397,7 @@ public abstract class AtomicReferenceFieldUpdater<T,V> {
         public final void lazySet(T obj, V newValue) {
             accessCheck(obj);
             valueCheck(newValue);
-            U.putOrderedObject(obj, offset, newValue);
+            U.putObjectRelease(obj, offset, newValue);
         }
 
         @SuppressWarnings("unchecked")

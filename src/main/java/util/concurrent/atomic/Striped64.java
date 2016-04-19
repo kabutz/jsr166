@@ -104,7 +104,7 @@ abstract class Striped64 extends Number {
         }
 
         // Unsafe mechanics
-        private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+        private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
         private static final long VALUE;
         static {
             try {
@@ -343,7 +343,7 @@ abstract class Striped64 extends Number {
     }
 
     // Unsafe mechanics
-    private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
     private static final long BASE;
     private static final long CELLSBUSY;
     private static final long PROBE;

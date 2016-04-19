@@ -169,7 +169,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     }
 
     static <E> void lazySetNext(Node<E> node, Node<E> val) {
-        U.putOrderedObject(node, NEXT, val);
+        U.putObjectRelease(node, NEXT, val);
     }
 
     static <E> boolean casNext(Node<E> node, Node<E> cmp, Node<E> val) {
@@ -900,7 +900,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
 
     // Unsafe mechanics
 
-    private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
     private static final long HEAD;
     private static final long TAIL;
     private static final long ITEM;

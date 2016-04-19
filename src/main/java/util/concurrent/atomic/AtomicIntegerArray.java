@@ -20,7 +20,7 @@ import java.util.function.IntUnaryOperator;
 public class AtomicIntegerArray implements java.io.Serializable {
     private static final long serialVersionUID = 2862133569453604235L;
 
-    private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
     private static final int ABASE;
     private static final int ASHIFT;
     private final int[] array;
@@ -107,7 +107,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * @since 1.6
      */
     public final void lazySet(int i, int newValue) {
-        U.putOrderedInt(array, checkedByteOffset(i), newValue);
+        U.putIntRelease(array, checkedByteOffset(i), newValue);
     }
 
     /**

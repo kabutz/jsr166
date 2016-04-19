@@ -337,7 +337,7 @@ public abstract class AtomicLongFieldUpdater<T> {
     }
 
     private static final class CASUpdater<T> extends AtomicLongFieldUpdater<T> {
-        private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+        private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
         private final long offset;
         /**
          * if field is protected, the subclass constructing updater, else
@@ -428,7 +428,7 @@ public abstract class AtomicLongFieldUpdater<T> {
 
         public final void lazySet(T obj, long newValue) {
             accessCheck(obj);
-            U.putOrderedLong(obj, offset, newValue);
+            U.putLongRelease(obj, offset, newValue);
         }
 
         public final long get(T obj) {
@@ -468,7 +468,7 @@ public abstract class AtomicLongFieldUpdater<T> {
     }
 
     private static final class LockedUpdater<T> extends AtomicLongFieldUpdater<T> {
-        private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+        private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
         private final long offset;
         /**
          * if field is protected, the subclass constructing updater, else

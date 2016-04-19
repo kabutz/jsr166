@@ -1407,7 +1407,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                     else if (((c & CONSUME) != 0 ||
                               U.compareAndSwapInt(this, CTL, c, c | CONSUME)) &&
                              U.compareAndSwapObject(a, i, x, null)) {
-                        U.putOrderedInt(this, HEAD, ++h);
+                        U.putIntRelease(this, HEAD, ++h);
                         U.getAndAddLong(this, DEMAND, -1L);
                         if ((w = waiter) != null)
                             signalWaiter(w);
@@ -1507,7 +1507,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         }
 
         // Unsafe mechanics
-        private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+        private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
         private static final long CTL;
         private static final long TAIL;
         private static final long HEAD;

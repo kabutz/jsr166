@@ -1472,7 +1472,7 @@ public class ReentrantReadWriteLock
     }
 
     // Unsafe mechanics
-    private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
     private static final long TID;
     static {
         try {

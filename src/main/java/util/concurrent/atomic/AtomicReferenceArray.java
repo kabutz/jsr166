@@ -23,7 +23,7 @@ import java.util.function.UnaryOperator;
 public class AtomicReferenceArray<E> implements java.io.Serializable {
     private static final long serialVersionUID = -6209656149925076980L;
 
-    private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
     private static final long ARRAY;
     private static final int ABASE;
     private static final int ASHIFT;
@@ -118,7 +118,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * @since 1.6
      */
     public final void lazySet(int i, E newValue) {
-        U.putOrderedObject(array, checkedByteOffset(i), newValue);
+        U.putObjectRelease(array, checkedByteOffset(i), newValue);
     }
 
     /**

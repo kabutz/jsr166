@@ -25,7 +25,7 @@ import java.util.function.IntUnaryOperator;
 public class AtomicInteger extends Number implements java.io.Serializable {
     private static final long serialVersionUID = 6214790243416807050L;
 
-    private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
+    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
     private static final long VALUE;
 
     static {
@@ -79,7 +79,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @since 1.6
      */
     public final void lazySet(int newValue) {
-        U.putOrderedInt(this, VALUE, newValue);
+        U.putIntRelease(this, VALUE, newValue);
     }
 
     /**
