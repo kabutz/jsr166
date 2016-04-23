@@ -347,12 +347,12 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
 
     /** Lazily initialized key set */
     private transient KeySet<K,V> keySet;
-    /** Lazily initialized entry set */
-    private transient EntrySet<K,V> entrySet;
     /** Lazily initialized values collection */
     private transient Values<K,V> values;
+    /** Lazily initialized entry set */
+    private transient EntrySet<K,V> entrySet;
     /** Lazily initialized descending key set */
-    private transient ConcurrentNavigableMap<K,V> descendingMap;
+    private transient SubMap<K,V> descendingMap;
 
     /**
      * Initializes or resets state. Needed by constructors, clone,
@@ -2558,8 +2558,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
 
         // Lazily initialized view holders
         private transient KeySet<K,V> keySetView;
-        private transient Set<Map.Entry<K,V>> entrySetView;
-        private transient Collection<V> valuesView;
+        private transient Values<K,V> valuesView;
+        private transient EntrySet<K,V> entrySetView;
 
         /**
          * Creates a new submap, initializing all fields.
@@ -3037,13 +3037,13 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         }
 
         public Collection<V> values() {
-            Collection<V> vs;
+            Values<K,V> vs;
             if ((vs = valuesView) != null) return vs;
             return valuesView = new Values<>(this);
         }
 
         public Set<Map.Entry<K,V>> entrySet() {
-            Set<Map.Entry<K,V>> es;
+            EntrySet<K,V> es;
             if ((es = entrySetView) != null) return es;
             return entrySetView = new EntrySet<K,V>(this);
         }
