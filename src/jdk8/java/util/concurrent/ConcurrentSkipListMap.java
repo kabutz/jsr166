@@ -2535,7 +2535,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      * @serial include
      */
     static final class SubMap<K,V> extends AbstractMap<K,V>
-        implements ConcurrentNavigableMap<K,V>, Cloneable, Serializable {
+        implements ConcurrentNavigableMap<K,V>, Serializable {
         private static final long serialVersionUID = -7647078645895051609L;
 
         /** Underlying map */
