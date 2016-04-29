@@ -167,7 +167,7 @@ public class TimedAcquireLeak {
                             final String childPid,
                             final String className) {
         final String regex =
-            "(?m)^ *[0-9]+: +([0-9]+) +[0-9]+ +\\Q"+className+"\\E$";
+            "(?m)^ *[0-9]+: +([0-9]+) +[0-9]+ +\\Q"+className+"\\E(?:$| )";
         final Callable<Integer> objectsInUse =
             new Callable<Integer>() { public Integer call() {
                 Integer i = Integer.parseInt(
