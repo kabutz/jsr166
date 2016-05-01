@@ -327,10 +327,11 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      */
     static Object encodeRelay(Object r) {
         Throwable x;
-        return (((r instanceof AltResult) &&
-                 (x = ((AltResult)r).ex) != null &&
-                 !(x instanceof CompletionException)) ?
-                new AltResult(new CompletionException(x)) : r);
+        if (r instanceof AltResult
+            && (x = ((AltResult)r).ex) != null
+            && !(x instanceof CompletionException))
+            r = new AltResult(new CompletionException(x));
+        return r;
     }
 
     /**
@@ -2015,7 +2016,9 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     @SuppressWarnings("unchecked")
     public T get() throws InterruptedException, ExecutionException {
         Object r;
-        return (T) reportGet((r = result) == null ? waitingGet(true) : r);
+        if ((r = result) == null)
+            r = waitingGet(true);
+        return (T) reportGet(r);
     }
 
     /**
@@ -2034,9 +2037,11 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     @SuppressWarnings("unchecked")
     public T get(long timeout, TimeUnit unit)
         throws InterruptedException, ExecutionException, TimeoutException {
-        Object r;
         long nanos = unit.toNanos(timeout);
-        return (T) reportGet((r = result) == null ? timedGet(nanos) : r);
+        Object r;
+        if ((r = result) == null)
+            r = timedGet(nanos);
+        return (T) reportGet(r);
     }
 
     /**
@@ -2056,7 +2061,9 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     @SuppressWarnings("unchecked")
     public T join() {
         Object r;
-        return (T) reportJoin((r = result) == null ? waitingGet(false) : r);
+        if ((r = result) == null)
+            r = waitingGet(false);
+        return (T) reportJoin(r);
     }
 
     /**
