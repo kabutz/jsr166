@@ -345,7 +345,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     /**
      * Reports result using Future.get conventions.
      */
-    private static <T> T reportGet(Object r)
+    private static Object reportGet(Object r)
         throws InterruptedException, ExecutionException {
         if (r == null) // by convention below, null means interrupted
             throw new InterruptedException();
@@ -360,14 +360,13 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
                 x = cause;
             throw new ExecutionException(x);
         }
-        @SuppressWarnings("unchecked") T t = (T) r;
-        return t;
+        return r;
     }
 
     /**
      * Decodes outcome to return result or throw unchecked exception.
      */
-    private static <T> T reportJoin(Object r) {
+    private static Object reportJoin(Object r) {
         if (r instanceof AltResult) {
             Throwable x;
             if ((x = ((AltResult)r).ex) == null)
@@ -378,8 +377,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
                 throw (CompletionException)x;
             throw new CompletionException(x);
         }
-        @SuppressWarnings("unchecked") T t = (T) r;
-        return t;
+        return r;
     }
 
     /* ------------- Async task preliminaries -------------- */
@@ -2014,9 +2012,10 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * @throws InterruptedException if the current thread was interrupted
      * while waiting
      */
+    @SuppressWarnings("unchecked")
     public T get() throws InterruptedException, ExecutionException {
         Object r;
-        return reportGet((r = result) == null ? waitingGet(true) : r);
+        return (T) reportGet((r = result) == null ? waitingGet(true) : r);
     }
 
     /**
@@ -2032,11 +2031,12 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * while waiting
      * @throws TimeoutException if the wait timed out
      */
+    @SuppressWarnings("unchecked")
     public T get(long timeout, TimeUnit unit)
         throws InterruptedException, ExecutionException, TimeoutException {
         Object r;
         long nanos = unit.toNanos(timeout);
-        return reportGet((r = result) == null ? timedGet(nanos) : r);
+        return (T) reportGet((r = result) == null ? timedGet(nanos) : r);
     }
 
     /**
@@ -2053,9 +2053,10 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * @throws CompletionException if this future completed
      * exceptionally or a completion computation threw an exception
      */
+    @SuppressWarnings("unchecked")
     public T join() {
         Object r;
-        return reportJoin((r = result) == null ? waitingGet(false) : r);
+        return (T) reportJoin((r = result) == null ? waitingGet(false) : r);
     }
 
     /**
@@ -2068,9 +2069,10 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * @throws CompletionException if this future completed
      * exceptionally or a completion computation threw an exception
      */
+    @SuppressWarnings("unchecked")
     public T getNow(T valueIfAbsent) {
         Object r;
-        return ((r = result) == null) ? valueIfAbsent : reportJoin(r);
+        return ((r = result) == null) ? valueIfAbsent : (T) reportJoin(r);
     }
 
     /**
