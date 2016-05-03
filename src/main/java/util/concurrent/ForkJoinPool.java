@@ -2331,6 +2331,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * Constructor for common pool using parameters possibly
      * overridden by system properties
      */
+    @SuppressWarnings("deprecation") // Class.newInstance
     private ForkJoinPool(byte forCommonPoolOnly) {
         int parallelism = -1;
         ForkJoinWorkerThreadFactory fac = null;
