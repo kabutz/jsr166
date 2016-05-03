@@ -10,6 +10,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
@@ -166,8 +167,8 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
                 protected <T> RunnableFuture<T> newTaskFor(Callable<T> c) {
                     return new MyCallableFuture<T>(c);
                 }};
-        ExecutorCompletionService<String> ecs =
-            new ExecutorCompletionService<String>(e);
+        CompletionService<String> ecs =
+            new ExecutorCompletionService<>(e);
         try (PoolCleaner cleaner = cleaner(e)) {
             assertNull(ecs.poll());
             Callable<String> c = new StringTask();
@@ -197,8 +198,8 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
                 protected <T> RunnableFuture<T> newTaskFor(Runnable t, T r) {
                     return new MyRunnableFuture<T>(t, r);
                 }};
-        final ExecutorCompletionService<String> ecs =
-            new ExecutorCompletionService<String>(e);
+        final CompletionService<String> ecs =
+            new ExecutorCompletionService<>(e);
         try (PoolCleaner cleaner = cleaner(e)) {
             assertNull(ecs.poll());
             Runnable r = new NoOpRunnable();
