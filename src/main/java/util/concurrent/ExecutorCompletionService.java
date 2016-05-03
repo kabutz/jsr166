@@ -28,7 +28,7 @@ package java.util.concurrent;
  *            Collection<Callable<Result>> solvers)
  *     throws InterruptedException, ExecutionException {
  *   CompletionService<Result> ecs
- *       = new ExecutorCompletionService<Result>(e);
+ *       = new ExecutorCompletionService<>(e);
  *   for (Callable<Result> s : solvers)
  *     ecs.submit(s);
  *   int n = solvers.size();
@@ -48,7 +48,7 @@ package java.util.concurrent;
  *            Collection<Callable<Result>> solvers)
  *     throws InterruptedException {
  *   CompletionService<Result> ecs
- *       = new ExecutorCompletionService<Result>(e);
+ *       = new ExecutorCompletionService<>(e);
  *   int n = solvers.size();
  *   List<Future<Result>> futures = new ArrayList<>(n);
  *   Result result = null;
