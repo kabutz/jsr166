@@ -409,9 +409,10 @@
   <target name="jar"
           depends="compile"
           description="Builds library jar for src/main from compiled sources">
-
+    <local name="subdir"/>
+    <available property="subdir" file="${build.classes.dir}/java.base" type="dir" value="/java.base"/>
     <jar destfile="${product.jar}">
-      <fileset dir="${build.classes.dir}"/>
+      <fileset dir="${build.classes.dir}${subdir}"/>
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
