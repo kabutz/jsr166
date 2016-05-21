@@ -1833,4 +1833,12 @@ public class JSR166TestCase extends TestCase {
         } catch (NoSuchElementException success) {}
         assertFalse(it.hasNext());
     }
+
+    public <T> Callable<T> callableThrowing(final Exception ex) {
+        return new Callable<T>() { public T call() throws Exception { throw ex; }};
+    }
+
+    public Runnable runnableThrowing(final RuntimeException ex) {
+        return new Runnable() { public void run() { throw ex; }};
+    }
 }
