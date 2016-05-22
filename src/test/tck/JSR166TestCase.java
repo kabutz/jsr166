@@ -519,7 +519,7 @@ public class JSR166TestCase extends TestCase {
         // Java9+ test classes
         if (atLeastJava9()) {
             String[] java9TestClassNames = {
-                // Currently empty, but expecting varhandle tests
+                "ExecutorCompletionService9Test",
             };
             addNamedTestClasses(suite, java9TestClassNames);
         }
