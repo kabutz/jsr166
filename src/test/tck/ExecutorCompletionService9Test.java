@@ -5,8 +5,6 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -93,7 +91,7 @@ public class ExecutorCompletionService9Test extends JSR166TestCase {
         solveAll(ForkJoinPool.commonPool(), solvers);
         assertEquals(Set.of(1, 2, 3), results);
     }
-    
+
     /**
      * The second "solvers" sample code in the class javadoc works.
      */
