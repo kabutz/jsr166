@@ -29,7 +29,7 @@ package java.util.concurrent;
  *     throws InterruptedException, ExecutionException {
  *   CompletionService<Result> cs
  *       = new ExecutorCompletionService<>(e);
- *   solvers.forEach((solver) -> cs.submit(solver));
+ *   solvers.forEach(cs::submit);
  *   for (int i = solvers.size(); i > 0; i--) {
  *     Result r = cs.take().get();
  *     if (r != null)

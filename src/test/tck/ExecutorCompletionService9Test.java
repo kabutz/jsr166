@@ -34,7 +34,7 @@ public class ExecutorCompletionService9Test extends JSR166TestCase {
         throws InterruptedException, ExecutionException {
         CompletionService<Integer> cs
             = new ExecutorCompletionService<>(e);
-        solvers.forEach((solver) -> cs.submit(solver));
+        solvers.forEach(cs::submit);
         for (int i = solvers.size(); i > 0; i--) {
             Integer r = cs.take().get();
             if (r != null)
