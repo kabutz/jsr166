@@ -13,10 +13,9 @@ import java.util.HashSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 
 import junit.framework.Test;
@@ -88,7 +87,7 @@ public class ExecutorCompletionService9Test extends JSR166TestCase {
             () -> 2,
             () -> 3,
             () -> null);
-        solveAll(ForkJoinPool.commonPool(), solvers);
+        solveAll(cachedThreadPool, solvers);
         assertEquals(Set.of(1, 2, 3), results);
     }
 
@@ -102,7 +101,7 @@ public class ExecutorCompletionService9Test extends JSR166TestCase {
             () -> null,
             () -> 1,
             () -> 2);
-        solveAny(ForkJoinPool.commonPool(), solvers);
+        solveAny(cachedThreadPool, solvers);
         assertEquals(1, results.size());
         Integer elt = results.iterator().next();
         assertTrue(elt.equals(1) || elt.equals(2));

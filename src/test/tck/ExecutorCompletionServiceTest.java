@@ -13,11 +13,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
@@ -50,9 +48,8 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      * new ExecutorCompletionService(e, null) throws NullPointerException
      */
     public void testConstructorNPE2() {
-        final Executor e = ForkJoinPool.commonPool();
         try {
-            new ExecutorCompletionService(e, null);
+            new ExecutorCompletionService(cachedThreadPool, null);
             shouldThrow();
         } catch (NullPointerException success) {}
     }
@@ -61,10 +58,9 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      * ecs.submit(null) throws NullPointerException
      */
     public void testSubmitNullCallable() {
-        final ExecutorCompletionService ecs =
-            new ExecutorCompletionService(ForkJoinPool.commonPool());
+        CompletionService cs = new ExecutorCompletionService(cachedThreadPool);
         try {
-            ecs.submit((Callable) null);
+            cs.submit((Callable) null);
             shouldThrow();
         } catch (NullPointerException success) {}
     }
@@ -73,10 +69,9 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      * ecs.submit(null, val) throws NullPointerException
      */
     public void testSubmitNullRunnable() {
-        final ExecutorCompletionService ecs =
-            new ExecutorCompletionService(ForkJoinPool.commonPool());
+        CompletionService cs = new ExecutorCompletionService(cachedThreadPool);
         try {
-            ecs.submit((Runnable) null, Boolean.TRUE);
+            cs.submit((Runnable) null, Boolean.TRUE);
             shouldThrow();
         } catch (NullPointerException success) {}
     }
@@ -86,10 +81,9 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      */
     public void testTake()
         throws InterruptedException, ExecutionException {
-        final ExecutorCompletionService ecs =
-            new ExecutorCompletionService(ForkJoinPool.commonPool());
-        ecs.submit(new StringTask());
-        Future f = ecs.take();
+        CompletionService cs = new ExecutorCompletionService(cachedThreadPool);
+        cs.submit(new StringTask());
+        Future f = cs.take();
         assertTrue(f.isDone());
         assertSame(TEST_STRING, f.get());
     }
@@ -98,10 +92,9 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      * Take returns the same future object returned by submit
      */
     public void testTake2() throws InterruptedException {
-        final ExecutorCompletionService ecs =
-            new ExecutorCompletionService(ForkJoinPool.commonPool());
-        Future f1 = ecs.submit(new StringTask());
-        Future f2 = ecs.take();
+        CompletionService cs = new ExecutorCompletionService(cachedThreadPool);
+        Future f1 = cs.submit(new StringTask());
+        Future f2 = cs.take();
         assertSame(f1, f2);
     }
 
@@ -110,14 +103,13 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      */
     public void testPoll1()
         throws InterruptedException, ExecutionException {
-        final ExecutorCompletionService ecs =
-            new ExecutorCompletionService(ForkJoinPool.commonPool());
-        assertNull(ecs.poll());
-        ecs.submit(new StringTask());
+        CompletionService cs = new ExecutorCompletionService(cachedThreadPool);
+        assertNull(cs.poll());
+        cs.submit(new StringTask());
 
         long startTime = System.nanoTime();
         Future f;
-        while ((f = ecs.poll()) == null) {
+        while ((f = cs.poll()) == null) {
             if (millisElapsedSince(startTime) > LONG_DELAY_MS)
                 fail("timed out");
             Thread.yield();
@@ -131,14 +123,13 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      */
     public void testPoll2()
         throws InterruptedException, ExecutionException {
-        final ExecutorCompletionService ecs =
-            new ExecutorCompletionService(ForkJoinPool.commonPool());
-        assertNull(ecs.poll());
-        ecs.submit(new StringTask());
+        CompletionService cs = new ExecutorCompletionService(cachedThreadPool);
+        assertNull(cs.poll());
+        cs.submit(new StringTask());
 
         long startTime = System.nanoTime();
         Future f;
-        while ((f = ecs.poll(SHORT_DELAY_MS, MILLISECONDS)) == null) {
+        while ((f = cs.poll(SHORT_DELAY_MS, MILLISECONDS)) == null) {
             if (millisElapsedSince(startTime) > LONG_DELAY_MS)
                 fail("timed out");
             Thread.yield();
@@ -152,21 +143,20 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      */
     public void testPollReturnsNull()
         throws InterruptedException, ExecutionException {
-        final ExecutorCompletionService ecs =
-            new ExecutorCompletionService(ForkJoinPool.commonPool());
-        final CountDownLatch proceed = new CountDownLatch(1);
-        ecs.submit(new Callable() { public String call() throws Exception {
+        CompletionService cs = new ExecutorCompletionService(cachedThreadPool);
+        CountDownLatch proceed = new CountDownLatch(1);
+        cs.submit(new Callable() { public String call() throws Exception {
             proceed.await();
             return TEST_STRING;
         }});
-        assertNull(ecs.poll());
-        assertNull(ecs.poll(0L, MILLISECONDS));
-        assertNull(ecs.poll(Long.MIN_VALUE, MILLISECONDS));
+        assertNull(cs.poll());
+        assertNull(cs.poll(0L, MILLISECONDS));
+        assertNull(cs.poll(Long.MIN_VALUE, MILLISECONDS));
         long startTime = System.nanoTime();
-        assertNull(ecs.poll(timeoutMillis(), MILLISECONDS));
+        assertNull(cs.poll(timeoutMillis(), MILLISECONDS));
         assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
         proceed.countDown();
-        assertSame(TEST_STRING, ecs.take().get());
+        assertSame(TEST_STRING, cs.take().get());
     }
 
     /**
@@ -174,31 +164,28 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      */
     public void testTaskAssortment()
         throws InterruptedException, ExecutionException {
-        final ExecutorService e = Executors.newCachedThreadPool();
-        final CompletionService cs = new ExecutorCompletionService(e);
-        final ArithmeticException ex = new ArithmeticException();
-        try (PoolCleaner cleaner = cleaner(e)) {
-            for (int i = 0; i < 2; i++) {
-                cs.submit(new StringTask());
-                cs.submit(callableThrowing(ex));
-                cs.submit(runnableThrowing(ex), null);
-            }
-            int normalCompletions = 0;
-            int exceptionalCompletions = 0;
-            for (int i = 0; i < 3 * 2; i++) {
-                try {
-                    if (cs.take().get() == TEST_STRING)
-                        normalCompletions++;
-                }
-                catch (ExecutionException expected) {
-                    assertTrue(expected.getCause() instanceof ArithmeticException);
-                    exceptionalCompletions++;
-                }
-            }
-            assertEquals(2 * 1, normalCompletions);
-            assertEquals(2 * 2, exceptionalCompletions);
-            assertNull(cs.poll());
+        CompletionService cs = new ExecutorCompletionService(cachedThreadPool);
+        ArithmeticException ex = new ArithmeticException();
+        for (int i = 0; i < 2; i++) {
+            cs.submit(new StringTask());
+            cs.submit(callableThrowing(ex));
+            cs.submit(runnableThrowing(ex), null);
         }
+        int normalCompletions = 0;
+        int exceptionalCompletions = 0;
+        for (int i = 0; i < 3 * 2; i++) {
+            try {
+                if (cs.take().get() == TEST_STRING)
+                    normalCompletions++;
+            }
+            catch (ExecutionException expected) {
+                assertTrue(expected.getCause() instanceof ArithmeticException);
+                exceptionalCompletions++;
+            }
+        }
+        assertEquals(2 * 1, normalCompletions);
+        assertEquals(2 * 2, exceptionalCompletions);
+        assertNull(cs.poll());
     }
 
     /**

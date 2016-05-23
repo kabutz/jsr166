@@ -58,6 +58,7 @@ import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeoutException;
@@ -1841,4 +1842,11 @@ public class JSR166TestCase extends TestCase {
     public Runnable runnableThrowing(final RuntimeException ex) {
         return new Runnable() { public void run() { throw ex; }};
     }
+
+    /** A reusable thread pool to be shared by tests. */
+    static final ExecutorService cachedThreadPool =
+        new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                               1000L, MILLISECONDS,
+                               new SynchronousQueue<Runnable>());
+
 }
