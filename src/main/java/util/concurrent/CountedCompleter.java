@@ -733,7 +733,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
         try {
             MethodHandles.Lookup l = MethodHandles.lookup();
             PENDING = l.findVarHandle(CountedCompleter.class, "pending", int.class);
-            
+
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }

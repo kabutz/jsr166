@@ -940,7 +940,7 @@ public class ThreadLocalRandom extends Random {
     static final void eraseThreadLocals(Thread thread) {
         U.putObject(thread, THREADLOCALS, null);
         U.putObject(thread, INHERITABLETHREADLOCALS, null);
-    } 
+    }
 
     static final void setInheritedAccessControlContext(Thread thread,
                                                        AccessControlContext acc) {
@@ -974,7 +974,7 @@ public class ThreadLocalRandom extends Random {
         // fall through if null as cannot-happen safeguard
         throw new Error("Cannot create ThreadGroup");
     }
-    
+
     // Serialization support
 
     private static final long serialVersionUID = -5851777807851030925L;

@@ -385,7 +385,7 @@ public class LockSupport {
     static final long getThreadId(Thread thread) {
         return U.getLongVolatile(thread, TID);
     }
-    
+
     // Hotspot implementation via intrinsics API
     private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
     private static final long PARKBLOCKER;
@@ -399,7 +399,7 @@ public class LockSupport {
                 (Thread.class.getDeclaredField("threadLocalRandomSecondarySeed"));
             TID = U.objectFieldOffset
                 (Thread.class.getDeclaredField("tid"));
-            
+
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }

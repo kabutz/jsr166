@@ -2842,13 +2842,13 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     }
 
     // VarHandle mechanics
-    private static final VarHandle RESULT; 
+    private static final VarHandle RESULT;
     private static final VarHandle STACK;
     private static final VarHandle NEXT;
     static {
         try {
             MethodHandles.Lookup l = MethodHandles.lookup();
-            RESULT = l.findVarHandle(CompletableFuture.class, "result", Object.class); 
+            RESULT = l.findVarHandle(CompletableFuture.class, "result", Object.class);
             STACK = l.findVarHandle(CompletableFuture.class, "stack", Completion.class);
             NEXT = l.findVarHandle(Completion.class, "next", Completion.class);
         } catch (ReflectiveOperationException e) {

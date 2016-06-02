@@ -276,7 +276,7 @@ public class ConcurrentLinkedDeque<E>
         ITEM.set(node, item);
         return node;
     }
-    
+
     /**
      * Links e as first element.
      */

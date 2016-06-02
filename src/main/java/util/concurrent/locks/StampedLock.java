@@ -1290,7 +1290,7 @@ public class StampedLock implements java.io.Serializable {
                                 LockSupport.park(this);
                             else
                                 LockSupport.parkNanos(this, time);
-                    }                        
+                    }
                     node.thread = null;
                     if (Thread.interrupted()) {
                         if (interruptible)

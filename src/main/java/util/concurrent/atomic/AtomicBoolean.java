@@ -5,6 +5,7 @@
  */
 
 package java.util.concurrent.atomic;
+
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 
@@ -85,7 +86,7 @@ public class AtomicBoolean implements java.io.Serializable {
      * @return {@code true} if successful
      */
     public boolean weakCompareAndSet(boolean expect, boolean update) {
-        return VALUE.compareAndSet(this, 
+        return VALUE.compareAndSet(this,
                                    (expect ? 1 : 0),
                                    (update ? 1 : 0));
     }

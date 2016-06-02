@@ -5,6 +5,7 @@
  */
 
 package java.util.concurrent.atomic;
+
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 

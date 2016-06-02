@@ -500,7 +500,7 @@ public abstract class AbstractQueuedSynchronizer
         final void setPrevRelaxed(Node p) {
             PREV.set(this, p);
         }
-        
+
         // VarHandle mechanics
         private static final VarHandle NEXT;
         private static final VarHandle PREV;
