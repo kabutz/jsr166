@@ -225,7 +225,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     volatile Completion stack;    // Top of Treiber stack of dependent actions
 
     final boolean internalComplete(Object r) { // CAS from null to r
-        return RESULT.compareAndSet(this, (Object)null, r);
+        return RESULT.compareAndSet(this, null, r);
     }
 
     /** Returns true if successfully pushed c onto stack. */
@@ -252,7 +252,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
     /** Completes with the null value, unless already completed. */
     final boolean completeNull() {
-        return RESULT.compareAndSet(this, (Object)null, (Object)NIL);
+        return RESULT.compareAndSet(this, null, NIL);
     }
 
     /** Returns the encoding of the given non-exceptional value. */
@@ -262,7 +262,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
     /** Completes with a non-exceptional result, unless already completed. */
     final boolean completeValue(T t) {
-        return RESULT.compareAndSet(this, (Object)null, (t == null) ? NIL : t);
+        return RESULT.compareAndSet(this, null, (t == null) ? NIL : t);
     }
 
     /**
@@ -276,7 +276,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
     /** Completes with an exceptional result, unless already completed. */
     final boolean completeThrowable(Throwable x) {
-        return RESULT.compareAndSet(this, (Object)null, encodeThrowable(x));
+        return RESULT.compareAndSet(this, null, encodeThrowable(x));
     }
 
     /**
@@ -303,7 +303,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * existing CompletionException.
      */
     final boolean completeThrowable(Throwable x, Object r) {
-        return RESULT.compareAndSet(this, (Object)null, encodeThrowable(x, r));
+        return RESULT.compareAndSet(this, null, encodeThrowable(x, r));
     }
 
     /**
@@ -333,7 +333,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * If exceptional, r is first coerced to a CompletionException.
      */
     final boolean completeRelay(Object r) {
-        return RESULT.compareAndSet(this, (Object)null, encodeRelay(r));
+        return RESULT.compareAndSet(this, null, encodeRelay(r));
     }
 
     /**
