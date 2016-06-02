@@ -139,8 +139,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * this is merely an optimization.
      *
      * When constructing a Node (before enqueuing it) we avoid paying
-     * for a volatile write to item filed. This allows the cost of
-     * enqueue to be "one-and-a-half" CASes.
+     * for a volatile write to item.  This allows the cost of enqueue
+     * to be "one-and-a-half" CASes.
      *
      * Both head and tail may or may not point to a Node with a
      * non-null item.  If the queue is empty, all items must of course
