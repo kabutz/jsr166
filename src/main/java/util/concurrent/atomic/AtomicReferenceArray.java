@@ -6,6 +6,8 @@
 
 package java.util.concurrent.atomic;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.function.BinaryOperator;
@@ -22,37 +24,11 @@ import java.util.function.UnaryOperator;
  */
 public class AtomicReferenceArray<E> implements java.io.Serializable {
     private static final long serialVersionUID = -6209656149925076980L;
-
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-    private static final long ARRAY;
-    private static final int ABASE;
-    private static final int ASHIFT;
-    private final Object[] array; // must have exact type Object[]
-
+    private static final VarHandle AA;
     static {
-        try {
-            ARRAY = U.objectFieldOffset
-                (AtomicReferenceArray.class.getDeclaredField("array"));
-            ABASE = U.arrayBaseOffset(Object[].class);
-            int scale = U.arrayIndexScale(Object[].class);
-            if ((scale & (scale - 1)) != 0)
-                throw new Error("array index scale not a power of two");
-            ASHIFT = 31 - Integer.numberOfLeadingZeros(scale);
-        } catch (ReflectiveOperationException e) {
-            throw new Error(e);
-        }
+        AA = MethodHandles.arrayElementVarHandle(Object[].class);
     }
-
-    private long checkedByteOffset(int i) {
-        if (i < 0 || i >= array.length)
-            throw new IndexOutOfBoundsException("index " + i);
-
-        return byteOffset(i);
-    }
-
-    private static long byteOffset(int i) {
-        return ((long) i << ASHIFT) + ABASE;
-    }
+    private final Object[] array; // must have exact type Object[]
 
     /**
      * Creates a new AtomicReferenceArray of the given length, with all
@@ -91,13 +67,9 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * @param i the index
      * @return the current value
      */
-    public final E get(int i) {
-        return getRaw(checkedByteOffset(i));
-    }
-
     @SuppressWarnings("unchecked")
-    private E getRaw(long offset) {
-        return (E) U.getObjectVolatile(array, offset);
+    public final E get(int i) {
+        return (E)AA.getVolatile(array, i);
     }
 
     /**
@@ -107,7 +79,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * @param newValue the new value
      */
     public final void set(int i, E newValue) {
-        U.putObjectVolatile(array, checkedByteOffset(i), newValue);
+        AA.setVolatile(array, i, newValue);
     }
 
     /**
@@ -118,7 +90,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * @since 1.6
      */
     public final void lazySet(int i, E newValue) {
-        U.putObjectRelease(array, checkedByteOffset(i), newValue);
+        AA.setRelease(array, i, newValue);
     }
 
     /**
@@ -131,7 +103,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      */
     @SuppressWarnings("unchecked")
     public final E getAndSet(int i, E newValue) {
-        return (E)U.getAndSetObject(array, checkedByteOffset(i), newValue);
+        return (E)AA.getAndSet(array, i, newValue);
     }
 
     /**
@@ -145,11 +117,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * the actual value was not equal to the expected value.
      */
     public final boolean compareAndSet(int i, E expect, E update) {
-        return compareAndSetRaw(checkedByteOffset(i), expect, update);
-    }
-
-    private boolean compareAndSetRaw(long offset, E expect, E update) {
-        return U.compareAndSwapObject(array, offset, expect, update);
+        return AA.compareAndSet(array, i, expect, update);
     }
 
     /**
@@ -166,7 +134,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * @return {@code true} if successful
      */
     public final boolean weakCompareAndSet(int i, E expect, E update) {
-        return compareAndSet(i, expect, update);
+        return AA.weakCompareAndSet(array, i, expect, update);
     }
 
     /**
@@ -181,12 +149,12 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * @since 1.8
      */
     public final E getAndUpdate(int i, UnaryOperator<E> updateFunction) {
-        long offset = checkedByteOffset(i);
+        long offset = i;
         E prev, next;
         do {
-            prev = getRaw(offset);
+            prev = get(i);
             next = updateFunction.apply(prev);
-        } while (!compareAndSetRaw(offset, prev, next));
+        } while (!compareAndSet(i, prev, next));
         return prev;
     }
 
@@ -202,12 +170,11 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * @since 1.8
      */
     public final E updateAndGet(int i, UnaryOperator<E> updateFunction) {
-        long offset = checkedByteOffset(i);
         E prev, next;
         do {
-            prev = getRaw(offset);
+            prev = get(i);
             next = updateFunction.apply(prev);
-        } while (!compareAndSetRaw(offset, prev, next));
+        } while (!compareAndSet(i, prev, next));
         return next;
     }
 
@@ -228,12 +195,11 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      */
     public final E getAndAccumulate(int i, E x,
                                     BinaryOperator<E> accumulatorFunction) {
-        long offset = checkedByteOffset(i);
         E prev, next;
         do {
-            prev = getRaw(offset);
+            prev = get(i);
             next = accumulatorFunction.apply(prev, x);
-        } while (!compareAndSetRaw(offset, prev, next));
+        } while (!compareAndSet(i, prev, next));
         return prev;
     }
 
@@ -254,12 +220,11 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      */
     public final E accumulateAndGet(int i, E x,
                                     BinaryOperator<E> accumulatorFunction) {
-        long offset = checkedByteOffset(i);
         E prev, next;
         do {
-            prev = getRaw(offset);
+            prev = get(i);
             next = accumulatorFunction.apply(prev, x);
-        } while (!compareAndSetRaw(offset, prev, next));
+        } while (!compareAndSet(i, prev, next));
         return next;
     }
 
@@ -275,7 +240,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
         StringBuilder b = new StringBuilder();
         b.append('[');
         for (int i = 0; ; i++) {
-            b.append(getRaw(byteOffset(i)));
+            b.append(get(i));
             if (i == iMax)
                 return b.append(']').toString();
             b.append(',').append(' ');
@@ -292,12 +257,23 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     private void readObject(java.io.ObjectInputStream s)
         throws java.io.IOException, ClassNotFoundException {
         // Note: This must be changed if any additional fields are defined
+        java.lang.reflect.Field f = null;
+        try {
+            f = AtomicReferenceArray.class.getDeclaredField("array");
+            f.setAccessible(true);
+        } catch (ReflectiveOperationException e) {
+            throw new Error(e);
+        }
         Object a = s.readFields().get("array", null);
         if (a == null || !a.getClass().isArray())
             throw new java.io.InvalidObjectException("Not array type");
         if (a.getClass() != Object[].class)
             a = Arrays.copyOf((Object[])a, Array.getLength(a), Object[].class);
-        U.putObjectVolatile(this, ARRAY, a);
+        try {
+            f.set(this, a);
+        } catch (IllegalAccessException e) {
+            throw new Error(e);
+        }
     }
 
 }

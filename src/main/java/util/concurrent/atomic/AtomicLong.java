@@ -6,6 +6,8 @@
 
 package java.util.concurrent.atomic;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongUnaryOperator;
 
@@ -24,13 +26,11 @@ import java.util.function.LongUnaryOperator;
  */
 public class AtomicLong extends Number implements java.io.Serializable {
     private static final long serialVersionUID = 1927816293512124184L;
-
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-    private static final long VALUE;
+    private static final VarHandle VALUE;
 
     /**
      * Records whether the underlying JVM supports lockless
-     * compareAndSwap for longs. While the Unsafe.compareAndSwapLong
+     * compareAndSwap for longs. While the intrinsic compareAndSwapLong
      * method works in either case, some constructions should be
      * handled at Java level to avoid locking user-visible locks.
      */
@@ -44,8 +44,8 @@ public class AtomicLong extends Number implements java.io.Serializable {
 
     static {
         try {
-            VALUE = U.objectFieldOffset
-                (AtomicLong.class.getDeclaredField("value"));
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            VALUE = l.findVarHandle(AtomicLong.class, "value", long.class);
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }
@@ -83,9 +83,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @param newValue the new value
      */
     public final void set(long newValue) {
-        // Use putLongVolatile instead of ordinary volatile store when
-        // using compareAndSwapLong, for sake of some 32bit systems.
-        U.putLongVolatile(this, VALUE, newValue);
+        VALUE.setVolatile(this, newValue);
     }
 
     /**
@@ -95,7 +93,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @since 1.6
      */
     public final void lazySet(long newValue) {
-        U.putLongRelease(this, VALUE, newValue);
+        VALUE.setRelease(this, newValue);
     }
 
     /**
@@ -105,7 +103,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @return the previous value
      */
     public final long getAndSet(long newValue) {
-        return U.getAndSetLong(this, VALUE, newValue);
+        return (long)VALUE.getAndSet(this, newValue);
     }
 
     /**
@@ -118,7 +116,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * the actual value was not equal to the expected value.
      */
     public final boolean compareAndSet(long expect, long update) {
-        return U.compareAndSwapLong(this, VALUE, expect, update);
+        return VALUE.compareAndSet(this, expect, update);
     }
 
     /**
@@ -134,7 +132,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @return {@code true} if successful
      */
     public final boolean weakCompareAndSet(long expect, long update) {
-        return U.compareAndSwapLong(this, VALUE, expect, update);
+        return VALUE.compareAndSet(this, expect, update);
     }
 
     /**
@@ -143,7 +141,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @return the previous value
      */
     public final long getAndIncrement() {
-        return U.getAndAddLong(this, VALUE, 1L);
+        return (long)VALUE.getAndAdd(this, 1L);
     }
 
     /**
@@ -152,7 +150,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @return the previous value
      */
     public final long getAndDecrement() {
-        return U.getAndAddLong(this, VALUE, -1L);
+        return (long)VALUE.getAndAdd(this, -1L);
     }
 
     /**
@@ -162,7 +160,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @return the previous value
      */
     public final long getAndAdd(long delta) {
-        return U.getAndAddLong(this, VALUE, delta);
+        return (long)VALUE.getAndAdd(this, delta);
     }
 
     /**
@@ -171,7 +169,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @return the updated value
      */
     public final long incrementAndGet() {
-        return U.getAndAddLong(this, VALUE, 1L) + 1L;
+        return (long)VALUE.getAndAdd(this, 1L) + 1L;
     }
 
     /**
@@ -180,7 +178,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @return the updated value
      */
     public final long decrementAndGet() {
-        return U.getAndAddLong(this, VALUE, -1L) - 1L;
+        return (long)VALUE.getAndAdd(this, -1L) - 1L;
     }
 
     /**
@@ -190,7 +188,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @return the updated value
      */
     public final long addAndGet(long delta) {
-        return U.getAndAddLong(this, VALUE, delta) + delta;
+        return (long)VALUE.getAndAdd(this, delta) + delta;
     }
 
     /**

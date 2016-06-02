@@ -6,6 +6,8 @@
 
 package java.util.concurrent.atomic;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntUnaryOperator;
 
@@ -24,14 +26,11 @@ import java.util.function.IntUnaryOperator;
  */
 public class AtomicInteger extends Number implements java.io.Serializable {
     private static final long serialVersionUID = 6214790243416807050L;
-
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-    private static final long VALUE;
-
+    private static final VarHandle VALUE;
     static {
         try {
-            VALUE = U.objectFieldOffset
-                (AtomicInteger.class.getDeclaredField("value"));
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            VALUE = l.findVarHandle(AtomicInteger.class, "value", int.class);
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }
@@ -79,7 +78,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @since 1.6
      */
     public final void lazySet(int newValue) {
-        U.putIntRelease(this, VALUE, newValue);
+        VALUE.setRelease(this, newValue);
     }
 
     /**
@@ -89,7 +88,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @return the previous value
      */
     public final int getAndSet(int newValue) {
-        return U.getAndSetInt(this, VALUE, newValue);
+        return (int)VALUE.getAndSet(this, newValue);
     }
 
     /**
@@ -102,7 +101,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * the actual value was not equal to the expected value.
      */
     public final boolean compareAndSet(int expect, int update) {
-        return U.compareAndSwapInt(this, VALUE, expect, update);
+        return VALUE.compareAndSet(this, expect, update);
     }
 
     /**
@@ -118,7 +117,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @return {@code true} if successful
      */
     public final boolean weakCompareAndSet(int expect, int update) {
-        return U.compareAndSwapInt(this, VALUE, expect, update);
+        return VALUE.compareAndSet(this, expect, update);
     }
 
     /**
@@ -127,7 +126,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @return the previous value
      */
     public final int getAndIncrement() {
-        return U.getAndAddInt(this, VALUE, 1);
+        return (int)VALUE.getAndAdd(this, 1);
     }
 
     /**
@@ -136,7 +135,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @return the previous value
      */
     public final int getAndDecrement() {
-        return U.getAndAddInt(this, VALUE, -1);
+        return (int)VALUE.getAndAdd(this, -1);
     }
 
     /**
@@ -146,7 +145,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @return the previous value
      */
     public final int getAndAdd(int delta) {
-        return U.getAndAddInt(this, VALUE, delta);
+        return (int)VALUE.getAndAdd(this, delta);
     }
 
     /**
@@ -155,7 +154,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @return the updated value
      */
     public final int incrementAndGet() {
-        return U.getAndAddInt(this, VALUE, 1) + 1;
+        return (int)VALUE.getAndAdd(this, 1) + 1;
     }
 
     /**
@@ -164,7 +163,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @return the updated value
      */
     public final int decrementAndGet() {
-        return U.getAndAddInt(this, VALUE, -1) - 1;
+        return (int)VALUE.getAndAdd(this, -1) - 1;
     }
 
     /**
@@ -174,7 +173,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @return the updated value
      */
     public final int addAndGet(int delta) {
-        return U.getAndAddInt(this, VALUE, delta) + delta;
+        return (int)VALUE.getAndAdd(this, delta) + delta;
     }
 
     /**

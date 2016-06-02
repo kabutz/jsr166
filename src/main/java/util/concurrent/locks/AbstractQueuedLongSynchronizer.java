@@ -6,6 +6,8 @@
 
 package java.util.concurrent.locks;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -84,7 +86,7 @@ public abstract class AbstractQueuedLongSynchronizer
     protected final void setState(long newState) {
         // Use putLongVolatile instead of ordinary volatile store when
         // using compareAndSwapLong, for sake of some 32bit systems.
-        U.putLongVolatile(this, STATE, newState);
+        STATE.setVolatile(this, newState);
     }
 
     /**
@@ -99,7 +101,7 @@ public abstract class AbstractQueuedLongSynchronizer
      *         value was not equal to the expected value.
      */
     protected final boolean compareAndSetState(long expect, long update) {
-        return U.compareAndSwapLong(this, STATE, expect, update);
+        return STATE.compareAndSet(this, expect, update);
     }
 
     // Queuing utilities
@@ -120,7 +122,7 @@ public abstract class AbstractQueuedLongSynchronizer
         for (;;) {
             Node oldTail = tail;
             if (oldTail != null) {
-                U.putObject(node, Node.PREV, oldTail);
+                node.setPrevRelaxed(oldTail);
                 if (compareAndSetTail(oldTail, node)) {
                     oldTail.next = node;
                     return oldTail;
@@ -143,7 +145,7 @@ public abstract class AbstractQueuedLongSynchronizer
         for (;;) {
             Node oldTail = tail;
             if (oldTail != null) {
-                U.putObject(node, Node.PREV, oldTail);
+                node.setPrevRelaxed(oldTail);
                 if (compareAndSetTail(oldTail, node)) {
                     oldTail.next = node;
                     return node;
@@ -1781,28 +1783,17 @@ public abstract class AbstractQueuedLongSynchronizer
         }
     }
 
-    /**
-     * Setup to support compareAndSet. We need to natively implement
-     * this here: For the sake of permitting future enhancements, we
-     * cannot explicitly subclass AtomicLong, which would be
-     * efficient and useful otherwise. So, as the lesser of evils, we
-     * natively implement using hotspot intrinsics API. And while we
-     * are at it, we do the same for other CASable fields (which could
-     * otherwise be done with atomic field updaters).
-     */
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-    private static final long STATE;
-    private static final long HEAD;
-    private static final long TAIL;
+    // VarHandle mechanics
+    private static final VarHandle STATE;
+    private static final VarHandle HEAD;
+    private static final VarHandle TAIL;
 
     static {
         try {
-            STATE = U.objectFieldOffset
-                (AbstractQueuedLongSynchronizer.class.getDeclaredField("state"));
-            HEAD = U.objectFieldOffset
-                (AbstractQueuedLongSynchronizer.class.getDeclaredField("head"));
-            TAIL = U.objectFieldOffset
-                (AbstractQueuedLongSynchronizer.class.getDeclaredField("tail"));
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            STATE = l.findVarHandle(AbstractQueuedLongSynchronizer.class, "state", long.class);
+            HEAD = l.findVarHandle(AbstractQueuedLongSynchronizer.class, "head", Node.class);
+            TAIL = l.findVarHandle(AbstractQueuedLongSynchronizer.class, "tail", Node.class);
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }
@@ -1817,7 +1808,7 @@ public abstract class AbstractQueuedLongSynchronizer
      */
     private final void initializeSyncQueue() {
         Node h;
-        if (U.compareAndSwapObject(this, HEAD, null, (h = new Node())))
+        if (HEAD.compareAndSet(this, null, (h = new Node())))
             tail = h;
     }
 
@@ -1825,6 +1816,6 @@ public abstract class AbstractQueuedLongSynchronizer
      * CASes tail field.
      */
     private final boolean compareAndSetTail(Node expect, Node update) {
-        return U.compareAndSwapObject(this, TAIL, expect, update);
+        return TAIL.compareAndSet(this, expect, update);
     }
 }

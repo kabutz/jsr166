@@ -6,6 +6,8 @@
 
 package java.util.concurrent.atomic;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongUnaryOperator;
 
@@ -18,30 +20,11 @@ import java.util.function.LongUnaryOperator;
  */
 public class AtomicLongArray implements java.io.Serializable {
     private static final long serialVersionUID = -2308431214976778248L;
-
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-    private static final int ABASE;
-    private static final int ASHIFT;
-    private final long[] array;
-
+    private static final VarHandle AA;
     static {
-        ABASE = U.arrayBaseOffset(long[].class);
-        int scale = U.arrayIndexScale(long[].class);
-        if ((scale & (scale - 1)) != 0)
-            throw new Error("array index scale not a power of two");
-        ASHIFT = 31 - Integer.numberOfLeadingZeros(scale);
+        AA = MethodHandles.arrayElementVarHandle(long[].class);
     }
-
-    private long checkedByteOffset(int i) {
-        if (i < 0 || i >= array.length)
-            throw new IndexOutOfBoundsException("index " + i);
-
-        return byteOffset(i);
-    }
-
-    private static long byteOffset(int i) {
-        return ((long) i << ASHIFT) + ABASE;
-    }
+    private final long[] array;
 
     /**
      * Creates a new AtomicLongArray of the given length, with all
@@ -81,11 +64,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * @return the current value
      */
     public final long get(int i) {
-        return getRaw(checkedByteOffset(i));
-    }
-
-    private long getRaw(long offset) {
-        return U.getLongVolatile(array, offset);
+        return (long)AA.getVolatile(array, i);
     }
 
     /**
@@ -95,7 +74,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * @param newValue the new value
      */
     public final void set(int i, long newValue) {
-        U.putLongVolatile(array, checkedByteOffset(i), newValue);
+        AA.setVolatile(array, i, newValue);
     }
 
     /**
@@ -106,7 +85,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * @since 1.6
      */
     public final void lazySet(int i, long newValue) {
-        U.putLongRelease(array, checkedByteOffset(i), newValue);
+        AA.setRelease(array, i, newValue);
     }
 
     /**
@@ -118,7 +97,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * @return the previous value
      */
     public final long getAndSet(int i, long newValue) {
-        return U.getAndSetLong(array, checkedByteOffset(i), newValue);
+        return (long)AA.getAndSet(array, i, newValue);
     }
 
     /**
@@ -132,11 +111,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * the actual value was not equal to the expected value.
      */
     public final boolean compareAndSet(int i, long expect, long update) {
-        return compareAndSetRaw(checkedByteOffset(i), expect, update);
-    }
-
-    private boolean compareAndSetRaw(long offset, long expect, long update) {
-        return U.compareAndSwapLong(array, offset, expect, update);
+        return AA.compareAndSet(array, i, expect, update);
     }
 
     /**
@@ -153,7 +128,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * @return {@code true} if successful
      */
     public final boolean weakCompareAndSet(int i, long expect, long update) {
-        return compareAndSet(i, expect, update);
+        return AA.weakCompareAndSet(array, i, expect, update);
     }
 
     /**
@@ -163,7 +138,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * @return the previous value
      */
     public final long getAndIncrement(int i) {
-        return getAndAdd(i, 1);
+        return (long)AA.getAndAdd(array, i, 1L);
     }
 
     /**
@@ -173,7 +148,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * @return the previous value
      */
     public final long getAndDecrement(int i) {
-        return getAndAdd(i, -1);
+        return (long)AA.getAndAdd(array, i, -1L);
     }
 
     /**
@@ -184,7 +159,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * @return the previous value
      */
     public final long getAndAdd(int i, long delta) {
-        return U.getAndAddLong(array, checkedByteOffset(i), delta);
+        return (long)AA.getAndAdd(array, i, delta);
     }
 
     /**
@@ -194,7 +169,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * @return the updated value
      */
     public final long incrementAndGet(int i) {
-        return getAndAdd(i, 1) + 1;
+        return (long)AA.getAndAdd(array, i, 1L) + 1L;
     }
 
     /**
@@ -204,7 +179,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * @return the updated value
      */
     public final long decrementAndGet(int i) {
-        return getAndAdd(i, -1) - 1;
+        return (long)AA.getAndAdd(array, i, -1L) - 1L;
     }
 
     /**
@@ -215,7 +190,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * @return the updated value
      */
     public long addAndGet(int i, long delta) {
-        return getAndAdd(i, delta) + delta;
+        return (long)AA.getAndAdd(array, i, delta) + delta;
     }
 
     /**
@@ -230,12 +205,11 @@ public class AtomicLongArray implements java.io.Serializable {
      * @since 1.8
      */
     public final long getAndUpdate(int i, LongUnaryOperator updateFunction) {
-        long offset = checkedByteOffset(i);
         long prev, next;
         do {
-            prev = getRaw(offset);
+            prev = get(i);
             next = updateFunction.applyAsLong(prev);
-        } while (!compareAndSetRaw(offset, prev, next));
+        } while (!compareAndSet(i, prev, next));
         return prev;
     }
 
@@ -251,12 +225,11 @@ public class AtomicLongArray implements java.io.Serializable {
      * @since 1.8
      */
     public final long updateAndGet(int i, LongUnaryOperator updateFunction) {
-        long offset = checkedByteOffset(i);
         long prev, next;
         do {
-            prev = getRaw(offset);
+            prev = get(i);
             next = updateFunction.applyAsLong(prev);
-        } while (!compareAndSetRaw(offset, prev, next));
+        } while (!compareAndSet(i, prev, next));
         return next;
     }
 
@@ -277,12 +250,11 @@ public class AtomicLongArray implements java.io.Serializable {
      */
     public final long getAndAccumulate(int i, long x,
                                       LongBinaryOperator accumulatorFunction) {
-        long offset = checkedByteOffset(i);
         long prev, next;
         do {
-            prev = getRaw(offset);
+            prev = get(i);
             next = accumulatorFunction.applyAsLong(prev, x);
-        } while (!compareAndSetRaw(offset, prev, next));
+        } while (!compareAndSet(i, prev, next));
         return prev;
     }
 
@@ -303,12 +275,11 @@ public class AtomicLongArray implements java.io.Serializable {
      */
     public final long accumulateAndGet(int i, long x,
                                       LongBinaryOperator accumulatorFunction) {
-        long offset = checkedByteOffset(i);
         long prev, next;
         do {
-            prev = getRaw(offset);
+            prev = get(i);
             next = accumulatorFunction.applyAsLong(prev, x);
-        } while (!compareAndSetRaw(offset, prev, next));
+        } while (!compareAndSet(i, prev, next));
         return next;
     }
 
@@ -324,7 +295,7 @@ public class AtomicLongArray implements java.io.Serializable {
         StringBuilder b = new StringBuilder();
         b.append('[');
         for (int i = 0; ; i++) {
-            b.append(getRaw(byteOffset(i)));
+            b.append(get(i));
             if (i == iMax)
                 return b.append(']').toString();
             b.append(',').append(' ');

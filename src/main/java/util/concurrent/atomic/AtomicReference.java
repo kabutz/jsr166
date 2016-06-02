@@ -6,6 +6,8 @@
 
 package java.util.concurrent.atomic;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
 
@@ -19,20 +21,17 @@ import java.util.function.UnaryOperator;
  */
 public class AtomicReference<V> implements java.io.Serializable {
     private static final long serialVersionUID = -1848883965231344442L;
-
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-    private static final long VALUE;
-
+    private static final VarHandle VALUE;
     static {
         try {
-            VALUE = U.objectFieldOffset
-                (AtomicReference.class.getDeclaredField("value"));
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            VALUE = l.findVarHandle(AtomicReference.class, "value", Object.class);
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }
     }
 
-    private volatile V value;
+    private volatile Object value;
 
     /**
      * Creates a new AtomicReference with the given initial value.
@@ -54,8 +53,9 @@ public class AtomicReference<V> implements java.io.Serializable {
      *
      * @return the current value
      */
+    @SuppressWarnings("unchecked")
     public final V get() {
-        return value;
+        return (V)value;
     }
 
     /**
@@ -74,7 +74,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      * @since 1.6
      */
     public final void lazySet(V newValue) {
-        U.putObjectRelease(this, VALUE, newValue);
+        VALUE.setRelease(this, newValue);
     }
 
     /**
@@ -86,7 +86,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      * the actual value was not equal to the expected value.
      */
     public final boolean compareAndSet(V expect, V update) {
-        return U.compareAndSwapObject(this, VALUE, expect, update);
+        return VALUE.compareAndSet(this, expect, update);
     }
 
     /**
@@ -102,7 +102,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      * @return {@code true} if successful
      */
     public final boolean weakCompareAndSet(V expect, V update) {
-        return U.compareAndSwapObject(this, VALUE, expect, update);
+        return VALUE.compareAndSet(this, expect, update);
     }
 
     /**
@@ -113,7 +113,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      */
     @SuppressWarnings("unchecked")
     public final V getAndSet(V newValue) {
-        return (V)U.getAndSetObject(this, VALUE, newValue);
+        return (V)VALUE.getAndSet(this, newValue);
     }
 
     /**

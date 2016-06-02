@@ -5,6 +5,8 @@
  */
 
 package java.util.concurrent.atomic;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 
 /**
  * A {@code boolean} value that may be updated atomically. See the
@@ -19,14 +21,11 @@ package java.util.concurrent.atomic;
  */
 public class AtomicBoolean implements java.io.Serializable {
     private static final long serialVersionUID = 4654671469794556979L;
-
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-    private static final long VALUE;
-
+    private static final VarHandle VALUE;
     static {
         try {
-            VALUE = U.objectFieldOffset
-                (AtomicBoolean.class.getDeclaredField("value"));
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            VALUE = l.findVarHandle(AtomicBoolean.class, "value", int.class);
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }
@@ -68,7 +67,7 @@ public class AtomicBoolean implements java.io.Serializable {
      * the actual value was not equal to the expected value.
      */
     public final boolean compareAndSet(boolean expect, boolean update) {
-        return U.compareAndSwapInt(this, VALUE,
+        return VALUE.compareAndSet(this,
                                    (expect ? 1 : 0),
                                    (update ? 1 : 0));
     }
@@ -86,7 +85,7 @@ public class AtomicBoolean implements java.io.Serializable {
      * @return {@code true} if successful
      */
     public boolean weakCompareAndSet(boolean expect, boolean update) {
-        return U.compareAndSwapInt(this, VALUE,
+        return VALUE.compareAndSet(this, 
                                    (expect ? 1 : 0),
                                    (update ? 1 : 0));
     }
@@ -107,7 +106,7 @@ public class AtomicBoolean implements java.io.Serializable {
      * @since 1.6
      */
     public final void lazySet(boolean newValue) {
-        U.putIntRelease(this, VALUE, (newValue ? 1 : 0));
+        VALUE.setRelease(this, (newValue ? 1 : 0));
     }
 
     /**
