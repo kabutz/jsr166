@@ -6,6 +6,8 @@
 
 package java.util.concurrent;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.AbstractQueue;
 import java.util.Arrays;
 import java.util.Collection;
@@ -415,7 +417,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
 
     /**
      * Queue nodes. Uses Object, not E, for items to allow forgetting
-     * them after use.  Relies heavily on Unsafe mechanics to minimize
+     * them after use.  Relies heavily on VarHandles to minimize
      * unnecessary ordering constraints: Writes that are intrinsically
      * ordered wrt other accesses or CASes use simple relaxed forms.
      */
@@ -427,12 +429,12 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
 
         // CAS methods for fields
         final boolean casNext(Node cmp, Node val) {
-            return U.compareAndSwapObject(this, NEXT, cmp, val);
+            return NEXT.compareAndSet(this, cmp, val);
         }
 
         final boolean casItem(Object cmp, Object val) {
             // assert cmp == null || cmp.getClass() != Node.class;
-            return U.compareAndSwapObject(this, ITEM, cmp, val);
+            return ITEM.compareAndSet(this, cmp, val);
         }
 
         /**
@@ -440,7 +442,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
          * only be seen after publication via casNext.
          */
         Node(Object item, boolean isData) {
-            U.putObject(this, ITEM, item); // relaxed write
+            ITEM.set(this, item); // relaxed write
             this.isData = isData;
         }
 
@@ -449,7 +451,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
          * only after CASing head field, so uses relaxed write.
          */
         final void forgetNext() {
-            U.putObject(this, NEXT, this);
+            NEXT.set(this, this);
         }
 
         /**
@@ -462,8 +464,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
          * else we don't care).
          */
         final void forgetContents() {
-            U.putObject(this, ITEM, this);
-            U.putObject(this, WAITER, null);
+            ITEM.set(this, this);
+            WAITER.set(this, null);
         }
 
         /**
@@ -508,19 +510,16 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
 
         private static final long serialVersionUID = -3375979862319811754L;
 
-        // Unsafe mechanics
-        private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-        private static final long ITEM;
-        private static final long NEXT;
-        private static final long WAITER;
+        // VarHandle mechanics
+        private static final VarHandle ITEM;
+        private static final VarHandle NEXT;
+        private static final VarHandle WAITER;
         static {
             try {
-                ITEM = U.objectFieldOffset
-                    (Node.class.getDeclaredField("item"));
-                NEXT = U.objectFieldOffset
-                    (Node.class.getDeclaredField("next"));
-                WAITER = U.objectFieldOffset
-                    (Node.class.getDeclaredField("waiter"));
+                MethodHandles.Lookup l = MethodHandles.lookup();
+                ITEM = l.findVarHandle(Node.class, "item", Object.class);
+                NEXT = l.findVarHandle(Node.class, "next", Node.class);
+                WAITER = l.findVarHandle(Node.class, "waiter", Thread.class);
             } catch (ReflectiveOperationException e) {
                 throw new Error(e);
             }
@@ -538,15 +537,15 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
 
     // CAS methods for fields
     private boolean casTail(Node cmp, Node val) {
-        return U.compareAndSwapObject(this, TAIL, cmp, val);
+        return TAIL.compareAndSet(this, cmp, val);
     }
 
     private boolean casHead(Node cmp, Node val) {
-        return U.compareAndSwapObject(this, HEAD, cmp, val);
+        return HEAD.compareAndSet(this, cmp, val);
     }
 
     private boolean casSweepVotes(int cmp, int val) {
-        return U.compareAndSwapInt(this, SWEEPVOTES, cmp, val);
+        return SWEEPVOTES.compareAndSet(this, cmp, val);
     }
 
     /*
@@ -1533,20 +1532,19 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         }
     }
 
-    // Unsafe mechanics
-
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-    private static final long HEAD;
-    private static final long TAIL;
-    private static final long SWEEPVOTES;
+    // VarHandle mechanics
+    private static final VarHandle HEAD;
+    private static final VarHandle TAIL;
+    private static final VarHandle SWEEPVOTES;
     static {
         try {
-            HEAD = U.objectFieldOffset
-                (LinkedTransferQueue.class.getDeclaredField("head"));
-            TAIL = U.objectFieldOffset
-                (LinkedTransferQueue.class.getDeclaredField("tail"));
-            SWEEPVOTES = U.objectFieldOffset
-                (LinkedTransferQueue.class.getDeclaredField("sweepVotes"));
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            HEAD = l.findVarHandle(LinkedTransferQueue.class, "head",
+                                   Node.class);
+            TAIL = l.findVarHandle(LinkedTransferQueue.class, "tail",
+                                   Node.class);
+            SWEEPVOTES = l.findVarHandle(LinkedTransferQueue.class, "sweepVotes",
+                                         int.class);
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }

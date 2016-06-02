@@ -6,6 +6,8 @@
 
 package java.util.concurrent;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -223,18 +225,14 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     volatile Completion stack;    // Top of Treiber stack of dependent actions
 
     final boolean internalComplete(Object r) { // CAS from null to r
-        return U.compareAndSwapObject(this, RESULT, null, r);
-    }
-
-    final boolean casStack(Completion cmp, Completion val) {
-        return U.compareAndSwapObject(this, STACK, cmp, val);
+        return RESULT.compareAndSet(this, (Object)null, r);
     }
 
     /** Returns true if successfully pushed c onto stack. */
     final boolean tryPushStack(Completion c) {
         Completion h = stack;
-        lazySetNext(c, h);
-        return U.compareAndSwapObject(this, STACK, h, c);
+        NEXT.setRelease(c, h);
+        return STACK.compareAndSet(this, h, c);
     }
 
     /** Unconditionally pushes c onto stack, retrying if necessary. */
@@ -254,8 +252,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
     /** Completes with the null value, unless already completed. */
     final boolean completeNull() {
-        return U.compareAndSwapObject(this, RESULT, null,
-                                      NIL);
+        return RESULT.compareAndSet(this, (Object)null, (Object)NIL);
     }
 
     /** Returns the encoding of the given non-exceptional value. */
@@ -265,8 +262,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
     /** Completes with a non-exceptional result, unless already completed. */
     final boolean completeValue(T t) {
-        return U.compareAndSwapObject(this, RESULT, null,
-                                      (t == null) ? NIL : t);
+        return RESULT.compareAndSet(this, (Object)null, (t == null) ? NIL : t);
     }
 
     /**
@@ -280,8 +276,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
     /** Completes with an exceptional result, unless already completed. */
     final boolean completeThrowable(Throwable x) {
-        return U.compareAndSwapObject(this, RESULT, null,
-                                      encodeThrowable(x));
+        return RESULT.compareAndSet(this, (Object)null, encodeThrowable(x));
     }
 
     /**
@@ -308,8 +303,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * existing CompletionException.
      */
     final boolean completeThrowable(Throwable x, Object r) {
-        return U.compareAndSwapObject(this, RESULT, null,
-                                      encodeThrowable(x, r));
+        return RESULT.compareAndSet(this, (Object)null, encodeThrowable(x, r));
     }
 
     /**
@@ -339,8 +333,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * If exceptional, r is first coerced to a CompletionException.
      */
     final boolean completeRelay(Object r) {
-        return U.compareAndSwapObject(this, RESULT, null,
-                                      encodeRelay(r));
+        return RESULT.compareAndSet(this, (Object)null, encodeRelay(r));
     }
 
     /**
@@ -448,14 +441,6 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         public final void setRawResult(Void v) {}
     }
 
-    static void lazySetNext(Completion c, Completion next) {
-        U.putObjectRelease(c, NEXT, next);
-    }
-
-    static boolean casNext(Completion c, Completion cmp, Completion val) {
-        return U.compareAndSwapObject(c, NEXT, cmp, val);
-    }
-
     /**
      * Pops and tries to trigger all reachable dependents.  Call only
      * when known to be done.
@@ -470,13 +455,13 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         while ((h = f.stack) != null ||
                (f != this && (h = (f = this).stack) != null)) {
             CompletableFuture<?> d; Completion t;
-            if (f.casStack(h, t = h.next)) {
+            if (STACK.compareAndSet(f, h, t = h.next)) {
                 if (t != null) {
                     if (f != this) {
                         pushStack(h);
                         continue;
                     }
-                    casNext(h, t, null);    // try to detach
+                    NEXT.compareAndSet(h, t, (Completion)null); // try to detach
                 }
                 f = (d = h.tryFire(NESTED)) == null ? this : d;
             }
@@ -488,7 +473,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         boolean unlinked = false;
         Completion p;
         while ((p = stack) != null && !p.isLive()) // ensure head of stack live
-            unlinked = casStack(p, p.next);
+            unlinked = STACK.compareAndSet(this, p, p.next);
         if (p != null && !unlinked) {              // try to unlink first nonlive
             for (Completion q = p.next; q != null;) {
                 Completion s = q.next;
@@ -497,7 +482,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
                     q = s;
                 }
                 else {
-                    casNext(p, q, s);
+                    NEXT.compareAndSet(p, q, s);
                     break;
                 }
             }
@@ -546,7 +531,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         if (c != null) {
             while (!tryPushStack(c)) {
                 if (result != null) {
-                    lazySetNext(c, null);
+                    NEXT.setRelease(c, (Completion)null);
                     break;
                 }
             }
@@ -1110,11 +1095,11 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         if (c != null) {
             Object r;
             while ((r = result) == null && !tryPushStack(c))
-                lazySetNext(c, null); // clear on failure
+                NEXT.setRelease(c, (Completion)null);  // clear on failure
             if (b != null && b != this && b.result == null) {
                 Completion q = (r != null) ? c : new CoCompletion(c);
                 while (b.result == null && !b.tryPushStack(q))
-                    lazySetNext(q, null); // clear on failure
+                    NEXT.setRelease(q, (Completion)null);  // clear on failure
             }
         }
     }
@@ -1429,11 +1414,11 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
                         Completion q = new CoCompletion(c);
                         while (result == null && b.result == null &&
                                !b.tryPushStack(q))
-                            lazySetNext(q, null); // clear on failure
+                            NEXT.setRelease(q, (Completion)null);  // clear on failure
                     }
                     break;
                 }
-                lazySetNext(c, null); // clear on failure
+                NEXT.setRelease(c, (Completion)null);  // clear on failure
             }
         }
     }
@@ -2856,19 +2841,16 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
             throw new UnsupportedOperationException(); }
     }
 
-    // Unsafe mechanics
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-    private static final long RESULT;
-    private static final long STACK;
-    private static final long NEXT;
+    // VarHandle mechanics
+    private static final VarHandle RESULT; 
+    private static final VarHandle STACK;
+    private static final VarHandle NEXT;
     static {
         try {
-            RESULT = U.objectFieldOffset
-                (CompletableFuture.class.getDeclaredField("result"));
-            STACK = U.objectFieldOffset
-                (CompletableFuture.class.getDeclaredField("stack"));
-            NEXT = U.objectFieldOffset
-                (Completion.class.getDeclaredField("next"));
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            RESULT = l.findVarHandle(CompletableFuture.class, "result", Object.class); 
+            STACK = l.findVarHandle(CompletableFuture.class, "stack", Completion.class);
+            NEXT = l.findVarHandle(Completion.class, "next", Completion.class);
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }

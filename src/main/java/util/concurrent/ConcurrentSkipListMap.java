@@ -6,6 +6,8 @@
 
 package java.util.concurrent;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.AbstractMap;
@@ -372,7 +374,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      * compareAndSet head node.
      */
     private boolean casHead(HeadIndex<K,V> cmp, HeadIndex<K,V> val) {
-        return U.compareAndSwapObject(this, HEAD, cmp, val);
+        return HEAD.compareAndSet(this, cmp, val);
     }
 
     /* ---------------- Nodes -------------- */
@@ -415,14 +417,14 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
          * compareAndSet value field.
          */
         boolean casValue(Object cmp, Object val) {
-            return U.compareAndSwapObject(this, VALUE, cmp, val);
+            return VALUE.compareAndSet(this, cmp, val);
         }
 
         /**
          * compareAndSet next field.
          */
         boolean casNext(Node<K,V> cmp, Node<K,V> val) {
-            return U.compareAndSwapObject(this, NEXT, cmp, val);
+            return NEXT.compareAndSet(this, cmp, val);
         }
 
         /**
@@ -503,20 +505,16 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             return new AbstractMap.SimpleImmutableEntry<K,V>(key, vv);
         }
 
-        // Unsafe mechanics
-
-        private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-        private static final long VALUE;
-        private static final long NEXT;
-
+        // VarHandle mechanics
+        private static final VarHandle VALUE;
+        private static final VarHandle NEXT;
         static {
             try {
-                VALUE = U.objectFieldOffset
-                    (Node.class.getDeclaredField("value"));
-                NEXT = U.objectFieldOffset
-                    (Node.class.getDeclaredField("next"));
+                MethodHandles.Lookup l = MethodHandles.lookup();
+                VALUE = l.findVarHandle(Node.class, "value", Object.class);
+                NEXT = l.findVarHandle(Node.class, "next", Node.class);
             } catch (ReflectiveOperationException e) {
-                throw new Error(e);
+                    throw new Error(e);
             }
         }
     }
@@ -548,7 +546,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
          * compareAndSet right field.
          */
         final boolean casRight(Index<K,V> cmp, Index<K,V> val) {
-            return U.compareAndSwapObject(this, RIGHT, cmp, val);
+            return RIGHT.compareAndSet(this, cmp, val);
         }
 
         /**
@@ -584,19 +582,18 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             return node.value != null && casRight(succ, succ.right);
         }
 
-        // Unsafe mechanics
-        private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-        private static final long RIGHT;
+        // VarHandle mechanics
+        private static final VarHandle RIGHT;
         static {
             try {
-                RIGHT = U.objectFieldOffset
-                    (Index.class.getDeclaredField("right"));
+                MethodHandles.Lookup l = MethodHandles.lookup();
+                RIGHT = l.findVarHandle(Index.class, "right", Index.class);
             } catch (ReflectiveOperationException e) {
                 throw new Error(e);
             }
         }
     }
-
+        
     /* ---------------- Head nodes -------------- */
 
     /**
@@ -3575,13 +3572,13 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         }
     }
 
-    // Unsafe mechanics
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-    private static final long HEAD;
+    // Varhandle mechanics
+    private static final VarHandle HEAD;
     static {
         try {
-            HEAD = U.objectFieldOffset
-                (ConcurrentSkipListMap.class.getDeclaredField("head"));
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            HEAD = l.findVarHandle(ConcurrentSkipListMap.class, "head",
+                                   HeadIndex.class);
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }

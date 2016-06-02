@@ -1525,14 +1525,11 @@ public class CopyOnWriteArrayList<E>
 
     // Support for resetting lock while deserializing
     private void resetLock() {
-        U.putObjectVolatile(this, LOCK, new Object());
-    }
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-    private static final long LOCK;
-    static {
         try {
-            LOCK = U.objectFieldOffset
-                (CopyOnWriteArrayList.class.getDeclaredField("lock"));
+            java.lang.reflect.Field f =
+                CopyOnWriteArrayList.class.getDeclaredField("lock");
+            f.setAccessible(true);
+            f.set(this, new Object());
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }

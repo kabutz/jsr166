@@ -7,6 +7,8 @@
 package java.util.concurrent;
 
 import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
@@ -230,7 +232,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         for (int s;;) {
             if ((s = status) < 0)
                 return s;
-            if (U.compareAndSwapInt(this, STATUS, s, s | completion)) {
+            if (STATUS.compareAndSet(this, s, s | completion)) {
                 if ((s >>> 16) != 0)
                     synchronized (this) { notifyAll(); }
                 return completion;
@@ -268,7 +270,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     final void internalWait(long timeout) {
         int s;
         if ((s = status) >= 0 && // force completer to issue notify
-            U.compareAndSwapInt(this, STATUS, s, s | SIGNAL)) {
+            STATUS.compareAndSet(this, s, s | SIGNAL)) {
             synchronized (this) {
                 if (status >= 0)
                     try { wait(timeout); } catch (InterruptedException ie) { }
@@ -290,7 +292,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         if (s >= 0 && (s = status) >= 0) {
             boolean interrupted = false;
             do {
-                if (U.compareAndSwapInt(this, STATUS, s, s | SIGNAL)) {
+                if (STATUS.compareAndSet(this, s, s | SIGNAL)) {
                     synchronized (this) {
                         if (status >= 0) {
                             try {
@@ -324,7 +326,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
                   ForkJoinPool.common.tryExternalUnpush(this) ? doExec() :
                   0)) >= 0) {
             while ((s = status) >= 0) {
-                if (U.compareAndSwapInt(this, STATUS, s, s | SIGNAL)) {
+                if (STATUS.compareAndSet(this, s, s | SIGNAL)) {
                     synchronized (this) {
                         if (status >= 0)
                             wait(0L);
@@ -1002,7 +1004,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
                 while ((s = status) >= 0 &&
                        (ns = deadline - System.nanoTime()) > 0L) {
                     if ((ms = TimeUnit.NANOSECONDS.toMillis(ns)) > 0L &&
-                        U.compareAndSwapInt(this, STATUS, s, s | SIGNAL)) {
+                        STATUS.compareAndSet(this, s, s | SIGNAL)) {
                         synchronized (this) {
                             if (status >= 0)
                                 wait(ms); // OK to throw InterruptedException
@@ -1295,8 +1297,8 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      */
     public final short setForkJoinTaskTag(short newValue) {
         for (int s;;) {
-            if (U.compareAndSwapInt(this, STATUS, s = status,
-                                    (s & ~SMASK) | (newValue & SMASK)))
+            if (STATUS.compareAndSet(this, s = status,
+                                     (s & ~SMASK) | (newValue & SMASK)))
                 return (short)s;
         }
     }
@@ -1319,8 +1321,8 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         for (int s;;) {
             if ((short)(s = status) != expect)
                 return false;
-            if (U.compareAndSwapInt(this, STATUS, s,
-                                    (s & ~SMASK) | (update & SMASK)))
+            if (STATUS.compareAndSet(this, s,
+                                     (s & ~SMASK) | (update & SMASK)))
                 return true;
         }
     }
@@ -1481,17 +1483,15 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             setExceptionalCompletion((Throwable)ex);
     }
 
-    // Unsafe mechanics
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-    private static final long STATUS;
-
+    // VarHandle mechanics
+    private static final VarHandle STATUS;
     static {
         exceptionTableLock = new ReentrantLock();
         exceptionTableRefQueue = new ReferenceQueue<Object>();
         exceptionTable = new ExceptionNode[EXCEPTION_MAP_CAPACITY];
         try {
-            STATUS = U.objectFieldOffset
-                (ForkJoinTask.class.getDeclaredField("status"));
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            STATUS = l.findVarHandle(ForkJoinTask.class, "status", int.class);
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }

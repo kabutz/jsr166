@@ -6,6 +6,8 @@
 
 package java.util.concurrent;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.AbstractQueue;
 import java.util.Arrays;
 import java.util.Collection;
@@ -137,9 +139,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * this is merely an optimization.
      *
      * When constructing a Node (before enqueuing it) we avoid paying
-     * for a volatile write to item by using Unsafe.putObject instead
-     * of a normal write.  This allows the cost of enqueue to be
-     * "one-and-a-half" CASes.
+     * for a volatile write to item filed. This allows the cost of
+     * enqueue to be "one-and-a-half" CASes.
      *
      * Both head and tail may or may not point to a Node with a
      * non-null item.  If the queue is empty, all items must of course
@@ -149,31 +150,19 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * optimization.
      */
 
-    private static class Node<E> {
+    static final class Node<E> {
         volatile E item;
         volatile Node<E> next;
     }
 
     /**
      * Returns a new node holding item.  Uses relaxed write because item
-     * can only be seen after piggy-backing publication via casNext.
+     * can only be seen after piggy-backing publication via CAS.
      */
     static <E> Node<E> newNode(E item) {
         Node<E> node = new Node<E>();
-        U.putObject(node, ITEM, item);
+        ITEM.set(node, item);
         return node;
-    }
-
-    static <E> boolean casItem(Node<E> node, E cmp, E val) {
-        return U.compareAndSwapObject(node, ITEM, cmp, val);
-    }
-
-    static <E> void lazySetNext(Node<E> node, Node<E> val) {
-        U.putObjectRelease(node, NEXT, val);
-    }
-
-    static <E> boolean casNext(Node<E> node, Node<E> cmp, Node<E> val) {
-        return U.compareAndSwapObject(node, NEXT, cmp, val);
     }
 
     /**
@@ -227,7 +216,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             if (h == null)
                 h = t = newNode;
             else {
-                lazySetNext(t, newNode);
+                NEXT.setRelease(t, newNode);
                 t = newNode;
             }
         }
@@ -257,8 +246,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      */
     final void updateHead(Node<E> h, Node<E> p) {
         // assert h != null && p != null && (h == p || h.item == null);
-        if (h != p && casHead(h, p))
-            lazySetNext(h, h);
+        if (h != p && HEAD.compareAndSet(this, h, p))
+            NEXT.setRelease(h, h);
     }
 
     /**
@@ -285,12 +274,12 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             Node<E> q = p.next;
             if (q == null) {
                 // p is last node
-                if (casNext(p, null, newNode)) {
+                if (NEXT.compareAndSet(p, null, newNode)) {
                     // Successful CAS is the linearization point
                     // for e to become an element of this queue,
                     // and for newNode to become "live".
                     if (p != t) // hop two nodes at a time
-                        casTail(t, newNode);  // Failure is OK.
+                        TAIL.compareAndSet(this, t, newNode);  // Failure is OK.
                     return true;
                 }
                 // Lost CAS race to another thread; re-read next
@@ -313,7 +302,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             for (Node<E> h = head, p = h, q;;) {
                 E item = p.item;
 
-                if (item != null && casItem(p, item, null)) {
+                if (item != null && ITEM.compareAndSet(p, item, null)) {
                     // Successful CAS is the linearization point
                     // for item to be removed from this queue.
                     if (p != h) // hop two nodes at a time
@@ -454,12 +443,12 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                         next = succ(p);
                         continue;
                     }
-                    removed = casItem(p, item, null);
+                    removed = ITEM.compareAndSet(p, item, null);
                 }
 
                 next = succ(p);
                 if (pred != null && next != null) // unlink
-                    casNext(pred, p, next);
+                    NEXT.compareAndSet(pred, p, next);
                 if (removed)
                     return true;
             }
@@ -491,7 +480,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             if (beginningOfTheEnd == null)
                 beginningOfTheEnd = last = newNode;
             else {
-                lazySetNext(last, newNode);
+                NEXT.setRelease(last, newNode);
                 last = newNode;
             }
         }
@@ -503,15 +492,15 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             Node<E> q = p.next;
             if (q == null) {
                 // p is last node
-                if (casNext(p, null, beginningOfTheEnd)) {
+                if (NEXT.compareAndSet(p, null, beginningOfTheEnd)) {
                     // Successful CAS is the linearization point
                     // for all elements to be added to this queue.
-                    if (!casTail(t, last)) {
+                    if (!TAIL.compareAndSet(this, t, last)) {
                         // Try a little harder to update tail,
                         // since we may be adding many elements.
                         t = tail;
                         if (last.next == null)
-                            casTail(t, last);
+                            TAIL.compareAndSet(this, t, last);
                     }
                     return true;
                 }
@@ -715,7 +704,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                 }
                 // unlink deleted nodes
                 if ((q = succ(p)) != null)
-                    casNext(pred, p, q);
+                    NEXT.compareAndSet(pred, p, q);
             }
         }
 
@@ -772,7 +761,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             if (h == null)
                 h = t = newNode;
             else {
-                lazySetNext(t, newNode);
+                NEXT.setRelease(t, newNode);
                 t = newNode;
             }
         }
@@ -890,31 +879,20 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         return new CLQSpliterator<E>(this);
     }
 
-    private boolean casTail(Node<E> cmp, Node<E> val) {
-        return U.compareAndSwapObject(this, TAIL, cmp, val);
-    }
-
-    private boolean casHead(Node<E> cmp, Node<E> val) {
-        return U.compareAndSwapObject(this, HEAD, cmp, val);
-    }
-
-    // Unsafe mechanics
-
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-    private static final long HEAD;
-    private static final long TAIL;
-    private static final long ITEM;
-    private static final long NEXT;
+    // VarHandle mechanics
+    private static final VarHandle HEAD;
+    private static final VarHandle TAIL;
+    private static final VarHandle ITEM;
+    private static final VarHandle NEXT;
     static {
         try {
-            HEAD = U.objectFieldOffset
-                (ConcurrentLinkedQueue.class.getDeclaredField("head"));
-            TAIL = U.objectFieldOffset
-                (ConcurrentLinkedQueue.class.getDeclaredField("tail"));
-            ITEM = U.objectFieldOffset
-                (Node.class.getDeclaredField("item"));
-            NEXT = U.objectFieldOffset
-                (Node.class.getDeclaredField("next"));
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            HEAD = l.findVarHandle(ConcurrentLinkedQueue.class, "head",
+                                   Node.class);
+            TAIL = l.findVarHandle(ConcurrentLinkedQueue.class, "tail",
+                                   Node.class);
+            ITEM = l.findVarHandle(Node.class, "item", Object.class);
+            NEXT = l.findVarHandle(Node.class, "next", Node.class);
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }

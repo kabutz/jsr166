@@ -6,6 +6,9 @@
 
 package java.util.concurrent;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+
 /**
  * A {@link ForkJoinTask} with a completion action performed when
  * triggered and there are no remaining pending actions.
@@ -495,7 +498,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
      * @param delta the value to add
      */
     public final void addToPendingCount(int delta) {
-        U.getAndAddInt(this, PENDING, delta);
+        PENDING.getAndAdd(this, delta);
     }
 
     /**
@@ -507,7 +510,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
      * @return {@code true} if successful
      */
     public final boolean compareAndSetPendingCount(int expected, int count) {
-        return U.compareAndSwapInt(this, PENDING, expected, count);
+        return PENDING.compareAndSet(this, expected, count);
     }
 
     /**
@@ -519,7 +522,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
     public final int decrementPendingCountUnlessZero() {
         int c;
         do {} while ((c = pending) != 0 &&
-                     !U.compareAndSwapInt(this, PENDING, c, c - 1));
+                     !PENDING.compareAndSet(this, c, c - 1));
         return c;
     }
 
@@ -552,7 +555,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
                     return;
                 }
             }
-            else if (U.compareAndSwapInt(a, PENDING, c, c - 1))
+            else if (PENDING.compareAndSet(a, c, c - 1))
                 return;
         }
     }
@@ -575,7 +578,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
                     return;
                 }
             }
-            else if (U.compareAndSwapInt(a, PENDING, c, c - 1))
+            else if (PENDING.compareAndSet(a, c, c - 1))
                 return;
         }
     }
@@ -620,7 +623,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
         for (int c;;) {
             if ((c = pending) == 0)
                 return this;
-            else if (U.compareAndSwapInt(this, PENDING, c, c - 1))
+            else if (PENDING.compareAndSet(this, c, c - 1))
                 return null;
         }
     }
@@ -724,13 +727,13 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
      */
     protected void setRawResult(T t) { }
 
-    // Unsafe mechanics
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
-    private static final long PENDING;
+    // VarHandle mechanics
+    private static final VarHandle PENDING;
     static {
         try {
-            PENDING = U.objectFieldOffset
-                (CountedCompleter.class.getDeclaredField("pending"));
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            PENDING = l.findVarHandle(CountedCompleter.class, "pending", int.class);
+            
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }

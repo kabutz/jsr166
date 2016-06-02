@@ -7,6 +7,7 @@
 package java.util.concurrent;
 
 import java.io.ObjectStreamField;
+import java.security.AccessControlContext;
 import java.util.Random;
 import java.util.Spliterator;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -66,7 +67,9 @@ public class ThreadLocalRandom extends Random {
      * ThreadLocalRandom sequence.  The dual use is a marriage of
      * convenience, but is a simple and efficient way of reducing
      * application-level overhead and footprint of most concurrent
-     * programs.
+     * programs. Even more opportunistically, we also define here
+     * other package-private utilities that access Thread class
+     * fields.
      *
      * Even though this class subclasses java.util.Random, it uses the
      * same basic algorithm as java.util.SplittableRandom.  (See its
@@ -929,6 +932,49 @@ public class ThreadLocalRandom extends Random {
         return r;
     }
 
+    // Support for other package-private ThreadLocal access
+
+    /**
+     * Erases ThreadLocals by nulling out Thread maps.
+     */
+    static final void eraseThreadLocals(Thread thread) {
+        U.putObject(thread, THREADLOCALS, null);
+        U.putObject(thread, INHERITABLETHREADLOCALS, null);
+    } 
+
+    static final void setInheritedAccessControlContext(Thread thread,
+                                                       AccessControlContext acc) {
+        U.putObjectRelease(thread, INHERITEDACCESSCONTROLCONTEXT, acc);
+    }
+
+    /**
+     * Returns a new group with the system ThreadGroup (the
+     * topmost, parent-less group) as parent.  Uses Unsafe to
+     * traverse Thread.group and ThreadGroup.parent fields.
+     */
+    static final ThreadGroup createThreadGroup(String name) {
+        if (name == null)
+            throw new NullPointerException();
+        try {
+            long tg = U.objectFieldOffset
+                (Thread.class.getDeclaredField("group"));
+            long gp = U.objectFieldOffset
+                (ThreadGroup.class.getDeclaredField("parent"));
+            ThreadGroup group = (ThreadGroup)
+                U.getObject(Thread.currentThread(), tg);
+            while (group != null) {
+                ThreadGroup parent = (ThreadGroup)U.getObject(group, gp);
+                if (parent == null)
+                    return new ThreadGroup(group, name);
+                group = parent;
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new Error(e);
+        }
+        // fall through if null as cannot-happen safeguard
+        throw new Error("Cannot create ThreadGroup");
+    }
+    
     // Serialization support
 
     private static final long serialVersionUID = -5851777807851030925L;
@@ -997,6 +1043,9 @@ public class ThreadLocalRandom extends Random {
     private static final long SEED;
     private static final long PROBE;
     private static final long SECONDARY;
+    private static final long THREADLOCALS;
+    private static final long INHERITABLETHREADLOCALS;
+    private static final long INHERITEDACCESSCONTROLCONTEXT;
     static {
         try {
             SEED = U.objectFieldOffset
@@ -1005,6 +1054,12 @@ public class ThreadLocalRandom extends Random {
                 (Thread.class.getDeclaredField("threadLocalRandomProbe"));
             SECONDARY = U.objectFieldOffset
                 (Thread.class.getDeclaredField("threadLocalRandomSecondarySeed"));
+            THREADLOCALS = U.objectFieldOffset
+                (Thread.class.getDeclaredField("threadLocals"));
+            INHERITABLETHREADLOCALS = U.objectFieldOffset
+                (Thread.class.getDeclaredField("inheritableThreadLocals"));
+            INHERITEDACCESSCONTROLCONTEXT = U.objectFieldOffset
+                (Thread.class.getDeclaredField("inheritedAccessControlContext"));
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }
