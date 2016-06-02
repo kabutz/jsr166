@@ -1538,14 +1538,14 @@ public class ConcurrentLinkedDeque<E>
     private static final VarHandle HEAD;
     private static final VarHandle TAIL;
     private static final VarHandle PREV;
-    private static final VarHandle ITEM;
     private static final VarHandle NEXT;
+    private static final VarHandle ITEM;
     static {
+        PREV_TERMINATOR = new Node<Object>();
+        PREV_TERMINATOR.next = PREV_TERMINATOR;
+        NEXT_TERMINATOR = new Node<Object>();
+        NEXT_TERMINATOR.prev = NEXT_TERMINATOR;
         try {
-            PREV_TERMINATOR = new Node<Object>();
-            PREV_TERMINATOR.next = PREV_TERMINATOR;
-            NEXT_TERMINATOR = new Node<Object>();
-            NEXT_TERMINATOR.prev = NEXT_TERMINATOR;
             MethodHandles.Lookup l = MethodHandles.lookup();
             HEAD = l.findVarHandle(ConcurrentLinkedDeque.class, "head",
                                    Node.class);
