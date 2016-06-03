@@ -38,7 +38,7 @@ public class ForkJoinWorkerThread extends Thread {
      *
      * Support for (non-public) subclass InnocuousForkJoinWorkerThread
      * requires that we break quite a lot of encapsulation (via helper
-     * methods in Threadlocalrandom) both here and in the subclass to
+     * methods in ThreadLocalRandom) both here and in the subclass to
      * access and set Thread fields.
      */
 
