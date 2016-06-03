@@ -542,17 +542,17 @@ public class ForkJoinPool extends AbstractExecutorService {
      * Style notes
      * ===========
      *
-     * Memory ordering relies mainly on VarHandles This can be awkward
-     * and ugly, but also reflects the need to control outcomes across
-     * the unusual cases that arise in very racy code with very few
-     * invariants. So these explicit checks would exist in some form
-     * anyway.  All fields are read into locals before use, and
-     * null-checked if they are references.  This is usually done in a
-     * "C"-like style of listing declarations at the heads of methods
-     * or blocks, and using inline assignments on first encounter.
-     * Nearly all explicit checks lead to bypass/return, not exception
-     * throws, because they may legitimately arise due to
-     * cancellation/revocation during shutdown.
+     * Memory ordering relies mainly on VarHandles.  This can be
+     * awkward and ugly, but also reflects the need to control
+     * outcomes across the unusual cases that arise in very racy code
+     * with very few invariants. So these explicit checks would exist
+     * in some form anyway.  All fields are read into locals before
+     * use, and null-checked if they are references.  This is usually
+     * done in a "C"-like style of listing declarations at the heads
+     * of methods or blocks, and using inline assignments on first
+     * encounter.  Nearly all explicit checks lead to bypass/return,
+     * not exception throws, because they may legitimately arise due
+     * to cancellation/revocation during shutdown.
      *
      * There is a lot of representation-level coupling among classes
      * ForkJoinPool, ForkJoinWorkerThread, and ForkJoinTask.  The
