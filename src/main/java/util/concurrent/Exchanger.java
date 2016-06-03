@@ -336,7 +336,7 @@ public class Exchanger<V> {
             int j = (i << ASHIFT) + ((1 << ASHIFT) - 1);
             if (j < 0 || j >= alen)
                 j = alen - 1;
-            Node q = (Node)AA.get(a, j);
+            Node q = (Node)AA.getVolatile(a, j);
             if (q != null && AA.compareAndSet(a, j, q, null)) {
                 Object v = q.item;                     // release
                 q.match = item;
