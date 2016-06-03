@@ -461,7 +461,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
                         pushStack(h);
                         continue;
                     }
-                    NEXT.compareAndSet(h, t, (Completion)null); // try to detach
+                    NEXT.compareAndSet(h, t, null); // try to detach
                 }
                 f = (d = h.tryFire(NESTED)) == null ? this : d;
             }
@@ -531,7 +531,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         if (c != null) {
             while (!tryPushStack(c)) {
                 if (result != null) {
-                    NEXT.setRelease(c, (Completion)null);
+                    NEXT.setRelease(c, null);
                     break;
                 }
             }
@@ -1095,11 +1095,11 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         if (c != null) {
             Object r;
             while ((r = result) == null && !tryPushStack(c))
-                NEXT.setRelease(c, (Completion)null);  // clear on failure
+                NEXT.setRelease(c, null);  // clear on failure
             if (b != null && b != this && b.result == null) {
                 Completion q = (r != null) ? c : new CoCompletion(c);
                 while (b.result == null && !b.tryPushStack(q))
-                    NEXT.setRelease(q, (Completion)null);  // clear on failure
+                    NEXT.setRelease(q, null);  // clear on failure
             }
         }
     }
@@ -1414,11 +1414,11 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
                         Completion q = new CoCompletion(c);
                         while (result == null && b.result == null &&
                                !b.tryPushStack(q))
-                            NEXT.setRelease(q, (Completion)null);  // clear on failure
+                            NEXT.setRelease(q, null);  // clear on failure
                     }
                     break;
                 }
-                NEXT.setRelease(c, (Completion)null);  // clear on failure
+                NEXT.setRelease(c, null);  // clear on failure
             }
         }
     }
