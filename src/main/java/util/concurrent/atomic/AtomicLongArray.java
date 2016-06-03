@@ -20,10 +20,8 @@ import java.util.function.LongUnaryOperator;
  */
 public class AtomicLongArray implements java.io.Serializable {
     private static final long serialVersionUID = -2308431214976778248L;
-    private static final VarHandle AA;
-    static {
-        AA = MethodHandles.arrayElementVarHandle(long[].class);
-    }
+    private static final VarHandle AA
+        = MethodHandles.arrayElementVarHandle(long[].class);
     private final long[] array;
 
     /**

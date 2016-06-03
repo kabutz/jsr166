@@ -21,10 +21,8 @@ import java.util.function.IntUnaryOperator;
  */
 public class AtomicIntegerArray implements java.io.Serializable {
     private static final long serialVersionUID = 2862133569453604235L;
-    private static final VarHandle AA;
-    static {
-        AA = MethodHandles.arrayElementVarHandle(int[].class);
-    }
+    private static final VarHandle AA
+        = MethodHandles.arrayElementVarHandle(int[].class);
     private final int[] array;
 
     /**
