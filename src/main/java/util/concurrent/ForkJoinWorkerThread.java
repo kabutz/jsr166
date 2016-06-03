@@ -64,7 +64,7 @@ public class ForkJoinWorkerThread extends Thread {
     ForkJoinWorkerThread(ForkJoinPool pool, ThreadGroup threadGroup,
                          AccessControlContext acc) {
         super(threadGroup, null, "aForkJoinWorkerThread");
-        ThreadLocalRandom.setInheritedAccessControlContext(this,acc);
+        ThreadLocalRandom.setInheritedAccessControlContext(this, acc);
         ThreadLocalRandom.eraseThreadLocals(this); // clear before registering
         this.pool = pool;
         this.workQueue = pool.registerWorker(this);
