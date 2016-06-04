@@ -19,6 +19,7 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.StreamSupport;
+import jdk.internal.misc.Unsafe;
 
 /**
  * A random number generator isolated to the current thread.  Like the
@@ -1039,7 +1040,7 @@ public class ThreadLocalRandom extends Random {
     static final String BAD_SIZE  = "size must be non-negative";
 
     // Unsafe mechanics
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
+    private static final Unsafe U = Unsafe.getUnsafe();
     private static final long SEED;
     private static final long PROBE;
     private static final long SECONDARY;

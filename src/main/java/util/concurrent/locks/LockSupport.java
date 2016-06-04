@@ -6,6 +6,8 @@
 
 package java.util.concurrent.locks;
 
+import jdk.internal.misc.Unsafe;
+
 /**
  * Basic thread blocking primitives for creating locks and other
  * synchronization classes.
@@ -387,7 +389,7 @@ public class LockSupport {
     }
 
     // Hotspot implementation via intrinsics API
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
+    private static final Unsafe U = Unsafe.getUnsafe();
     private static final long PARKBLOCKER;
     private static final long SECONDARY;
     private static final long TID;

@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.LongBinaryOperator;
+import jdk.internal.misc.Unsafe;
 
 /**
  * A package-local class holding common representation and mechanics
@@ -344,7 +345,7 @@ abstract class Striped64 extends Number {
     }
 
     // Unsafe and VarHandle mechanics
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
+    private static final Unsafe U = Unsafe.getUnsafe();
     private static final VarHandle BASE;
     private static final VarHandle CELLSBUSY;
     private static final long PROBE;

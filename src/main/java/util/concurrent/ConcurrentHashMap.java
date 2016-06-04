@@ -39,6 +39,7 @@ import java.util.function.ToIntFunction;
 import java.util.function.ToLongBiFunction;
 import java.util.function.ToLongFunction;
 import java.util.stream.Stream;
+import jdk.internal.misc.Unsafe;
 
 /**
  * A hash table supporting full concurrency of retrievals and
@@ -3269,7 +3270,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
             return true;
         }
 
-        private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
+        private static final Unsafe U = Unsafe.getUnsafe();
         private static final long LOCKSTATE;
         static {
             try {
@@ -6312,7 +6313,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     // Unsafe mechanics
-    private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
+    private static final Unsafe U = Unsafe.getUnsafe();
     private static final long SIZECTL;
     private static final long TRANSFERINDEX;
     private static final long BASECOUNT;
