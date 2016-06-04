@@ -540,6 +540,13 @@
     </antcall>
   </target>
 
+  <target name="tck-security-manager"
+          description="Runs tck with a security manager">
+    <antcall target="tck">
+      <param name="jsr166.useSecurityManager" value="true"/>
+    </antcall>
+  </target>
+
   <target name="jtreg"
 	  depends="jar"
           description="Runs jtreg tests for src/main using the jtreg ant task">
