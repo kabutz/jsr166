@@ -225,10 +225,10 @@ public class Exchanger<V> {
      */
 
     /**
-     * The byte distance (as a shift value) between any two used slots
-     * in the arena.  1 << ASHIFT should be at least cacheline size.
+     * The index distance (as a shift value) between any two used slots
+     * in the arena, spacing them out to avoid false sharing.
      */
-    private static final int ASHIFT = 7;
+    private static final int ASHIFT = 5;
 
     /**
      * The maximum supported arena index. The maximum allocatable
