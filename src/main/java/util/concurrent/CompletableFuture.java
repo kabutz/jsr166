@@ -231,7 +231,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     /** Returns true if successfully pushed c onto stack. */
     final boolean tryPushStack(Completion c) {
         Completion h = stack;
-        NEXT.setRelease(c, h);
+        NEXT.set(c, h);         // CAS piggyback
         return STACK.compareAndSet(this, h, c);
     }
 
@@ -531,7 +531,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         if (c != null) {
             while (!tryPushStack(c)) {
                 if (result != null) {
-                    NEXT.setRelease(c, null);
+                    NEXT.set(c, null);
                     break;
                 }
             }
@@ -1095,11 +1095,11 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         if (c != null) {
             Object r;
             while ((r = result) == null && !tryPushStack(c))
-                NEXT.setRelease(c, null);  // clear on failure
+                NEXT.set(c, null);  // clear on failure
             if (b != null && b != this && b.result == null) {
                 Completion q = (r != null) ? c : new CoCompletion(c);
                 while (b.result == null && !b.tryPushStack(q))
-                    NEXT.setRelease(q, null);  // clear on failure
+                    NEXT.set(q, null);  // clear on failure
             }
         }
     }
@@ -1414,11 +1414,11 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
                         Completion q = new CoCompletion(c);
                         while (result == null && b.result == null &&
                                !b.tryPushStack(q))
-                            NEXT.setRelease(q, null);  // clear on failure
+                            NEXT.set(q, null);  // clear on failure
                     }
                     break;
                 }
-                NEXT.setRelease(c, null);  // clear on failure
+                NEXT.set(c, null);  // clear on failure
             }
         }
     }

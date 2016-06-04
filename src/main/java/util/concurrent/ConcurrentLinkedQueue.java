@@ -216,7 +216,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             if (h == null)
                 h = t = newNode;
             else {
-                NEXT.setRelease(t, newNode);
+                NEXT.set(t, newNode);
                 t = newNode;
             }
         }
@@ -480,7 +480,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             if (beginningOfTheEnd == null)
                 beginningOfTheEnd = last = newNode;
             else {
-                NEXT.setRelease(last, newNode);
+                NEXT.set(last, newNode);
                 last = newNode;
             }
         }
@@ -761,7 +761,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             if (h == null)
                 h = t = newNode;
             else {
-                NEXT.setRelease(t, newNode);
+                NEXT.set(t, newNode);
                 t = newNode;
             }
         }

@@ -295,7 +295,7 @@ public class ConcurrentLinkedDeque<E>
                     continue restartFromHead;
                 else {
                     // p is first node
-                    NEXT.setRelease(newNode, p); // CAS piggyback
+                    NEXT.set(newNode, p); // CAS piggyback
                     if (PREV.compareAndSet(p, null, newNode)) {
                         // Successful CAS is the linearization point
                         // for e to become an element of this deque,
@@ -327,7 +327,7 @@ public class ConcurrentLinkedDeque<E>
                     continue restartFromTail;
                 else {
                     // p is last node
-                    PREV.setRelease(newNode, p); // CAS piggyback
+                    PREV.set(newNode, p); // CAS piggyback
                     if (NEXT.compareAndSet(p, null, newNode)) {
                         // Successful CAS is the linearization point
                         // for e to become an element of this deque,
@@ -756,8 +756,8 @@ public class ConcurrentLinkedDeque<E>
             if (h == null)
                 h = t = newNode;
             else {
-                NEXT.setRelease(t, newNode);
-                PREV.setRelease(newNode, t);
+                NEXT.set(t, newNode);
+                PREV.set(newNode, t);
                 t = newNode;
             }
         }
@@ -774,8 +774,8 @@ public class ConcurrentLinkedDeque<E>
             else {
                 // Avoid edge case of a single Node with non-null item.
                 Node<E> newNode = new Node<E>();
-                NEXT.setRelease(t, newNode);
-                PREV.setRelease(newNode, t);
+                NEXT.set(t, newNode);
+                PREV.set(newNode, t);
                 t = newNode;
             }
         }
@@ -1099,8 +1099,8 @@ public class ConcurrentLinkedDeque<E>
             if (beginningOfTheEnd == null)
                 beginningOfTheEnd = last = newNode;
             else {
-                NEXT.setRelease(last, newNode);
-                PREV.setRelease(newNode, last);
+                NEXT.set(last, newNode);
+                PREV.set(newNode, last);
                 last = newNode;
             }
         }
@@ -1120,7 +1120,7 @@ public class ConcurrentLinkedDeque<E>
                     continue restartFromTail;
                 else {
                     // p is last node
-                    PREV.setRelease(beginningOfTheEnd, p); // CAS piggyback
+                    PREV.set(beginningOfTheEnd, p); // CAS piggyback
                     if (NEXT.compareAndSet(p, null, beginningOfTheEnd)) {
                         // Successful CAS is the linearization point
                         // for all elements to be added to this deque.
@@ -1526,8 +1526,8 @@ public class ConcurrentLinkedDeque<E>
             if (h == null)
                 h = t = newNode;
             else {
-                NEXT.setRelease(t, newNode);
-                PREV.setRelease(newNode, t);
+                NEXT.set(t, newNode);
+                PREV.set(newNode, t);
                 t = newNode;
             }
         }
