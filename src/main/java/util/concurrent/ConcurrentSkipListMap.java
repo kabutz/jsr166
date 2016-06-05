@@ -3572,7 +3572,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         }
     }
 
-    // Varhandle mechanics
+    // VarHandle mechanics
     private static final VarHandle HEAD;
     static {
         try {
