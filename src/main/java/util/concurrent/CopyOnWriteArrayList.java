@@ -16,6 +16,7 @@
 
 package java.util.concurrent;
 
+import java.lang.reflect.Field;
 import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1523,14 +1524,21 @@ public class CopyOnWriteArrayList<E>
         }
     }
 
-    // Support for resetting lock while deserializing
+    /** Initializes the lock; for use when deserializing or cloneing. */
     private void resetLock() {
+        Field lockField = java.security.AccessController.doPrivileged(
+            (java.security.PrivilegedAction<Field>) () -> {
+                try {
+                    Field f = CopyOnWriteArrayList.class
+                        .getDeclaredField("lock");
+                    f.setAccessible(true);
+                    return f;
+                } catch (ReflectiveOperationException e) {
+                    throw new Error(e);
+                }});
         try {
-            java.lang.reflect.Field f =
-                CopyOnWriteArrayList.class.getDeclaredField("lock");
-            f.setAccessible(true);
-            f.set(this, new Object());
-        } catch (ReflectiveOperationException e) {
+            lockField.set(this, new Object());
+        } catch (IllegalAccessException e) {
             throw new Error(e);
         }
     }

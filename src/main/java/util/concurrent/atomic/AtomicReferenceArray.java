@@ -9,6 +9,7 @@ package java.util.concurrent.atomic;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
@@ -255,20 +256,23 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     private void readObject(java.io.ObjectInputStream s)
         throws java.io.IOException, ClassNotFoundException {
         // Note: This must be changed if any additional fields are defined
-        java.lang.reflect.Field f = null;
-        try {
-            f = AtomicReferenceArray.class.getDeclaredField("array");
-            f.setAccessible(true);
-        } catch (ReflectiveOperationException e) {
-            throw new Error(e);
-        }
         Object a = s.readFields().get("array", null);
         if (a == null || !a.getClass().isArray())
             throw new java.io.InvalidObjectException("Not array type");
         if (a.getClass() != Object[].class)
             a = Arrays.copyOf((Object[])a, Array.getLength(a), Object[].class);
+        Field arrayField = java.security.AccessController.doPrivileged(
+            (java.security.PrivilegedAction<Field>) () -> {
+                try {
+                    Field f = AtomicReferenceArray.class
+                        .getDeclaredField("array");
+                    f.setAccessible(true);
+                    return f;
+                } catch (ReflectiveOperationException e) {
+                    throw new Error(e);
+                }});
         try {
-            f.set(this, a);
+            arrayField.set(this, a);
         } catch (IllegalAccessException e) {
             throw new Error(e);
         }
