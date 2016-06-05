@@ -212,7 +212,7 @@ public class Exchanger<V> {
      * not to be as readily inlined by dynamic compilers when they are
      * hidden behind other methods that would more nicely name and
      * encapsulate the intended effects). This includes the use of
-     * putXRelease to clear fields of the per-thread Nodes between
+     * setRelease to clear fields of the per-thread Nodes between
      * uses. Note that field Node.item is not declared as volatile
      * even though it is read by releasing threads, because they only
      * do so after CAS operations that must precede access, and all
