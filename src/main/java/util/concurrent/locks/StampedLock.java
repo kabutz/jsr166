@@ -1354,8 +1354,9 @@ public class StampedLock implements java.io.Serializable {
                     if (pred.next == node) // unsplice pred link
                         WNEXT.compareAndSet(pred, node, succ);
                     if (succ != null && (w = succ.thread) != null) {
+                        // wake up succ to observe new pred
                         succ.thread = null;
-                        LockSupport.unpark(w);// wake up succ to observe new pred
+                        LockSupport.unpark(w);
                     }
                     if (pred.status != CANCELLED || (pp = pred.prev) == null)
                         break;
