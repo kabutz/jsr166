@@ -1524,7 +1524,7 @@ public class CopyOnWriteArrayList<E>
         }
     }
 
-    /** Initializes the lock; for use when deserializing or cloneing. */
+    /** Initializes the lock; for use when deserializing or cloning. */
     private void resetLock() {
         Field lockField = java.security.AccessController.doPrivileged(
             (java.security.PrivilegedAction<Field>) () -> {
