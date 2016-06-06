@@ -208,7 +208,7 @@ public class StampedLock implements java.io.Serializable {
      * used in the acquire methods to reduce (increasingly expensive)
      * context switching while also avoiding sustained memory
      * thrashing among many threads.  We limit spins to the head of
-     * queue. If, upon wakening a thread fails to obtain lock, and is
+     * queue. If, upon wakening, a thread fails to obtain lock, and is
      * still (or becomes) the first waiting thread (which indicates
      * that some other thread barged and obtained lock), it escalates
      * spins (up to MAX_HEAD_SPINS) to reduce the likelihood of
