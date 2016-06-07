@@ -718,28 +718,35 @@ public class StampedLockTest extends JSR166TestCase {
     public void testTryConvertToOptimisticRead() throws InterruptedException {
         StampedLock lock = new StampedLock();
         long s, p;
-        s = 0L;
-        assertFalse((p = lock.tryConvertToOptimisticRead(s)) != 0L);
+        assertEquals(0L, lock.tryConvertToOptimisticRead(0L));
+
         assertTrue((s = lock.tryOptimisticRead()) != 0L);
-        assertTrue((p = lock.tryConvertToOptimisticRead(s)) != 0L);
+        assertEquals(s, lock.tryConvertToOptimisticRead(s));
+        assertTrue(lock.validate(s));
+
         assertTrue((s = lock.writeLock()) != 0L);
         assertTrue((p = lock.tryConvertToOptimisticRead(s)) != 0L);
         assertTrue(lock.validate(p));
+
         assertTrue((s = lock.readLock()) != 0L);
         assertTrue(lock.validate(s));
         assertTrue((p = lock.tryConvertToOptimisticRead(s)) != 0L);
         assertTrue(lock.validate(p));
+
         assertTrue((s = lock.tryWriteLock()) != 0L);
         assertTrue(lock.validate(s));
         assertTrue((p = lock.tryConvertToOptimisticRead(s)) != 0L);
         assertTrue(lock.validate(p));
+
         assertTrue((s = lock.tryReadLock()) != 0L);
         assertTrue(lock.validate(s));
         assertTrue((p = lock.tryConvertToOptimisticRead(s)) != 0L);
         assertTrue(lock.validate(p));
+
         assertTrue((s = lock.tryWriteLock(100L, MILLISECONDS)) != 0L);
         assertTrue((p = lock.tryConvertToOptimisticRead(s)) != 0L);
         assertTrue(lock.validate(p));
+
         assertTrue((s = lock.tryReadLock(100L, MILLISECONDS)) != 0L);
         assertTrue(lock.validate(s));
         assertTrue((p = lock.tryConvertToOptimisticRead(s)) != 0L);
