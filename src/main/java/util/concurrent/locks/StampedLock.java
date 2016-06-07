@@ -625,7 +625,7 @@ public class StampedLock implements java.io.Serializable {
                     release(h);
                 return next;
             }
-            else if (a == 0) {
+            else if (a == 0L) {
                 // optimistic read stamp
                 if ((s & ABITS) < RFULL) {
                     if (STATE.compareAndSet(this, s, next = s + RUNIT))
@@ -636,7 +636,7 @@ public class StampedLock implements java.io.Serializable {
             }
             else {
                 // already a read stamp
-                if ((s & ABITS) == 0)
+                if ((s & ABITS) == 0L)
                     break;
                 return stamp;
             }
@@ -658,15 +658,19 @@ public class StampedLock implements java.io.Serializable {
         long a, m, s, next; WNode h;
         VarHandle.acquireFence();
         while (((s = state) & SBITS) == (stamp & SBITS)) {
-            if ((a = stamp & ABITS) == WBIT) {
+            if ((a = stamp & ABITS) >= WBIT) {
+                // write stamp
+                if (s != stamp)
+                    break;
                 STATE.setVolatile(this, next = (s += WBIT) == 0L ? ORIGIN : s);
                 if ((h = whead) != null && h.status != 0)
                     release(h);
                 return next;
             }
-            else if ((a = stamp & ABITS) == 0L)
+            else if (a == 0L)
+                // already an optimistic read stamp
                 return stamp;
-            else if (a > WBIT || (m = s & ABITS) == 0) // Invalid stamp
+            else if ((m = s & ABITS) == 0L) // invalid read stamp
                 break;
             else if (m < RFULL) {
                 if (STATE.compareAndSet(this, s, next = s - RUNIT)) {
