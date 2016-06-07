@@ -674,23 +674,18 @@ public class StampedLock implements java.io.Serializable {
      * @return a valid optimistic read stamp, or zero on failure
      */
     public long tryConvertToOptimisticRead(long stamp) {
-        long a = stamp & ABITS, m, s, next; WNode h;
+        long a, m, s, next; WNode h;
         VarHandle.acquireFence();
         while (((s = state) & SBITS) == (stamp & SBITS)) {
-            if ((m = s & ABITS) == 0L) {
-                if (a != 0L)
-                    break;
-                return s;
-            }
-            else if (m == WBIT) {
-                if (a != m)
-                    break;
+            if ((a = stamp & ABITS) == 0L)
+                return stamp;
+            else if (a == WBIT) {
                 STATE.setVolatile(this, next = (s += WBIT) == 0L ? ORIGIN : s);
                 if ((h = whead) != null && h.status != 0)
                     release(h);
                 return next;
             }
-            else if (a == 0L || a >= WBIT)
+            else if (a > WBIT || (m = s & ABITS) == 0) // Invalid stamp
                 break;
             else if (m < RFULL) {
                 if (STATE.compareAndSet(this, s, next = s - RUNIT)) {
