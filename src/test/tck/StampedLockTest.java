@@ -833,40 +833,47 @@ public class StampedLockTest extends JSR166TestCase {
 
         assertTrue((s = lock.tryOptimisticRead()) != 0L);
         assertTrue((p = lock.tryConvertToWriteLock(s)) != 0L);
+        assertTrue(lock.isWriteLocked());
         lock.unlockWrite(p);
 
         assertTrue((s = lock.writeLock()) != 0L);
         assertEquals(s, lock.tryConvertToWriteLock(s));
         assertTrue(lock.validate(s));
+        assertTrue(lock.isWriteLocked());
         lock.unlockWrite(s);
 
         assertTrue((s = lock.readLock()) != 0L);
         assertTrue(lock.validate(s));
         assertTrue((p = lock.tryConvertToWriteLock(s)) != 0L);
         assertTrue(lock.validate(p));
+        assertTrue(lock.isWriteLocked());
         lock.unlockWrite(p);
 
         assertTrue((s = lock.tryWriteLock()) != 0L);
         assertTrue(lock.validate(s));
         assertEquals(s, lock.tryConvertToWriteLock(s));
         assertTrue(lock.validate(s));
+        assertTrue(lock.isWriteLocked());
         lock.unlockWrite(s);
 
         assertTrue((s = lock.tryReadLock()) != 0L);
         assertTrue(lock.validate(s));
         assertTrue((p = lock.tryConvertToWriteLock(s)) != 0L);
         assertTrue(lock.validate(p));
+        assertTrue(lock.isWriteLocked());
         lock.unlockWrite(p);
 
         assertTrue((s = lock.tryWriteLock(100L, MILLISECONDS)) != 0L);
         assertTrue((p = lock.tryConvertToWriteLock(s)) != 0L);
         assertTrue(lock.validate(p));
+        assertTrue(lock.isWriteLocked());
         lock.unlockWrite(p);
 
         assertTrue((s = lock.tryReadLock(100L, MILLISECONDS)) != 0L);
         assertTrue(lock.validate(s));
         assertTrue((p = lock.tryConvertToWriteLock(s)) != 0L);
         assertTrue(lock.validate(p));
+        assertTrue(lock.isWriteLocked());
         lock.unlockWrite(p);
     }
 
