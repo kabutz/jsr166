@@ -775,6 +775,14 @@ public class StampedLockTest extends JSR166TestCase {
         assertEquals(1, lock.getReadLockCount());
         lock.unlockRead(p);
 
+        assertTrue((s = lock.tryOptimisticRead()) != 0L);
+        lock.readLock();
+        assertTrue((p = lock.tryConvertToReadLock(s)) != 0L);
+        assertTrue(lock.isReadLocked());
+        assertEquals(2, lock.getReadLockCount());
+        lock.unlockRead(p);
+        lock.unlockRead(p);
+
         assertTrue((s = lock.writeLock()) != 0L);
         assertTrue((p = lock.tryConvertToReadLock(s)) != 0L);
         assertTrue(lock.validate(p));
