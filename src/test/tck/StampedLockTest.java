@@ -876,4 +876,16 @@ public class StampedLockTest extends JSR166TestCase {
         assertTrue(lock.tryLock());
     }
 
+    /**
+     * Lock.newCondition throws UnsupportedOperationException
+     */
+    public void testLockViewsDoNotSupportConditions() {
+        StampedLock sl = new StampedLock();
+        assertThrows(UnsupportedOperationException.class,
+                     () -> sl.asWriteLock().newCondition(),
+                     () -> sl.asReadLock().newCondition(),
+                     () -> sl.asReadWriteLock().writeLock().newCondition(),
+                     () -> sl.asReadWriteLock().readLock().newCondition());
+    }
+
 }
