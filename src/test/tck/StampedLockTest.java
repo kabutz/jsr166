@@ -977,7 +977,7 @@ public class StampedLockTest extends JSR166TestCase {
                 sl.unlock(stamp);
             },
         };
-                
+
         assertThrows(IllegalMonitorStateException.class, actions);
     }
 
