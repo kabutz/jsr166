@@ -656,14 +656,14 @@ public class StampedLock implements java.io.Serializable {
         long a, m, s, next; WNode h;
         VarHandle.acquireFence();
         while (((s = state) & SBITS) == (stamp & SBITS)) {
-            if ((a = stamp & ABITS) == 0L)
-                return stamp;
-            else if (a == WBIT) {
+            if ((a = stamp & ABITS) == WBIT) {
                 STATE.setVolatile(this, next = (s += WBIT) == 0L ? ORIGIN : s);
                 if ((h = whead) != null && h.status != 0)
                     release(h);
                 return next;
             }
+            else if ((a = stamp & ABITS) == 0L)
+                return stamp;
             else if (a > WBIT || (m = s & ABITS) == 0) // Invalid stamp
                 break;
             else if (m < RFULL) {
