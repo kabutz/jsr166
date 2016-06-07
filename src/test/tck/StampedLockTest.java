@@ -766,39 +766,59 @@ public class StampedLockTest extends JSR166TestCase {
     public void testTryConvertToReadLock() throws InterruptedException {
         StampedLock lock = new StampedLock();
         long s, p;
-        s = 0L;
-        assertFalse((p = lock.tryConvertToReadLock(s)) != 0L);
+
+        assertFalse((p = lock.tryConvertToReadLock(0L)) != 0L);
+
         assertTrue((s = lock.tryOptimisticRead()) != 0L);
         assertTrue((p = lock.tryConvertToReadLock(s)) != 0L);
+        assertTrue(lock.isReadLocked());
+        assertEquals(1, lock.getReadLockCount());
         lock.unlockRead(p);
+
         assertTrue((s = lock.writeLock()) != 0L);
         assertTrue((p = lock.tryConvertToReadLock(s)) != 0L);
         assertTrue(lock.validate(p));
+        assertTrue(lock.isReadLocked());
+        assertEquals(1, lock.getReadLockCount());
         lock.unlockRead(p);
+
         assertTrue((s = lock.readLock()) != 0L);
         assertTrue(lock.validate(s));
-        assertTrue((p = lock.tryConvertToReadLock(s)) != 0L);
-        assertTrue(lock.validate(p));
-        lock.unlockRead(p);
+        assertEquals(s, lock.tryConvertToReadLock(s));
+        assertTrue(lock.validate(s));
+        assertTrue(lock.isReadLocked());
+        assertEquals(1, lock.getReadLockCount());
+        lock.unlockRead(s);
+
         assertTrue((s = lock.tryWriteLock()) != 0L);
         assertTrue(lock.validate(s));
         assertTrue((p = lock.tryConvertToReadLock(s)) != 0L);
         assertTrue(lock.validate(p));
+        assertEquals(1, lock.getReadLockCount());
         lock.unlockRead(p);
+
         assertTrue((s = lock.tryReadLock()) != 0L);
         assertTrue(lock.validate(s));
-        assertTrue((p = lock.tryConvertToReadLock(s)) != 0L);
-        assertTrue(lock.validate(p));
-        lock.unlockRead(p);
+        assertEquals(s, lock.tryConvertToReadLock(s));
+        assertTrue(lock.validate(s));
+        assertTrue(lock.isReadLocked());
+        assertEquals(1, lock.getReadLockCount());
+        lock.unlockRead(s);
+
         assertTrue((s = lock.tryWriteLock(100L, MILLISECONDS)) != 0L);
         assertTrue((p = lock.tryConvertToReadLock(s)) != 0L);
         assertTrue(lock.validate(p));
+        assertTrue(lock.isReadLocked());
+        assertEquals(1, lock.getReadLockCount());
         lock.unlockRead(p);
+
         assertTrue((s = lock.tryReadLock(100L, MILLISECONDS)) != 0L);
         assertTrue(lock.validate(s));
-        assertTrue((p = lock.tryConvertToReadLock(s)) != 0L);
-        assertTrue(lock.validate(p));
-        lock.unlockRead(p);
+        assertEquals(s, lock.tryConvertToReadLock(s));
+        assertTrue(lock.validate(s));
+        assertTrue(lock.isReadLocked());
+        assertEquals(1, lock.getReadLockCount());
+        lock.unlockRead(s);
     }
 
     /**
