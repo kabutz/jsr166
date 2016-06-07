@@ -888,4 +888,97 @@ public class StampedLockTest extends JSR166TestCase {
                      () -> sl.asReadWriteLock().readLock().newCondition());
     }
 
+    /**
+     * Passing optimistic read stamps to unlock operations result in
+     * IllegalMonitorStateException
+     */
+    public void testCannotUnlockOptimisticReadStamps() {
+        Runnable[] actions = {
+            () -> {
+                StampedLock sl = new StampedLock();
+                long stamp = sl.tryOptimisticRead();
+                assertTrue(stamp != 0);
+                sl.unlockRead(stamp);
+            },
+            () -> {
+                StampedLock sl = new StampedLock();
+                long stamp = sl.tryOptimisticRead();
+                sl.unlock(stamp);
+            },
+
+            () -> {
+                StampedLock sl = new StampedLock();
+                long stamp = sl.tryOptimisticRead();
+                sl.writeLock();
+                sl.unlock(stamp);
+            },
+            () -> {
+                StampedLock sl = new StampedLock();
+                long stamp = sl.tryOptimisticRead();
+                sl.readLock();
+                sl.unlockRead(stamp);
+            },
+            () -> {
+                StampedLock sl = new StampedLock();
+                long stamp = sl.tryOptimisticRead();
+                sl.readLock();
+                sl.unlock(stamp);
+            },
+
+            () -> {
+                StampedLock sl = new StampedLock();
+                long stamp = sl.tryConvertToOptimisticRead(sl.writeLock());
+                assertTrue(stamp != 0);
+                sl.writeLock();
+                sl.unlockWrite(stamp);
+            },
+            () -> {
+                StampedLock sl = new StampedLock();
+                long stamp = sl.tryConvertToOptimisticRead(sl.writeLock());
+                sl.writeLock();
+                sl.unlock(stamp);
+            },
+            () -> {
+                StampedLock sl = new StampedLock();
+                long stamp = sl.tryConvertToOptimisticRead(sl.writeLock());
+                sl.readLock();
+                sl.unlockRead(stamp);
+            },
+            () -> {
+                StampedLock sl = new StampedLock();
+                long stamp = sl.tryConvertToOptimisticRead(sl.writeLock());
+                sl.readLock();
+                sl.unlock(stamp);
+            },
+
+            () -> {
+                StampedLock sl = new StampedLock();
+                long stamp = sl.tryConvertToOptimisticRead(sl.readLock());
+                assertTrue(stamp != 0);
+                sl.writeLock();
+                sl.unlockWrite(stamp);
+            },
+            () -> {
+                StampedLock sl = new StampedLock();
+                long stamp = sl.tryConvertToOptimisticRead(sl.readLock());
+                sl.writeLock();
+                sl.unlock(stamp);
+            },
+            () -> {
+                StampedLock sl = new StampedLock();
+                long stamp = sl.tryConvertToOptimisticRead(sl.readLock());
+                sl.readLock();
+                sl.unlockRead(stamp);
+            },
+            () -> {
+                StampedLock sl = new StampedLock();
+                long stamp = sl.tryConvertToOptimisticRead(sl.readLock());
+                sl.readLock();
+                sl.unlock(stamp);
+            },
+        };
+                
+        assertThrows(IllegalMonitorStateException.class, actions);
+    }
+
 }
