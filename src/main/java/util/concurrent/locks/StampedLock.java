@@ -676,9 +676,7 @@ public class StampedLock implements java.io.Serializable {
     public long tryConvertToOptimisticRead(long stamp) {
         long a = stamp & ABITS, m, s, next; WNode h;
         VarHandle.acquireFence();
-        for (;;) {
-            if (((s = state) & SBITS) != (stamp & SBITS))
-                break;
+        while (((s = state) & SBITS) == (stamp & SBITS)) {
             if ((m = s & ABITS) == 0L) {
                 if (a != 0L)
                     break;
