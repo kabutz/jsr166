@@ -808,34 +808,41 @@ public class StampedLockTest extends JSR166TestCase {
     public void testTryConvertToWriteLock() throws InterruptedException {
         StampedLock lock = new StampedLock();
         long s, p;
-        s = 0L;
-        assertFalse((p = lock.tryConvertToWriteLock(s)) != 0L);
+
+        assertFalse((p = lock.tryConvertToWriteLock(0L)) != 0L);
+
         assertTrue((s = lock.tryOptimisticRead()) != 0L);
         assertTrue((p = lock.tryConvertToWriteLock(s)) != 0L);
         lock.unlockWrite(p);
+
         assertTrue((s = lock.writeLock()) != 0L);
-        assertTrue((p = lock.tryConvertToWriteLock(s)) != 0L);
-        assertTrue(lock.validate(p));
-        lock.unlockWrite(p);
+        assertEquals(s, lock.tryConvertToWriteLock(s));
+        assertTrue(lock.validate(s));
+        lock.unlockWrite(s);
+
         assertTrue((s = lock.readLock()) != 0L);
         assertTrue(lock.validate(s));
         assertTrue((p = lock.tryConvertToWriteLock(s)) != 0L);
         assertTrue(lock.validate(p));
         lock.unlockWrite(p);
+
         assertTrue((s = lock.tryWriteLock()) != 0L);
         assertTrue(lock.validate(s));
-        assertTrue((p = lock.tryConvertToWriteLock(s)) != 0L);
-        assertTrue(lock.validate(p));
-        lock.unlockWrite(p);
+        assertEquals(s, lock.tryConvertToWriteLock(s));
+        assertTrue(lock.validate(s));
+        lock.unlockWrite(s);
+
         assertTrue((s = lock.tryReadLock()) != 0L);
         assertTrue(lock.validate(s));
         assertTrue((p = lock.tryConvertToWriteLock(s)) != 0L);
         assertTrue(lock.validate(p));
         lock.unlockWrite(p);
+
         assertTrue((s = lock.tryWriteLock(100L, MILLISECONDS)) != 0L);
         assertTrue((p = lock.tryConvertToWriteLock(s)) != 0L);
         assertTrue(lock.validate(p));
         lock.unlockWrite(p);
+
         assertTrue((s = lock.tryReadLock(100L, MILLISECONDS)) != 0L);
         assertTrue(lock.validate(s));
         assertTrue((p = lock.tryConvertToWriteLock(s)) != 0L);
