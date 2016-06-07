@@ -972,6 +972,21 @@ public class StampedLockTest extends JSR166TestCase {
             },
             () -> {
                 StampedLock sl = new StampedLock();
+                sl.readLock();
+                long stamp = sl.tryConvertToOptimisticRead(sl.readLock());
+                assertTrue(stamp != 0);
+                sl.readLock();
+                sl.unlockRead(stamp);
+            },
+            () -> {
+                StampedLock sl = new StampedLock();
+                long stamp = sl.tryConvertToOptimisticRead(sl.readLock());
+                sl.readLock();
+                sl.unlock(stamp);
+            },
+            () -> {
+                StampedLock sl = new StampedLock();
+                sl.readLock();
                 long stamp = sl.tryConvertToOptimisticRead(sl.readLock());
                 sl.readLock();
                 sl.unlock(stamp);
