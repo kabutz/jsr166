@@ -532,6 +532,14 @@ public class StampedLock implements java.io.Serializable {
         return ((s += WBIT) == 0L) ? ORIGIN : s;
     }
 
+    private long unlockWriteInternal(long s) {
+        long next; WNode h;
+        STATE.setVolatile(this, next = unlockWriteState(s));
+        if ((h = whead) != null && h.status != 0)
+            release(h);
+        return next;
+    }
+
     /**
      * If the lock state matches the given stamp, releases the
      * exclusive lock.
@@ -542,12 +550,9 @@ public class StampedLock implements java.io.Serializable {
      */
     @ReservedStackAccess
     public void unlockWrite(long stamp) {
-        WNode h;
         if (state != stamp || (stamp & WBIT) == 0L)
             throw new IllegalMonitorStateException();
-        STATE.setVolatile(this, unlockWriteState(stamp));
-        if ((h = whead) != null && h.status != 0)
-            release(h);
+        unlockWriteInternal(stamp);
     }
 
     /**
@@ -689,10 +694,7 @@ public class StampedLock implements java.io.Serializable {
                 // write stamp
                 if (s != stamp)
                     break;
-                STATE.setVolatile(this, next = unlockWriteState(s));
-                if ((h = whead) != null && h.status != 0)
-                    release(h);
-                return next;
+                return unlockWriteInternal(s);
             }
             else if (a == 0L)
                 // already an optimistic read stamp
@@ -721,11 +723,9 @@ public class StampedLock implements java.io.Serializable {
      */
     @ReservedStackAccess
     public boolean tryUnlockWrite() {
-        long s; WNode h;
+        long s;
         if (((s = state) & WBIT) != 0L) {
-            STATE.setVolatile(this, unlockWriteState(s));
-            if ((h = whead) != null && h.status != 0)
-                release(h);
+            unlockWriteInternal(s);
             return true;
         }
         return false;
@@ -902,12 +902,10 @@ public class StampedLock implements java.io.Serializable {
     // Needed because view-class lock methods throw away stamps.
 
     final void unstampedUnlockWrite() {
-        WNode h; long s;
+        long s;
         if (((s = state) & WBIT) == 0L)
             throw new IllegalMonitorStateException();
-        STATE.setVolatile(this, unlockWriteState(s));
-        if ((h = whead) != null && h.status != 0)
-            release(h);
+        unlockWriteInternal(s);
     }
 
     final void unstampedUnlockRead() {
