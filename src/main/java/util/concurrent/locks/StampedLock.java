@@ -274,7 +274,7 @@ public class StampedLock implements java.io.Serializable {
      * indicating spin-locked to manipulate reader bits overflow.
      */
 
-    // Initial value for lock state; avoid failure value zero
+    /** Initial value for lock state; avoids failure value zero. */
     private static final long ORIGIN = WBIT << 1;
 
     // Special value from cancelled acquire methods so caller can throw IE
@@ -518,6 +518,16 @@ public class StampedLock implements java.io.Serializable {
     }
 
     /**
+     * Returns an unlocked state, incrementing the version and
+     * avoiding special failure value 0L.
+     *
+     * @param s a write-locked state (or stamp)
+     */
+    private static long unlockWriteState(long s) {
+        return ((s += WBIT) == 0L) ? ORIGIN : s;
+    }
+
+    /**
      * If the lock state matches the given stamp, releases the
      * exclusive lock.
      *
@@ -530,7 +540,7 @@ public class StampedLock implements java.io.Serializable {
         WNode h;
         if (state != stamp || (stamp & WBIT) == 0L)
             throw new IllegalMonitorStateException();
-        STATE.setVolatile(this, (stamp += WBIT) == 0L ? ORIGIN : stamp);
+        STATE.setVolatile(this, unlockWriteState(stamp));
         if ((h = whead) != null && h.status != 0)
             release(h);
     }
@@ -632,7 +642,7 @@ public class StampedLock implements java.io.Serializable {
                 // write stamp
                 if (s != stamp)
                     break;
-                STATE.setVolatile(this, next = s + (WBIT + RUNIT));
+                STATE.setVolatile(this, next = unlockWriteState(s) + RUNIT);
                 if ((h = whead) != null && h.status != 0)
                     release(h);
                 return next;
@@ -674,7 +684,7 @@ public class StampedLock implements java.io.Serializable {
                 // write stamp
                 if (s != stamp)
                     break;
-                STATE.setVolatile(this, next = (s += WBIT) == 0L ? ORIGIN : s);
+                STATE.setVolatile(this, next = unlockWriteState(s));
                 if ((h = whead) != null && h.status != 0)
                     release(h);
                 return next;
@@ -708,7 +718,7 @@ public class StampedLock implements java.io.Serializable {
     public boolean tryUnlockWrite() {
         long s; WNode h;
         if (((s = state) & WBIT) != 0L) {
-            STATE.setVolatile(this, (s += WBIT) == 0L ? ORIGIN : s);
+            STATE.setVolatile(this, unlockWriteState(s));
             if ((h = whead) != null && h.status != 0)
                 release(h);
             return true;
@@ -890,7 +900,7 @@ public class StampedLock implements java.io.Serializable {
         WNode h; long s;
         if (((s = state) & WBIT) == 0L)
             throw new IllegalMonitorStateException();
-        STATE.setVolatile(this, (s += WBIT) == 0L ? ORIGIN : s);
+        STATE.setVolatile(this, unlockWriteState(s));
         if ((h = whead) != null && h.status != 0)
             release(h);
     }
