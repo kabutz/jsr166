@@ -925,8 +925,7 @@ public class StampedLock implements java.io.Serializable {
                 return s;
             }
         }
-        else if ((LockSupport.nextSecondarySeed() &
-                  OVERFLOW_YIELD_RATE) == 0)
+        else if ((LockSupport.nextSecondarySeed() & OVERFLOW_YIELD_RATE) == 0)
             Thread.yield();
         else
             Thread.onSpinWait();
