@@ -911,20 +911,19 @@ public class StampedLock implements java.io.Serializable {
     }
 
     final void unstampedUnlockRead() {
-        for (;;) {
-            long s, m; WNode h;
-            if ((m = (s = state) & ABITS) == 0L || m >= WBIT)
-                throw new IllegalMonitorStateException();
-            else if (m < RFULL) {
+        long s, m; WNode h;
+        while ((m = (s = state) & RBITS) > 0L) {
+            if (m < RFULL) {
                 if (STATE.compareAndSet(this, s, s - RUNIT)) {
                     if (m == RUNIT && (h = whead) != null && h.status != 0)
                         release(h);
-                    break;
+                    return;
                 }
             }
             else if (tryDecReaderOverflow(s) != 0L)
-                break;
+                return;
         }
+        throw new IllegalMonitorStateException();
     }
 
     private void readObject(java.io.ObjectInputStream s)
