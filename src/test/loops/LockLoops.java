@@ -18,6 +18,7 @@ public final class LockLoops {
     static boolean doBuiltin = true;
     static boolean doReadWrite = true;
     static boolean doSemaphore = true;
+    static boolean doStampedLock = true;
     static boolean doFair = true;
 
     public static void main(String[] args) throws Exception {
@@ -124,6 +125,18 @@ public final class LockLoops {
                 new FairReentrantReadWriteLockLoop().test(v, nthreads, iters);
                 Thread.sleep(10);
             }
+        }
+
+        if (doStampedLock) {
+            if (print)
+                System.out.print("StampedLockWrite   ");
+            new StampedLockWriteLoop().test(v, nthreads, iters);
+            Thread.sleep(10);
+
+            if (print)
+                System.out.print("StampedLockRead    ");
+            new StampedLockReadLoop().test(v, nthreads, iters);
+            Thread.sleep(10);
         }
     }
 
@@ -326,6 +339,7 @@ public final class LockLoops {
             return sum;
         }
     }
+
     private static class FairSemaphoreLoop extends LockLoop {
         private final Semaphore sem = new Semaphore(1, true);
         final int loop(int n) {
@@ -368,6 +382,42 @@ public final class LockLoops {
                 }
                 finally {
                     lock.writeLock().unlock();
+                }
+                sum += LoopHelpers.compute2(v);
+            }
+            return sum;
+        }
+    }
+
+    private static class StampedLockWriteLoop extends LockLoop {
+        private final StampedLock lock = new StampedLock();
+        final int loop(int n) {
+            int sum = 0;
+            while (n-- > 0) {
+                long stamp = lock.writeLock();
+                try {
+                    v = LoopHelpers.compute1(v);
+                }
+                finally {
+                    lock.unlockWrite(stamp);
+                }
+                sum += LoopHelpers.compute2(v);
+            }
+            return sum;
+        }
+    }
+
+    private static class StampedLockReadLoop extends LockLoop {
+        private final StampedLock lock = new StampedLock();
+        final int loop(int n) {
+            int sum = 0;
+            while (n-- > 0) {
+                long stamp = lock.readLock();
+                try {
+                    v = LoopHelpers.compute1(v);
+                }
+                finally {
+                    lock.unlockRead(stamp);
                 }
                 sum += LoopHelpers.compute2(v);
             }
