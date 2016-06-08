@@ -137,6 +137,11 @@ public final class LockLoops {
                 System.out.print("StampedLockRead    ");
             new StampedLockReadLoop().test(v, nthreads, iters);
             Thread.sleep(10);
+
+            if (print)
+                System.out.print("StampedLockReadWrite");
+            new StampedLockReadLoop().test(v, nthreads, iters);
+            Thread.sleep(10);
         }
     }
 
@@ -418,6 +423,31 @@ public final class LockLoops {
                 }
                 finally {
                     lock.unlockRead(stamp);
+                }
+                sum += LoopHelpers.compute2(v);
+            }
+            return sum;
+        }
+    }
+
+    private static class StampedLockReadWriteLoop extends LockLoop {
+        private final StampedLock lock = new StampedLock();
+        final int loop(int n) {
+            int sum = 0;
+            while (n-- > 0) {
+                int x;
+                long stamp = lock.readLock();
+                try {
+                    x = LoopHelpers.compute1(v);
+                }
+                finally {
+                    lock.unlockRead(stamp);
+                }
+                stamp = lock.writeLock();
+                try {
+                    v = x;
+                } finally {
+                    lock.unlockWrite(stamp);
                 }
                 sum += LoopHelpers.compute2(v);
             }
