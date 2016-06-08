@@ -779,7 +779,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 do { // emulate poll from old array, push to new array
                     int index = b & oldMask;
                     ForkJoinTask<?> x = (ForkJoinTask<?>)
-                        QA.getVolatile(oldA, index);
+                        QA.getAcquire(oldA, index);
                     if (x != null &&
                         QA.compareAndSet(oldA, index, x, null))
                         a[b & mask] = x;
@@ -819,7 +819,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                     (al = a.length) > 0) {
                     int index = (al - 1) & b;
                     ForkJoinTask<?> t = (ForkJoinTask<?>)
-                        QA.getVolatile(a, index);
+                        QA.getAcquire(a, index);
                     if (b++ == base) {
                         if (t != null) {
                             if (QA.compareAndSet(a, index, t, null)) {
@@ -1542,7 +1542,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                     int qid = q.id;                     // (never zero)
                     int index = (al - 1) & b;
                     ForkJoinTask<?> t = (ForkJoinTask<?>)
-                        QA.getVolatile(a, index);
+                        QA.getAcquire(a, index);
                     if (t != null && b++ == q.base &&
                         QA.compareAndSet(a, index, t, null)) {
                         if ((q.base = b) - q.top < 0 && qid != lastSignalId)
@@ -1653,7 +1653,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                             int qid = q.id;
                             int index = (al - 1) & b;
                             ForkJoinTask<?> t = (ForkJoinTask<?>)
-                                QA.getVolatile(a, index);
+                                QA.getAcquire(a, index);
                             if (t != null && b++ == q.base && id == q.source &&
                                 QA.compareAndSet(a, index, t, null)) {
                                 q.base = b;
@@ -1717,7 +1717,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                             }
                             int index = (al - 1) & b;
                             ForkJoinTask<?> t = (ForkJoinTask<?>)
-                                QA.getVolatile(a, index);
+                                QA.getAcquire(a, index);
                             if (t != null && b++ == q.base &&
                                 QA.compareAndSet(a, index, t, null)) {
                                 q.base = b;
@@ -1780,7 +1780,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                         (a = q.array) != null && (al = a.length) > 0) {
                         int index = (al - 1) & b;
                         ForkJoinTask<?> t = (ForkJoinTask<?>)
-                            QA.getVolatile(a, index);
+                            QA.getAcquire(a, index);
                         if (t != null && b++ == q.base &&
                             QA.compareAndSet(a, index, t, null)) {
                             q.base = b;
@@ -3122,7 +3122,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                         (al = a.length) > 0) {
                         int index = (al - 1) & b;
                         ForkJoinTask<?> t = (ForkJoinTask<?>)
-                            QA.getVolatile(a, index);
+                            QA.getAcquire(a, index);
                         if (blocker.isReleasable())
                             break;
                         else if (b++ == w.base) {

@@ -1087,7 +1087,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                             int mask = cap - 1;
                             for (int j = head; j != t; ++j) {
                                 int k = j & mask;
-                                Object x = QA.getVolatile(a, k);
+                                Object x = QA.getAcquire(a, k);
                                 if (x != null && // races with consumer
                                     QA.compareAndSet(a, k, x, null))
                                     newArray[j & newMask] = x;
@@ -1392,7 +1392,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                     }
                     else if ((a = array) == null || h == tail ||
                              (n = a.length) == 0 ||
-                             (x = QA.getVolatile(a, i = (n - 1) & h)) == null) {
+                             (x = QA.getAcquire(a, i = (n - 1) & h)) == null) {
                         if (!checkEmpty(s, c))
                             break;
                     }

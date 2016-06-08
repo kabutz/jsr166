@@ -336,7 +336,7 @@ public class Exchanger<V> {
             int j = (i << ASHIFT) + ((1 << ASHIFT) - 1);
             if (j < 0 || j >= alen)
                 j = alen - 1;
-            Node q = (Node)AA.getVolatile(a, j);
+            Node q = (Node)AA.getAcquire(a, j);
             if (q != null && AA.compareAndSet(a, j, q, null)) {
                 Object v = q.item;                     // release
                 q.match = item;
@@ -366,13 +366,13 @@ public class Exchanger<V> {
                                      (--spins & ((SPINS >>> 1) - 1)) == 0)
                                 Thread.yield();        // two yields per wait
                         }
-                        else if (AA.getVolatile(a, j) != p)
+                        else if (AA.getAcquire(a, j) != p)
                             spins = SPINS;       // releaser hasn't set match yet
                         else if (!t.isInterrupted() && m == 0 &&
                                  (!timed ||
                                   (ns = end - System.nanoTime()) > 0L)) {
                             p.parked = t;              // minimize window
-                            if (AA.getVolatile(a, j) == p) {
+                            if (AA.getAcquire(a, j) == p) {
                                 if (ns == 0L)
                                     LockSupport.park(this);
                                 else
@@ -380,7 +380,7 @@ public class Exchanger<V> {
                             }
                             p.parked = null;
                         }
-                        else if (AA.getVolatile(a, j) == p &&
+                        else if (AA.getAcquire(a, j) == p &&
                                  AA.compareAndSet(a, j, p, null)) {
                             if (m != 0)                // try to shrink
                                 BOUND.compareAndSet(this, b, b + SEQ - 1);
