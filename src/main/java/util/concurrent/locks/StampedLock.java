@@ -266,7 +266,8 @@ public class StampedLock implements java.io.Serializable {
      * 3 stamp modes can be distinguished by examining (m = stamp & ABITS):
      * write mode: m == WBIT
      * optimistic read mode: m == 0L (even when read lock is held)
-     * read mode: m > 0L && m <= RFULL
+     * read mode: m > 0L && m <= RFULL (the stamp is a copy of state, but the
+     * read hold count in the stamp is unused other than to determine mode)
      *
      * This differs slightly from the encoding of state:
      * (state & ABITS) == 0L indicates the lock is currently unlocked.
