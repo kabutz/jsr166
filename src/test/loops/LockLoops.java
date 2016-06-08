@@ -139,8 +139,13 @@ public final class LockLoops {
             Thread.sleep(10);
 
             if (print)
+                System.out.print("StampedLockOptRead");
+            new StampedLockOptimisticReadLoop().test(v, nthreads, iters);
+            Thread.sleep(10);
+
+            if (print)
                 System.out.print("StampedLockReadWrite");
-            new StampedLockReadLoop().test(v, nthreads, iters);
+            new StampedLockReadWriteLoop().test(v, nthreads, iters);
             Thread.sleep(10);
         }
     }
@@ -424,6 +429,22 @@ public final class LockLoops {
                 finally {
                     lock.unlockRead(stamp);
                 }
+                sum += LoopHelpers.compute2(v);
+            }
+            return sum;
+        }
+    }
+
+    private static class StampedLockOptimisticReadLoop extends LockLoop {
+        private final StampedLock lock = new StampedLock();
+        final int loop(int n) {
+            int sum = 0;
+            while (n-- > 0) {
+                long stamp;
+                do {
+                    stamp = lock.tryOptimisticRead();
+                    v = LoopHelpers.compute1(v);
+                } while (!lock.validate(stamp));
                 sum += LoopHelpers.compute2(v);
             }
             return sum;
