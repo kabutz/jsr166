@@ -534,20 +534,20 @@ public class StampedLock implements java.io.Serializable {
     @ReservedStackAccess
     public void unlockRead(long stamp) {
         long s, m; WNode h;
-        for (;;) {
-            if (((s = state) & SBITS) != (stamp & SBITS) ||
-                (stamp & ABITS) == 0L || (m = s & ABITS) == 0L || m == WBIT)
-                throw new IllegalMonitorStateException();
+        while (((s = state) & SBITS) == (stamp & SBITS)
+               && (stamp & RBITS) > 0L
+               && ((m = s & RBITS) > 0L)) {
             if (m < RFULL) {
                 if (STATE.compareAndSet(this, s, s - RUNIT)) {
                     if (m == RUNIT && (h = whead) != null && h.status != 0)
                         release(h);
-                    break;
+                    return;
                 }
             }
             else if (tryDecReaderOverflow(s) != 0L)
-                break;
+                return;
         }
+        throw new IllegalMonitorStateException();
     }
 
     /**
