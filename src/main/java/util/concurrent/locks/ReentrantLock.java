@@ -112,7 +112,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
             }
             return false;
         }
-        
+
         @ReservedStackAccess
         protected final boolean tryRelease(int releases) {
             int c = getState() - releases;
