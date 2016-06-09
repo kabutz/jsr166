@@ -3,8 +3,9 @@
  * Expert Group and released to the public domain, as explained at
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
+
 /*
- * A simple test program. Feel free to play.
+ * Simple benchmark comparing various locking techniques.
  */
 
 import java.util.*;
@@ -88,6 +89,11 @@ public final class LockLoops {
             if (print)
                 System.out.print("ReentrantWriteLock    ");
             new ReentrantWriteLockLoop().test(v, nthreads, iters);
+            Thread.sleep(10);
+
+            if (print)
+                System.out.print("ReentrantReadLock    ");
+            new ReentrantReadLockLoop().test(v, nthreads, iters);
             Thread.sleep(10);
 
             if (print)
@@ -267,6 +273,24 @@ public final class LockLoops {
 
     private static class ReentrantWriteLockLoop extends LockLoop {
         private final Lock lock = new ReentrantReadWriteLock().writeLock();
+        final int loop(int n) {
+            int sum = 0;
+            while (n-- > 0) {
+                lock.lock();
+                try {
+                    v = LoopHelpers.compute1(v);
+                }
+                finally {
+                    lock.unlock();
+                }
+                sum += LoopHelpers.compute2(v);
+            }
+            return sum;
+        }
+    }
+
+    private static class ReentrantReadLockLoop extends LockLoop {
+        private final Lock lock = new ReentrantReadWriteLock().readLock();
         final int loop(int n) {
             int sum = 0;
             while (n-- > 0) {
