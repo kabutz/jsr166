@@ -99,12 +99,11 @@ public class AddNonComparable {
                  assertTrue(e == null);
              });
 
-        // TODO
-//         test(new ConcurrentSkipListSet<>(), NonComparable::new,
-//              (s, e) -> {
-//                  assertEquals(s.size(), 0);
-//                  assertTrue(e instanceof ClassCastException);
-//              });
+        test(new ConcurrentSkipListSet<>(), NonComparable::new,
+             (s, e) -> {
+                 assertEquals(s.size(), 0);
+                 assertTrue(e instanceof ClassCastException);
+             });
         test(new ConcurrentSkipListSet<>(), AComparable::new,
              (s, e) -> {
                  assertEquals(s.size(), 1);
@@ -133,12 +132,11 @@ public class AddNonComparable {
                  assertTrue(e == null);
              });
 
-        // TODO
-//         test(new ConcurrentSkipListMap<>(), NonComparable::new,
-//              (s, e) -> {
-//                  assertEquals(s.size(), 0);
-//                  assertTrue(e instanceof ClassCastException);
-//              });
+        test(new ConcurrentSkipListMap<>(), NonComparable::new,
+             (s, e) -> {
+                 assertEquals(s.size(), 0);
+                 assertTrue(e instanceof ClassCastException);
+             });
         test(new ConcurrentSkipListMap<>(), AComparable::new,
              (s, e) -> {
                  assertEquals(s.size(), 1);
