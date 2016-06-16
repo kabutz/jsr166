@@ -80,13 +80,13 @@ public class AtomicReference<V> implements java.io.Serializable {
     /**
      * Atomically sets the value to the given updated value
      * if the current value {@code ==} the expected value.
-     * @param expect the expected value
-     * @param update the new value
+     * @param expectedValue the expected value
+     * @param newValue the new value
      * @return {@code true} if successful. False return indicates that
      * the actual value was not equal to the expected value.
      */
-    public final boolean compareAndSet(V expect, V update) {
-        return VALUE.compareAndSet(this, expect, update);
+    public final boolean compareAndSet(V expectedValue, V newValue) {
+        return VALUE.compareAndSet(this, expectedValue, newValue);
     }
 
     /**
@@ -97,12 +97,12 @@ public class AtomicReference<V> implements java.io.Serializable {
      * spuriously and does not provide ordering guarantees</a>, so is
      * only rarely an appropriate alternative to {@code compareAndSet}.
      *
-     * @param expect the expected value
-     * @param update the new value
+     * @param expectedValue the expected value
+     * @param newValue the new value
      * @return {@code true} if successful
      */
-    public final boolean weakCompareAndSet(V expect, V update) {
-        return VALUE.compareAndSet(this, expect, update);
+    public final boolean weakCompareAndSet(V expectedValue, V newValue) {
+        return VALUE.compareAndSet(this, expectedValue, newValue);
     }
 
     /**
@@ -127,12 +127,14 @@ public class AtomicReference<V> implements java.io.Serializable {
      * @since 1.8
      */
     public final V getAndUpdate(UnaryOperator<V> updateFunction) {
-        V prev, next;
-        do {
-            prev = get();
-            next = updateFunction.apply(prev);
-        } while (!compareAndSet(prev, next));
-        return prev;
+        V prev = get(), next = null;
+        for (boolean haveNext = false;;) {
+            if (!haveNext)
+                next = updateFunction.apply(prev);
+            if (weakCompareAndSetVolatile(prev, next))
+                return prev;
+            haveNext = (prev == (prev = get()));
+        }
     }
 
     /**
@@ -146,12 +148,14 @@ public class AtomicReference<V> implements java.io.Serializable {
      * @since 1.8
      */
     public final V updateAndGet(UnaryOperator<V> updateFunction) {
-        V prev, next;
-        do {
-            prev = get();
-            next = updateFunction.apply(prev);
-        } while (!compareAndSet(prev, next));
-        return next;
+        V prev = get(), next = null;
+        for (boolean haveNext = false;;) {
+            if (!haveNext)
+                next = updateFunction.apply(prev);
+            if (weakCompareAndSetVolatile(prev, next))
+                return next;
+            haveNext = (prev == (prev = get()));
+        }
     }
 
     /**
@@ -170,12 +174,14 @@ public class AtomicReference<V> implements java.io.Serializable {
      */
     public final V getAndAccumulate(V x,
                                     BinaryOperator<V> accumulatorFunction) {
-        V prev, next;
-        do {
-            prev = get();
-            next = accumulatorFunction.apply(prev, x);
-        } while (!compareAndSet(prev, next));
-        return prev;
+        V prev = get(), next = null;
+        for (boolean haveNext = false;;) {
+            if (!haveNext)
+                next = accumulatorFunction.apply(prev, x);
+            if (weakCompareAndSetVolatile(prev, next))
+                return prev;
+            haveNext = (prev == (prev = get()));
+        }
     }
 
     /**
@@ -194,12 +200,14 @@ public class AtomicReference<V> implements java.io.Serializable {
      */
     public final V accumulateAndGet(V x,
                                     BinaryOperator<V> accumulatorFunction) {
-        V prev, next;
-        do {
-            prev = get();
-            next = accumulatorFunction.apply(prev, x);
-        } while (!compareAndSet(prev, next));
-        return next;
+        V prev = get(), next = null;
+        for (boolean haveNext = false;;) {
+            if (!haveNext)
+                next = accumulatorFunction.apply(prev, x);
+            if (weakCompareAndSetVolatile(prev, next))
+                return next;
+            haveNext = (prev == (prev = get()));
+        }
     }
 
     /**
@@ -210,4 +218,183 @@ public class AtomicReference<V> implements java.io.Serializable {
         return String.valueOf(get());
     }
 
+    // jdk9
+
+    /**
+     * Returns the value, with memory semantics of reading as if the
+     * variable was declared non-{@code volatile}.
+     *
+     * @return the value
+     * @since 9
+     */
+    public final V getPlain() {
+        return (V)VALUE.get(this);
+    }
+
+    /**
+     * Sets the value to the {@code newValue}, with memory semantics
+     * of setting as if the variable was declared non-{@code volatile}
+     * and non-{@code final}.
+     *
+     * @param newValue the new value
+     * @since 9
+     */
+    public final void setPlain(V newValue) {
+        VALUE.set(this, newValue);
+    }
+
+    /**
+     * Returns the value, accessed in program order, but with no
+     * assurance of memory ordering effects with respect to other
+     * threads.
+     *
+     * @return the value
+     * @since 9
+     */
+    public final V getOpaque() {
+        return (V)VALUE.getOpaque(this);
+    }
+
+    /**
+     * Sets the value to the {@code newValue}, in program order, but
+     * with no assurance of memory ordering effects with respect to
+     * other threads.
+     *
+     * @param newValue the new value
+     * @since 9
+     */
+    public final void setOpaque(V newValue) {
+        VALUE.setOpaque(this, newValue);
+    }
+
+    /**
+     * Returns the value, and ensures that subsequent loads and stores
+     * are not reordered before this access.
+     *
+     * @return the value
+     * @since 9
+     */
+    public final V getAcquire() {
+        return (V)VALUE.getAcquire(this);
+    }
+
+    /**
+     * Sets the value to the {@code newValue}, and ensures that prior
+     * loads and stores are not reordered after this access.
+     *
+     * @param newValue the new value
+     * @since 9
+     */
+    public final void setRelease(V newValue) {
+        VALUE.setRelease(this, newValue);
+    }
+
+    /**
+     * Atomically sets the value to the {@code newValue} with the
+     * {@code volatile} memory semantics if the variable's current
+     * value, referred to as the <em>witness value</em>, {@code ==}
+     * the {@code expectedValue}, as accessed with {@code volatile}
+     * memory semantics.
+     *
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return the witness value, which will be the same as the {@code
+     * expectedValue} if successful }
+     * @since 9
+     */
+    public final V compareAndExchange(V expectedValue, V newValue) {
+        return (V)VALUE.compareAndExchangeVolatile(this, expectedValue, newValue);
+    }
+
+    /**
+     * Atomically sets the value to the {@code newValue} with the
+     * memory semantics of {@link #setPlain} if the variable's
+     * current value, referred to as the <em>witness value</em>,
+     * {@code ==} the {@code expectedValue}, as accessed with the
+     * memory semantics of {@link #getAcquire}.
+     *
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return the witness value, which will be the same as the {@code
+     * expectedValue} if successful }
+     * @since 9
+     */
+    public final V compareAndExchangeAcquire(V expectedValue, V newValue) {
+        return (V)VALUE.compareAndExchangeAcquire(this, expectedValue, newValue);
+    }
+
+    /**
+     * Atomically sets the value to the {@code newValue} with the
+     * memory semantics of {@link #setRelease} if the variable's
+     * current value, referred to as the <em>witness value</em>,
+     * {@code ==} the {@code expectedValue}, as accessed with the
+     * memory semantics of {@link #getPlain}.
+     *
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return the witness value, which will be the same as the {@code
+     * expectedValue} if successful }
+     * @since 9
+     */
+    public final V compareAndExchangeRelease(V expectedValue, V newValue) {
+        return (V)VALUE.compareAndExchangeRelease(this, expectedValue, newValue);
+    }
+
+    /**
+     * Possibly atomically sets the value to the {@code newValue} with
+     * {@code volatile} memory semantics if the variable's current
+     * value, referred to as the <em>witness value</em>, {@code ==}
+     * the {@code expectedValue}, as accessed with {@code volatile}
+     * memory semantics.
+     *
+     * <p>This operation may fail spuriously (typically, due to memory
+     * contention) even if the witness value does match the expected value.
+     *
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return {@code true} if successful
+     * @since 9
+     */
+    public final boolean weakCompareAndSetVolatile(V expectedValue, V newValue) {
+        return VALUE.weakCompareAndSetVolatile(this, expectedValue, newValue);
+    }
+
+    /**
+     * Possibly atomically sets the value to the {@code newValue} with
+     * the semantics of {@link #setPlain} if the variable's current
+     * value, referred to as the <em>witness value</em>, {@code ==}
+     * the {@code expectedValue}, as accessed with the memory
+     * semantics of {@link #getAcquire}.
+     *
+     * <p>This operation may fail spuriously (typically, due to memory
+     * contention) even if the witness value does match the expected value.
+     *
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return {@code true} if successful
+     * @since 9
+     */
+    public final boolean weakCompareAndSetAcquire(V expectedValue, V newValue) {
+        return VALUE.weakCompareAndSetAcquire(this, expectedValue, newValue);
+    }
+
+    /**
+     * Possibly atomically sets the value to the {@code newValue} with
+     * the semantics of {@link #setRelease} if the variable's current
+     * value, referred to as the <em>witness value</em>, {@code ==}
+     * the {@code expectedValue}, as accessed with the memory
+     * semantics of {@link #getPlain}.
+     *
+     * <p>This operation may fail spuriously (typically, due to memory
+     * contention) even if the witness value does match the expected value.
+     *
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return {@code true} if successful
+     * @since 9
+     */
+    public final boolean weakCompareAndSetRelease(V expectedValue, V newValue) {
+        return VALUE.weakCompareAndSetRelease(this, expectedValue, newValue);
+    }
+    
 }

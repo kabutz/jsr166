@@ -41,7 +41,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * for longs. Called only once and cached in VM_SUPPORTS_LONG_CAS.
      */
     private static native boolean VMSupportsCS8();
-
+    
     static {
         try {
             MethodHandles.Lookup l = MethodHandles.lookup();
@@ -110,13 +110,13 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * Atomically sets the value to the given updated value
      * if the current value {@code ==} the expected value.
      *
-     * @param expect the expected value
-     * @param update the new value
+     * @param expectedValue the expected value
+     * @param newValue the new value
      * @return {@code true} if successful. False return indicates that
      * the actual value was not equal to the expected value.
      */
-    public final boolean compareAndSet(long expect, long update) {
-        return VALUE.compareAndSet(this, expect, update);
+    public final boolean compareAndSet(long expectedValue, long newValue) {
+        return VALUE.compareAndSet(this, expectedValue, newValue);
     }
 
     /**
@@ -127,12 +127,12 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * spuriously and does not provide ordering guarantees</a>, so is
      * only rarely an appropriate alternative to {@code compareAndSet}.
      *
-     * @param expect the expected value
-     * @param update the new value
+     * @param expectedValue the expected value
+     * @param newValue the new value
      * @return {@code true} if successful
      */
-    public final boolean weakCompareAndSet(long expect, long update) {
-        return VALUE.compareAndSet(this, expect, update);
+    public final boolean weakCompareAndSet(long expectedValue, long newValue) {
+        return VALUE.compareAndSet(this, expectedValue, newValue);
     }
 
     /**
@@ -202,12 +202,14 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @since 1.8
      */
     public final long getAndUpdate(LongUnaryOperator updateFunction) {
-        long prev, next;
-        do {
-            prev = get();
-            next = updateFunction.applyAsLong(prev);
-        } while (!compareAndSet(prev, next));
-        return prev;
+        long prev = get(), next = 0L;
+        for (boolean haveNext = false;;) {
+            if (!haveNext)
+                next = updateFunction.applyAsLong(prev);
+            if (weakCompareAndSetVolatile(prev, next))
+                return prev;
+            haveNext = (prev == (prev = get()));
+        }
     }
 
     /**
@@ -221,12 +223,14 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @since 1.8
      */
     public final long updateAndGet(LongUnaryOperator updateFunction) {
-        long prev, next;
-        do {
-            prev = get();
-            next = updateFunction.applyAsLong(prev);
-        } while (!compareAndSet(prev, next));
-        return next;
+        long prev = get(), next = 0L;
+        for (boolean haveNext = false;;) {
+            if (!haveNext)
+                next = updateFunction.applyAsLong(prev);
+            if (weakCompareAndSetVolatile(prev, next))
+                return next;
+            haveNext = (prev == (prev = get()));
+        }
     }
 
     /**
@@ -245,12 +249,14 @@ public class AtomicLong extends Number implements java.io.Serializable {
      */
     public final long getAndAccumulate(long x,
                                        LongBinaryOperator accumulatorFunction) {
-        long prev, next;
-        do {
-            prev = get();
-            next = accumulatorFunction.applyAsLong(prev, x);
-        } while (!compareAndSet(prev, next));
-        return prev;
+        long prev = get(), next = 0L;
+        for (boolean haveNext = false;;) {
+            if (!haveNext)
+                next = accumulatorFunction.applyAsLong(prev, x);
+            if (weakCompareAndSetVolatile(prev, next))
+                return prev;
+            haveNext = (prev == (prev = get()));
+        }
     }
 
     /**
@@ -269,12 +275,14 @@ public class AtomicLong extends Number implements java.io.Serializable {
      */
     public final long accumulateAndGet(long x,
                                        LongBinaryOperator accumulatorFunction) {
-        long prev, next;
-        do {
-            prev = get();
-            next = accumulatorFunction.applyAsLong(prev, x);
-        } while (!compareAndSet(prev, next));
-        return next;
+        long prev = get(), next = 0L;
+        for (boolean haveNext = false;;) {
+            if (!haveNext)
+                next = accumulatorFunction.applyAsLong(prev, x);
+            if (weakCompareAndSetVolatile(prev, next))
+                return next;
+            haveNext = (prev == (prev = get()));
+        }
     }
 
     /**
@@ -318,6 +326,185 @@ public class AtomicLong extends Number implements java.io.Serializable {
      */
     public double doubleValue() {
         return (double)get();
+    }
+
+    // jdk9
+
+    /**
+     * Returns the value, with memory semantics of reading as if the
+     * variable was declared non-{@code volatile}.
+     *
+     * @return the value
+     * @since 9
+     */
+    public final long getPlain() {
+        return (long)VALUE.get(this);
+    }
+
+    /**
+     * Sets the value to the {@code newValue}, with memory semantics
+     * of setting as if the variable was declared non-{@code volatile}
+     * and non-{@code final}.
+     *
+     * @param newValue the new value
+     * @since 9
+     */
+    public final void setPlain(long newValue) {
+        VALUE.set(this, newValue);
+    }
+
+    /**
+     * Returns the value, accessed in program order, but with no
+     * assurance of memory ordering effects with respect to other
+     * threads.
+     *
+     * @return the value
+     * @since 9
+     */
+    public final long getOpaque() {
+        return (long)VALUE.getOpaque(this);
+    }
+
+    /**
+     * Sets the value to the {@code newValue}, in program order, but
+     * with no assurance of memory ordering effects with respect to
+     * other threads.
+     *
+     * @param newValue the new value
+     * @since 9
+     */
+    public final void setOpaque(long newValue) {
+        VALUE.setOpaque(this, newValue);
+    }
+
+    /**
+     * Returns the value, and ensures that subsequent loads and stores
+     * are not reordered before this access.
+     *
+     * @return the value
+     * @since 9
+     */
+    public final long getAcquire() {
+        return (long)VALUE.getAcquire(this);
+    }
+
+    /**
+     * Sets the value to the {@code newValue}, and ensures that prior
+     * loads and stores are not reordered after this access.
+     *
+     * @param newValue the new value
+     * @since 9
+     */
+    public final void setRelease(long newValue) {
+        VALUE.setRelease(this, newValue);
+    }
+
+    /**
+     * Atomically sets the value to the {@code newValue} with the
+     * {@code volatile} memory semantics if the variable's current
+     * value, referred to as the <em>witness value</em>, {@code ==}
+     * the {@code expectedValue}, as accessed with {@code volatile}
+     * memory semantics.
+     *
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return the witness value, which will be the same as the {@code
+     * expectedValue} if successful }
+     * @since 9
+     */
+    public final long compareAndExchange(long expectedValue, long newValue) {
+        return (long)VALUE.compareAndExchangeVolatile(this, expectedValue, newValue);
+    }
+
+    /**
+     * Atomically sets the value to the {@code newValue} with the
+     * memory semantics of {@link #setPlain} if the variable's
+     * current value, referred to as the <em>witness value</em>,
+     * {@code ==} the {@code expectedValue}, as accessed with the
+     * memory semantics of {@link #getAcquire}.
+     *
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return the witness value, which will be the same as the {@code
+     * expectedValue} if successful }
+     * @since 9
+     */
+    public final long compareAndExchangeAcquire(long expectedValue, long newValue) {
+        return (long)VALUE.compareAndExchangeAcquire(this, expectedValue, newValue);
+    }
+
+    /**
+     * Atomically sets the value to the {@code newValue} with the
+     * memory semantics of {@link #setRelease} if the variable's
+     * current value, referred to as the <em>witness value</em>,
+     * {@code ==} the {@code expectedValue}, as accessed with the
+     * memory semantics of {@link #getPlain}.
+     *
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return the witness value, which will be the same as the {@code
+     * expectedValue} if successful }
+     * @since 9
+     */
+    public final long compareAndExchangeRelease(long expectedValue, long newValue) {
+        return (long)VALUE.compareAndExchangeRelease(this, expectedValue, newValue);
+    }
+
+    /**
+     * Possibly atomically sets the value to the {@code newValue} with
+     * {@code volatile} memory semantics if the variable's current
+     * value, referred to as the <em>witness value</em>, {@code ==}
+     * the {@code expectedValue}, as accessed with {@code volatile}
+     * memory semantics.
+     *
+     * <p>This operation may fail spuriously (typically, due to memory
+     * contention) even if the witness value does match the expected value.
+     *
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return {@code true} if successful
+     * @since 9
+     */
+    public final boolean weakCompareAndSetVolatile(long expectedValue, long newValue) {
+        return VALUE.weakCompareAndSetVolatile(this, expectedValue, newValue);
+    }
+
+    /**
+     * Possibly atomically sets the value to the {@code newValue} with
+     * the semantics of {@link #setPlain} if the variable's current
+     * value, referred to as the <em>witness value</em>, {@code ==}
+     * the {@code expectedValue}, as accessed with the memory
+     * semantics of {@link #getAcquire}.
+     *
+     * <p>This operation may fail spuriously (typically, due to memory
+     * contention) even if the witness value does match the expected value.
+     *
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return {@code true} if successful
+     * @since 9
+     */
+    public final boolean weakCompareAndSetAcquire(long expectedValue, long newValue) {
+        return VALUE.weakCompareAndSetAcquire(this, expectedValue, newValue);
+    }
+
+    /**
+     * Possibly atomically sets the value to the {@code newValue} with
+     * the semantics of {@link #setRelease} if the variable's current
+     * value, referred to as the <em>witness value</em>, {@code ==}
+     * the {@code expectedValue}, as accessed with the memory
+     * semantics of {@link #getPlain}.
+     *
+     * <p>This operation may fail spuriously (typically, due to memory
+     * contention) even if the witness value does match the expected value.
+     *
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return {@code true} if successful
+     * @since 9
+     */
+    public final boolean weakCompareAndSetRelease(long expectedValue, long newValue) {
+        return VALUE.weakCompareAndSetRelease(this, expectedValue, newValue);
     }
 
 }

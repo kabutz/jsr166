@@ -104,13 +104,13 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * updated value if the current value {@code ==} the expected value.
      *
      * @param i the index
-     * @param expect the expected value
-     * @param update the new value
+     * @param expectedValue the expected value
+     * @param newValue the new value
      * @return {@code true} if successful. False return indicates that
      * the actual value was not equal to the expected value.
      */
-    public final boolean compareAndSet(int i, int expect, int update) {
-        return AA.compareAndSet(array, i, expect, update);
+    public final boolean compareAndSet(int i, int expectedValue, int newValue) {
+        return AA.compareAndSet(array, i, expectedValue, newValue);
     }
 
     /**
@@ -122,12 +122,12 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * only rarely an appropriate alternative to {@code compareAndSet}.
      *
      * @param i the index
-     * @param expect the expected value
-     * @param update the new value
+     * @param expectedValue the expected value
+     * @param newValue the new value
      * @return {@code true} if successful
      */
-    public final boolean weakCompareAndSet(int i, int expect, int update) {
-        return AA.weakCompareAndSet(array, i, expect, update);
+    public final boolean weakCompareAndSet(int i, int expectedValue, int newValue) {
+        return AA.weakCompareAndSet(array, i, expectedValue, newValue);
     }
 
     /**
@@ -204,12 +204,14 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * @since 1.8
      */
     public final int getAndUpdate(int i, IntUnaryOperator updateFunction) {
-        int prev, next;
-        do {
-            prev = get(i);
-            next = updateFunction.applyAsInt(prev);
-        } while (!compareAndSet(i, prev, next));
-        return prev;
+        int prev = get(i), next = 0;
+        for (boolean haveNext = false;;) {
+            if (!haveNext)
+                next = updateFunction.applyAsInt(prev);
+            if (weakCompareAndSetVolatile(i, prev, next))
+                return prev;
+            haveNext = (prev == (prev = get(i)));
+        }
     }
 
     /**
@@ -224,12 +226,14 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * @since 1.8
      */
     public final int updateAndGet(int i, IntUnaryOperator updateFunction) {
-        int prev, next;
-        do {
-            prev = get(i);
-            next = updateFunction.applyAsInt(prev);
-        } while (!compareAndSet(i, prev, next));
-        return next;
+        int prev = get(i), next = 0;
+        for (boolean haveNext = false;;) {
+            if (!haveNext)
+                next = updateFunction.applyAsInt(prev);
+            if (weakCompareAndSetVolatile(i, prev, next))
+                return next;
+            haveNext = (prev == (prev = get(i)));
+        }
     }
 
     /**
@@ -249,12 +253,14 @@ public class AtomicIntegerArray implements java.io.Serializable {
      */
     public final int getAndAccumulate(int i, int x,
                                       IntBinaryOperator accumulatorFunction) {
-        int prev, next;
-        do {
-            prev = get(i);
-            next = accumulatorFunction.applyAsInt(prev, x);
-        } while (!compareAndSet(i, prev, next));
-        return prev;
+        int prev = get(i), next = 0;
+        for (boolean haveNext = false;;) {
+            if (!haveNext)
+                next = accumulatorFunction.applyAsInt(prev, x);
+            if (weakCompareAndSetVolatile(i, prev, next))
+                return prev;
+            haveNext = (prev == (prev = get(i)));
+        }
     }
 
     /**
@@ -274,12 +280,14 @@ public class AtomicIntegerArray implements java.io.Serializable {
      */
     public final int accumulateAndGet(int i, int x,
                                       IntBinaryOperator accumulatorFunction) {
-        int prev, next;
-        do {
-            prev = get(i);
-            next = accumulatorFunction.applyAsInt(prev, x);
-        } while (!compareAndSet(i, prev, next));
-        return next;
+        int prev = get(i), next = 0;
+        for (boolean haveNext = false;;) {
+            if (!haveNext)
+                next = accumulatorFunction.applyAsInt(prev, x);
+            if (weakCompareAndSetVolatile(i, prev, next))
+                return next;
+            haveNext = (prev == (prev = get(i)));
+        }
     }
 
     /**
@@ -300,5 +308,200 @@ public class AtomicIntegerArray implements java.io.Serializable {
             b.append(',').append(' ');
         }
     }
+
+    // jdk9
+
+    /**
+     * Returns the element at index {@code i}, with memory semantics
+     * of reading as if the variable was declared non-{@code
+     * volatile}.
+     *
+     * @param i the index
+     * @return the value
+     * @since 9
+     */
+    public final int getPlain(int i) {
+        return (int)AA.get(array, i);
+    }
+
+    /**
+     * Sets the element at index {@code i} to the {@code newValue},
+     * with memory semantics of setting as if the variable was
+     * declared non-{@code volatile} and non-{@code final}.
+     *
+     * @param i the index
+     * @param newValue the new value
+     * @since 9
+     */
+    public final void setPlain(int i, int newValue) {
+        AA.set(array, i, newValue);
+    }
+
+    /**
+     * Returns the element at index {@code i}, accessed in program
+     * order, but with no assurance of memory ordering effects with
+     * respect to other threads.
+     *
+     * @param i the index
+     * @return the value
+     * @since 9
+     */
+    public final int getOpaque(int i) {
+        return (int)AA.getOpaque(array, i);
+    }
+
+    /**
+     * Sets the element at index {@code i} to the {@code newValue}, in
+     * program order, but with no assurance of memory ordering effects
+     * with respect to other threads.
+     *
+     * @param i the index
+     * @param newValue the new value
+     * @since 9
+     */
+    public final void setOpaque(int i, int newValue) {
+        AA.setOpaque(array, i, newValue);
+    }
+
+    /**
+     * Returns the element at index {@code i}, and ensures that
+     * subsequent loads and stores are not reordered before this
+     * access.
+     *
+     * @param i the index
+     * @return the value
+     * @since 9
+     */
+    public final int getAcquire(int i) {
+        return (int)AA.getAcquire(array, i);
+    }
+
+    /**
+     * Sets the element at index {@code i} to the {@code newValue},
+     * and ensures that prior loads and stores are not reordered after
+     * this access.
+     *
+     * @param i the index
+     * @param newValue the new value
+     * @since 9
+     */
+    public final void setRelease(int i, int newValue) {
+        AA.setRelease(array, i, newValue);
+    }
+
+    /**
+     * Atomically sets the element at index {@code i} to the {@code
+     * newValue} with the {@code volatile} memory semantics if the
+     * variable's current value, referred to as the <em>witness
+     * value</em>, {@code ==} the {@code expectedValue}, as accessed
+     * with {@code volatile} memory semantics.
+     *
+     * @param i the index
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return the witness value, which will be the same as the {@code
+     * expectedValue} if successful }
+     * @since 9
+     */
+    public final int compareAndExchange(int i, int expectedValue, int newValue) {
+        return (int)AA.compareAndExchangeVolatile(array, i, expectedValue, newValue);
+    }
+
+    /**
+     * Atomically sets the element at index {@code i} to the {@code
+     * newValue} with the memory semantics of {@link #setPlain} if the
+     * variable's current value, referred to as the <em>witness
+     * value</em>, {@code ==} the {@code expectedValue}, as accessed
+     * with the memory semantics of {@link #getAcquire}.
+     *
+     * @param i the index
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return the witness value, which will be the same as the {@code
+     * expectedValue} if successful }
+     * @since 9
+     */
+    public final int compareAndExchangeAcquire(int i, int expectedValue, int newValue) {
+        return (int)AA.compareAndExchangeAcquire(array, i, expectedValue, newValue);
+    }
+
+    /**
+     * Atomically sets the element at index {@code i} to the {@code
+     * newValue} with the memory semantics of {@link #setRelease} if
+     * the variable's current value, referred to as the <em>witness
+     * value</em>, {@code ==} the {@code expectedValue}, as accessed
+     * with the memory semantics of {@link #getPlain}.
+     *
+     * @param i the index
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return the witness value, which will be the same as the {@code
+     * expectedValue} if successful }
+     * @since 9
+     */
+    public final int compareAndExchangeRelease(int i, int expectedValue, int newValue) {
+        return (int)AA.compareAndExchangeRelease(array, i, expectedValue, newValue);
+    }
+
+    /**
+     * Possibly atomically sets the element at index {@code i} to the
+     * {@code newValue} with {@code volatile} memory semantics if the
+     * variable's current value, referred to as the <em>witness
+     * value</em>, {@code ==} the {@code expectedValue}, as accessed
+     * with {@code volatile} memory semantics.
+     *
+     * <p>This operation may fail spuriously (typically, due to memory
+     * contention) even if the witness value does match the expected value.
+     *
+     * @param i the index
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return {@code true} if successful
+     * @since 9
+     */
+    public final boolean weakCompareAndSetVolatile(int i, int expectedValue, int newValue) {
+        return AA.weakCompareAndSetVolatile(array, i, expectedValue, newValue);
+    }
+
+    /**
+     * Possibly atomically sets the element at index {@code i} to the
+     * {@code newValue} with the semantics of {@link #setPlain} if the
+     * variable's current value, referred to as the <em>witness
+     * value</em>, {@code ==} the {@code expectedValue}, as accessed
+     * with the memory semantics of {@link #getAcquire}.
+     *
+     * <p>This operation may fail spuriously (typically, due to memory
+     * contention) even if the witness value does match the expected value.
+     *
+     * @param i the index
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return {@code true} if successful
+     * @since 9
+     */
+    public final boolean weakCompareAndSetAcquire(int i, int expectedValue, int newValue) {
+        return AA.weakCompareAndSetAcquire(array, i, expectedValue, newValue);
+    }
+
+    /**
+     * Possibly atomically sets the element at index {@code i} to the
+     * {@code newValue} with the semantics of {@link #setRelease} if
+     * the variable's current value, referred to as the <em>witness
+     * value</em>, {@code ==} the {@code expectedValue}, as accessed
+     * with the memory semantics of {@link #getPlain}.
+     *
+     * <p>This operation may fail spuriously (typically, due to memory
+     * contention) even if the witness value does match the expected value.
+     *
+     * @param i the index
+     * @param expectedValue the expected value
+     * @param newValue the new value
+     * @return {@code true} if successful
+     * @since 9
+     */
+    public final boolean weakCompareAndSetRelease(int i, int expectedValue, int newValue) {
+        return AA.weakCompareAndSetRelease(array, i, expectedValue, newValue);
+    }
+
 
 }
