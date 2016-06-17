@@ -637,30 +637,32 @@ public class StampedLock implements java.io.Serializable {
      * @return a valid read stamp, or zero on failure
      */
     public long tryConvertToReadLock(long stamp) {
-        long a = stamp & ABITS, m, s, next; WNode h;
+        long a, s, next; WNode h;
         while (((s = state) & SBITS) == (stamp & SBITS)) {
-            if ((m = s & ABITS) == 0L) {
-                if (a != 0L)
+            if ((a = stamp & ABITS) >= WBIT) {
+                // write stamp
+                if (s != stamp)
                     break;
-                else if (m < RFULL) {
+                U.putLongVolatile(this, STATE, next = unlockWriteState(s) + RUNIT);
+                if ((h = whead) != null && h.status != 0)
+                    release(h);
+                return next;
+            }
+            else if (a == 0L) {
+                // optimistic read stamp
+                if ((s & ABITS) < RFULL) {
                     if (U.compareAndSwapLong(this, STATE, s, next = s + RUNIT))
                         return next;
                 }
                 else if ((next = tryIncReaderOverflow(s)) != 0L)
                     return next;
             }
-            else if (m == WBIT) {
-                if (a != m)
+            else {
+                // already a read stamp
+                if ((s & ABITS) == 0L)
                     break;
-                U.putLongVolatile(this, STATE, next = s + (WBIT + RUNIT));
-                if ((h = whead) != null && h.status != 0)
-                    release(h);
-                return next;
-            }
-            else if (a != 0L && a < WBIT)
                 return stamp;
-            else
-                break;
+            }
         }
         return 0L;
     }
