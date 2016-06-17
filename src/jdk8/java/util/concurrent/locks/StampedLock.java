@@ -312,7 +312,7 @@ public class StampedLock implements java.io.Serializable {
      * Exclusively acquires the lock, blocking if necessary
      * until available.
      *
-     * @return a stamp that can be used to unlock or convert mode
+     * @return a write stamp that can be used to unlock or convert mode
      */
     public long writeLock() {
         long s, next;  // bypass acquireWrite in fully unlocked case only
@@ -324,7 +324,7 @@ public class StampedLock implements java.io.Serializable {
     /**
      * Exclusively acquires the lock if it is immediately available.
      *
-     * @return a stamp that can be used to unlock or convert mode,
+     * @return a write stamp that can be used to unlock or convert mode,
      * or zero if the lock is not available
      */
     public long tryWriteLock() {
@@ -342,7 +342,7 @@ public class StampedLock implements java.io.Serializable {
      *
      * @param time the maximum time to wait for the lock
      * @param unit the time unit of the {@code time} argument
-     * @return a stamp that can be used to unlock or convert mode,
+     * @return a write stamp that can be used to unlock or convert mode,
      * or zero if the lock is not available
      * @throws InterruptedException if the current thread is interrupted
      * before acquiring the lock
@@ -370,7 +370,7 @@ public class StampedLock implements java.io.Serializable {
      * Behavior under interruption matches that specified
      * for method {@link Lock#lockInterruptibly()}.
      *
-     * @return a stamp that can be used to unlock or convert mode
+     * @return a write stamp that can be used to unlock or convert mode
      * @throws InterruptedException if the current thread is interrupted
      * before acquiring the lock
      */
@@ -386,7 +386,7 @@ public class StampedLock implements java.io.Serializable {
      * Non-exclusively acquires the lock, blocking if necessary
      * until available.
      *
-     * @return a stamp that can be used to unlock or convert mode
+     * @return a read stamp that can be used to unlock or convert mode
      */
     public long readLock() {
         long s = state, next;  // bypass acquireRead on common uncontended case
@@ -398,7 +398,7 @@ public class StampedLock implements java.io.Serializable {
     /**
      * Non-exclusively acquires the lock if it is immediately available.
      *
-     * @return a stamp that can be used to unlock or convert mode,
+     * @return a read stamp that can be used to unlock or convert mode,
      * or zero if the lock is not available
      */
     public long tryReadLock() {
@@ -423,7 +423,7 @@ public class StampedLock implements java.io.Serializable {
      *
      * @param time the maximum time to wait for the lock
      * @param unit the time unit of the {@code time} argument
-     * @return a stamp that can be used to unlock or convert mode,
+     * @return a read stamp that can be used to unlock or convert mode,
      * or zero if the lock is not available
      * @throws InterruptedException if the current thread is interrupted
      * before acquiring the lock
@@ -457,7 +457,7 @@ public class StampedLock implements java.io.Serializable {
      * Behavior under interruption matches that specified
      * for method {@link Lock#lockInterruptibly()}.
      *
-     * @return a stamp that can be used to unlock or convert mode
+     * @return a read stamp that can be used to unlock or convert mode
      * @throws InterruptedException if the current thread is interrupted
      * before acquiring the lock
      */
@@ -473,7 +473,7 @@ public class StampedLock implements java.io.Serializable {
      * Returns a stamp that can later be validated, or zero
      * if exclusively locked.
      *
-     * @return a stamp, or zero if exclusively locked
+     * @return a valid optimistic read stamp, or zero if exclusively locked
      */
     public long tryOptimisticRead() {
         long s;
