@@ -97,7 +97,7 @@ import java.util.concurrent.TimeUnit;
  * in a class that maintains simple two-dimensional points. The sample
  * code illustrates some try/catch conventions even though they are
  * not strictly needed here because no exceptions can occur in their
- * bodies.<br>
+ * bodies.
  *
  * <pre> {@code
  * class Point {
