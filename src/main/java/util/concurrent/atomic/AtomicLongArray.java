@@ -502,6 +502,4 @@ public class AtomicLongArray implements java.io.Serializable {
         return AA.weakCompareAndSetRelease(array, i, expectedValue, newValue);
     }
 
-
-    
 }

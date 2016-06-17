@@ -458,5 +458,5 @@ public class AtomicReferenceArrayTest extends JSR166TestCase {
             assertEquals(seven, aa.get(i));
         }
     }
-    
+
 }

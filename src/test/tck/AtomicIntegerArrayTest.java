@@ -389,7 +389,7 @@ public class AtomicIntegerArrayTest extends JSR166TestCase {
     }
 
     // jdk9
-    
+
     /**
      * getPlain returns the last value set
      */
@@ -581,5 +581,5 @@ public class AtomicIntegerArrayTest extends JSR166TestCase {
             assertEquals(7, aa.get(i));
         }
     }
-    
+
 }

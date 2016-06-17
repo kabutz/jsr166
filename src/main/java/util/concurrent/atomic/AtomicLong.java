@@ -41,7 +41,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * for longs. Called only once and cached in VM_SUPPORTS_LONG_CAS.
      */
     private static native boolean VMSupportsCS8();
-    
+
     static {
         try {
             MethodHandles.Lookup l = MethodHandles.lookup();

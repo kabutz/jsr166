@@ -268,7 +268,7 @@ public class AtomicLongTest extends JSR166TestCase {
     }
 
     // jdk9
-    
+
     /**
      * getPlain returns the last value set
      */
@@ -304,7 +304,7 @@ public class AtomicLongTest extends JSR166TestCase {
         ai.set(-3);
         assertEquals(-3, ai.getAcquire());
     }
-    
+
     /**
      * get returns the last value setPlain
      */
@@ -340,7 +340,7 @@ public class AtomicLongTest extends JSR166TestCase {
         ai.setRelease(-3);
         assertEquals(-3, ai.get());
     }
-    
+
     /**
      * compareAndExchange succeeds in changing value if equal to
      * expected else fails
@@ -424,5 +424,5 @@ public class AtomicLongTest extends JSR166TestCase {
         do {} while (!ai.weakCompareAndSetRelease(-4, 7));
         assertEquals(7, ai.get());
     }
-    
+
 }

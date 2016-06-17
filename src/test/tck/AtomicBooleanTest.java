@@ -140,7 +140,7 @@ public class AtomicBooleanTest extends JSR166TestCase {
     }
 
     // jdk9
-    
+
     /**
      * getPlain returns the last value set
      */
@@ -176,7 +176,7 @@ public class AtomicBooleanTest extends JSR166TestCase {
         ai.set(true);
         assertEquals(true, ai.getAcquire());
     }
-    
+
     /**
      * get returns the last value setPlain
      */
@@ -212,7 +212,7 @@ public class AtomicBooleanTest extends JSR166TestCase {
         ai.setRelease(true);
         assertEquals(true, ai.get());
     }
-    
+
     /**
      * compareAndExchange succeeds in changing value if equal to
      * expected else fails
@@ -296,5 +296,5 @@ public class AtomicBooleanTest extends JSR166TestCase {
         do {} while (!ai.weakCompareAndSetRelease(false, true));
         assertEquals(true, ai.get());
     }
-    
+
 }

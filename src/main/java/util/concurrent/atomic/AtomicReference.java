@@ -396,5 +396,5 @@ public class AtomicReference<V> implements java.io.Serializable {
     public final boolean weakCompareAndSetRelease(V expectedValue, V newValue) {
         return VALUE.weakCompareAndSetRelease(this, expectedValue, newValue);
     }
-    
+
 }

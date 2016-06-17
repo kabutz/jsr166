@@ -141,7 +141,7 @@ public class AtomicReferenceTest extends JSR166TestCase {
     }
 
     // jdk9
-    
+
     /**
      * getPlain returns the last value set
      */
@@ -177,7 +177,7 @@ public class AtomicReferenceTest extends JSR166TestCase {
         ai.set(m3);
         assertEquals(m3, ai.getAcquire());
     }
-    
+
     /**
      * get returns the last value setPlain
      */
@@ -213,7 +213,7 @@ public class AtomicReferenceTest extends JSR166TestCase {
         ai.setRelease(m3);
         assertEquals(m3, ai.get());
     }
-    
+
     /**
      * compareAndExchange succeeds in changing value if equal to
      * expected else fails
@@ -297,7 +297,5 @@ public class AtomicReferenceTest extends JSR166TestCase {
         do {} while (!ai.weakCompareAndSetRelease(m4, seven));
         assertEquals(seven, ai.get());
     }
-    
-    
-    
+
 }
