@@ -803,32 +803,30 @@ public class StampedLock implements java.io.Serializable {
      * Returns a plain {@link Lock} view of this StampedLock in which
      * the {@link Lock#lock} method is mapped to {@link #readLock},
      * and similarly for other methods. The returned Lock does not
-     * support a {@link Condition}; method {@link
-     * Lock#newCondition()} throws {@code
-     * UnsupportedOperationException}.
+     * support a {@link Condition}; method {@link Lock#newCondition()}
+     * throws {@code UnsupportedOperationException}.
      *
      * @return the lock
      */
     public Lock asReadLock() {
         ReadLockView v;
-        return ((v = readLockView) != null ? v :
-                (readLockView = new ReadLockView()));
+        if ((v = readLockView) != null) return v;
+        return readLockView = new ReadLockView();
     }
 
     /**
      * Returns a plain {@link Lock} view of this StampedLock in which
      * the {@link Lock#lock} method is mapped to {@link #writeLock},
      * and similarly for other methods. The returned Lock does not
-     * support a {@link Condition}; method {@link
-     * Lock#newCondition()} throws {@code
-     * UnsupportedOperationException}.
+     * support a {@link Condition}; method {@link Lock#newCondition()}
+     * throws {@code UnsupportedOperationException}.
      *
      * @return the lock
      */
     public Lock asWriteLock() {
         WriteLockView v;
-        return ((v = writeLockView) != null ? v :
-                (writeLockView = new WriteLockView()));
+        if ((v = writeLockView) != null) return v;
+        return writeLockView = new WriteLockView();
     }
 
     /**
@@ -841,8 +839,8 @@ public class StampedLock implements java.io.Serializable {
      */
     public ReadWriteLock asReadWriteLock() {
         ReadWriteLockView v;
-        return ((v = readWriteLockView) != null ? v :
-                (readWriteLockView = new ReadWriteLockView()));
+        if ((v = readWriteLockView) != null) return v;
+        return readWriteLockView = new ReadWriteLockView();
     }
 
     // view classes
