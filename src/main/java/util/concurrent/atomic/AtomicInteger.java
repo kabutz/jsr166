@@ -394,7 +394,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @param expectedValue the expected value
      * @param newValue the new value
      * @return the witness value, which will be the same as the {@code
-     * expectedValue} if successful }
+     * expectedValue} if successful
      * @since 9
      */
     public final int compareAndExchange(int expectedValue, int newValue) {
@@ -411,7 +411,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @param expectedValue the expected value
      * @param newValue the new value
      * @return the witness value, which will be the same as the {@code
-     * expectedValue} if successful }
+     * expectedValue} if successful
      * @since 9
      */
     public final int compareAndExchangeAcquire(int expectedValue, int newValue) {
@@ -428,7 +428,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @param expectedValue the expected value
      * @param newValue the new value
      * @return the witness value, which will be the same as the {@code
-     * expectedValue} if successful }
+     * expectedValue} if successful
      * @since 9
      */
     public final int compareAndExchangeRelease(int expectedValue, int newValue) {

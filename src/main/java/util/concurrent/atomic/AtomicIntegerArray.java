@@ -400,7 +400,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * @param expectedValue the expected value
      * @param newValue the new value
      * @return the witness value, which will be the same as the {@code
-     * expectedValue} if successful }
+     * expectedValue} if successful
      * @since 9
      */
     public final int compareAndExchange(int i, int expectedValue, int newValue) {
@@ -418,7 +418,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * @param expectedValue the expected value
      * @param newValue the new value
      * @return the witness value, which will be the same as the {@code
-     * expectedValue} if successful }
+     * expectedValue} if successful
      * @since 9
      */
     public final int compareAndExchangeAcquire(int i, int expectedValue, int newValue) {
@@ -436,7 +436,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * @param expectedValue the expected value
      * @param newValue the new value
      * @return the witness value, which will be the same as the {@code
-     * expectedValue} if successful }
+     * expectedValue} if successful
      * @since 9
      */
     public final int compareAndExchangeRelease(int i, int expectedValue, int newValue) {

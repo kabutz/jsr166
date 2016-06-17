@@ -409,7 +409,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @param expectedValue the expected value
      * @param newValue the new value
      * @return the witness value, which will be the same as the {@code
-     * expectedValue} if successful }
+     * expectedValue} if successful
      * @since 9
      */
     public final long compareAndExchange(long expectedValue, long newValue) {
@@ -426,7 +426,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @param expectedValue the expected value
      * @param newValue the new value
      * @return the witness value, which will be the same as the {@code
-     * expectedValue} if successful }
+     * expectedValue} if successful
      * @since 9
      */
     public final long compareAndExchangeAcquire(long expectedValue, long newValue) {
@@ -443,7 +443,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @param expectedValue the expected value
      * @param newValue the new value
      * @return the witness value, which will be the same as the {@code
-     * expectedValue} if successful }
+     * expectedValue} if successful
      * @since 9
      */
     public final long compareAndExchangeRelease(long expectedValue, long newValue) {
