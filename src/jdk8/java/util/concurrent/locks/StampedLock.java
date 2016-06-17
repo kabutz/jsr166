@@ -207,7 +207,7 @@ public class StampedLock implements java.io.Serializable {
      * thrashing among many threads.  We limit spins to the head of
      * queue. A thread spin-waits up to SPINS times (where each
      * iteration decreases spin count with 50% probability) before
-     * blocking. If, upon wakening it fails to obtain lock, and is
+     * blocking. If, upon wakening, it fails to obtain lock, and is
      * still (or becomes) the first waiting thread (which indicates
      * that some other thread barged and obtained lock), it escalates
      * spins (up to MAX_HEAD_SPINS) to reduce the likelihood of
