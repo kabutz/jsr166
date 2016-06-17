@@ -152,7 +152,7 @@ public class Atomic8Test extends JSR166TestCase {
      * result of supplied function
      */
     public void testReferenceGetAndUpdate() {
-        AtomicReference<Integer> a = new AtomicReference<Integer>(one);
+        AtomicReference<Integer> a = new AtomicReference<>(one);
         assertEquals(new Integer(1), a.getAndUpdate(Atomic8Test::addInteger17));
         assertEquals(new Integer(18), a.getAndUpdate(Atomic8Test::addInteger17));
         assertEquals(new Integer(35), a.get());
@@ -163,7 +163,7 @@ public class Atomic8Test extends JSR166TestCase {
      * returns result.
      */
     public void testReferenceUpdateAndGet() {
-        AtomicReference<Integer> a = new AtomicReference<Integer>(one);
+        AtomicReference<Integer> a = new AtomicReference<>(one);
         assertEquals(new Integer(18), a.updateAndGet(Atomic8Test::addInteger17));
         assertEquals(new Integer(35), a.updateAndGet(Atomic8Test::addInteger17));
         assertEquals(new Integer(35), a.get());
@@ -174,7 +174,7 @@ public class Atomic8Test extends JSR166TestCase {
      * with supplied function.
      */
     public void testReferenceGetAndAccumulate() {
-        AtomicReference<Integer> a = new AtomicReference<Integer>(one);
+        AtomicReference<Integer> a = new AtomicReference<>(one);
         assertEquals(new Integer(1), a.getAndAccumulate(2, Atomic8Test::sumInteger));
         assertEquals(new Integer(3), a.getAndAccumulate(3, Atomic8Test::sumInteger));
         assertEquals(new Integer(6), a.get());
@@ -185,7 +185,7 @@ public class Atomic8Test extends JSR166TestCase {
      * returns result.
      */
     public void testReferenceAccumulateAndGet() {
-        AtomicReference<Integer> a = new AtomicReference<Integer>(one);
+        AtomicReference<Integer> a = new AtomicReference<>(one);
         assertEquals(new Integer(7), a.accumulateAndGet(6, Atomic8Test::sumInteger));
         assertEquals(new Integer(10), a.accumulateAndGet(3, Atomic8Test::sumInteger));
         assertEquals(new Integer(10), a.get());

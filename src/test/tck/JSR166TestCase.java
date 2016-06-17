@@ -521,6 +521,13 @@ public class JSR166TestCase extends TestCase {
         // Java9+ test classes
         if (atLeastJava9()) {
             String[] java9TestClassNames = {
+                "AtomicBoolean9Test",
+                "AtomicInteger9Test",
+                "AtomicIntegerArray9Test",
+                "AtomicLong9Test",
+                "AtomicLongArray9Test",
+                "AtomicReference9Test",
+                "AtomicReferenceArray9Test",
                 "ExecutorCompletionService9Test",
             };
             addNamedTestClasses(suite, java9TestClassNames);
