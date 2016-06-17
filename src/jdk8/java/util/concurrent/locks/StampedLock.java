@@ -79,6 +79,10 @@ import java.util.concurrent.TimeUnit;
  * into initial unlocked state, so they are not useful for remote
  * locking.
  *
+ * <p>Like {@link java.util.concurrent.Semaphore Semaphore}, but unlike most
+ * {@link Lock} implementations, StampedLocks have no notion of ownership.
+ * Locks acquired in one thread can be released or converted in another.
+ *
  * <p>The scheduling policy of StampedLock does not consistently
  * prefer readers over writers or vice versa.  All "try" methods are
  * best-effort and do not necessarily conform to any scheduling or
