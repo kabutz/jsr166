@@ -261,6 +261,19 @@ public class StampedLock implements java.io.Serializable {
     private static final long ABITS = RBITS | WBIT;
     private static final long SBITS = ~RBITS; // note overlap with ABITS
 
+    /*
+     * 3 stamp modes can be distinguished by examining (m = stamp & ABITS):
+     * write mode: m == WBIT
+     * optimistic read mode: m == 0L (even when read lock is held)
+     * read mode: m > 0L && m <= RFULL (the stamp is a copy of state, but the
+     * read hold count in the stamp is unused other than to determine mode)
+     *
+     * This differs slightly from the encoding of state:
+     * (state & ABITS) == 0L indicates the lock is currently unlocked.
+     * (state & ABITS) == RBITS is a special transient value
+     * indicating spin-locked to manipulate reader bits overflow.
+     */
+
     // Initial value for lock state; avoid failure value zero
     private static final long ORIGIN = WBIT << 1;
 
