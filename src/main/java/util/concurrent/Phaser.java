@@ -428,7 +428,7 @@ public class Phaser {
                         // finish registration whenever parent registration
                         // succeeded, even when racing with termination,
                         // since these are part of the same "transaction".
-                        while (!STATE.compareAndSet
+                        while (!STATE.weakCompareAndSetVolatile
                                (this, s,
                                 ((long)phase << PHASE_SHIFT) | adjust)) {
                             s = state;
@@ -460,7 +460,7 @@ public class Phaser {
             // CAS to root phase with current parties, tripping unarrived
             while ((phase = (int)(root.state >>> PHASE_SHIFT)) !=
                    (int)(s >>> PHASE_SHIFT) &&
-                   !STATE.compareAndSet
+                   !STATE.weakCompareAndSetVolatile
                    (this, s,
                     s = (((long)phase << PHASE_SHIFT) |
                          ((phase < 0) ? (s & COUNTS_MASK) :

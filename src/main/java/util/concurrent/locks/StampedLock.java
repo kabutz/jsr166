@@ -1029,14 +1029,14 @@ public class StampedLock implements java.io.Serializable {
             }
             else if ((p = wtail) == null) { // initialize queue
                 WNode hd = new WNode(WMODE, null);
-                if (WHEAD.compareAndSet(this, null, hd))
+                if (WHEAD.weakCompareAndSetVolatile(this, null, hd))
                     wtail = hd;
             }
             else if (node == null)
                 node = new WNode(WMODE, p);
             else if (node.prev != p)
                 node.prev = p;
-            else if (WTAIL.compareAndSet(this, p, node)) {
+            else if (WTAIL.weakCompareAndSetVolatile(this, p, node)) {
                 p.next = node;
                 break;
             }
@@ -1068,7 +1068,7 @@ public class StampedLock implements java.io.Serializable {
             else if (h != null) { // help release stale waiters
                 WNode c; Thread w;
                 while ((c = h.cowait) != null) {
-                    if (WCOWAIT.compareAndSet(h, c, c.cowait) &&
+                    if (WCOWAIT.weakCompareAndSetVolatile(h, c, c.cowait) &&
                         (w = c.thread) != null)
                         LockSupport.unpark(w);
                 }
@@ -1153,7 +1153,7 @@ public class StampedLock implements java.io.Serializable {
             }
             if (p == null) { // initialize queue
                 WNode hd = new WNode(WMODE, null);
-                if (WHEAD.compareAndSet(this, null, hd))
+                if (WHEAD.weakCompareAndSetVolatile(this, null, hd))
                     wtail = hd;
             }
             else if (node == null)
@@ -1161,7 +1161,7 @@ public class StampedLock implements java.io.Serializable {
             else if (h == p || p.mode != RMODE) {
                 if (node.prev != p)
                     node.prev = p;
-                else if (WTAIL.compareAndSet(this, p, node)) {
+                else if (WTAIL.weakCompareAndSetVolatile(this, p, node)) {
                     p.next = node;
                     break;
                 }

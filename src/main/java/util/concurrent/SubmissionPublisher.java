@@ -839,7 +839,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
 
     /** Subscriber for method consume */
     private static final class ConsumerSubscriber<T>
-            implements Flow.Subscriber<T> {
+        implements Flow.Subscriber<T> {
         final CompletableFuture<Void> status;
         final Consumer<? super T> consumer;
         Flow.Subscription subscription;
@@ -1174,7 +1174,8 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                     } catch (RuntimeException | Error ex) { // back out
                         do {} while (((c = ctl) & DISABLED) == 0 &&
                                      (c & ACTIVE) != 0 &&
-                                     !CTL.compareAndSet(this, c, c & ~ACTIVE));
+                                     !CTL.weakCompareAndSetVolatile
+                                     (this, c, c & ~ACTIVE));
                         throw ex;
                     }
                 }
@@ -1267,7 +1268,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                 if ((c = ctl) == DISABLED)
                     break;
                 if (CTL.compareAndSet(this, c,
-                                        c | (ACTIVE | CONSUME | SUBSCRIBE))) {
+                                      c | (ACTIVE | CONSUME | SUBSCRIBE))) {
                     if ((c & ACTIVE) == 0)
                         startOrDisable();
                     break;
@@ -1286,7 +1287,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                     break;
                 else if ((c & ACTIVE) != 0) {
                     if (CTL.compareAndSet(this, c,
-                                            c | (CONSUME | ERROR)))
+                                          c | (CONSUME | ERROR)))
                         break;
                 }
                 else if (CTL.compareAndSet(this, c, DISABLED)) {

@@ -522,7 +522,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
     public final int decrementPendingCountUnlessZero() {
         int c;
         do {} while ((c = pending) != 0 &&
-                     !PENDING.compareAndSet(this, c, c - 1));
+                     !PENDING.weakCompareAndSetVolatile(this, c, c - 1));
         return c;
     }
 
@@ -555,7 +555,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
                     return;
                 }
             }
-            else if (PENDING.compareAndSet(a, c, c - 1))
+            else if (PENDING.weakCompareAndSetVolatile(a, c, c - 1))
                 return;
         }
     }
@@ -578,7 +578,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
                     return;
                 }
             }
-            else if (PENDING.compareAndSet(a, c, c - 1))
+            else if (PENDING.weakCompareAndSetVolatile(a, c, c - 1))
                 return;
         }
     }
@@ -623,7 +623,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
         for (int c;;) {
             if ((c = pending) == 0)
                 return this;
-            else if (PENDING.compareAndSet(this, c, c - 1))
+            else if (PENDING.weakCompareAndSetVolatile(this, c, c - 1))
                 return null;
         }
     }

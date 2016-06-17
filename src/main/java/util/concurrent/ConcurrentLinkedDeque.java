@@ -332,8 +332,8 @@ public class ConcurrentLinkedDeque<E>
                         // Successful CAS is the linearization point
                         // for e to become an element of this deque,
                         // and for newNode to become "live".
-                        if (p != t) // hop two nodes at a time
-                            TAIL.compareAndSet(this, t, newNode);  // Failure OK.
+                        if (p != t) // hop two nodes at a time; failure is OK
+                            TAIL.weakCompareAndSetVolatile(this, t, newNode);
                         return;
                     }
                     // Lost CAS race to another thread; re-read next
@@ -1124,12 +1124,12 @@ public class ConcurrentLinkedDeque<E>
                     if (NEXT.compareAndSet(p, null, beginningOfTheEnd)) {
                         // Successful CAS is the linearization point
                         // for all elements to be added to this deque.
-                        if (!TAIL.compareAndSet(this, t, last)) {
+                        if (!TAIL.weakCompareAndSetVolatile(this, t, last)) {
                             // Try a little harder to update tail,
                             // since we may be adding many elements.
                             t = tail;
                             if (last.next == null)
-                                TAIL.compareAndSet(this, t, last);
+                                TAIL.weakCompareAndSetVolatile(this, t, last);
                         }
                         return true;
                     }
