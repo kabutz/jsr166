@@ -419,17 +419,16 @@ public class StampedLock implements java.io.Serializable {
      * or zero if the lock is not available
      */
     public long tryReadLock() {
-        for (;;) {
-            long s, m, next;
-            if ((m = (s = state) & ABITS) == WBIT)
-                return 0L;
-            else if (m < RFULL) {
+        long s, m, next;
+        while ((m = (s = state) & ABITS) != WBIT) {
+            if (m < RFULL) {
                 if (U.compareAndSwapLong(this, STATE, s, next = s + RUNIT))
                     return next;
             }
             else if ((next = tryIncReaderOverflow(s)) != 0L)
                 return next;
         }
+        return 0L;
     }
 
     /**
