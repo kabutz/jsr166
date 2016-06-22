@@ -167,10 +167,10 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      *   method with its held arguments, and on success cleans up.
      *   The mode argument allows tryFire to be called twice (SYNC,
      *   then ASYNC); the first to screen and trap exceptions while
-     *   arranging to execute, and the second when called from a
-     *   task. (A few classes are not used async so take slightly
-     *   different forms.)  The claim() callback suppresses function
-     *   invocation if already claimed by another thread.
+     *   arranging to execute, and the second when called from a task.
+     *   (A few classes are not used async so take slightly different
+     *   forms.)  The claim() callback suppresses function invocation
+     *   if already claimed by another thread.
      *
      * * CompletableFuture method xStage(...) is called from a public
      *   stage method of CompletableFuture x. It screens user
