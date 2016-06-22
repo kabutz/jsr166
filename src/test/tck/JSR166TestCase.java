@@ -955,7 +955,11 @@ public class JSR166TestCase extends TestCase {
         }
     }
 
-    /** Like Runnable, but with the freedom to throw anything */
+    /**
+     * Like Runnable, but with the freedom to throw anything.
+     * junit folks had the same idea:
+     * http://junit.org/junit5/docs/snapshot/api/org/junit/gen5/api/Executable.html
+     */
     interface Action { public void run() throws Throwable; }
 
     /**
