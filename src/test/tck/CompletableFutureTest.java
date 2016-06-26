@@ -3317,14 +3317,22 @@ public class CompletableFutureTest extends JSR166TestCase {
         assertEquals(0, exec.count.get());
     }
 
+    static class CountingRejectingExecutor implements Executor {
+        final RejectedExecutionException ex = new RejectedExecutionException();
+        final AtomicInteger count = new AtomicInteger(0);
+        public void execute(Runnable r) {
+            count.getAndIncrement();
+            throw ex;
+        }
+    }
+
     /**
      * Test submissions to an executor that rejects all tasks.
      */
     public void testRejectingExecutor() {
-        final RejectedExecutionException ex = new RejectedExecutionException();
-        final Executor e = (Runnable r) -> { throw ex; };
-
         for (Integer v : new Integer[] { 1, null }) {
+
+        final CountingRejectingExecutor e = new CountingRejectingExecutor();
 
         final CompletableFuture<Integer> complete = CompletableFuture.completedFuture(v);
         final CompletableFuture<Integer> incomplete = new CompletableFuture<>();
@@ -3355,7 +3363,7 @@ public class CompletableFutureTest extends JSR166TestCase {
 
             for (CompletableFuture<?> future : fs) {
                 if (src.isDone())
-                    checkCompletedWithWrappedException(future, ex);
+                    checkCompletedWithWrappedException(future, e.ex);
                 else
                     checkIncomplete(future);
             }
@@ -3392,14 +3400,17 @@ public class CompletableFutureTest extends JSR166TestCase {
             fs.add(incomplete.runAfterEitherAsync(complete, () -> {}, e));
 
             for (CompletableFuture<?> future : fs)
-                checkCompletedWithWrappedException(future, ex);
+                checkCompletedWithWrappedException(future, e.ex);
             futures.addAll(fs);
         }
 
         incomplete.complete(v);
 
         for (CompletableFuture<?> future : futures)
-            checkCompletedWithWrappedException(future, ex);
+            checkCompletedWithWrappedException(future, e.ex);
+
+        assertEquals(futures.size(), e.count.get());
+
         }
     }
 
@@ -3409,14 +3420,6 @@ public class CompletableFutureTest extends JSR166TestCase {
      * explicitly completed.
      */
     public void testRejectingExecutorNeverInvoked() {
-        final RejectedExecutionException ex = new RejectedExecutionException();
-        class CountingRejectingExecutor implements Executor {
-            final AtomicInteger count = new AtomicInteger(0);
-            public void execute(Runnable r) {
-                count.getAndIncrement();
-                throw ex;
-            }
-        }
         final CountingRejectingExecutor e = new CountingRejectingExecutor();
 
         for (Integer v : new Integer[] { 1, null }) {
