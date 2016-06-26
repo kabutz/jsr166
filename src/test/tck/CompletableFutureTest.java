@@ -3062,7 +3062,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
     }
 
-    public void testAllOf_backwards() throws Exception {
+    public void testAllOf_normal_backwards() throws Exception {
         for (int k = 1; k < 10; k++) {
             CompletableFuture<Integer>[] fs
                 = (CompletableFuture<Integer>[]) new CompletableFuture[k];
