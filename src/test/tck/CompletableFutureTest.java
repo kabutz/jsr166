@@ -3404,6 +3404,75 @@ public class CompletableFutureTest extends JSR166TestCase {
     }
 
     /**
+     * Test submissions to an executor that rejects all tasks, but
+     * should never be invoked because the dependent future is
+     * explicitly completed.
+     */
+    public void testRejectingExecutorNeverInvoked() {
+        final RejectedExecutionException ex = new RejectedExecutionException();
+        class CountingRejectingExecutor implements Executor {
+            final AtomicInteger count = new AtomicInteger(0);
+            public void execute(Runnable r) {
+                count.getAndIncrement();
+                throw ex;
+            }
+        }
+        final CountingRejectingExecutor e = new CountingRejectingExecutor();
+
+        for (Integer v : new Integer[] { 1, null }) {
+
+        final CompletableFuture<Integer> complete = CompletableFuture.completedFuture(v);
+        final CompletableFuture<Integer> incomplete = new CompletableFuture<>();
+
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+
+        List<CompletableFuture<Integer>> srcs = new ArrayList<>();
+        srcs.add(complete);
+        srcs.add(incomplete);
+
+        List<CompletableFuture<?>> fs = new ArrayList<>();
+        fs.add(incomplete.thenRunAsync(() -> {}, e));
+        fs.add(incomplete.thenAcceptAsync((z) -> {}, e));
+        fs.add(incomplete.thenApplyAsync((z) -> z, e));
+
+        fs.add(incomplete.thenCombineAsync(incomplete, (x, y) -> x, e));
+        fs.add(incomplete.thenAcceptBothAsync(incomplete, (x, y) -> {}, e));
+        fs.add(incomplete.runAfterBothAsync(incomplete, () -> {}, e));
+
+        fs.add(incomplete.applyToEitherAsync(incomplete, (z) -> z, e));
+        fs.add(incomplete.acceptEitherAsync(incomplete, (z) -> {}, e));
+        fs.add(incomplete.runAfterEitherAsync(incomplete, () -> {}, e));
+
+        fs.add(incomplete.thenComposeAsync((z) -> null, e));
+        fs.add(incomplete.whenCompleteAsync((z, t) -> {}, e));
+        fs.add(incomplete.handleAsync((z, t) -> null, e));
+
+        fs.add(complete.thenCombineAsync(incomplete, (x, y) -> x, e));
+        fs.add(incomplete.thenCombineAsync(complete, (x, y) -> x, e));
+
+        fs.add(complete.thenAcceptBothAsync(incomplete, (x, y) -> {}, e));
+        fs.add(incomplete.thenAcceptBothAsync(complete, (x, y) -> {}, e));
+
+        fs.add(complete.runAfterBothAsync(incomplete, () -> {}, e));
+        fs.add(incomplete.runAfterBothAsync(complete, () -> {}, e));
+
+        for (CompletableFuture<?> future : fs)
+            checkIncomplete(future);
+
+        for (CompletableFuture<?> future : fs)
+            future.complete(null);
+
+        incomplete.complete(v);
+
+        for (CompletableFuture<?> future : fs)
+            checkCompletedNormally(future, null);
+
+        assertEquals(0, e.count.get());
+
+        }
+    }
+
+    /**
      * toCompletableFuture returns this CompletableFuture.
      */
     public void testToCompletableFuture() {
