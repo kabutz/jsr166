@@ -1298,8 +1298,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     static final class BiRun<T,U> extends BiCompletion<T,U,Void> {
         Runnable fn;
         BiRun(Executor executor, CompletableFuture<Void> dep,
-              CompletableFuture<T> src,
-              CompletableFuture<U> snd,
+              CompletableFuture<T> src, CompletableFuture<U> snd,
               Runnable fn) {
             super(executor, dep, src, snd); this.fn = fn;
         }
@@ -1361,8 +1360,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     @SuppressWarnings("serial")
     static final class BiRelay<T,U> extends BiCompletion<T,U,Void> { // for And
         BiRelay(CompletableFuture<Void> dep,
-                CompletableFuture<T> src,
-                CompletableFuture<U> snd) {
+                CompletableFuture<T> src, CompletableFuture<U> snd) {
             super(null, dep, src, snd);
         }
         final CompletableFuture<Void> tryFire(int mode) {
@@ -1440,8 +1438,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     static final class OrApply<T,U extends T,V> extends BiCompletion<T,U,V> {
         Function<? super T,? extends V> fn;
         OrApply(Executor executor, CompletableFuture<V> dep,
-                CompletableFuture<T> src,
-                CompletableFuture<U> snd,
+                CompletableFuture<T> src, CompletableFuture<U> snd,
                 Function<? super T,? extends V> fn) {
             super(executor, dep, src, snd); this.fn = fn;
         }
@@ -1496,8 +1493,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     static final class OrAccept<T,U extends T> extends BiCompletion<T,U,Void> {
         Consumer<? super T> fn;
         OrAccept(Executor executor, CompletableFuture<Void> dep,
-                 CompletableFuture<T> src,
-                 CompletableFuture<U> snd,
+                 CompletableFuture<T> src, CompletableFuture<U> snd,
                  Consumer<? super T> fn) {
             super(executor, dep, src, snd); this.fn = fn;
         }
@@ -1553,8 +1549,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     static final class OrRun<T,U> extends BiCompletion<T,U,Void> {
         Runnable fn;
         OrRun(Executor executor, CompletableFuture<Void> dep,
-              CompletableFuture<T> src,
-              CompletableFuture<U> snd,
+              CompletableFuture<T> src, CompletableFuture<U> snd,
               Runnable fn) {
             super(executor, dep, src, snd); this.fn = fn;
         }
@@ -1605,8 +1600,8 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
     @SuppressWarnings("serial")
     static final class OrRelay<T,U> extends BiCompletion<T,U,Object> { // for Or
-        OrRelay(CompletableFuture<Object> dep, CompletableFuture<T> src,
-                CompletableFuture<U> snd) {
+        OrRelay(CompletableFuture<Object> dep,
+                CompletableFuture<T> src, CompletableFuture<U> snd) {
             super(null, dep, src, snd);
         }
         final CompletableFuture<Object> tryFire(int mode) {
