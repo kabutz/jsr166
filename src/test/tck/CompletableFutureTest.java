@@ -3683,8 +3683,10 @@ public class CompletableFutureTest extends JSR166TestCase {
 
         funs.add((y) -> m.thenCompose(y, new CompletableFutureInc(m)));
 
+        funs.add((y) -> CompletableFuture.allOf(new CompletableFuture<?>[] {y}));
         funs.add((y) -> CompletableFuture.allOf(new CompletableFuture<?>[] {y, v42}));
         funs.add((y) -> CompletableFuture.allOf(new CompletableFuture<?>[] {v42, y}));
+        funs.add((y) -> CompletableFuture.anyOf(new CompletableFuture<?>[] {y}));
         funs.add((y) -> CompletableFuture.anyOf(new CompletableFuture<?>[] {y, incomplete}));
         funs.add((y) -> CompletableFuture.anyOf(new CompletableFuture<?>[] {incomplete, y}));
 
