@@ -3673,15 +3673,20 @@ public class CompletableFutureTest extends JSR166TestCase {
         funs.add((y) -> m.applyToEither(y, incomplete, new IncFunction(m)));
 
         funs.add((y) -> m.runAfterBoth(y, v42, new Noop(m)));
+        funs.add((y) -> m.runAfterBoth(v42, y, new Noop(m)));
         funs.add((y) -> m.thenAcceptBoth(y, v42, new SubtractAction(m)));
+        funs.add((y) -> m.thenAcceptBoth(v42, y, new SubtractAction(m)));
         funs.add((y) -> m.thenCombine(y, v42, new SubtractFunction(m)));
+        funs.add((y) -> m.thenCombine(v42, y, new SubtractFunction(m)));
 
         funs.add((y) -> m.whenComplete(y, (Integer r, Throwable t) -> {}));
 
         funs.add((y) -> m.thenCompose(y, new CompletableFutureInc(m)));
 
         funs.add((y) -> CompletableFuture.allOf(new CompletableFuture<?>[] {y, v42}));
+        funs.add((y) -> CompletableFuture.allOf(new CompletableFuture<?>[] {v42, y}));
         funs.add((y) -> CompletableFuture.anyOf(new CompletableFuture<?>[] {y, incomplete}));
+        funs.add((y) -> CompletableFuture.anyOf(new CompletableFuture<?>[] {incomplete, y}));
 
         for (Function<CompletableFuture<Integer>, CompletableFuture<?>>
                  fun : funs) {
