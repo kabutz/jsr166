@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -3314,6 +3315,92 @@ public class CompletableFutureTest extends JSR166TestCase {
 
         assertThrows(NullPointerException.class, throwingActions);
         assertEquals(0, exec.count.get());
+    }
+
+    /**
+     * Test submissions to an executor that rejects all tasks.
+     */
+    public void testRejectingExecutor() {
+        final RejectedExecutionException ex = new RejectedExecutionException();
+        final Executor e = (Runnable r) -> { throw ex; };
+
+        for (Integer v : new Integer[] { 1, null }) {
+
+        final CompletableFuture<Integer> complete = CompletableFuture.completedFuture(v);
+        final CompletableFuture<Integer> incomplete = new CompletableFuture<>();
+
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+
+        List<CompletableFuture<Integer>> srcs = new ArrayList<>();
+        srcs.add(complete);
+        srcs.add(incomplete);
+
+        for (CompletableFuture<Integer> src : srcs) {
+            List<CompletableFuture<?>> fs = new ArrayList<>();
+            fs.add(src.thenRunAsync(() -> {}, e));
+            fs.add(src.thenAcceptAsync((z) -> {}, e));
+            fs.add(src.thenApplyAsync((z) -> z, e));
+
+            fs.add(src.thenCombineAsync(src, (x, y) -> x, e));
+            fs.add(src.thenAcceptBothAsync(src, (x, y) -> {}, e));
+            fs.add(src.runAfterBothAsync(src, () -> {}, e));
+
+            fs.add(src.applyToEitherAsync(src, (z) -> z, e));
+            fs.add(src.acceptEitherAsync(src, (z) -> {}, e));
+            fs.add(src.runAfterEitherAsync(src, () -> {}, e));
+
+            fs.add(src.thenComposeAsync((z) -> null, e));
+            fs.add(src.whenCompleteAsync((z, t) -> {}, e));
+            fs.add(src.handleAsync((z, t) -> null, e));
+
+            for (CompletableFuture<?> future : fs) {
+                if (src.isDone())
+                    checkCompletedWithWrappedException(future, ex);
+                else
+                    checkIncomplete(future);
+            }
+            futures.addAll(fs);
+        }
+
+        {
+            List<CompletableFuture<?>> fs = new ArrayList<>();
+
+            fs.add(complete.thenCombineAsync(incomplete, (x, y) -> x, e));
+            fs.add(incomplete.thenCombineAsync(complete, (x, y) -> x, e));
+
+            fs.add(complete.thenAcceptBothAsync(incomplete, (x, y) -> {}, e));
+            fs.add(incomplete.thenAcceptBothAsync(complete, (x, y) -> {}, e));
+
+            fs.add(complete.runAfterBothAsync(incomplete, () -> {}, e));
+            fs.add(incomplete.runAfterBothAsync(complete, () -> {}, e));
+
+            for (CompletableFuture<?> future : fs)
+                checkIncomplete(future);
+            futures.addAll(fs);
+        }
+
+        {
+            List<CompletableFuture<?>> fs = new ArrayList<>();
+
+            fs.add(complete.applyToEitherAsync(incomplete, (z) -> z, e));
+            fs.add(incomplete.applyToEitherAsync(complete, (z) -> z, e));
+
+            fs.add(complete.acceptEitherAsync(incomplete, (z) -> {}, e));
+            fs.add(incomplete.acceptEitherAsync(complete, (z) -> {}, e));
+
+            fs.add(complete.runAfterEitherAsync(incomplete, () -> {}, e));
+            fs.add(incomplete.runAfterEitherAsync(complete, () -> {}, e));
+
+            for (CompletableFuture<?> future : fs)
+                checkCompletedWithWrappedException(future, ex);
+            futures.addAll(fs);
+        }
+
+        incomplete.complete(v);
+
+        for (CompletableFuture<?> future : futures)
+            checkCompletedWithWrappedException(future, ex);
+        }
     }
 
     /**
