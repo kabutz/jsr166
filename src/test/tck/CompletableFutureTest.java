@@ -4170,6 +4170,49 @@ public class CompletableFutureTest extends JSR166TestCase {
         assertEquals(5 * 3 * n, count.get());
     }
 
+    /** a66 -Dvmoptions=-Xmx8m -Djsr166.tckTestClass=CompletableFutureTest tck */
+    public void testCoCompletionGarbage() throws Throwable {
+        // final int n = 3_000_000;
+        final int n = 100;
+        final CompletableFuture<Integer> incomplete = new CompletableFuture<>();
+        CompletableFuture<Integer> f;
+        for (int i = 0; i < n; i++) {
+            f = new CompletableFuture<>();
+            f.runAfterEither(incomplete, () -> {});
+            f.complete(null);
+
+            f = new CompletableFuture<>();
+            f.acceptEither(incomplete, (x) -> {});
+            f.complete(null);
+
+            f = new CompletableFuture<>();
+            f.applyToEither(incomplete, (x) -> x);
+            f.complete(null);
+
+            f = new CompletableFuture<>();
+            CompletableFuture.anyOf(new CompletableFuture<?>[] { f, incomplete });
+            f.complete(null);
+        }
+
+        for (int i = 0; i < n; i++) {
+            f = new CompletableFuture<>();
+            incomplete.runAfterEither(f, () -> {});
+            f.complete(null);
+
+            f = new CompletableFuture<>();
+            incomplete.acceptEither(f, (x) -> {});
+            f.complete(null);
+
+            f = new CompletableFuture<>();
+            incomplete.applyToEither(f, (x) -> x);
+            f.complete(null);
+
+            f = new CompletableFuture<>();
+            CompletableFuture.anyOf(new CompletableFuture<?>[] { incomplete, f });
+            f.complete(null);
+        }
+    }
+
 //     static <U> U join(CompletionStage<U> stage) {
 //         CompletableFuture<U> f = new CompletableFuture<>();
 //         stage.whenComplete((v, ex) -> {
