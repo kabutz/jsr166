@@ -550,6 +550,15 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
     }
 
+    static class CountingRejectingExecutor implements Executor {
+        final RejectedExecutionException ex = new RejectedExecutionException();
+        final AtomicInteger count = new AtomicInteger(0);
+        public void execute(Runnable r) {
+            count.getAndIncrement();
+            throw ex;
+        }
+    }
+
     // Used for explicit executor tests
     static final class ThreadExecutor implements Executor {
         final AtomicInteger count = new AtomicInteger(0);
@@ -1234,6 +1243,18 @@ public class CompletableFutureTest extends JSR166TestCase {
         r.assertInvoked();
     }}
 
+    public void testRunAsync_rejectingExecutor() {
+        CountingRejectingExecutor e = new CountingRejectingExecutor();
+        try {
+            CompletableFuture.runAsync(() -> {}, e);
+            shouldThrow();
+        } catch (Throwable t) {
+            assertSame(e.ex, t);
+        }
+
+        assertEquals(1, e.count.get());
+    }
+
     /**
      * supplyAsync completes with result of supplier
      */
@@ -1267,6 +1288,18 @@ public class CompletableFutureTest extends JSR166TestCase {
         checkCompletedWithWrappedException(f, r.ex);
         r.assertInvoked();
     }}
+
+    public void testSupplyAsync_rejectingExecutor() {
+        CountingRejectingExecutor e = new CountingRejectingExecutor();
+        try {
+            CompletableFuture.supplyAsync(() -> null, e);
+            shouldThrow();
+        } catch (Throwable t) {
+            assertSame(e.ex, t);
+        }
+
+        assertEquals(1, e.count.get());
+    }
 
     // seq completion methods
 
@@ -3315,15 +3348,6 @@ public class CompletableFutureTest extends JSR166TestCase {
 
         assertThrows(NullPointerException.class, throwingActions);
         assertEquals(0, exec.count.get());
-    }
-
-    static class CountingRejectingExecutor implements Executor {
-        final RejectedExecutionException ex = new RejectedExecutionException();
-        final AtomicInteger count = new AtomicInteger(0);
-        public void execute(Runnable r) {
-            count.getAndIncrement();
-            throw ex;
-        }
     }
 
     /**
