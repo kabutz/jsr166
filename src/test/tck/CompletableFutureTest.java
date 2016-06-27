@@ -4213,6 +4213,36 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
     }
 
+    /*
+     * Tests below currently fail in stress mode due to memory retention.
+     * ant -Dvmoptions=-Xmx8m -Djsr166.expensiveTests=true -Djsr166.tckTestClass=CompletableFutureTest tck
+     */
+
+    /** Checks for garbage retention with anyOf. */
+    public void testAnyOfGarbageRetention() throws Throwable {
+        for (Integer v : new Integer[] { 1, null })
+    {
+        final int n = expensiveTests ? 100_000 : 10;
+        CompletableFuture<Integer>[] fs
+            = (CompletableFuture<Integer>[]) new CompletableFuture<?>[100];
+        for (int i = 0; i < fs.length; i++)
+            fs[i] = new CompletableFuture<>();
+        fs[fs.length - 1].complete(v);
+        for (int i = 0; i < n; i++)
+            checkCompletedNormally(CompletableFuture.anyOf(fs), v);
+    }}
+
+    /** Checks for garbage retention with allOf. */
+    public void testCancelledAllOfGarbageRetention() throws Throwable {
+        final int n = expensiveTests ? 100_000 : 10;
+        CompletableFuture<Integer>[] fs
+            = (CompletableFuture<Integer>[]) new CompletableFuture<?>[100];
+        for (int i = 0; i < fs.length; i++)
+            fs[i] = new CompletableFuture<>();
+        for (int i = 0; i < n; i++)
+            assertTrue(CompletableFuture.allOf(fs).cancel(false));
+    }
+
 //     static <U> U join(CompletionStage<U> stage) {
 //         CompletableFuture<U> f = new CompletableFuture<>();
 //         stage.whenComplete((v, ex) -> {
