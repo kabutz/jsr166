@@ -4143,7 +4143,7 @@ public class CompletableFutureTest extends JSR166TestCase {
      * A demo of scalability - runtime is O(n).
      */
     public void testManyDependents() throws Throwable {
-        final int n = 1_000;
+        final int n = expensiveTests ? 1_000_000 : 10;
         final CompletableFuture<Void> head = new CompletableFuture<>();
         final CompletableFuture<Void> complete = CompletableFuture.completedFuture((Void)null);
         final AtomicInteger count = new AtomicInteger(0);
@@ -4172,8 +4172,7 @@ public class CompletableFutureTest extends JSR166TestCase {
 
     /** ant -Dvmoptions=-Xmx8m -Djsr166.tckTestClass=CompletableFutureTest tck */
     public void testCoCompletionGarbage() throws Throwable {
-        // final int n = 3_000_000;
-        final int n = 100;
+        final int n = expensiveTests ? 1_000_000 : 10;
         final CompletableFuture<Integer> incomplete = new CompletableFuture<>();
         CompletableFuture<Integer> f;
         for (int i = 0; i < n; i++) {
