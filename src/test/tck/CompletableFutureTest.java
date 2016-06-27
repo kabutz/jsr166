@@ -4170,8 +4170,8 @@ public class CompletableFutureTest extends JSR166TestCase {
         assertEquals(5 * 3 * n, count.get());
     }
 
-    /** ant -Dvmoptions=-Xmx8m -Djsr166.tckTestClass=CompletableFutureTest tck */
-    public void testCoCompletionGarbage() throws Throwable {
+    /** ant -Dvmoptions=-Xmx8m -Djsr166.expensiveTests=true -Djsr166.tckTestClass=CompletableFutureTest tck */
+    public void testCoCompletionGarbageRetention() throws Throwable {
         final int n = expensiveTests ? 1_000_000 : 10;
         final CompletableFuture<Integer> incomplete = new CompletableFuture<>();
         CompletableFuture<Integer> f;
