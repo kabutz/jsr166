@@ -300,8 +300,8 @@ public class ConcurrentLinkedDeque<E>
                         // Successful CAS is the linearization point
                         // for e to become an element of this deque,
                         // and for newNode to become "live".
-                        if (p != h) // hop two nodes at a time
-                            HEAD.compareAndSet(this, h, newNode);  // Failure OK.
+                        if (p != h) // hop two nodes at a time; failure is OK
+                            HEAD.weakCompareAndSetVolatile(this, h, newNode);
                         return;
                     }
                     // Lost CAS race to another thread; re-read prev
