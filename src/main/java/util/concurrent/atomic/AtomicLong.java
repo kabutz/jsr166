@@ -169,7 +169,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @return the updated value
      */
     public final long incrementAndGet() {
-        return (long)VALUE.getAndAdd(this, 1L) + 1L;
+        return (long)VALUE.addAndGet(this, 1L);
     }
 
     /**
@@ -178,7 +178,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @return the updated value
      */
     public final long decrementAndGet() {
-        return (long)VALUE.getAndAdd(this, -1L) - 1L;
+        return (long)VALUE.addAndGet(this, -1L);
     }
 
     /**
@@ -188,7 +188,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @return the updated value
      */
     public final long addAndGet(long delta) {
-        return (long)VALUE.getAndAdd(this, delta) + delta;
+        return (long)VALUE.addAndGet(this, delta);
     }
 
     /**

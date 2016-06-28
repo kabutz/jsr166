@@ -168,7 +168,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * @return the updated value
      */
     public final int incrementAndGet(int i) {
-        return (int)AA.getAndAdd(array, i, 1) + 1;
+        return (int)AA.addAndGet(array, i, 1);
     }
 
     /**
@@ -178,7 +178,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * @return the updated value
      */
     public final int decrementAndGet(int i) {
-        return (int)AA.getAndAdd(array, i, -1) - 1;
+        return (int)AA.addAndGet(array, i, -1);
     }
 
     /**
@@ -189,7 +189,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * @return the updated value
      */
     public final int addAndGet(int i, int delta) {
-        return (int)AA.getAndAdd(array, i, delta) + delta;
+        return (int)AA.addAndGet(array, i, delta);
     }
 
     /**

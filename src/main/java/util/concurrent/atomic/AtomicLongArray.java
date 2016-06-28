@@ -167,7 +167,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * @return the updated value
      */
     public final long incrementAndGet(int i) {
-        return (long)AA.getAndAdd(array, i, 1L) + 1L;
+        return (long)AA.addAndGet(array, i, 1L);
     }
 
     /**
@@ -177,7 +177,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * @return the updated value
      */
     public final long decrementAndGet(int i) {
-        return (long)AA.getAndAdd(array, i, -1L) - 1L;
+        return (long)AA.addAndGet(array, i, -1L);
     }
 
     /**
@@ -188,7 +188,7 @@ public class AtomicLongArray implements java.io.Serializable {
      * @return the updated value
      */
     public long addAndGet(int i, long delta) {
-        return (long)AA.getAndAdd(array, i, delta) + delta;
+        return (long)AA.addAndGet(array, i, delta);
     }
 
     /**

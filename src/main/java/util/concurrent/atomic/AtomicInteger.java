@@ -154,7 +154,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @return the updated value
      */
     public final int incrementAndGet() {
-        return (int)VALUE.getAndAdd(this, 1) + 1;
+        return (int)VALUE.addAndGet(this, 1);
     }
 
     /**
@@ -163,7 +163,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @return the updated value
      */
     public final int decrementAndGet() {
-        return (int)VALUE.getAndAdd(this, -1) - 1;
+        return (int)VALUE.addAndGet(this, -1);
     }
 
     /**
@@ -173,7 +173,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @return the updated value
      */
     public final int addAndGet(int delta) {
-        return (int)VALUE.getAndAdd(this, delta) + delta;
+        return (int)VALUE.addAndGet(this, delta);
     }
 
     /**
