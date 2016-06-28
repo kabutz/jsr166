@@ -13,9 +13,8 @@ import java.util.function.IntUnaryOperator;
 
 /**
  * An {@code int} array in which elements may be updated atomically.
- * See the {@link java.util.concurrent.atomic} package
- * specification for description of the properties of atomic
- * variables.
+ * See the {@link VarHandle} specification for descriptions of the
+ * properties of atomic accesses.
  * @since 1.5
  * @author Doug Lea
  */
@@ -57,7 +56,8 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Gets the current value at position {@code i}.
+     * Gets the current value at position {@code i}, as specified by
+     * {@link VarHandle#getVolatile}.
      *
      * @param i the index
      * @return the current value
@@ -67,7 +67,8 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Sets the element at position {@code i} to the given value.
+     * Sets the element at position {@code i} to {@code newValue}, as
+     * specified by {@link VarHandle#setVolatile}.
      *
      * @param i the index
      * @param newValue the new value
@@ -77,7 +78,8 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Eventually sets the element at position {@code i} to the given value.
+     * Sets the element at position {@code i} to the {@code newValue},
+     * as specified by {@link VarHandle#setRelease}.
      *
      * @param i the index
      * @param newValue the new value
@@ -88,8 +90,9 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the element at position {@code i} to the given
-     * value and returns the old value.
+     * Atomically sets the element at position {@code i} to the {@code
+     * newValue} and returns the old value, as specified by {@link
+     * VarHandle#getAndSet}.
      *
      * @param i the index
      * @param newValue the new value
@@ -100,26 +103,25 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the element at position {@code i} to the given
-     * updated value if the current value {@code ==} the expected value.
+     * Atomically sets the element at position {@code i} to the {@code
+     * newValue} if the current value {@code ==} the {@code expectedValue},
+     * as specified by {@link VarHandle#compareAndSet}.
      *
      * @param i the index
      * @param expectedValue the expected value
      * @param newValue the new value
      * @return {@code true} if successful. False return indicates that
-     * the actual value was not equal to the expected value.
+     * the actual value was not equal to the {@code expectedValue}.
      */
     public final boolean compareAndSet(int i, int expectedValue, int newValue) {
         return AA.compareAndSet(array, i, expectedValue, newValue);
     }
 
     /**
-     * Atomically sets the element at position {@code i} to the given
-     * updated value if the current value {@code ==} the expected value.
-     *
-     * <p><a href="package-summary.html#weakCompareAndSet">May fail
-     * spuriously and does not provide ordering guarantees</a>, so is
-     * only rarely an appropriate alternative to {@code compareAndSet}.
+     * Possibly atomically sets the element at position {@code i} to
+     * the {@code newValue} if the current value {@code ==} the
+     * {@code expectedValue}, as specified by {@link
+     * VarHandle#weakCompareAndSet}.
      *
      * @param i the index
      * @param expectedValue the expected value
@@ -131,7 +133,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Atomically increments by one the element at index {@code i}.
+     * Equivalent to {@code getAndAdd(i, 1)}.
      *
      * @param i the index
      * @return the previous value
@@ -141,7 +143,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Atomically decrements by one the element at index {@code i}.
+     * Equivalent to {@code getAndAdd(i, -1)}.
      *
      * @param i the index
      * @return the previous value
@@ -151,7 +153,8 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Atomically adds the given value to the element at index {@code i}.
+     * Atomically adds the given value to the element at index {@code i},
+     * as specified by {@link VarHandle#getAndAdd}.
      *
      * @param i the index
      * @param delta the value to add
@@ -162,7 +165,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Atomically increments by one the element at index {@code i}.
+     * Equivalent to {@code addAndGet(i, 1)}.
      *
      * @param i the index
      * @return the updated value
@@ -172,7 +175,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Atomically decrements by one the element at index {@code i}.
+     * Equivalent to {@code addAndGet(i, -1)}.
      *
      * @param i the index
      * @return the updated value
@@ -182,7 +185,8 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Atomically adds the given value to the element at index {@code i}.
+     * Atomically adds the given value to the element at index {@code i},
+     * as specified by {@link VarHandle#addAndGet}.
      *
      * @param i the index
      * @param delta the value to add
@@ -338,9 +342,8 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Returns the element at index {@code i}, accessed in program
-     * order, but with no assurance of memory ordering effects with
-     * respect to other threads.
+     * Returns the value at index {@code i}, as specified by {@link
+     * VarHandle#getOpaque}.
      *
      * @param i the index
      * @return the value
@@ -351,9 +354,8 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Sets the element at index {@code i} to the {@code newValue}, in
-     * program order, but with no assurance of memory ordering effects
-     * with respect to other threads.
+     * Sets the element at index {@code i} to the {@code newValue}, as
+     * specified by {@link VarHandle#setOpaque}.
      *
      * @param i the index
      * @param newValue the new value
@@ -364,9 +366,8 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Returns the element at index {@code i}, and ensures that
-     * subsequent loads and stores are not reordered before this
-     * access.
+     * Returns the value at index {@code i}, as specified by {@link
+     * VarHandle#getAcquire}.
      *
      * @param i the index
      * @return the value
@@ -377,9 +378,8 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Sets the element at index {@code i} to the {@code newValue},
-     * and ensures that prior loads and stores are not reordered after
-     * this access.
+     * Sets the element at index {@code i} to the {@code newValue}, as
+     * specified by {@link VarHandle#setRelease}.
      *
      * @param i the index
      * @param newValue the new value
@@ -391,10 +391,9 @@ public class AtomicIntegerArray implements java.io.Serializable {
 
     /**
      * Atomically sets the element at index {@code i} to the {@code
-     * newValue} with the {@code volatile} memory semantics if the
-     * variable's current value, referred to as the <em>witness
-     * value</em>, {@code ==} the {@code expectedValue}, as accessed
-     * with {@code volatile} memory semantics.
+     * newValue} if the current value, referred to as the <em>witness
+     * value</em>, {@code ==} the {@code expectedValue}, as specified
+     * by {@link VarHandle#compareAndExchangeVolatile}.
      *
      * @param i the index
      * @param expectedValue the expected value
@@ -409,10 +408,9 @@ public class AtomicIntegerArray implements java.io.Serializable {
 
     /**
      * Atomically sets the element at index {@code i} to the {@code
-     * newValue} with the memory semantics of {@link #setPlain} if the
-     * variable's current value, referred to as the <em>witness
-     * value</em>, {@code ==} the {@code expectedValue}, as accessed
-     * with the memory semantics of {@link #getAcquire}.
+     * newValue} if the current value, referred to as the <em>witness
+     * value</em>, {@code ==} the {@code expectedValue}, as specified
+     * by {@link VarHandle#compareAndExchangeAcquire}.
      *
      * @param i the index
      * @param expectedValue the expected value
@@ -427,10 +425,9 @@ public class AtomicIntegerArray implements java.io.Serializable {
 
     /**
      * Atomically sets the element at index {@code i} to the {@code
-     * newValue} with the memory semantics of {@link #setRelease} if
-     * the variable's current value, referred to as the <em>witness
-     * value</em>, {@code ==} the {@code expectedValue}, as accessed
-     * with the memory semantics of {@link #getPlain}.
+     * newValue} if the current value, referred to as the <em>witness
+     * value</em>, {@code ==} the {@code expectedValue}, as specified
+     * by {@link VarHandle#compareAndExchangeRelease}.
      *
      * @param i the index
      * @param expectedValue the expected value
@@ -445,13 +442,9 @@ public class AtomicIntegerArray implements java.io.Serializable {
 
     /**
      * Possibly atomically sets the element at index {@code i} to the
-     * {@code newValue} with {@code volatile} memory semantics if the
-     * variable's current value, referred to as the <em>witness
-     * value</em>, {@code ==} the {@code expectedValue}, as accessed
-     * with {@code volatile} memory semantics.
-     *
-     * <p>This operation may fail spuriously (typically, due to memory
-     * contention) even if the witness value does match the expected value.
+     * {@code newValue} if the current value {@code ==} the {@code
+     * expectedValue}, as specified by {@link
+     * VarHandle#weakCompareAndSetVolatile}.
      *
      * @param i the index
      * @param expectedValue the expected value
@@ -465,13 +458,9 @@ public class AtomicIntegerArray implements java.io.Serializable {
 
     /**
      * Possibly atomically sets the element at index {@code i} to the
-     * {@code newValue} with the semantics of {@link #setPlain} if the
-     * variable's current value, referred to as the <em>witness
-     * value</em>, {@code ==} the {@code expectedValue}, as accessed
-     * with the memory semantics of {@link #getAcquire}.
-     *
-     * <p>This operation may fail spuriously (typically, due to memory
-     * contention) even if the witness value does match the expected value.
+     * {@code newValue} if the current value {@code ==} the {@code
+     * expectedValue}, as specified by {@link
+     * VarHandle#weakCompareAndSetAcquire}.
      *
      * @param i the index
      * @param expectedValue the expected value
@@ -485,13 +474,9 @@ public class AtomicIntegerArray implements java.io.Serializable {
 
     /**
      * Possibly atomically sets the element at index {@code i} to the
-     * {@code newValue} with the semantics of {@link #setRelease} if
-     * the variable's current value, referred to as the <em>witness
-     * value</em>, {@code ==} the {@code expectedValue}, as accessed
-     * with the memory semantics of {@link #getPlain}.
-     *
-     * <p>This operation may fail spuriously (typically, due to memory
-     * contention) even if the witness value does match the expected value.
+     * {@code newValue} if the current value {@code ==} the {@code
+     * expectedValue}, as specified by {@link
+     * VarHandle#weakCompareAndSetRelease}.
      *
      * @param i the index
      * @param expectedValue the expected value

@@ -11,11 +11,10 @@ import java.lang.invoke.VarHandle;
 
 /**
  * A {@code boolean} value that may be updated atomically. See the
- * {@link java.util.concurrent.atomic} package specification for
- * description of the properties of atomic variables. An
- * {@code AtomicBoolean} is used in applications such as atomically
- * updated flags, and cannot be used as a replacement for a
- * {@link java.lang.Boolean}.
+ * {@link VarHandle} specification for descriptions of the properties
+ * of atomic accesses. An {@code AtomicBoolean} is used in
+ * applications such as atomically updated flags, and cannot be used
+ * as a replacement for a {@link java.lang.Boolean}.
  *
  * @since 1.5
  * @author Doug Lea
@@ -50,7 +49,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Returns the current value.
+     * Returns the current value, with the memory semantics of reading a
+     * {@code volatile} variable.
      *
      * @return the current value
      */
@@ -59,13 +59,16 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the value to the given updated value
-     * if the current value {@code ==} the expected value.
+     *
+     * Atomically sets to the {@code newValue} if the current value
+     * {@code ==} the {@code expectedValue}, with the semantics and
+     * memory properties of reading and writing a {@code volatile}
+     * variable.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
      * @return {@code true} if successful. False return indicates that
-     * the actual value was not equal to the expected value.
+     * the actual value was not equal to the {@code expectedValue}.
      */
     public final boolean compareAndSet(boolean expectedValue, boolean newValue) {
         return VALUE.compareAndSet(this,
@@ -74,12 +77,9 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the value to the given updated value
-     * if the current value {@code ==} the expected value.
-     *
-     * <p><a href="package-summary.html#weakCompareAndSet">May fail
-     * spuriously and does not provide ordering guarantees</a>, so is
-     * only rarely an appropriate alternative to {@code compareAndSet}.
+     * Possibly atomically sets to the {@code newValue} if the current
+     * value {@code ==} the {@code expectedValue}, with the semantics and
+     * memory properties of {@link VarHandle#weakCompareAndSet}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -92,7 +92,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Unconditionally sets to the given value.
+     * Sets the value to the {@code newValue}, with the memory
+     * semantics of setting a {@code volatile} variable.
      *
      * @param newValue the new value
      */
@@ -101,7 +102,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Eventually sets to the given value.
+     * Sets the value to the {@code newValue}, with the memory
+     * semantics of a {@link VarHandle#setRelease} operation.
      *
      * @param newValue the new value
      * @since 1.6
@@ -111,7 +113,10 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets to the given value and returns the previous value.
+     * Atomically sets to the given value and returns the previous value,
+     * with the semantics and
+     * memory properties of reading and writing a {@code volatile}
+     * variable.
      *
      * @param newValue the new value
      * @return the previous value
@@ -158,9 +163,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Returns the value, accessed in program order, but with no
-     * assurance of memory ordering effects with respect to other
-     * threads.
+     * Returns the value, with the semantics and memory properties of
+     * {@link VarHandle#getOpaque}.
      *
      * @return the value
      * @since 9
@@ -170,9 +174,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Sets the value to the {@code newValue}, in program order, but
-     * with no assurance of memory ordering effects with respect to
-     * other threads.
+     * Sets the value to the {@code newValue}, with the semantics and
+     * memory properties of {@link VarHandle#setOpaque}.
      *
      * @param newValue the new value
      * @since 9
@@ -182,8 +185,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Returns the value, and ensures that subsequent loads and stores
-     * are not reordered before this access.
+     * Returns the value, with the semantics and memory properties of
+     * {@link VarHandle#getAcquire}.
      *
      * @return the value
      * @since 9
@@ -193,8 +196,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Sets the value to the {@code newValue}, and ensures that prior
-     * loads and stores are not reordered after this access.
+     * Sets the value to the {@code newValue}, with the semantics and
+     * memory properties of {@link VarHandle#setRelease}.
      *
      * @param newValue the new value
      * @since 9
@@ -204,11 +207,11 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the value to the {@code newValue} with the
-     * {@code volatile} memory semantics if the variable's current
+     * Atomically sets the value to the {@code newValue} if the current
      * value, referred to as the <em>witness value</em>, {@code ==}
-     * the {@code expectedValue}, as accessed with {@code volatile}
-     * memory semantics.
+     * the {@code expectedValue}, with the semantics and
+     * memory properties specified for
+     * {@link VarHandle#compareAndExchangeVolatile}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -223,11 +226,11 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the value to the {@code newValue} with the
-     * memory semantics of {@link #setPlain} if the variable's
-     * current value, referred to as the <em>witness value</em>,
-     * {@code ==} the {@code expectedValue}, as accessed with the
-     * memory semantics of {@link #getAcquire}.
+     * Atomically sets the value to the {@code newValue} if the current
+     * value, referred to as the <em>witness value</em>, {@code ==}
+     * the {@code expectedValue}, with the semantics and
+     * memory properties specified for
+     * {@link VarHandle#compareAndExchangeAcquire}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -242,11 +245,11 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the value to the {@code newValue} with the
-     * memory semantics of {@link #setRelease} if the variable's
+     * Atomically sets the value to the {@code newValue} if the
      * current value, referred to as the <em>witness value</em>,
-     * {@code ==} the {@code expectedValue}, as accessed with the
-     * memory semantics of {@link #getPlain}.
+     * {@code ==} the {@code expectedValue}, with the semantics and
+     * memory properties specified for {@link
+     * VarHandle#compareAndExchangeRelease}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -261,14 +264,10 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Possibly atomically sets the value to the {@code newValue} with
-     * {@code volatile} memory semantics if the variable's current
-     * value, referred to as the <em>witness value</em>, {@code ==}
-     * the {@code expectedValue}, as accessed with {@code volatile}
-     * memory semantics.
-     *
-     * <p>This operation may fail spuriously (typically, due to memory
-     * contention) even if the witness value does match the expected value.
+     * Possibly atomically sets to the {@code newValue} if the current
+     * value {@code ==} the {@code expectedValue}, with the semantics
+     * and memory properties specified for {@link
+     * VarHandle#weakCompareAndSetVolatile}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -282,14 +281,10 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Possibly atomically sets the value to the {@code newValue} with
-     * the semantics of {@link #setPlain} if the variable's current
-     * value, referred to as the <em>witness value</em>, {@code ==}
-     * the {@code expectedValue}, as accessed with the memory
-     * semantics of {@link #getAcquire}.
-     *
-     * <p>This operation may fail spuriously (typically, due to memory
-     * contention) even if the witness value does match the expected value.
+     * Possibly atomically sets to the {@code newValue} if the current
+     * value {@code ==} the {@code expectedValue}, with the semantics
+     * and memory properties specified for {@link
+     * VarHandle#weakCompareAndSetAcquire}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -303,14 +298,10 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Possibly atomically sets the value to the {@code newValue} with
-     * the semantics of {@link #setRelease} if the variable's current
-     * value, referred to as the <em>witness value</em>, {@code ==}
-     * the {@code expectedValue}, as accessed with the memory
-     * semantics of {@link #getPlain}.
-     *
-     * <p>This operation may fail spuriously (typically, due to memory
-     * contention) even if the witness value does match the expected value.
+     * Possibly atomically sets to the {@code newValue} if the current
+     * value {@code ==} the {@code expectedValue}, with the semantics
+     * and memory properties specified for {@link
+     * VarHandle#weakCompareAndSetRelease}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
