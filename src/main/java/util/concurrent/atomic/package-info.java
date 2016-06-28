@@ -64,7 +64,7 @@
  * <p>In addition to classes representing single values and arrays,
  * this package contains <em>Updater</em> classes that can be used to
  * obtain {@code compareAndSet} and related operations on any selected
- * {@code volatile} field of any selected class. These classes 
+ * {@code volatile} field of any selected class. These classes
  * predate the introduction of {@link
  * java.lang.invoke.VarHandle}, and of more limited use.
  * {@link java.util.concurrent.atomic.AtomicReferenceFieldUpdater},
