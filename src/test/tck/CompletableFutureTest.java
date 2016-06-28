@@ -3354,8 +3354,8 @@ public class CompletableFutureTest extends JSR166TestCase {
      * Test submissions to an executor that rejects all tasks.
      */
     public void testRejectingExecutor() {
-        for (Integer v : new Integer[] { 1, null }) {
-
+        for (Integer v : new Integer[] { 1, null })
+    {
         final CountingRejectingExecutor e = new CountingRejectingExecutor();
 
         final CompletableFuture<Integer> complete = CompletableFuture.completedFuture(v);
@@ -3434,9 +3434,7 @@ public class CompletableFutureTest extends JSR166TestCase {
             checkCompletedWithWrappedException(future, e.ex);
 
         assertEquals(futures.size(), e.count.get());
-
-        }
-    }
+    }}
 
     /**
      * Test submissions to an executor that rejects all tasks, but
@@ -3444,9 +3442,9 @@ public class CompletableFutureTest extends JSR166TestCase {
      * explicitly completed.
      */
     public void testRejectingExecutorNeverInvoked() {
+        for (Integer v : new Integer[] { 1, null })
+    {
         final CountingRejectingExecutor e = new CountingRejectingExecutor();
-
-        for (Integer v : new Integer[] { 1, null }) {
 
         final CompletableFuture<Integer> complete = CompletableFuture.completedFuture(v);
         final CompletableFuture<Integer> incomplete = new CompletableFuture<>();
@@ -3495,9 +3493,7 @@ public class CompletableFutureTest extends JSR166TestCase {
             checkCompletedNormally(future, null);
 
         assertEquals(0, e.count.get());
-
-        }
-    }
+    }}
 
     /**
      * toCompletableFuture returns this CompletableFuture.
