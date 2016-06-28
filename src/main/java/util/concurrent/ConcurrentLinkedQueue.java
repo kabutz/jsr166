@@ -278,8 +278,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                     // Successful CAS is the linearization point
                     // for e to become an element of this queue,
                     // and for newNode to become "live".
-                    if (p != t) // hop two nodes at a time
-                        TAIL.weakCompareAndSetVolatile(this, t, newNode);  // Failure is OK.
+                    if (p != t) // hop two nodes at a time; failure is OK
+                        TAIL.weakCompareAndSetVolatile(this, t, newNode);
                     return true;
                 }
                 // Lost CAS race to another thread; re-read next
