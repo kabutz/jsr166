@@ -1310,7 +1310,7 @@ public class StampedLock implements java.io.Serializable {
      * AbstractQueuedSynchronizer (see its detailed explanation in AQS
      * internal documentation).
      *
-     * @param node if nonnull, the waiter
+     * @param node if non-null, the waiter
      * @param group either node or the group node is cowaiting with
      * @param interrupted if already interrupted
      * @return INTERRUPTED if interrupted or Thread.interrupted, else zero
