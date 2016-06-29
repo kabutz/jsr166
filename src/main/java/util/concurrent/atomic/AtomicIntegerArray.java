@@ -132,7 +132,10 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Equivalent to {@code getAndAdd(i, 1)}.
+     * Atomically increments the value of the element at index {@code i},
+     * with memory effects as specified by {@link VarHandle#getAndAdd}.
+     *
+     * <p>Equivalent to {@code getAndAdd(i, 1)}.
      *
      * @param i the index
      * @return the previous value
@@ -142,7 +145,10 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Equivalent to {@code getAndAdd(i, -1)}.
+     * Atomically decrements the value of the element at index {@code i},
+     * with memory effects as specified by {@link VarHandle#getAndAdd}.
+     *
+     * <p>Equivalent to {@code getAndAdd(i, -1)}.
      *
      * @param i the index
      * @return the previous value
@@ -164,7 +170,10 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Equivalent to {@code addAndGet(i, 1)}.
+     * Atomically increments the value of the element at index {@code i},
+     * with memory effects as specified by {@link VarHandle#addAndGet}.
+     *
+     * <p>Equivalent to {@code addAndGet(i, 1)}.
      *
      * @param i the index
      * @return the updated value
@@ -174,7 +183,10 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Equivalent to {@code addAndGet(i, -1)}.
+     * Atomically decrements the value of the element at index {@code i},
+     * with memory effects as specified by {@link VarHandle#addAndGet}.
+     *
+     * <p>Equivalent to {@code addAndGet(i, -1)}.
      *
      * @param i the index
      * @return the updated value

@@ -137,7 +137,10 @@ public class AtomicLong extends Number implements java.io.Serializable {
     }
 
     /**
-     * Equivalent to {@code getAndAdd(1)}.
+     * Atomically increments the current value,
+     * with memory effects as specified by {@link VarHandle#getAndAdd}.
+     *
+     * <p>Equivalent to {@code getAndAdd(1)}.
      *
      * @return the previous value
      */
@@ -146,7 +149,10 @@ public class AtomicLong extends Number implements java.io.Serializable {
     }
 
     /**
-     * Equivalent to {@code getAndAdd(-1)}.
+     * Atomically decrements the current value,
+     * with memory effects as specified by {@link VarHandle#getAndAdd}.
+     *
+     * <p>Equivalent to {@code getAndAdd(-1)}.
      *
      * @return the previous value
      */
@@ -166,7 +172,10 @@ public class AtomicLong extends Number implements java.io.Serializable {
     }
 
     /**
-     * Equivalent to {@code addAndGet(1)}.
+     * Atomically increments the current value,
+     * with memory effects as specified by {@link VarHandle#addAndGet}.
+     *
+     * <p>Equivalent to {@code addAndGet(1)}.
      *
      * @return the updated value
      */
@@ -175,7 +184,10 @@ public class AtomicLong extends Number implements java.io.Serializable {
     }
 
     /**
-     * Equivalent to {@code addAndGet(-1)}.
+     * Atomically decrements the current value,
+     * with memory effects as specified by {@link VarHandle#addAndGet}.
+     *
+     * <p>Equivalent to {@code addAndGet(-1)}.
      *
      * @return the updated value
      */
