@@ -49,8 +49,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Returns the current value, with the memory semantics of reading a
-     * {@code volatile} variable.
+     * Returns the current value,
+     * with memory effects as specified by {@link VarHandle#getVolatile}.
      *
      * @return the current value
      */
@@ -59,16 +59,14 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     *
-     * Atomically sets the value to {@code newValue} if the current value
-     * {@code ==} the {@code expectedValue}, with the semantics and
-     * memory properties of reading and writing a {@code volatile}
-     * variable.
+     * Atomically sets the value to {@code newValue}
+     * if the current value {@code == expectedValue},
+     * with memory effects as specified by {@link VarHandle#compareAndSet}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
      * @return {@code true} if successful. False return indicates that
-     * the actual value was not equal to the {@code expectedValue}.
+     * the actual value was not equal to the expected value.
      */
     public final boolean compareAndSet(boolean expectedValue, boolean newValue) {
         return VALUE.compareAndSet(this,
@@ -77,9 +75,9 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Possibly atomically sets the value to {@code newValue} if the current
-     * value {@code ==} the {@code expectedValue}, with the semantics and
-     * memory properties of {@link VarHandle#weakCompareAndSet}.
+     * Possibly atomically sets the value to {@code newValue}
+     * if the current value {@code == expectedValue},
+     * with memory effects as specified by {@link VarHandle#weakCompareAndSet}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -92,8 +90,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Sets the value to {@code newValue}, with the memory
-     * semantics of setting a {@code volatile} variable.
+     * Sets the value to {@code newValue},
+     * with memory effects as specified by {@link VarHandle#setVolatile}.
      *
      * @param newValue the new value
      */
@@ -102,8 +100,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Sets the value to {@code newValue}, with the memory
-     * semantics of a {@link VarHandle#setRelease} operation.
+     * Sets the value to {@code newValue},
+     * with memory effects as specified by {@link VarHandle#setRelease}.
      *
      * @param newValue the new value
      * @since 1.6
@@ -114,8 +112,7 @@ public class AtomicBoolean implements java.io.Serializable {
 
     /**
      * Atomically sets the value to {@code newValue} and returns the old value,
-     * with the semantics and memory properties of reading and writing a {@code
-     * volatile} variable.
+     * with memory effects as specified by {@link VarHandle#getAndSet}.
      *
      * @param newValue the new value
      * @return the previous value
@@ -162,8 +159,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Returns the current value, with the semantics and memory
-     * properties of {@link VarHandle#getOpaque}.
+     * Returns the current value,
+     * with memory effects as specified by {@link VarHandle#getOpaque}.
      *
      * @return the value
      * @since 9
@@ -173,8 +170,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Sets the value to {@code newValue}, with the semantics and
-     * memory properties of {@link VarHandle#setOpaque}.
+     * Sets the value to {@code newValue},
+     * with memory effects as specified by {@link VarHandle#setOpaque}.
      *
      * @param newValue the new value
      * @since 9
@@ -184,8 +181,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Returns the current value, with the semantics and memory
-     * properties of {@link VarHandle#getAcquire}.
+     * Returns the current value,
+     * with memory effects as specified by {@link VarHandle#getAcquire}.
      *
      * @return the value
      * @since 9
@@ -195,8 +192,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Sets the value to {@code newValue}, with the semantics and
-     * memory properties of {@link VarHandle#setRelease}.
+     * Sets the value to {@code newValue},
+     * with memory effects as specified by {@link VarHandle#setRelease}.
      *
      * @param newValue the new value
      * @since 9
@@ -206,16 +203,15 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the value to {@code newValue} if the current
-     * value, referred to as the <em>witness value</em>, {@code ==}
-     * the {@code expectedValue}, with the semantics and
-     * memory properties specified for
+     * Atomically sets the value to {@code newValue} if the current value,
+     * referred to as the <em>witness value</em>, {@code == expectedValue},
+     * with memory effects as specified by
      * {@link VarHandle#compareAndExchangeVolatile}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
-     * @return the witness value, which will be the same as the {@code
-     * expectedValue} if successful
+     * @return the witness value, which will be the same as the
+     * expected value if successful
      * @since 9
      */
     public final boolean compareAndExchange(boolean expectedValue, boolean newValue) {
@@ -225,16 +221,15 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the value to {@code newValue} if the current
-     * value, referred to as the <em>witness value</em>, {@code ==}
-     * the {@code expectedValue}, with the semantics and
-     * memory properties specified for
+     * Atomically sets the value to {@code newValue} if the current value,
+     * referred to as the <em>witness value</em>, {@code == expectedValue},
+     * with memory effects as specified by
      * {@link VarHandle#compareAndExchangeAcquire}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
-     * @return the witness value, which will be the same as the {@code
-     * expectedValue} if successful
+     * @return the witness value, which will be the same as the
+     * expected value if successful
      * @since 9
      */
     public final boolean compareAndExchangeAcquire(boolean expectedValue, boolean newValue) {
@@ -244,16 +239,15 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the value to {@code newValue} if the
-     * current value, referred to as the <em>witness value</em>,
-     * {@code ==} the {@code expectedValue}, with the semantics and
-     * memory properties specified for {@link
-     * VarHandle#compareAndExchangeRelease}.
+     * Atomically sets the value to {@code newValue} if the current value,
+     * referred to as the <em>witness value</em>, {@code == expectedValue},
+     * with memory effects as specified by
+     * {@link VarHandle#compareAndExchangeRelease}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
-     * @return the witness value, which will be the same as the {@code
-     * expectedValue} if successful
+     * @return the witness value, which will be the same as the
+     * expected value if successful
      * @since 9
      */
     public final boolean compareAndExchangeRelease(boolean expectedValue, boolean newValue) {
@@ -264,9 +258,9 @@ public class AtomicBoolean implements java.io.Serializable {
 
     /**
      * Possibly atomically sets the value to {@code newValue} if the current
-     * value {@code ==} the {@code expectedValue}, with the semantics
-     * and memory properties specified for {@link
-     * VarHandle#weakCompareAndSetVolatile}.
+     * value {@code == expectedValue},
+     * with memory effects as specified by
+     * {@link VarHandle#weakCompareAndSetVolatile}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -281,9 +275,9 @@ public class AtomicBoolean implements java.io.Serializable {
 
     /**
      * Possibly atomically sets the value to {@code newValue} if the current
-     * value {@code ==} the {@code expectedValue}, with the semantics
-     * and memory properties specified for {@link
-     * VarHandle#weakCompareAndSetAcquire}.
+     * value {@code == expectedValue},
+     * with memory effects as specified by
+     * {@link VarHandle#weakCompareAndSetAcquire}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -298,9 +292,9 @@ public class AtomicBoolean implements java.io.Serializable {
 
     /**
      * Possibly atomically sets the value to {@code newValue} if the current
-     * value {@code ==} the {@code expectedValue}, with the semantics
-     * and memory properties specified for {@link
-     * VarHandle#weakCompareAndSetRelease}.
+     * value {@code == expectedValue},
+     * with memory effects as specified by
+     * {@link VarHandle#weakCompareAndSetRelease}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value

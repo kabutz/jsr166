@@ -49,7 +49,8 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Returns the current value, as specified by {@link VarHandle#getVolatile}.
+     * Returns the current value,
+     * with memory effects as specified by {@link VarHandle#getVolatile}.
      *
      * @return the current value
      */
@@ -59,8 +60,8 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Sets the value to {@code newValue}, as specified by
-     * {@link VarHandle#setVolatile}.
+     * Sets the value to {@code newValue},
+     * with memory effects as specified by {@link VarHandle#setVolatile}.
      *
      * @param newValue the new value
      */
@@ -69,8 +70,8 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Sets the value to {@code newValue}, as specified by
-     * {@link VarHandle#setRelease}.
+     * Sets the value to {@code newValue},
+     * with memory effects as specified by {@link VarHandle#setRelease}.
      *
      * @param newValue the new value
      * @since 1.6
@@ -81,8 +82,8 @@ public class AtomicReference<V> implements java.io.Serializable {
 
     /**
      * Atomically sets the value to {@code newValue}
-     * if the current value {@code ==} the {@code expectedValue},
-     * as specified by {@link VarHandle#compareAndSet}.
+     * if the current value {@code == expectedValue},
+     * with memory effects as specified by {@link VarHandle#compareAndSet}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -95,8 +96,8 @@ public class AtomicReference<V> implements java.io.Serializable {
 
     /**
      * Possibly atomically sets the value to {@code newValue}
-     * if the current value {@code ==} the {@code expectedValue},
-     * as specified by {@link VarHandle#weakCompareAndSet}.
+     * if the current value {@code == expectedValue},
+     * with memory effects as specified by {@link VarHandle#weakCompareAndSet}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -108,7 +109,7 @@ public class AtomicReference<V> implements java.io.Serializable {
 
     /**
      * Atomically sets the value to {@code newValue} and returns the old value,
-     * as specified by {@link VarHandle#getAndSet}.
+     * with memory effects as specified by {@link VarHandle#getAndSet}.
      *
      * @param newValue the new value
      * @return the previous value
@@ -246,7 +247,8 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Returns the current value, as specified by {@link VarHandle#getOpaque}.
+     * Returns the current value,
+     * with memory effects as specified by {@link VarHandle#getOpaque}.
      *
      * @return the value
      * @since 9
@@ -256,8 +258,8 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Sets the value to {@code newValue}, as specified by
-     * {@link VarHandle#setOpaque}.
+     * Sets the value to {@code newValue},
+     * with memory effects as specified by {@link VarHandle#setOpaque}.
      *
      * @param newValue the new value
      * @since 9
@@ -267,7 +269,8 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Returns the current value, as specified by {@link VarHandle#getAcquire}.
+     * Returns the current value,
+     * with memory effects as specified by {@link VarHandle#getAcquire}.
      *
      * @return the value
      * @since 9
@@ -277,8 +280,8 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Sets the value to {@code newValue}, as specified by
-     * {@link VarHandle#setRelease}.
+     * Sets the value to {@code newValue},
+     * with memory effects as specified by {@link VarHandle#setRelease}.
      *
      * @param newValue the new value
      * @since 9
@@ -288,15 +291,15 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the value to {@code newValue} if the current
-     * value, referred to as the <em>witness value</em>, {@code ==}
-     * the {@code expectedValue}, as specified by
+     * Atomically sets the value to {@code newValue} if the current value,
+     * referred to as the <em>witness value</em>, {@code == expectedValue},
+     * with memory effects as specified by
      * {@link VarHandle#compareAndExchangeVolatile}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
-     * @return the witness value, which will be the same as the {@code
-     * expectedValue} if successful
+     * @return the witness value, which will be the same as the
+     * expected value if successful
      * @since 9
      */
     public final V compareAndExchange(V expectedValue, V newValue) {
@@ -304,15 +307,15 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the value to {@code newValue} if the current
-     * value, referred to as the <em>witness value</em>, {@code ==}
-     * the {@code expectedValue}, as specified by
+     * Atomically sets the value to {@code newValue} if the current value,
+     * referred to as the <em>witness value</em>, {@code == expectedValue},
+     * with memory effects as specified by
      * {@link VarHandle#compareAndExchangeAcquire}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
-     * @return the witness value, which will be the same as the {@code
-     * expectedValue} if successful
+     * @return the witness value, which will be the same as the
+     * expected value if successful
      * @since 9
      */
     public final V compareAndExchangeAcquire(V expectedValue, V newValue) {
@@ -320,15 +323,15 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the value to {@code newValue} if the current
-     * value, referred to as the <em>witness value</em>, {@code ==}
-     * the {@code expectedValue}, as specified by
+     * Atomically sets the value to {@code newValue} if the current value,
+     * referred to as the <em>witness value</em>, {@code == expectedValue},
+     * with memory effects as specified by
      * {@link VarHandle#compareAndExchangeRelease}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
-     * @return the witness value, which will be the same as the {@code
-     * expectedValue} if successful
+     * @return the witness value, which will be the same as the
+     * expected value if successful
      * @since 9
      */
     public final V compareAndExchangeRelease(V expectedValue, V newValue) {
@@ -336,9 +339,10 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Possibly atomically sets the value to {@code newValue} if
-     * the current value {@code ==} the {@code expectedValue}, as
-     * specified by {@link VarHandle#weakCompareAndSetVolatile}.
+     * Possibly atomically sets the value to {@code newValue}
+     * if the current value {@code == expectedValue},
+     * with memory effects as specified by
+     * {@link VarHandle#weakCompareAndSetVolatile}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -350,9 +354,10 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Possibly atomically sets the value to {@code newValue} if
-     * the current value {@code ==} the {@code expectedValue}, as
-     * specified by {@link VarHandle#weakCompareAndSetAcquire}.
+     * Possibly atomically sets the value to {@code newValue}
+     * if the current value {@code == expectedValue},
+     * with memory effects as specified by
+     * {@link VarHandle#weakCompareAndSetAcquire}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -364,9 +369,10 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Possibly atomically sets the value to {@code newValue} if
-     * the current value {@code ==} the {@code expectedValue}, as
-     * specified by {@link VarHandle#weakCompareAndSetRelease}.
+     * Possibly atomically sets the value to {@code newValue}
+     * if the current value {@code == expectedValue},
+     * with memory effects as specified by
+     * {@link VarHandle#weakCompareAndSetRelease}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
