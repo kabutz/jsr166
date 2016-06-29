@@ -122,8 +122,8 @@ public abstract class AtomicIntegerFieldUpdater<T> {
     public abstract void lazySet(T obj, int newValue);
 
     /**
-     * Gets the current value held in the field of the given object managed
-     * by this updater.
+     * Returns the current value held in the field of the given object
+     * managed by this updater.
      *
      * @param obj An object whose field to get
      * @return the current value

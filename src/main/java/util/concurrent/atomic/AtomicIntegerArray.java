@@ -56,7 +56,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Gets the current value at index {@code i}, as specified by
+     * Returns the current value at index {@code i}, as specified by
      * {@link VarHandle#getVolatile}.
      *
      * @param i the index

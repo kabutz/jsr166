@@ -49,7 +49,7 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Gets the current value, as specified by {@link VarHandle#getVolatile}.
+     * Returns the current value, as specified by {@link VarHandle#getVolatile}.
      *
      * @return the current value
      */

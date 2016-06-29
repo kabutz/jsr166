@@ -125,8 +125,8 @@ public abstract class AtomicLongFieldUpdater<T> {
     public abstract void lazySet(T obj, long newValue);
 
     /**
-     * Gets the current value held in the field of the given object managed
-     * by this updater.
+     * Returns the current value held in the field of the given object
+     * managed by this updater.
      *
      * @param obj An object whose field to get
      * @return the current value
