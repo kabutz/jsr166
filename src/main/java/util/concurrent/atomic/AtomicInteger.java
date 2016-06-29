@@ -281,7 +281,9 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     }
 
     /**
-     * Returns the value of this {@code AtomicInteger} as an {@code int}.
+     * Returns the current value of this {@code AtomicInteger} as an
+     * {@code int}.
+     *
      * Equivalent to {@link #get()}.
      */
     public int intValue() {
@@ -289,8 +291,8 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     }
 
     /**
-     * Returns the value of this {@code AtomicInteger} as a {@code long}
-     * after a widening primitive conversion.
+     * Returns the current value of this {@code AtomicInteger} as a
+     * {@code long} after a widening primitive conversion.
      * @jls 5.1.2 Widening Primitive Conversions
      */
     public long longValue() {
@@ -298,8 +300,8 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     }
 
     /**
-     * Returns the value of this {@code AtomicInteger} as a {@code float}
-     * after a widening primitive conversion.
+     * Returns the current value of this {@code AtomicInteger} as a
+     * {@code float} after a widening primitive conversion.
      * @jls 5.1.2 Widening Primitive Conversions
      */
     public float floatValue() {
@@ -307,8 +309,8 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     }
 
     /**
-     * Returns the value of this {@code AtomicInteger} as a {@code double}
-     * after a widening primitive conversion.
+     * Returns the current value of this {@code AtomicInteger} as a
+     * {@code double} after a widening primitive conversion.
      * @jls 5.1.2 Widening Primitive Conversions
      */
     public double doubleValue() {
@@ -318,8 +320,8 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     // jdk9
 
     /**
-     * Returns the value, with memory semantics of reading as if the
-     * variable was declared non-{@code volatile}.
+     * Returns the current value, with memory semantics of reading as
+     * if the variable was declared non-{@code volatile}.
      *
      * @return the value
      * @since 9
@@ -341,7 +343,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     }
 
     /**
-     * Returns the value, as specified by {@link VarHandle#getOpaque}.
+     * Returns the current value, as specified by {@link VarHandle#getOpaque}.
      *
      * @return the value
      * @since 9
@@ -362,7 +364,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     }
 
     /**
-     * Returns the value, as specified by {@link VarHandle#getAcquire}.
+     * Returns the current value, as specified by {@link VarHandle#getAcquire}.
      *
      * @return the value
      * @since 9

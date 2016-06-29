@@ -139,8 +139,8 @@ public class AtomicBoolean implements java.io.Serializable {
     // jdk9
 
     /**
-     * Returns the value, with memory semantics of reading as if the
-     * variable was declared non-{@code volatile}.
+     * Returns the current value, with memory semantics of reading as
+     * if the variable was declared non-{@code volatile}.
      *
      * @return the value
      * @since 9
@@ -162,8 +162,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Returns the value, with the semantics and memory properties of
-     * {@link VarHandle#getOpaque}.
+     * Returns the current value, with the semantics and memory
+     * properties of {@link VarHandle#getOpaque}.
      *
      * @return the value
      * @since 9
@@ -184,8 +184,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Returns the value, with the semantics and memory properties of
-     * {@link VarHandle#getAcquire}.
+     * Returns the current value, with the semantics and memory
+     * properties of {@link VarHandle#getAcquire}.
      *
      * @return the value
      * @since 9

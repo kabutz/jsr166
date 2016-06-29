@@ -223,8 +223,8 @@ public class AtomicReference<V> implements java.io.Serializable {
     // jdk9
 
     /**
-     * Returns the value, with memory semantics of reading as if the
-     * variable was declared non-{@code volatile}.
+     * Returns the current value, with memory semantics of reading as
+     * if the variable was declared non-{@code volatile}.
      *
      * @return the value
      * @since 9
@@ -246,7 +246,7 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Returns the value, as specified by {@link VarHandle#getOpaque}.
+     * Returns the current value, as specified by {@link VarHandle#getOpaque}.
      *
      * @return the value
      * @since 9
@@ -267,7 +267,7 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Returns the value, as specified by {@link VarHandle#getAcquire}.
+     * Returns the current value, as specified by {@link VarHandle#getAcquire}.
      *
      * @return the value
      * @since 9

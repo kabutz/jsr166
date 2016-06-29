@@ -56,8 +56,8 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Returns the current value at index {@code i}, as specified by
-     * {@link VarHandle#getVolatile}.
+     * Returns the current value of the element at index {@code i}, as
+     * specified by {@link VarHandle#getVolatile}.
      *
      * @param i the index
      * @return the current value
@@ -242,12 +242,13 @@ public class AtomicIntegerArray implements java.io.Serializable {
 
     /**
      * Atomically updates the element at index {@code i} with the
-     * results of applying the given function to the current and
-     * given values, returning the previous value. The function should
-     * be side-effect-free, since it may be re-applied when attempted
+     * results of applying the given function to the current and given
+     * values, returning the previous value. The function should be
+     * side-effect-free, since it may be re-applied when attempted
      * updates fail due to contention among threads.  The function is
-     * applied with the current value at index {@code i} as its first
-     * argument, and the given update as the second argument.
+     * applied with the current value of the element at index {@code i}
+     * as its first argument, and the given update as the second
+     * argument.
      *
      * @param i the index
      * @param x the update value
@@ -269,12 +270,13 @@ public class AtomicIntegerArray implements java.io.Serializable {
 
     /**
      * Atomically updates the element at index {@code i} with the
-     * results of applying the given function to the current and
-     * given values, returning the updated value. The function should
-     * be side-effect-free, since it may be re-applied when attempted
+     * results of applying the given function to the current and given
+     * values, returning the updated value. The function should be
+     * side-effect-free, since it may be re-applied when attempted
      * updates fail due to contention among threads.  The function is
-     * applied with the current value at index {@code i} as its first
-     * argument, and the given update as the second argument.
+     * applied with the current value of the element at index {@code i}
+     * as its first argument, and the given update as the second
+     * argument.
      *
      * @param i the index
      * @param x the update value
@@ -342,8 +344,8 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Returns the value at index {@code i}, as specified by {@link
-     * VarHandle#getOpaque}.
+     * Returns the current value of the element at index {@code i}, as
+     * specified by {@link VarHandle#getOpaque}.
      *
      * @param i the index
      * @return the value
@@ -366,8 +368,8 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Returns the value at index {@code i}, as specified by {@link
-     * VarHandle#getAcquire}.
+     * Returns the current value of the element at index {@code i}, as
+     * specified by {@link VarHandle#getAcquire}.
      *
      * @param i the index
      * @return the value
