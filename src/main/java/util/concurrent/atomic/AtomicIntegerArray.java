@@ -56,7 +56,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Gets the current value at position {@code i}, as specified by
+     * Gets the current value at index {@code i}, as specified by
      * {@link VarHandle#getVolatile}.
      *
      * @param i the index
@@ -67,7 +67,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Sets the element at position {@code i} to {@code newValue}, as
+     * Sets the element at index {@code i} to {@code newValue}, as
      * specified by {@link VarHandle#setVolatile}.
      *
      * @param i the index
@@ -78,7 +78,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Sets the element at position {@code i} to the {@code newValue},
+     * Sets the element at index {@code i} to the {@code newValue},
      * as specified by {@link VarHandle#setRelease}.
      *
      * @param i the index
@@ -90,7 +90,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the element at position {@code i} to the {@code
+     * Atomically sets the element at index {@code i} to the {@code
      * newValue} and returns the old value, as specified by {@link
      * VarHandle#getAndSet}.
      *
@@ -103,7 +103,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the element at position {@code i} to the {@code
+     * Atomically sets the element at index {@code i} to the {@code
      * newValue} if the current value {@code ==} the {@code expectedValue},
      * as specified by {@link VarHandle#compareAndSet}.
      *
@@ -118,7 +118,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
     }
 
     /**
-     * Possibly atomically sets the element at position {@code i} to
+     * Possibly atomically sets the element at index {@code i} to
      * the {@code newValue} if the current value {@code ==} the
      * {@code expectedValue}, as specified by {@link
      * VarHandle#weakCompareAndSet}.
