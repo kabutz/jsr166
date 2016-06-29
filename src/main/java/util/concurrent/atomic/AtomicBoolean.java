@@ -60,7 +60,7 @@ public class AtomicBoolean implements java.io.Serializable {
 
     /**
      *
-     * Atomically sets to the {@code newValue} if the current value
+     * Atomically sets the value to {@code newValue} if the current value
      * {@code ==} the {@code expectedValue}, with the semantics and
      * memory properties of reading and writing a {@code volatile}
      * variable.
@@ -77,7 +77,7 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Possibly atomically sets to the {@code newValue} if the current
+     * Possibly atomically sets the value to {@code newValue} if the current
      * value {@code ==} the {@code expectedValue}, with the semantics and
      * memory properties of {@link VarHandle#weakCompareAndSet}.
      *
@@ -92,7 +92,7 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Sets the value to the {@code newValue}, with the memory
+     * Sets the value to {@code newValue}, with the memory
      * semantics of setting a {@code volatile} variable.
      *
      * @param newValue the new value
@@ -102,7 +102,7 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Sets the value to the {@code newValue}, with the memory
+     * Sets the value to {@code newValue}, with the memory
      * semantics of a {@link VarHandle#setRelease} operation.
      *
      * @param newValue the new value
@@ -113,10 +113,9 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets to the given value and returns the previous value,
-     * with the semantics and
-     * memory properties of reading and writing a {@code volatile}
-     * variable.
+     * Atomically sets the value to {@code newValue} and returns the old value,
+     * with the semantics and memory properties of reading and writing a {@code
+     * volatile} variable.
      *
      * @param newValue the new value
      * @return the previous value
@@ -151,7 +150,7 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Sets the value to the {@code newValue}, with memory semantics
+     * Sets the value to {@code newValue}, with memory semantics
      * of setting as if the variable was declared non-{@code volatile}
      * and non-{@code final}.
      *
@@ -174,7 +173,7 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Sets the value to the {@code newValue}, with the semantics and
+     * Sets the value to {@code newValue}, with the semantics and
      * memory properties of {@link VarHandle#setOpaque}.
      *
      * @param newValue the new value
@@ -196,7 +195,7 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Sets the value to the {@code newValue}, with the semantics and
+     * Sets the value to {@code newValue}, with the semantics and
      * memory properties of {@link VarHandle#setRelease}.
      *
      * @param newValue the new value
@@ -207,7 +206,7 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the value to the {@code newValue} if the current
+     * Atomically sets the value to {@code newValue} if the current
      * value, referred to as the <em>witness value</em>, {@code ==}
      * the {@code expectedValue}, with the semantics and
      * memory properties specified for
@@ -226,7 +225,7 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the value to the {@code newValue} if the current
+     * Atomically sets the value to {@code newValue} if the current
      * value, referred to as the <em>witness value</em>, {@code ==}
      * the {@code expectedValue}, with the semantics and
      * memory properties specified for
@@ -245,7 +244,7 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the value to the {@code newValue} if the
+     * Atomically sets the value to {@code newValue} if the
      * current value, referred to as the <em>witness value</em>,
      * {@code ==} the {@code expectedValue}, with the semantics and
      * memory properties specified for {@link
@@ -264,7 +263,7 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Possibly atomically sets to the {@code newValue} if the current
+     * Possibly atomically sets the value to {@code newValue} if the current
      * value {@code ==} the {@code expectedValue}, with the semantics
      * and memory properties specified for {@link
      * VarHandle#weakCompareAndSetVolatile}.
@@ -281,7 +280,7 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Possibly atomically sets to the {@code newValue} if the current
+     * Possibly atomically sets the value to {@code newValue} if the current
      * value {@code ==} the {@code expectedValue}, with the semantics
      * and memory properties specified for {@link
      * VarHandle#weakCompareAndSetAcquire}.
@@ -298,7 +297,7 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Possibly atomically sets to the {@code newValue} if the current
+     * Possibly atomically sets the value to {@code newValue} if the current
      * value {@code ==} the {@code expectedValue}, with the semantics
      * and memory properties specified for {@link
      * VarHandle#weakCompareAndSetRelease}.

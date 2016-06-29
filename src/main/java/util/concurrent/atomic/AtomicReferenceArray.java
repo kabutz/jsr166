@@ -83,7 +83,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     }
 
     /**
-     * Sets the element at index {@code i} to the {@code newValue},
+     * Sets the element at index {@code i} to {@code newValue},
      * as specified by {@link VarHandle#setRelease}.
      *
      * @param i the index
@@ -95,7 +95,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the element at index {@code i} to the {@code
+     * Atomically sets the element at index {@code i} to {@code
      * newValue} and returns the old value, as specified by {@link
      * VarHandle#getAndSet}.
      *
@@ -109,7 +109,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the element at index {@code i} to the {@code
+     * Atomically sets the element at index {@code i} to {@code
      * newValue} if the current value {@code ==} the {@code expectedValue},
      * as specified by {@link VarHandle#compareAndSet}.
      *
@@ -125,7 +125,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
 
     /**
      * Possibly atomically sets the element at index {@code i} to
-     * the {@code newValue} if the current value {@code ==} the
+     * {@code newValue} if the current value {@code ==} the
      * {@code expectedValue}, as specified by {@link
      * VarHandle#weakCompareAndSet}.
      *
@@ -303,7 +303,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     }
 
     /**
-     * Sets the element at index {@code i} to the {@code newValue},
+     * Sets the element at index {@code i} to {@code newValue},
      * with memory semantics of setting as if the variable was
      * declared non-{@code volatile} and non-{@code final}.
      *
@@ -328,7 +328,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     }
 
     /**
-     * Sets the element at index {@code i} to the {@code newValue}, as
+     * Sets the element at index {@code i} to {@code newValue}, as
      * specified by {@link VarHandle#setOpaque}.
      *
      * @param i the index
@@ -364,7 +364,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the element at index {@code i} to the {@code
+     * Atomically sets the element at index {@code i} to {@code
      * newValue} with the {@code volatile} memory semantics if the
      * variable's current value, referred to as the <em>witness
      * value</em>, {@code ==} the {@code expectedValue}, as accessed
@@ -382,7 +382,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the element at index {@code i} to the {@code
+     * Atomically sets the element at index {@code i} to {@code
      * newValue} if the current value, referred to as the <em>witness
      * value</em>, {@code ==} the {@code expectedValue}, as specified
      * by {@link VarHandle#compareAndExchangeAcquire}.
@@ -399,7 +399,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     }
 
     /**
-     * Atomically sets the element at index {@code i} to the {@code
+     * Atomically sets the element at index {@code i} to {@code
      * newValue} if the current value, referred to as the <em>witness
      * value</em>, {@code ==} the {@code expectedValue}, as specified
      * by {@link VarHandle#compareAndExchangeRelease}.
@@ -416,7 +416,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     }
 
     /**
-     * Possibly atomically sets the element at index {@code i} to the
+     * Possibly atomically sets the element at index {@code i} to
      * {@code newValue} if the current value {@code ==} the {@code
      * expectedValue}, as specified by {@link
      * VarHandle#weakCompareAndSetVolatile}.
@@ -432,7 +432,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     }
 
     /**
-     * Possibly atomically sets the element at index {@code i} to the
+     * Possibly atomically sets the element at index {@code i} to
      * {@code newValue} if the current value {@code ==} the {@code
      * expectedValue}, as specified by {@link
      * VarHandle#weakCompareAndSetAcquire}.
@@ -448,7 +448,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     }
 
     /**
-     * Possibly atomically sets the element at index {@code i} to the
+     * Possibly atomically sets the element at index {@code i} to
      * {@code newValue} if the current value {@code ==} the {@code
      * expectedValue}, as specified by {@link
      * VarHandle#weakCompareAndSetRelease}.
