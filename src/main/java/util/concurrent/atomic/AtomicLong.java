@@ -310,7 +310,8 @@ public class AtomicLong extends Number implements java.io.Serializable {
 
     /**
      * Returns the current value of this {@code AtomicLong} as an {@code int}
-     * after a narrowing primitive conversion.
+     * after a narrowing primitive conversion,
+     * with memory effects as specified by {@link VarHandle#getVolatile}.
      * @jls 5.1.3 Narrowing Primitive Conversions
      */
     public int intValue() {
@@ -318,7 +319,8 @@ public class AtomicLong extends Number implements java.io.Serializable {
     }
 
     /**
-     * Returns the current value of this {@code AtomicLong} as a {@code long}.
+     * Returns the current value of this {@code AtomicLong} as a {@code long},
+     * with memory effects as specified by {@link VarHandle#getVolatile}.
      * Equivalent to {@link #get()}.
      */
     public long longValue() {
@@ -327,7 +329,8 @@ public class AtomicLong extends Number implements java.io.Serializable {
 
     /**
      * Returns the current value of this {@code AtomicLong} as a {@code float}
-     * after a widening primitive conversion.
+     * after a widening primitive conversion,
+     * with memory effects as specified by {@link VarHandle#getVolatile}.
      * @jls 5.1.2 Widening Primitive Conversions
      */
     public float floatValue() {
@@ -336,7 +339,8 @@ public class AtomicLong extends Number implements java.io.Serializable {
 
     /**
      * Returns the current value of this {@code AtomicLong} as a {@code double}
-     * after a widening primitive conversion.
+     * after a widening primitive conversion,
+     * with memory effects as specified by {@link VarHandle#getVolatile}.
      * @jls 5.1.2 Widening Primitive Conversions
      */
     public double doubleValue() {
