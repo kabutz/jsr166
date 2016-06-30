@@ -63,7 +63,7 @@ import java.lang.reflect.Constructor;
  * encountering the exception; minimally only the latter.
  *
  * <p>It is possible to define and use ForkJoinTasks that may block,
- * but doing do requires three further considerations: (1) Completion
+ * but doing so requires three further considerations: (1) Completion
  * of few if any <em>other</em> tasks should be dependent on a task
  * that blocks on external synchronization or I/O. Event-style async
  * tasks that are never joined (for example, those subclassing {@link
