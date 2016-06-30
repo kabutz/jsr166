@@ -104,7 +104,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      * @return {@code true} if successful
      */
     public final boolean weakCompareAndSet(V expectedValue, V newValue) {
-        return VALUE.compareAndSet(this, expectedValue, newValue);
+        return VALUE.weakCompareAndSet(this, expectedValue, newValue);
     }
 
     /**

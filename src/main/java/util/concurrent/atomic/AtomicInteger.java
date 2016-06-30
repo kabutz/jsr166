@@ -118,7 +118,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @return {@code true} if successful
      */
     public final boolean weakCompareAndSet(int expectedValue, int newValue) {
-        return VALUE.compareAndSet(this, expectedValue, newValue);
+        return VALUE.weakCompareAndSet(this, expectedValue, newValue);
     }
 
     /**

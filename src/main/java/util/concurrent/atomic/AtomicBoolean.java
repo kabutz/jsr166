@@ -84,9 +84,9 @@ public class AtomicBoolean implements java.io.Serializable {
      * @return {@code true} if successful
      */
     public boolean weakCompareAndSet(boolean expectedValue, boolean newValue) {
-        return VALUE.compareAndSet(this,
-                                   (expectedValue ? 1 : 0),
-                                   (newValue ? 1 : 0));
+        return VALUE.weakCompareAndSet(this,
+                                       (expectedValue ? 1 : 0),
+                                       (newValue ? 1 : 0));
     }
 
     /**

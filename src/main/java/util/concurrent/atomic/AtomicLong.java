@@ -133,7 +133,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @return {@code true} if successful
      */
     public final boolean weakCompareAndSet(long expectedValue, long newValue) {
-        return VALUE.compareAndSet(this, expectedValue, newValue);
+        return VALUE.weakCompareAndSet(this, expectedValue, newValue);
     }
 
     /**
