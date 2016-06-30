@@ -2116,7 +2116,6 @@ public class ForkJoinPool extends AbstractExecutorService {
      * other parameters (see {@link #ForkJoinPool(int,
      * ForkJoinWorkerThreadFactory, UncaughtExceptionHandler, boolean,
      * int, int, int, Predicate, long, TimeUnit)}).
-     * 
      *
      * @throws SecurityException if a security manager exists and
      *         the caller is not permitted to modify threads
