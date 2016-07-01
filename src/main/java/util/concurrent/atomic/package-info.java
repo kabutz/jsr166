@@ -66,7 +66,7 @@
  * obtain {@code compareAndSet} and related operations on any selected
  * {@code volatile} field of any selected class. These classes
  * predate the introduction of {@link
- * java.lang.invoke.VarHandle}, and of more limited use.
+ * java.lang.invoke.VarHandle}, and are of more limited use.
  * {@link java.util.concurrent.atomic.AtomicReferenceFieldUpdater},
  * {@link java.util.concurrent.atomic.AtomicIntegerFieldUpdater}, and
  * {@link java.util.concurrent.atomic.AtomicLongFieldUpdater} are
