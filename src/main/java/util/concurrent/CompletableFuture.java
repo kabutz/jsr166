@@ -481,18 +481,18 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         boolean unlinked = false;
         Completion p;
         while ((p = stack) != null && !p.isLive()) // ensure head of stack live
-            unlinked = STACK.compareAndSet(this, p, p.next);
-        if (p != null && !unlinked) {              // try to unlink first nonlive
+            unlinked = STACK.weakCompareAndSetVolatile(this, p, p.next);
+        if (p != null && !unlinked) {
+            // try to unlink first nonlive
             for (Completion q = p.next; q != null;) {
                 Completion s = q.next;
                 if (q.isLive()) {
                     p = q;
                     q = s;
-                }
-                else {
-                    NEXT.compareAndSet(p, q, s);
+                } else if (NEXT.weakCompareAndSetVolatile(p, q, s))
                     break;
-                }
+                else
+                    q = p.next;
             }
         }
     }
