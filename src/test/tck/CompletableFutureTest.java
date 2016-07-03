@@ -2700,6 +2700,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         for (ExecutionMode m : ExecutionMode.values())
         for (Integer v1 : new Integer[] { 1, null })
         for (Integer v2 : new Integer[] { 2, null })
+        for (boolean pushNop : new boolean[] { true, false })
     {
         final CompletableFuture<Integer> f = new CompletableFuture<>();
         final CompletableFuture<Integer> g = new CompletableFuture<>();
@@ -2712,6 +2713,10 @@ public class CompletableFutureTest extends JSR166TestCase {
         checkIncomplete(h1);
         rs[0].assertNotInvoked();
         rs[1].assertNotInvoked();
+        if (pushNop) {          // ad hoc test of intra-completion interference
+            m.thenRun(f, () -> {});
+            m.thenRun(g, () -> {});
+        }
         f.complete(v1);
         checkCompletedNormally(h0, null);
         checkCompletedNormally(h1, null);
