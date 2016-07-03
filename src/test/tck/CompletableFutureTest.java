@@ -4139,6 +4139,27 @@ public class CompletableFutureTest extends JSR166TestCase {
                                  Monad.plus(godot, Monad.unit(5L)));
     }
 
+    /** Test long recursive chains of CompletableFutures with cascading completions */
+    public void testRecursiveChains() throws Throwable {
+        for (ExecutionMode m : ExecutionMode.values())
+        for (boolean addDeadEnds : new boolean[] { true, false })
+    {
+        final int val = 42;
+        final int n = expensiveTests ? 1_000 : 2;
+        CompletableFuture<Integer> head = new CompletableFuture<>();
+        CompletableFuture<Integer> tail = head;
+        for (int i = 0; i < n; i++) {
+            if (addDeadEnds) m.thenApply(tail, v -> v + 1);
+            tail = m.thenApply(tail, v -> v + 1);
+            if (addDeadEnds) m.applyToEither(tail, tail, v -> v + 1);
+            tail = m.applyToEither(tail, tail, v -> v + 1);
+            if (addDeadEnds) m.thenCombine(tail, tail, (v, w) -> v + 1);
+            tail = m.thenCombine(tail, tail, (v, w) -> v + 1);
+        }
+        head.complete(val);
+        assertEquals(val + 3 * n, (int) tail.join());
+    }}
+
     /**
      * A single CompletableFuture with many dependents.
      * A demo of scalability - runtime is O(n).
