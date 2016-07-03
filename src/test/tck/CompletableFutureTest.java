@@ -3935,7 +3935,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     }}
 
     /**
-     * Minimal completion stages throw UOE for all non-CompletionStage methods
+     * Minimal completion stages throw UOE for most non-CompletionStage methods
      */
     public void testMinimalCompletionStage_minimality() {
         if (!testImplementationDetails) return;
@@ -3964,8 +3964,9 @@ public class CompletableFutureTest extends JSR166TestCase {
             .filter((method) -> !permittedMethodSignatures.contains(toSignature.apply(method)))
             .collect(Collectors.toList());
 
-        CompletionStage<Integer> minimalStage =
-            new CompletableFuture<Integer>().minimalCompletionStage();
+        List<CompletionStage<Integer>> stages = new ArrayList<>();
+        stages.add(new CompletableFuture<Integer>().minimalCompletionStage());
+        stages.add(CompletableFuture.completedStage(1));
 
         List<Method> bugs = new ArrayList<>();
         for (Method method : allMethods) {
@@ -3981,20 +3982,22 @@ public class CompletableFutureTest extends JSR166TestCase {
                 else if (parameterTypes[i] == long.class)
                     args[i] = 0L;
             }
-            try {
-                method.invoke(minimalStage, args);
-                bugs.add(method);
-            }
-            catch (java.lang.reflect.InvocationTargetException expected) {
-                if (! (expected.getCause() instanceof UnsupportedOperationException)) {
+            for (CompletionStage<Integer> stage : stages) {
+                try {
+                    method.invoke(stage, args);
                     bugs.add(method);
-                    // expected.getCause().printStackTrace();
                 }
+                catch (java.lang.reflect.InvocationTargetException expected) {
+                    if (! (expected.getCause() instanceof UnsupportedOperationException)) {
+                        bugs.add(method);
+                        // expected.getCause().printStackTrace();
+                    }
+                }
+                catch (ReflectiveOperationException bad) { throw new Error(bad); }
             }
-            catch (ReflectiveOperationException bad) { throw new Error(bad); }
         }
         if (!bugs.isEmpty())
-            throw new Error("Methods did not throw UOE: " + bugs.toString());
+            throw new Error("Methods did not throw UOE: " + bugs);
     }
 
     static class Monad {
