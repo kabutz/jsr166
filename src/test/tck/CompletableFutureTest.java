@@ -3967,6 +3967,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         List<CompletionStage<Integer>> stages = new ArrayList<>();
         stages.add(new CompletableFuture<Integer>().minimalCompletionStage());
         stages.add(CompletableFuture.completedStage(1));
+        stages.add(CompletableFuture.failedStage(new CFException()));
 
         List<Method> bugs = new ArrayList<>();
         for (Method method : allMethods) {
