@@ -373,22 +373,24 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     // Exception table support
 
     /**
-     * Table of exceptions thrown by tasks, to enable reporting by
-     * callers. Because exceptions are rare, we don't directly keep
+     * Hash table of exceptions thrown by tasks, to enable reporting
+     * by callers. Because exceptions are rare, we don't directly keep
      * them with task objects, but instead use a weak ref table.  Note
      * that cancellation exceptions don't appear in the table, but are
      * instead recorded as status values.
      *
-     * Note: These statics are initialized below in static block.
+     * The exception table has a fixed capacity.
      */
-    private static final ExceptionNode[] exceptionTable;
-    private static final ReentrantLock exceptionTableLock;
-    private static final ReferenceQueue<ForkJoinTask<?>> exceptionTableRefQueue;
+    private static final ExceptionNode[] exceptionTable
+        = new ExceptionNode[32];
 
-    /**
-     * Fixed capacity for exceptionTable.
-     */
-    private static final int EXCEPTION_MAP_CAPACITY = 32;
+    /** Lock protecting access to exceptionTable. */
+    private static final ReentrantLock exceptionTableLock
+        = new ReentrantLock();
+
+    /** Reference queue of stale exceptionally completed tasks. */
+    private static final ReferenceQueue<ForkJoinTask<?>> exceptionTableRefQueue
+        = new ReferenceQueue<ForkJoinTask<?>>();
 
     /**
      * Key-value nodes for exception table.  The chained hash table
@@ -1485,9 +1487,6 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     // VarHandle mechanics
     private static final VarHandle STATUS;
     static {
-        exceptionTableLock = new ReentrantLock();
-        exceptionTableRefQueue = new ReferenceQueue<ForkJoinTask<?>>();
-        exceptionTable = new ExceptionNode[EXCEPTION_MAP_CAPACITY];
         try {
             MethodHandles.Lookup l = MethodHandles.lookup();
             STATUS = l.findVarHandle(ForkJoinTask.class, "status", int.class);
