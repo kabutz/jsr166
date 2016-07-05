@@ -383,7 +383,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      */
     private static final ExceptionNode[] exceptionTable;
     private static final ReentrantLock exceptionTableLock;
-    private static final ReferenceQueue<Object> exceptionTableRefQueue;
+    private static final ReferenceQueue<ForkJoinTask<?>> exceptionTableRefQueue;
 
     /**
      * Fixed capacity for exceptionTable.
@@ -408,7 +408,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         final long thrower;  // use id not ref to avoid weak cycles
         final int hashCode;  // store task hashCode before weak ref disappears
         ExceptionNode(ForkJoinTask<?> task, Throwable ex, ExceptionNode next,
-                      ReferenceQueue<Object> exceptionTableRefQueue) {
+                      ReferenceQueue<ForkJoinTask<?>> exceptionTableRefQueue) {
             super(task, exceptionTableRefQueue);
             this.ex = ex;
             this.next = next;
@@ -1486,7 +1486,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     private static final VarHandle STATUS;
     static {
         exceptionTableLock = new ReentrantLock();
-        exceptionTableRefQueue = new ReferenceQueue<Object>();
+        exceptionTableRefQueue = new ReferenceQueue<ForkJoinTask<?>>();
         exceptionTable = new ExceptionNode[EXCEPTION_MAP_CAPACITY];
         try {
             MethodHandles.Lookup l = MethodHandles.lookup();
