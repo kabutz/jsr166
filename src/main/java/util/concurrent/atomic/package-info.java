@@ -89,7 +89,6 @@
  * used for example, to represent version numbers corresponding to
  * series of updates.
  *
- *
  * @since 1.5
  */
 package java.util.concurrent.atomic;
