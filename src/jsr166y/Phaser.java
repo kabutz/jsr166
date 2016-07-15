@@ -193,7 +193,6 @@ import java.util.concurrent.locks.LockSupport;
  *   phaser.arriveAndDeregister();
  * }}</pre>
  *
- *
  * <p>To create a set of {@code n} tasks using a tree of phasers, you
  * could use code of the following form, assuming a Task class with a
  * constructor accepting a {@code Phaser} that it registers with upon

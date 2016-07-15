@@ -301,7 +301,7 @@ class ComparableTimSort {
      * @param a the array in which a run is to be counted and possibly reversed
      * @param lo index of the first element in the run
      * @param hi index after the last element that may be contained in the run.
-              It is required that {@code lo < hi}.
+     *        It is required that {@code lo < hi}.
      * @return  the length of the run beginning at the specified position in
      *          the specified array
      */

@@ -75,7 +75,6 @@ import java.util.*;
  *   </tr>
  * </table>
  *
- *
  * <p>This interface is a member of the
  * <a href="{@docRoot}/../guide/collections/index.html">
  * Java Collections Framework</a>.
