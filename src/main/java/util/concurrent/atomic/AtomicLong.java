@@ -420,7 +420,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * Atomically sets the value to {@code newValue} if the current value,
      * referred to as the <em>witness value</em>, {@code == expectedValue},
      * with memory effects as specified by
-     * {@link VarHandle#compareAndExchangeVolatile}.
+     * {@link VarHandle#compareAndExchange}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -429,7 +429,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @since 9
      */
     public final long compareAndExchange(long expectedValue, long newValue) {
-        return (long)VALUE.compareAndExchangeVolatile(this, expectedValue, newValue);
+        return (long)VALUE.compareAndExchange(this, expectedValue, newValue);
     }
 
     /**

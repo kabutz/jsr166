@@ -206,7 +206,7 @@ public class AtomicBoolean implements java.io.Serializable {
      * Atomically sets the value to {@code newValue} if the current value,
      * referred to as the <em>witness value</em>, {@code == expectedValue},
      * with memory effects as specified by
-     * {@link VarHandle#compareAndExchangeVolatile}.
+     * {@link VarHandle#compareAndExchange}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -215,9 +215,9 @@ public class AtomicBoolean implements java.io.Serializable {
      * @since 9
      */
     public final boolean compareAndExchange(boolean expectedValue, boolean newValue) {
-        return (int)VALUE.compareAndExchangeVolatile(this,
-                                                     (expectedValue ? 1 : 0),
-                                                     (newValue ? 1 : 0)) != 0;
+        return (int)VALUE.compareAndExchange(this,
+                                             (expectedValue ? 1 : 0),
+                                             (newValue ? 1 : 0)) != 0;
     }
 
     /**

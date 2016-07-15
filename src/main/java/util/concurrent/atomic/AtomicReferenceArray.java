@@ -369,7 +369,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * if the element's current value, referred to as the <em>witness
      * value</em>, {@code == expectedValue},
      * with memory effects as specified by
-     * {@link VarHandle#compareAndExchangeVolatile}.
+     * {@link VarHandle#compareAndExchange}.
      *
      * @param i the index
      * @param expectedValue the expected value
@@ -379,7 +379,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * @since 9
      */
     public final E compareAndExchange(int i, E expectedValue, E newValue) {
-        return (E)AA.compareAndExchangeVolatile(array, i, expectedValue, newValue);
+        return (E)AA.compareAndExchange(array, i, expectedValue, newValue);
     }
 
     /**
