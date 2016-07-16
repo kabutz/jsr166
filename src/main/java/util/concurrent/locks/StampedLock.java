@@ -335,7 +335,7 @@ public class StampedLock implements java.io.Serializable {
     }
 
     private long tryWriteLock(long s) {
-        // assert (s & ABITS) == 0;
+        // assert (s & ABITS) == 0L;
         long next;
         if (casState(s, next = s | WBIT)) {
             VarHandle.storeStoreFence();
@@ -607,7 +607,7 @@ public class StampedLock implements java.io.Serializable {
      */
     @ReservedStackAccess
     public void unlock(long stamp) {
-        if ((stamp & WBIT) != 0)
+        if ((stamp & WBIT) != 0L)
             unlockWrite(stamp);
         else
             unlockRead(stamp);
