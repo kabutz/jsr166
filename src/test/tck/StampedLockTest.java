@@ -5,11 +5,18 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
+import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.StampedLock;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -1049,6 +1056,55 @@ public class StampedLockTest extends JSR166TestCase {
         };
 
         assertThrows(IllegalMonitorStateException.class, actions);
+    }
+
+    static long writeLockInterruptiblyUninterrupted(StampedLock sl) {
+        try { return sl.writeLockInterruptibly(); }
+        catch (InterruptedException ex) { throw new AssertionError(ex); }
+    }
+
+    static long tryWriteLockUninterrupted(StampedLock sl, long time, TimeUnit unit) {
+        try { return sl.tryWriteLock(time, unit); }
+        catch (InterruptedException ex) { throw new AssertionError(ex); }
+    }
+
+    /**
+     * Invalid write stamps result in IllegalMonitorStateException
+     */
+    public void testInvalidWriteStampsThrowIllegalMonitorStateException() {
+        List<Function<StampedLock, Long>> writeLockers = new ArrayList<>();
+        writeLockers.add((sl) -> sl.writeLock());
+        writeLockers.add((sl) -> writeLockInterruptiblyUninterrupted(sl));
+        writeLockers.add((sl) -> tryWriteLockUninterrupted(sl, Long.MIN_VALUE, DAYS));
+        writeLockers.add((sl) -> tryWriteLockUninterrupted(sl, 0, DAYS));
+
+        List<Consumer<StampedLock>> mutaters = new ArrayList<>();
+        mutaters.add((sl) -> {});
+        mutaters.add((sl) -> sl.readLock());
+        for (Function<StampedLock, Long> writeLocker : writeLockers)
+            mutaters.add((sl) -> writeLocker.apply(sl));
+
+        List<BiConsumer<StampedLock, Long>> writeUnlockers = new ArrayList<>();
+        writeUnlockers.add((sl, stamp) -> sl.unlockWrite(stamp));
+        writeUnlockers.add((sl, stamp) -> assertTrue(sl.tryUnlockWrite()));
+        writeUnlockers.add((sl, stamp) -> sl.asWriteLock().unlock());
+        writeUnlockers.add((sl, stamp) -> sl.unlock(stamp));
+
+        for (Function<StampedLock, Long> writeLocker : writeLockers)
+        for (BiConsumer<StampedLock, Long> writeUnlocker : writeUnlockers)
+        for (Consumer<StampedLock> mutater : mutaters) {
+            StampedLock sl = new StampedLock();
+            long stamp = writeLocker.apply(sl);
+            assertTrue(stamp != 0L);
+            assertThrows(IllegalMonitorStateException.class,
+                         () -> sl.unlockRead(stamp));
+            writeUnlocker.accept(sl, stamp);
+            mutater.accept(sl);
+            assertThrows(IllegalMonitorStateException.class,
+                         () -> sl.unlock(stamp),
+                         () -> sl.unlockRead(stamp),
+                         () -> sl.unlockWrite(stamp));
+        }
     }
 
 }
