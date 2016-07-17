@@ -4242,12 +4242,11 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
     }
 
-    /*
-     * Tests below currently fail in stress mode due to memory retention.
-     * ant -Dvmoptions=-Xmx8m -Djsr166.expensiveTests=true -Djsr166.tckTestClass=CompletableFutureTest tck
+    /**
+     * Checks for garbage retention with anyOf.
+     * Following used to fail with OOME:
+     * ant -Dvmoptions=-Xmx8m -Djsr166.expensiveTests=true -Djsr166.tckTestClass=CompletableFutureTest -Djsr166.methodFilter=testAnyOfGarbageRetention tck
      */
-
-    /** Checks for garbage retention with anyOf. */
     public void testAnyOfGarbageRetention() throws Throwable {
         for (Integer v : new Integer[] { 1, null })
     {
@@ -4261,7 +4260,12 @@ public class CompletableFutureTest extends JSR166TestCase {
             checkCompletedNormally(CompletableFuture.anyOf(fs), v);
     }}
 
-    /** Checks for garbage retention with allOf. */
+    /**
+     * Checks for garbage retention with allOf.
+     *
+     * As of 2016-07, fails with OOME:
+     * ant -Dvmoptions=-Xmx8m -Djsr166.expensiveTests=true -Djsr166.tckTestClass=CompletableFutureTest -Djsr166.methodFilter=testCancelledAllOfGarbageRetention tck
+     */
     public void testCancelledAllOfGarbageRetention() throws Throwable {
         final int n = expensiveTests ? 100_000 : 10;
         CompletableFuture<Integer>[] fs
