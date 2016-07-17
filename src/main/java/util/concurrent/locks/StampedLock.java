@@ -425,12 +425,13 @@ public class StampedLock implements java.io.Serializable {
      */
     @ReservedStackAccess
     public long readLock() {
-        long s = state, next;  // bypass acquireRead on common uncontended case
-        return ((whead == wtail
-                 && (s & ABITS) < RFULL
-                 && casState(s, next = s + RUNIT))
-                ? next
-                : acquireRead(false, 0L));
+        long s, next;
+        // bypass acquireRead on common uncontended case
+        return (whead == wtail
+                && ((s = state) & ABITS) < RFULL
+                && casState(s, next = s + RUNIT))
+            ? next
+            : acquireRead(false, 0L);
     }
 
     /**
@@ -501,10 +502,15 @@ public class StampedLock implements java.io.Serializable {
      * before acquiring the lock
      */
     @ReservedStackAccess
-    public long readLockInterruptibly() throws InterruptedException {
-        long next;
-        if (!Thread.interrupted() &&
-            (next = acquireRead(true, 0L)) != INTERRUPTED)
+        public long readLockInterruptibly() throws InterruptedException {
+        long s, next;
+        if (!Thread.interrupted()
+            // bypass acquireRead on common uncontended case
+            && ((whead == wtail
+                 && ((s = state) & ABITS) < RFULL
+                 && casState(s, next = s + RUNIT))
+                ||
+                (next = acquireRead(true, 0L)) != INTERRUPTED))
             return next;
         throw new InterruptedException();
     }
