@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -808,9 +810,9 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
      * ant -Djsr166.tckTestClass=ConcurrentHashMapTest -Djsr166.methodFilter=testRemoveAll_performance -Djsr166.expensiveTests=true tck
      */
     public void testRemoveAll_performance() {
-        int mapSize = expensiveTests ? 1_000_000 : 100;
-        int iterations = expensiveTests ? 500 : 2;
-        ConcurrentHashMap<Integer, Integer> map = new ConcurrentHashMap<>();
+        final int mapSize = expensiveTests ? 1_000_000 : 100;
+        final int iterations = expensiveTests ? 500 : 2;
+        final ConcurrentHashMap<Integer, Integer> map = new ConcurrentHashMap<>();
         for (int i = 0; i < mapSize; i++)
             map.put(i, i);
         Set<Integer> keySet = map.keySet();
@@ -819,4 +821,31 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
             assertFalse(keySet.removeAll(removeMe));
         assertEquals(mapSize, map.size());
     }
+
+    /**
+     * Tests performance of computeIfAbsent when the element is present.
+     * See JDK-8161372
+     * ant -Djsr166.tckTestClass=ConcurrentHashMapTest -Djsr166.methodFilter=testcomputeIfAbsent_performance -Djsr166.expensiveTests=true tck
+     */
+    public void testcomputeIfAbsent_performance() {
+        final int mapSize = 20;
+        final int iterations = expensiveTests ? (1 << 23) : mapSize * 2;
+        final int threads = expensiveTests ? 10 : 2;
+        final ConcurrentHashMap<Integer, Integer> map = new ConcurrentHashMap<>();
+        for (int i = 0; i < mapSize; i++)
+            map.put(i, i);
+        final ExecutorService pool = Executors.newFixedThreadPool(2);
+        try (PoolCleaner cleaner = cleaner(pool)) {
+            Runnable r = new CheckedRunnable() {
+                public void realRun() {
+                    int result = 0;
+                    for (int i = 0; i < iterations; i++)
+                        result += map.computeIfAbsent(i % mapSize, (k) -> k + k);
+                    if (result == -42) throw new Error();
+                }};
+            for (int i = 0; i < threads; i++)
+                pool.execute(r);
+        }
+    }
+
 }
