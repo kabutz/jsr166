@@ -803,4 +803,20 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
         }
     }
 
+    /**
+     * Tests performance of removeAll when the other collection is much smaller.
+     * ant -Djsr166.tckTestClass=ConcurrentHashMapTest -Djsr166.methodFilter=testRemoveAll_performance -Djsr166.expensiveTests=true tck
+     */
+    public void testRemoveAll_performance() {
+        int mapSize = expensiveTests ? 1_000_000 : 100;
+        int iterations = expensiveTests ? 500 : 2;
+        ConcurrentHashMap<Integer, Integer> map = new ConcurrentHashMap<>();
+        for (int i = 0; i < mapSize; i++)
+            map.put(i, i);
+        Set<Integer> keySet = map.keySet();
+        Collection<Integer> removeMe = Arrays.asList(new Integer[] { -99, -86 });
+        for (int i = 0; i < iterations; i++)
+            assertFalse(keySet.removeAll(removeMe));
+        assertEquals(mapSize, map.size());
+    }
 }
