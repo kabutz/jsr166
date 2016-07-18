@@ -4276,6 +4276,20 @@ public class CompletableFutureTest extends JSR166TestCase {
             assertTrue(CompletableFuture.allOf(fs).cancel(false));
     }
 
+    /**
+     * Checks for garbage retention when a dependent future is
+     * cancelled and garbage-collected.
+     *
+     * As of 2016-07, fails with OOME:
+     * ant -Dvmoptions=-Xmx8m -Djsr166.expensiveTests=true -Djsr166.tckTestClass=CompletableFutureTest -Djsr166.methodFilter=testCancelledGarbageRetention tck
+     */
+    public void testCancelledGarbageRetention() throws Throwable {
+        final int n = expensiveTests ? 100_000 : 10;
+        CompletableFuture<Integer> neverCompleted = new CompletableFuture<>();
+        for (int i = 0; i < n; i++)
+            assertTrue(neverCompleted.thenRun(() -> {}).cancel(true));
+    }
+
 //     static <U> U join(CompletionStage<U> stage) {
 //         CompletableFuture<U> f = new CompletableFuture<>();
 //         stage.whenComplete((v, ex) -> {
