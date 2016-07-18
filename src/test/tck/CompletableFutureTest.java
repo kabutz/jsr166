@@ -4243,9 +4243,9 @@ public class CompletableFutureTest extends JSR166TestCase {
     }
 
     /**
-     * Checks for garbage retention with anyOf.
-     * Following used to fail with OOME:
-     * ant -Dvmoptions=-Xmx8m -Djsr166.expensiveTests=true -Djsr166.tckTestClass=CompletableFutureTest -Djsr166.methodFilter=testAnyOfGarbageRetention tck
+     * Reproduction recipe for:
+     * 8160402: Garbage retention with CompletableFuture.anyOf
+     * cvs update -D '2016-05-01' ./src/main/java/util/concurrent/CompletableFuture.java && ant -Dvmoptions=-Xmx8m -Djsr166.expensiveTests=true -Djsr166.tckTestClass=CompletableFutureTest -Djsr166.methodFilter=testAnyOfGarbageRetention tck; cvs update -A
      */
     public void testAnyOfGarbageRetention() throws Throwable {
         for (Integer v : new Integer[] { 1, null })
