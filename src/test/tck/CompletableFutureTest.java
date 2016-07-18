@@ -4279,6 +4279,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     /**
      * Checks for garbage retention when a dependent future is
      * cancelled and garbage-collected.
+     * 8161600: Garbage retention when source CompletableFutures are never completed
      *
      * As of 2016-07, fails with OOME:
      * ant -Dvmoptions=-Xmx8m -Djsr166.expensiveTests=true -Djsr166.tckTestClass=CompletableFutureTest -Djsr166.methodFilter=testCancelledGarbageRetention tck
