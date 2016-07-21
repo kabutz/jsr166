@@ -54,7 +54,6 @@ public class AtomicReference<V> implements java.io.Serializable {
      *
      * @return the current value
      */
-    @SuppressWarnings("unchecked")
     public final V get() {
         return value;
     }
