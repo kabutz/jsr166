@@ -410,7 +410,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
             }});
 
         aboutToWait.await();
-        waitForThreadToEnterWaitState(t, LONG_DELAY_MS);
+        waitForThreadToEnterWaitState(t);
         t.interrupt();
         awaitTermination(t);
     }
