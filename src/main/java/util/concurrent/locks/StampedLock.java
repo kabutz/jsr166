@@ -287,14 +287,14 @@ public class StampedLock implements java.io.Serializable {
     /** Number of processors, for spin control */
     private static final int NCPU = Runtime.getRuntime().availableProcessors();
 
-    /** Maximum number of retries before enqueuing on acquisition */
-    private static final int SPINS = (NCPU > 1) ? 1 << 6 : 0;
+    /** Maximum number of retries before enqueuing on acquisition; at least 1 */
+    private static final int SPINS = (NCPU > 1) ? 1 << 6 : 1;
 
-    /** Maximum number of retries before blocking at head on acquisition */
-    private static final int HEAD_SPINS = (NCPU > 1) ? 1 << 10 : 0;
+    /** Maximum number of tries before blocking at head on acquisition */
+    private static final int HEAD_SPINS = (NCPU > 1) ? 1 << 10 : 1;
 
     /** Maximum number of retries before re-blocking */
-    private static final int MAX_HEAD_SPINS = (NCPU > 1) ? 1 << 16 : 0;
+    private static final int MAX_HEAD_SPINS = (NCPU > 1) ? 1 << 16 : 1;
 
     /** The period for yielding when waiting for overflow spinlock */
     private static final int OVERFLOW_YIELD_RATE = 7; // must be power 2 - 1
