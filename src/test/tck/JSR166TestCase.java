@@ -1251,7 +1251,7 @@ public class JSR166TestCase extends TestCase {
      * thread to enter a wait state: BLOCKED, WAITING, or TIMED_WAITING.
      */
     void waitForThreadToEnterWaitState(Thread thread, long timeoutMillis) {
-        long startTime = System.nanoTime();
+        long startTime = 0L;
         for (;;) {
             Thread.State s = thread.getState();
             if (s == Thread.State.BLOCKED ||
@@ -1260,6 +1260,8 @@ public class JSR166TestCase extends TestCase {
                 return;
             else if (s == Thread.State.TERMINATED)
                 fail("Unexpected thread termination");
+            else if (startTime == 0L)
+                startTime = System.nanoTime();
             else if (millisElapsedSince(startTime) > timeoutMillis) {
                 threadAssertTrue(thread.isAlive());
                 return;
