@@ -1239,6 +1239,11 @@ public class StampedLock implements java.io.Serializable {
                         WCOWAIT.compareAndSet(h, c, c.cowait) &&
                         (w = c.thread) != null) // help release
                         LockSupport.unpark(w);
+                    if (Thread.interrupted()) {
+                        if (interruptible)
+                            return cancelWaiter(node, p, true);
+                        wasInterrupted = true;
+                    }
                     if (h == (pp = p.prev) || h == p || pp == null) {
                         long m, s, ns;
                         do {
@@ -1275,11 +1280,6 @@ public class StampedLock implements java.io.Serializable {
                                 LockSupport.parkNanos(this, time);
                         }
                         node.thread = null;
-                        if (Thread.interrupted()) {
-                            if (interruptible)
-                                return cancelWaiter(node, p, true);
-                            wasInterrupted = true;
-                        }
                     }
                 }
             }
