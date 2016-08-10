@@ -264,7 +264,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
         Integer[] elements = new Integer[SIZE];
         for (int i = 0; i < SIZE; i++)
             elements[i] = i;
-        Collections.shuffle(Arrays.asList(elements));
+        shuffle(elements);
         Collection<Integer> full = populatedArray(elements);
 
         Iterator it = full.iterator();
@@ -432,7 +432,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
         Integer[] elements = new Integer[SIZE];
         for (int i = 0; i < SIZE; i++)
             elements[i] = i;
-        Collections.shuffle(Arrays.asList(elements));
+        shuffle(elements);
         Collection<Integer> full = populatedArray(elements);
 
         assertTrue(Arrays.equals(elements, full.toArray()));
@@ -460,7 +460,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
         Integer[] elements = new Integer[SIZE];
         for (int i = 0; i < SIZE; i++)
             elements[i] = i;
-        Collections.shuffle(Arrays.asList(elements));
+        shuffle(elements);
         Collection<Integer> full = populatedArray(elements);
 
         Arrays.fill(a, 42);
