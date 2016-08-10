@@ -269,9 +269,10 @@ public class StampedLock implements java.io.Serializable {
      * read of state synchronizes with writer 1's final write to state.
      * Lack of visibility of writer 2's plain writes is less obvious.
      * If reader's read of x or y saw writer 2's write, then (assuming
-     * semantics of C++ fences) the storeStoreFence would synchronize
+     * semantics of C++ fences) the storeStoreFence would "synchronize"
      * with reader's acquireFence and reader's validation read must see
      * writer 2's initial write to state and so validation must fail.
+     * But making this "proof" formal and rigorous is an open problem!
      * ----------------------------------------------------------------
      *
      * The memory layout keeps lock state and queue pointers together
