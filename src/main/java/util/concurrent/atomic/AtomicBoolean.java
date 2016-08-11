@@ -118,9 +118,7 @@ public class AtomicBoolean implements java.io.Serializable {
      * @return the previous value
      */
     public final boolean getAndSet(boolean newValue) {
-        // with only 2 boolean values, a single CAS suffices
-        int newInt = newValue ? 1 : 0;
-        return newValue ^ VALUE.compareAndSet(this, newInt ^ 1, newInt);
+        return (int)VALUE.getAndSet(this, (newValue ? 1 : 0)) != 0;
     }
 
     /**
