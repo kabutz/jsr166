@@ -263,7 +263,6 @@ public class RecursiveActionTest extends JSR166TestCase {
                 // test join()
                 assertSame(f, f.fork());
                 currentThread.interrupt();
-                assertTrue(currentThread.isInterrupted());
                 assertNull(f.join());
                 Thread.interrupted();
                 assertEquals(21, f.result);
@@ -273,7 +272,6 @@ public class RecursiveActionTest extends JSR166TestCase {
                 f.cancel(true);
                 assertSame(f, f.fork());
                 currentThread.interrupt();
-                assertTrue(currentThread.isInterrupted());
                 try {
                     f.join();
                     shouldThrow();
@@ -286,7 +284,6 @@ public class RecursiveActionTest extends JSR166TestCase {
                 f.completeExceptionally(new FJException());
                 assertSame(f, f.fork());
                 currentThread.interrupt();
-                assertTrue(currentThread.isInterrupted());
                 try {
                     f.join();
                     shouldThrow();
@@ -299,7 +296,6 @@ public class RecursiveActionTest extends JSR166TestCase {
                 f = new FibAction(8);
                 assertSame(f, f.fork());
                 currentThread.interrupt();
-                assertTrue(currentThread.isInterrupted());
                 f.quietlyJoin();
                 Thread.interrupted();
                 assertEquals(21, f.result);
@@ -309,7 +305,6 @@ public class RecursiveActionTest extends JSR166TestCase {
                 f.cancel(true);
                 assertSame(f, f.fork());
                 currentThread.interrupt();
-                assertTrue(currentThread.isInterrupted());
                 f.quietlyJoin();
                 Thread.interrupted();
                 checkCancelled(f);
@@ -318,7 +313,6 @@ public class RecursiveActionTest extends JSR166TestCase {
                 f.completeExceptionally(new FJException());
                 assertSame(f, f.fork());
                 currentThread.interrupt();
-                assertTrue(currentThread.isInterrupted());
                 f.quietlyJoin();
                 Thread.interrupted();
                 checkCompletedAbnormally(f, f.getException());
@@ -365,7 +359,6 @@ public class RecursiveActionTest extends JSR166TestCase {
                 f = fibActions[0];
                 assertFalse(ForkJoinTask.inForkJoinPool());
                 currentThread.interrupt();
-                assertTrue(currentThread.isInterrupted());
                 assertNull(f.join());
                 assertTrue(Thread.interrupted());
                 assertEquals(21, f.result);
@@ -373,7 +366,6 @@ public class RecursiveActionTest extends JSR166TestCase {
 
                 f = fibActions[1];
                 currentThread.interrupt();
-                assertTrue(currentThread.isInterrupted());
                 try {
                     f.join();
                     shouldThrow();
@@ -384,7 +376,6 @@ public class RecursiveActionTest extends JSR166TestCase {
 
                 f = fibActions[2];
                 currentThread.interrupt();
-                assertTrue(currentThread.isInterrupted());
                 try {
                     f.join();
                     shouldThrow();
@@ -397,7 +388,6 @@ public class RecursiveActionTest extends JSR166TestCase {
 
                 f = fibActions[3];
                 currentThread.interrupt();
-                assertTrue(currentThread.isInterrupted());
                 f.quietlyJoin();
                 assertTrue(Thread.interrupted());
                 assertEquals(21, f.result);
@@ -405,14 +395,12 @@ public class RecursiveActionTest extends JSR166TestCase {
 
                 f = fibActions[4];
                 currentThread.interrupt();
-                assertTrue(currentThread.isInterrupted());
                 f.quietlyJoin();
                 assertTrue(Thread.interrupted());
                 checkCancelled(f);
 
                 f = fibActions[5];
                 currentThread.interrupt();
-                assertTrue(currentThread.isInterrupted());
                 f.quietlyJoin();
                 assertTrue(Thread.interrupted());
                 assertTrue(f.getException() instanceof FJException);
