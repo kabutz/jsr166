@@ -269,12 +269,12 @@ public class ForkJoinPool8Test extends JSR166TestCase {
         RecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 FibAction f = new FibAction(8);
-                final Thread myself = Thread.currentThread();
+                final Thread currentThread = Thread.currentThread();
 
                 // test join()
                 assertSame(f, f.fork());
-                myself.interrupt();
-                assertTrue(myself.isInterrupted());
+                currentThread.interrupt();
+                assertTrue(currentThread.isInterrupted());
                 assertNull(f.join());
                 Thread.interrupted();
                 assertEquals(21, f.result);
@@ -283,8 +283,8 @@ public class ForkJoinPool8Test extends JSR166TestCase {
                 f = new FibAction(8);
                 f.cancel(true);
                 assertSame(f, f.fork());
-                myself.interrupt();
-                assertTrue(myself.isInterrupted());
+                currentThread.interrupt();
+                assertTrue(currentThread.isInterrupted());
                 try {
                     f.join();
                     shouldThrow();
@@ -296,8 +296,8 @@ public class ForkJoinPool8Test extends JSR166TestCase {
                 f = new FibAction(8);
                 f.completeExceptionally(new FJException());
                 assertSame(f, f.fork());
-                myself.interrupt();
-                assertTrue(myself.isInterrupted());
+                currentThread.interrupt();
+                assertTrue(currentThread.isInterrupted());
                 try {
                     f.join();
                     shouldThrow();
@@ -309,8 +309,8 @@ public class ForkJoinPool8Test extends JSR166TestCase {
                 // test quietlyJoin()
                 f = new FibAction(8);
                 assertSame(f, f.fork());
-                myself.interrupt();
-                assertTrue(myself.isInterrupted());
+                currentThread.interrupt();
+                assertTrue(currentThread.isInterrupted());
                 f.quietlyJoin();
                 Thread.interrupted();
                 assertEquals(21, f.result);
@@ -319,8 +319,8 @@ public class ForkJoinPool8Test extends JSR166TestCase {
                 f = new FibAction(8);
                 f.cancel(true);
                 assertSame(f, f.fork());
-                myself.interrupt();
-                assertTrue(myself.isInterrupted());
+                currentThread.interrupt();
+                assertTrue(currentThread.isInterrupted());
                 f.quietlyJoin();
                 Thread.interrupted();
                 checkCancelled(f);
@@ -328,8 +328,8 @@ public class ForkJoinPool8Test extends JSR166TestCase {
                 f = new FibAction(8);
                 f.completeExceptionally(new FJException());
                 assertSame(f, f.fork());
-                myself.interrupt();
-                assertTrue(myself.isInterrupted());
+                currentThread.interrupt();
+                assertTrue(currentThread.isInterrupted());
                 f.quietlyJoin();
                 Thread.interrupted();
                 checkCompletedAbnormally(f, f.getException());
