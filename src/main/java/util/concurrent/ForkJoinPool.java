@@ -106,7 +106,7 @@ import java.util.concurrent.locks.LockSupport;
  * </table>
  *
  * <p>The common pool is by default constructed with default
- * parameters, but these may be controlled by setting three
+ * parameters, but these may be controlled by setting the following
  * {@linkplain System#getProperty system properties}:
  * <ul>
  * <li>{@code java.util.concurrent.ForkJoinPool.common.parallelism}
