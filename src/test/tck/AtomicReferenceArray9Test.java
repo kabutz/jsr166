@@ -4,7 +4,6 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import junit.framework.Test;
