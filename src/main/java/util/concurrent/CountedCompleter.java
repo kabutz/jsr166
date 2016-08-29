@@ -156,7 +156,7 @@ import java.lang.invoke.VarHandle;
  *   }}</pre>
  *
  * As a further optimization, notice that the left task need not even exist.
- * Instead of creating a new one, we can iterate using the original task,
+ * Instead of creating a new one, we can continue using the original task,
  * and add a pending count for each fork.  Additionally, because no task
  * in this tree implements an {@link #onCompletion(CountedCompleter)} method,
  * {@code tryComplete} can be replaced with {@link #propagateCompletion}.
