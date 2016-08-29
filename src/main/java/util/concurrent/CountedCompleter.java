@@ -115,7 +115,7 @@ import java.lang.invoke.VarHandle;
  *     Task(Task parent, int lo, int hi) {
  *       super(parent); this.lo = lo; this.hi = hi;
  *     }
- * 
+ *
  *     public void compute() {
  *       if (hi - lo >= 2) {
  *         int mid = (lo + hi) >>> 1;
@@ -185,7 +185,7 @@ import java.lang.invoke.VarHandle;
  *       super(parent, 31 - Integer.numberOfLeadingZeros(hi - lo));
  *       this.lo = lo; this.hi = hi;
  *     }
- * 
+ *
  *     public void compute() {
  *       for (int n = hi - lo; n >= 2; n /= 2)
  *         new Task(this, lo + n/2, lo + n).fork();
