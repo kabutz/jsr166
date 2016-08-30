@@ -432,12 +432,13 @@
     <!-- the packagenames="none" hack below prevents scanning the -->
     <!-- sourcepath for packages -->
 
+<!--  TODO:       sourcepath="${src.dir}:${jdk9.src.dir}" -->
     <javadoc destdir="${docs.dir}"
              packagenames="none"
              link="${java9.api.url}"
              overview="${src.dir}/intro.html"
              access="${build.javadoc.access}"
-             sourcepath="${src.dir}:${jdk9.src.dir}"
+             sourcepath="${src.dir}"
              classpath=""
              executable="${javadoc9}">
       <fileset dir="${src.dir}" defaultexcludes="yes">
@@ -446,7 +447,7 @@
       <arg line="-Xdocrootparent ${java9.docroot.url}"/>
       <arg line="-Xmaxerrs 1000 -Xmaxwarns 1000"/>
       <arg value="-XDignore.symbol.file=true"/>
-<!--  TODO     <arg value="-Xmodule:java.base"/> -->
+      <arg value="-Xmodule:java.base"/>
       <arg value="-tag"/>
       <arg value="${javadoc.jls.option}"/>
       <arg value="-tag"/>
