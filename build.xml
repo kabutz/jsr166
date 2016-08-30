@@ -432,7 +432,8 @@
     <!-- the packagenames="none" hack below prevents scanning the -->
     <!-- sourcepath for packages -->
 
-<!--  TODO:       sourcepath="${src.dir}:${jdk9.src.dir}" -->
+<!--  TODO: sourcepath="${src.dir}:${jdk9.src.dir}" -->
+<!--  TODO: sourcepath="${src.dir}:${jdk9.src.dir}:${jdk9.src.home}/jdk/src/java.logging/share/classes" -->
     <javadoc destdir="${docs.dir}"
              packagenames="none"
              link="${java9.api.url}"
