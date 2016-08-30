@@ -152,8 +152,7 @@ import java.lang.invoke.VarHandle;
  *           action.accept(array[lo]);
  *         tryComplete();
  *       }
- *     }
- *   }}</pre>
+ *     }}</pre>
  *
  * As a further optimization, notice that the left task need not even exist.
  * Instead of creating a new one, we can continue using the original task,
@@ -171,8 +170,7 @@ import java.lang.invoke.VarHandle;
  *       if (n > 0)
  *         action.accept(array[lo]);
  *       propagateCompletion();
- *     }
- *   }}</pre>
+ *     }}</pre>
  *
  * When pending counts can be precomputed, they can be established in
  * the constructor:
