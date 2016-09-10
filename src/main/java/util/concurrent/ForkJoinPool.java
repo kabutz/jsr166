@@ -1379,7 +1379,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
         if (phase != QUIET) {                         // else pre-adjusted
             long c;                                   // decrement counts
-            do {} while (!CTL.weakCompareAndSetVolatile
+            do {} while (!CTL.weakCompareAndSet
                          (this, c = ctl, ((RC_MASK & (c - RC_UNIT)) |
                                           (TC_MASK & (c - TC_UNIT)) |
                                           (SP_MASK & c))));
@@ -1574,7 +1574,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                     do {
                         w.stackPred = (int)(c = ctl);
                         nc = ((c - RC_UNIT) & UC_MASK) | (SP_MASK & np);
-                    } while (!CTL.weakCompareAndSetVolatile(this, c, nc));
+                    } while (!CTL.weakCompareAndSet(this, c, nc));
                 }
                 else {                                  // already queued
                     int pred = w.stackPred;

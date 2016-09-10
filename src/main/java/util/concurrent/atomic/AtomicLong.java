@@ -133,7 +133,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
     /**
      * Possibly atomically sets the value to {@code newValue}
      * if the current value {@code == expectedValue},
-     * with memory effects as specified by {@link VarHandle#weakCompareAndSet}.
+     * with memory effects as specified by {@link VarHandle#weakCompareAndSetPlain}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value
@@ -180,7 +180,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
 
     /**
      * Atomically increments the current value,
-     * with memory effects as specified by {@link VarHandle#addAndGet}.
+     * with memory effects as specified by {@link VarHandle#getAndAdd}.
      *
      * <p>Equivalent to {@code addAndGet(1)}.
      *
@@ -192,7 +192,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
 
     /**
      * Atomically decrements the current value,
-     * with memory effects as specified by {@link VarHandle#addAndGet}.
+     * with memory effects as specified by {@link VarHandle#getAndAdd}.
      *
      * <p>Equivalent to {@code addAndGet(-1)}.
      *
@@ -204,7 +204,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
 
     /**
      * Atomically adds the given value to the current value,
-     * with memory effects as specified by {@link VarHandle#addAndGet}.
+     * with memory effects as specified by {@link VarHandle#getAndAdd}.
      *
      * @param delta the value to add
      * @return the updated value
@@ -475,7 +475,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * Possibly atomically sets the value to {@code newValue}
      * if the current value {@code == expectedValue},
      * with memory effects as specified by
-     * {@link VarHandle#weakCompareAndSetVolatile}.
+     * {@link VarHandle#weakCompareAndSet}.
      *
      * @param expectedValue the expected value
      * @param newValue the new value

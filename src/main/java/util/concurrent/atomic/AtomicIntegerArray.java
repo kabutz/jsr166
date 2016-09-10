@@ -120,7 +120,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
     /**
      * Possibly atomically sets the element at index {@code i} to
      * {@code newValue} if the element's current value {@code == expectedValue},
-     * with memory effects as specified by {@link VarHandle#weakCompareAndSet}.
+     * with memory effects as specified by {@link VarHandle#weakCompareAndSetPlain}.
      *
      * @param i the index
      * @param expectedValue the expected value
@@ -128,7 +128,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * @return {@code true} if successful
      */
     public final boolean weakCompareAndSet(int i, int expectedValue, int newValue) {
-        return AA.weakCompareAndSet(array, i, expectedValue, newValue);
+        return AA.weakCompareAndSetPlain(array, i, expectedValue, newValue);
     }
 
     /**
@@ -171,7 +171,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
 
     /**
      * Atomically increments the value of the element at index {@code i},
-     * with memory effects as specified by {@link VarHandle#addAndGet}.
+     * with memory effects as specified by {@link VarHandle#getAndAdd}.
      *
      * <p>Equivalent to {@code addAndGet(i, 1)}.
      *
@@ -179,12 +179,12 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * @return the updated value
      */
     public final int incrementAndGet(int i) {
-        return (int)AA.addAndGet(array, i, 1);
+        return (int)AA.getAndAdd(array, i, 1) + 1;
     }
 
     /**
      * Atomically decrements the value of the element at index {@code i},
-     * with memory effects as specified by {@link VarHandle#addAndGet}.
+     * with memory effects as specified by {@link VarHandle#getAndAdd}.
      *
      * <p>Equivalent to {@code addAndGet(i, -1)}.
      *
@@ -192,19 +192,19 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * @return the updated value
      */
     public final int decrementAndGet(int i) {
-        return (int)AA.addAndGet(array, i, -1);
+        return (int)AA.getAndAdd(array, i, -1) - 1;
     }
 
     /**
      * Atomically adds the given value to the element at index {@code i},
-     * with memory effects as specified by {@link VarHandle#addAndGet}.
+     * with memory effects as specified by {@link VarHandle#getAndAdd}.
      *
      * @param i the index
      * @param delta the value to add
      * @return the updated value
      */
     public final int addAndGet(int i, int delta) {
-        return (int)AA.addAndGet(array, i, delta);
+        return (int)AA.getAndAdd(array, i, delta) + delta;
     }
 
     /**
@@ -460,7 +460,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * Possibly atomically sets the element at index {@code i} to
      * {@code newValue} if the element's current value {@code == expectedValue},
      * with memory effects as specified by
-     * {@link VarHandle#weakCompareAndSetVolatile}.
+     * {@link VarHandle#weakCompareAndSet}.
      *
      * @param i the index
      * @param expectedValue the expected value
@@ -469,7 +469,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
      * @since 9
      */
     public final boolean weakCompareAndSetVolatile(int i, int expectedValue, int newValue) {
-        return AA.weakCompareAndSetVolatile(array, i, expectedValue, newValue);
+        return AA.weakCompareAndSet(array, i, expectedValue, newValue);
     }
 
     /**
