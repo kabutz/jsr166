@@ -252,7 +252,7 @@
       <compilerarg value="-XDignore.symbol.file=true"/>
       <compilerarg value="-Xlint:all,-unchecked,-rawtypes,-serial,-deprecation,-try"/>
       <compilerarg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
-      <compilerarg value="-Xpatch:java.base=${build.classes.dir}/java.base" if:set="modules"/>
+      <compilerarg line="--patch-module java.base=${build.classes.dir}/java.base" if:set="modules"/>
       <compilerarg line="${build.args}"/>
       <javac-elements/>
 
@@ -263,7 +263,7 @@
           jvm="${java@{target}}"
           fork="true">
 	<jvmarg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
-	<jvmarg value="-Xpatch:java.base=${build.classes.dir}/java.base" if:set="modules"/>
+	<jvmarg line="--patch-module java.base=${build.classes.dir}/java.base" if:set="modules"/>
 	<jvmarg line="@{jvmflags}"/>
 	<!-- ant -Dvmoptions="-Xmx8m" -Djsr166.tckTestClass=CompletableFutureTest tck -->
 	<jvmarg line="${vmoptions}" if:set="vmoptions"/>
@@ -335,7 +335,7 @@
            reportDir="@{workdir}/JTreport">
       <patternset refid="jdk@{target}.jtreg.tests"/>
       <arg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
-      <arg value="-vmoption:-Xpatch:java.base=${build.classes.dir}/java.base" if:set="modules"/>
+      <arg value="-vmoptions:--patch-module java.base=${build.classes.dir}/java.base" if:set="modules"/>
       <arg value="-agentvm"/>
       <arg value="-verbose:${jtreg.verbose}"/>
       <arg value="-vmoptions:-esa -ea"/>
