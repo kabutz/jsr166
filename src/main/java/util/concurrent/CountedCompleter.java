@@ -144,7 +144,7 @@ import java.lang.invoke.VarHandle;
  *     public void compute() {
  *       if (hi - lo >= 2) {
  *         int mid = (lo + hi) >>> 1;
- *         setPendingCount(1); // not off by one !
+ *         setPendingCount(1); // looks off by one, but correct!
  *         new Task(this, mid, hi).fork(); // right child
  *         new Task(this, lo, mid).compute(); // direct invoke
  *       } else {
