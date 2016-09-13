@@ -1162,7 +1162,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * Default idle timeout value (in milliseconds) for the thread
      * triggering quiescence to park waiting for new work
      */
-    private static final long DEFAULT_KEEPALIVE = 60000L;
+    private static final long DEFAULT_KEEPALIVE = 60_000L;
 
     /**
      * Undershoot tolerance for idle timeouts
