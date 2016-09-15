@@ -524,7 +524,7 @@ public class Microscope extends JPanel {
         }
 
         public static boolean inBounds(int row, int col) {
-            return (0 <= row)  && (row < RANKS) && (0 <= col) && (col < RANKS);
+            return (0 <= row) && (row < RANKS) && (0 <= col) && (col < RANKS);
         }
 
         // The representation
@@ -551,7 +551,7 @@ public class Microscope extends JPanel {
         long getGreen() { return green_; }
 
         public Player occupant(int row, int col) {
-            if ((0 <= row)  && (row < RANKS) && (0 <= col) && (col < RANKS)) {
+            if ((0 <= row) && (row < RANKS) && (0 <= col) && (col < RANKS)) {
                 long m = 1L << (row + col * RANKS);
                 if ((blue_ & m) != 0L) return Player.Blue;
                 else if ((green_ &m) != 0L) return Player.Green;
