@@ -1756,7 +1756,7 @@ public class JSR166TestCase extends TestCase {
      * A CyclicBarrier that uses timed await and fails with
      * AssertionFailedErrors instead of throwing checked exceptions.
      */
-    public class CheckedBarrier extends CyclicBarrier {
+    public static class CheckedBarrier extends CyclicBarrier {
         public CheckedBarrier(int parties) { super(parties); }
 
         public int await() {

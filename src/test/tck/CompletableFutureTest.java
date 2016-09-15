@@ -361,7 +361,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         checkCompletedNormally(f, "test");
     }
 
-    abstract class CheckedAction {
+    abstract static class CheckedAction {
         int invocationCount = 0;
         final ExecutionMode m;
         CheckedAction(ExecutionMode m) { this.m = m; }
@@ -373,7 +373,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         void assertInvoked() { assertEquals(1, invocationCount); }
     }
 
-    abstract class CheckedIntegerAction extends CheckedAction {
+    abstract static class CheckedIntegerAction extends CheckedAction {
         Integer value;
         CheckedIntegerAction(ExecutionMode m) { super(m); }
         void assertValue(Integer expected) {
@@ -382,7 +382,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
     }
 
-    class IntegerSupplier extends CheckedAction
+    static class IntegerSupplier extends CheckedAction
         implements Supplier<Integer>
     {
         final Integer value;
@@ -401,7 +401,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         return (x == null) ? null : x + 1;
     }
 
-    class NoopConsumer extends CheckedIntegerAction
+    static class NoopConsumer extends CheckedIntegerAction
         implements Consumer<Integer>
     {
         NoopConsumer(ExecutionMode m) { super(m); }
@@ -411,7 +411,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
     }
 
-    class IncFunction extends CheckedIntegerAction
+    static class IncFunction extends CheckedIntegerAction
         implements Function<Integer,Integer>
     {
         IncFunction(ExecutionMode m) { super(m); }
@@ -429,7 +429,7 @@ public class CompletableFutureTest extends JSR166TestCase {
             - ((y == null) ? 99 : y.intValue());
     }
 
-    class SubtractAction extends CheckedIntegerAction
+    static class SubtractAction extends CheckedIntegerAction
         implements BiConsumer<Integer, Integer>
     {
         SubtractAction(ExecutionMode m) { super(m); }
@@ -439,7 +439,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
     }
 
-    class SubtractFunction extends CheckedIntegerAction
+    static class SubtractFunction extends CheckedIntegerAction
         implements BiFunction<Integer, Integer, Integer>
     {
         SubtractFunction(ExecutionMode m) { super(m); }
@@ -449,14 +449,14 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
     }
 
-    class Noop extends CheckedAction implements Runnable {
+    static class Noop extends CheckedAction implements Runnable {
         Noop(ExecutionMode m) { super(m); }
         public void run() {
             invoked();
         }
     }
 
-    class FailingSupplier extends CheckedAction
+    static class FailingSupplier extends CheckedAction
         implements Supplier<Integer>
     {
         final CFException ex;
@@ -467,7 +467,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
     }
 
-    class FailingConsumer extends CheckedIntegerAction
+    static class FailingConsumer extends CheckedIntegerAction
         implements Consumer<Integer>
     {
         final CFException ex;
@@ -479,7 +479,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
     }
 
-    class FailingBiConsumer extends CheckedIntegerAction
+    static class FailingBiConsumer extends CheckedIntegerAction
         implements BiConsumer<Integer, Integer>
     {
         final CFException ex;
@@ -491,7 +491,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
     }
 
-    class FailingFunction extends CheckedIntegerAction
+    static class FailingFunction extends CheckedIntegerAction
         implements Function<Integer, Integer>
     {
         final CFException ex;
@@ -503,7 +503,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
     }
 
-    class FailingBiFunction extends CheckedIntegerAction
+    static class FailingBiFunction extends CheckedIntegerAction
         implements BiFunction<Integer, Integer, Integer>
     {
         final CFException ex;
@@ -515,7 +515,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
     }
 
-    class FailingRunnable extends CheckedAction implements Runnable {
+    static class FailingRunnable extends CheckedAction implements Runnable {
         final CFException ex;
         FailingRunnable(ExecutionMode m) { super(m); ex = new CFException(); }
         public void run() {
@@ -524,7 +524,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
     }
 
-    class CompletableFutureInc extends CheckedIntegerAction
+    static class CompletableFutureInc extends CheckedIntegerAction
         implements Function<Integer, CompletableFuture<Integer>>
     {
         CompletableFutureInc(ExecutionMode m) { super(m); }
@@ -537,7 +537,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
     }
 
-    class FailingCompletableFutureFunction extends CheckedIntegerAction
+    static class FailingCompletableFutureFunction extends CheckedIntegerAction
         implements Function<Integer, CompletableFuture<Integer>>
     {
         final CFException ex;
