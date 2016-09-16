@@ -2326,8 +2326,8 @@ public class ForkJoinPool extends AbstractExecutorService {
         n |= n >>> 1; n |= n >>> 2; n |= n >>> 4; n |= n >>> 8; n |= n >>> 16;
         n = (n + 1) << 1; // power of two, including space for submission queues
 
-        this.workQueues = new WorkQueue[n];
         this.workerNamePrefix = "ForkJoinPool-" + nextPoolId() + "-worker-";
+        this.workQueues = new WorkQueue[n];
         this.factory = factory;
         this.ueh = handler;
         this.saturate = saturate;
@@ -2386,8 +2386,8 @@ public class ForkJoinPool extends AbstractExecutorService {
         n |= n >>> 1; n |= n >>> 2; n |= n >>> 4; n |= n >>> 8; n |= n >>> 16;
         n = (n + 1) << 1;
 
-        this.workQueues = new WorkQueue[n];
         this.workerNamePrefix = "ForkJoinPool.commonPool-worker-";
+        this.workQueues = new WorkQueue[n];
         this.factory = fac;
         this.ueh = handler;
         this.saturate = null;
