@@ -245,6 +245,7 @@
            classpath="${junit.jar}"
            includeAntRuntime="false"
            includeJavaRuntime="false"
+           encoding="ASCII"
            executable="${javac@{compile-target}}"
            fork="true">
 
@@ -391,6 +392,7 @@
            classpath=""
            includeAntRuntime="false"
            includeJavaRuntime="false"
+           encoding="ASCII"
            executable="${build.main.javac}"
            fork="true">
 
@@ -631,6 +633,7 @@
       deprecation="${build.deprecation}"
            source="${build.sourcelevel}"
            target="${build.sourcelevel}"
+         encoding="ASCII"
              fork="true">
 
       <compilerarg line="${build.args}"/>
@@ -658,6 +661,7 @@
            deprecation="${build.deprecation}"
            includeAntRuntime="false"
            includeJavaRuntime="false"
+           encoding="ASCII"
            executable="${javac9}"
            fork="true">
 
@@ -691,6 +695,7 @@
            bootclasspath="${bootclasspath8}"
            includeAntRuntime="false"
            includeJavaRuntime="false"
+           encoding="ASCII"
            executable="${javac8}"
            fork="true">
 
@@ -721,6 +726,7 @@
            bootclasspath="${bootclasspath8}"
            includeAntRuntime="false"
            includeJavaRuntime="false"
+           encoding="ASCII"
            executable="${javac8}"
            fork="true">
 
@@ -860,6 +866,7 @@
            bootclasspath="${bootclasspath6}"
            includeAntRuntime="false"
            includeJavaRuntime="false"
+           encoding="ASCII"
            executable="${javac7}"
            fork="true">
 
@@ -890,6 +897,7 @@
            bootclasspath="${bootclasspath6}"
            includeAntRuntime="false"
            includeJavaRuntime="false"
+           encoding="ASCII"
            executable="${javac8}"
            fork="true">
 
@@ -1057,6 +1065,7 @@
            target="5"
            includeAntRuntime="false"
            includeJavaRuntime="false"
+           encoding="ASCII"
            executable="${javac7}"
            fork="true">
 
@@ -1150,6 +1159,7 @@
            bootclasspath="${bootclasspath6}"
            includeAntRuntime="false"
            includeJavaRuntime="false"
+           encoding="ASCII"
            executable="${javac7}"
            fork="true">
 
@@ -1244,6 +1254,7 @@
            target="6"
            includeAntRuntime="false"
            includeJavaRuntime="false"
+           encoding="ASCII"
            executable="${javac7}"
            fork="true">
 
