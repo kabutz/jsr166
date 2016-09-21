@@ -3577,29 +3577,53 @@ public class CompletableFutureTest extends JSR166TestCase {
      * copy returns a CompletableFuture that is completed normally,
      * with the same value, when source is.
      */
-    public void testCopy() {
+    public void testCopy_normalCompletion() {
+        for (boolean createIncomplete : new boolean[] { true, false })
+        for (Integer v1 : new Integer[] { 1, null })
+    {
         CompletableFuture<Integer> f = new CompletableFuture<>();
+        if (!createIncomplete) assertTrue(f.complete(v1));
         CompletableFuture<Integer> g = f.copy();
-        checkIncomplete(f);
-        checkIncomplete(g);
-        f.complete(1);
-        checkCompletedNormally(f, 1);
-        checkCompletedNormally(g, 1);
-    }
+        if (createIncomplete) {
+            checkIncomplete(f);
+            checkIncomplete(g);
+            assertTrue(f.complete(v1));
+        }
+        checkCompletedNormally(f, v1);
+        checkCompletedNormally(g, v1);
+    }}
 
     /**
      * copy returns a CompletableFuture that is completed exceptionally
      * when source is.
      */
-    public void testCopy2() {
-        CompletableFuture<Integer> f = new CompletableFuture<>();
-        CompletableFuture<Integer> g = f.copy();
-        checkIncomplete(f);
-        checkIncomplete(g);
+    public void testCopy_exceptionalCompletion() {
+        for (boolean createIncomplete : new boolean[] { true, false })
+    {
         CFException ex = new CFException();
-        f.completeExceptionally(ex);
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        if (!createIncomplete) f.completeExceptionally(ex);
+        CompletableFuture<Integer> g = f.copy();
+        if (createIncomplete) {
+            checkIncomplete(f);
+            checkIncomplete(g);
+            f.completeExceptionally(ex);
+        }
         checkCompletedExceptionally(f, ex);
         checkCompletedWithWrappedException(g, ex);
+    }}
+
+    /**
+     * Completion of a copy does not complete its source.
+     */
+    public void testCopy_oneWayPropagation() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        assertTrue(f.copy().complete(1));
+        assertTrue(f.copy().complete(null));
+        assertTrue(f.copy().cancel(true));
+        assertTrue(f.copy().cancel(false));
+        assertTrue(f.copy().completeExceptionally(new CFException()));
+        checkIncomplete(f);
     }
 
     /**
