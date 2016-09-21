@@ -4028,6 +4028,27 @@ public class CompletableFutureTest extends JSR166TestCase {
     }
 
     /**
+     * minimalStage.toCompletableFuture() returns a CompletableFuture that
+     * is completed normally, with the same value, when source is.
+     */
+    public void testMinimalCompletionStage_toCompletableFuture_normalCompletion() {
+        for (boolean createIncomplete : new boolean[] { true, false })
+        for (Integer v1 : new Integer[] { 1, null })
+    {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        CompletionStage<Integer> minimal = f.minimalCompletionStage();
+        if (!createIncomplete) assertTrue(f.complete(v1));
+        CompletableFuture<Integer> g = minimal.toCompletableFuture();
+        if (createIncomplete) {
+            checkIncomplete(f);
+            checkIncomplete(g);
+            assertTrue(f.complete(v1));
+        }
+        checkCompletedNormally(f, v1);
+        checkCompletedNormally(g, v1);
+    }}
+
+    /**
      * minimalStage.toCompletableFuture() gives mutable CompletableFuture
      */
     public void testMinimalCompletionStage_toCompletableFuture_mutable() {
