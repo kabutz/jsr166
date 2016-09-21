@@ -4078,7 +4078,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         CompletionStage minimal = f.minimalCompletionStage();
         CompletableFuture<Integer> g = minimal.toCompletableFuture();
-        g.complete(v1);
+        assertTrue(g.complete(v1));
         checkCompletedNormally(g, v1);
         checkIncomplete(f);
         checkIncomplete(minimal.toCompletableFuture());
