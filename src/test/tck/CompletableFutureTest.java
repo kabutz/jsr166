@@ -3964,7 +3964,10 @@ public class CompletableFutureTest extends JSR166TestCase {
             .collect(Collectors.toList());
 
         List<CompletionStage<Integer>> stages = new ArrayList<>();
-        stages.add(new CompletableFuture<Integer>().minimalCompletionStage());
+        CompletionStage<Integer> min =
+            new CompletableFuture<Integer>().minimalCompletionStage();
+        stages.add(min);
+        stages.add(min.thenApply(x -> x));
         stages.add(CompletableFuture.completedStage(1));
         stages.add(CompletableFuture.failedStage(new CFException()));
 
@@ -3999,6 +4002,72 @@ public class CompletableFutureTest extends JSR166TestCase {
         if (!bugs.isEmpty())
             throw new Error("Methods did not throw UOE: " + bugs);
     }
+
+    /**
+     * minimalStage.toCompletableFuture() gives mutable CompletableFuture
+     */
+    public void testMinimalCompletionStage_toCompletableFuture_mutable() {
+        for (Integer v1 : new Integer[] { 1, null })
+    {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        CompletionStage minimal = f.minimalCompletionStage();
+        CompletableFuture<Integer> g = minimal.toCompletableFuture();
+        g.complete(v1);
+        checkCompletedNormally(g, v1);
+        checkIncomplete(f);
+        checkIncomplete(minimal.toCompletableFuture());
+    }}
+
+    /**
+     * minimalStage.toCompletableFuture().join() awaits completion
+     */
+    public void testMinimalCompletionStage_toCompletableFuture_join() throws Exception {
+        for (boolean createIncomplete : new boolean[] { true, false })
+        for (Integer v1 : new Integer[] { 1, null })
+    {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        if (!createIncomplete) assertTrue(f.complete(v1));
+        CompletionStage<Integer> minimal = f.minimalCompletionStage();
+        if (createIncomplete) assertTrue(f.complete(v1));
+        assertEquals(v1, minimal.toCompletableFuture().join());
+        assertEquals(v1, minimal.toCompletableFuture().get());
+        checkCompletedNormally(minimal.toCompletableFuture(), v1);
+    }}
+
+    /** Demo utility method for external reliable toCompletableFuture */
+    static <T> CompletableFuture<T> toCompletableFuture(CompletionStage<T> stage) {
+        CompletableFuture<T> f = new CompletableFuture<>();
+        stage.handle((T t, Throwable ex) -> {
+                         if (ex != null) f.completeExceptionally(ex);
+                         else f.complete(t);
+                         return null;
+                     });
+        return f;
+    }
+
+    /** Demo utility method to join a CompletionStage */
+    static <T> T join(CompletionStage<T> stage) {
+        return toCompletableFuture(stage).join();
+    }
+
+    /**
+     * Joining a minimal stage "by hand" works
+     */
+    public void testMinimalCompletionStage_join_by_hand() {
+        for (boolean createIncomplete : new boolean[] { true, false })
+        for (Integer v1 : new Integer[] { 1, null })
+    {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        CompletionStage<Integer> minimal = f.minimalCompletionStage();
+        CompletableFuture<Integer> g = new CompletableFuture<>();
+        if (!createIncomplete) assertTrue(f.complete(v1));
+        minimal.thenAccept((x) -> g.complete(x));
+        if (createIncomplete) assertTrue(f.complete(v1));
+        g.join();
+        checkCompletedNormally(g, v1);
+        checkCompletedNormally(f, v1);
+        assertEquals(v1, join(minimal));
+    }}
 
     static class Monad {
         static class ZeroException extends RuntimeException {
