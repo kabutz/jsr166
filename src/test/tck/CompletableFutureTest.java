@@ -4049,6 +4049,27 @@ public class CompletableFutureTest extends JSR166TestCase {
     }}
 
     /**
+     * minimalStage.toCompletableFuture() returns a CompletableFuture that
+     * is completed exceptionally when source is.
+     */
+    public void testMinimalCompletionStage_toCompletableFuture_exceptionalCompletion() {
+        for (boolean createIncomplete : new boolean[] { true, false })
+    {
+        CFException ex = new CFException();
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        CompletionStage<Integer> minimal = f.minimalCompletionStage();
+        if (!createIncomplete) f.completeExceptionally(ex);
+        CompletableFuture<Integer> g = minimal.toCompletableFuture();
+        if (createIncomplete) {
+            checkIncomplete(f);
+            checkIncomplete(g);
+            f.completeExceptionally(ex);
+        }
+        checkCompletedExceptionally(f, ex);
+        checkCompletedWithWrappedException(g, ex);
+    }}
+
+    /**
      * minimalStage.toCompletableFuture() gives mutable CompletableFuture
      */
     public void testMinimalCompletionStage_toCompletableFuture_mutable() {
