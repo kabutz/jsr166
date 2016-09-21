@@ -4058,6 +4058,23 @@ public class CompletableFutureTest extends JSR166TestCase {
         checkCompletedNormally(minimal.toCompletableFuture(), v1);
     }}
 
+    /**
+     * Completion of a toCompletableFuture copy of a minimal stage
+     * does not complete its source.
+     */
+    public void testMinimalCompletionStage_toCompletableFuture_oneWayPropagation() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        CompletionStage<Integer> g = f.minimalCompletionStage();
+        assertTrue(g.toCompletableFuture().complete(1));
+        assertTrue(g.toCompletableFuture().complete(null));
+        assertTrue(g.toCompletableFuture().cancel(true));
+        assertTrue(g.toCompletableFuture().cancel(false));
+        assertTrue(g.toCompletableFuture().completeExceptionally(new CFException()));
+        checkIncomplete(g.toCompletableFuture());
+        f.complete(1);
+        checkCompletedNormally(g.toCompletableFuture(), 1);
+    }
+
     /** Demo utility method for external reliable toCompletableFuture */
     static <T> CompletableFuture<T> toCompletableFuture(CompletionStage<T> stage) {
         CompletableFuture<T> f = new CompletableFuture<>();
