@@ -1620,10 +1620,27 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     /**
      * Removes all of the mappings from this map.
      */
-    public void clear() {
-        initialize();
+     public void clear() {
+        for (;;) {
+            Node<K,V> b, n;
+            HeadIndex<K,V> h = head, d = (HeadIndex<K,V>)h.down;
+            if (d != null)
+                casHead(h, d);            // remove levels
+            else if ((b = h.node) != null && (n = b.next) != null) {
+                Node<K,V> f = n.next;     // remove values
+                if (n == b.next) {
+                    Object v = n.value;
+                    if (v == null)
+                        n.helpDelete(b, f);
+                    else if (n.casValue(v, null) && n.appendMarker(f))
+                        b.casNext(n, f);
+                }
+            }
+            else
+                break;
+        }
     }
-
+    
     /**
      * If the specified key is not already associated with a value,
      * attempts to compute its value using the given mapping function
