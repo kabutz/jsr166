@@ -43,12 +43,12 @@ public class Atomic8Test extends JSR166TestCase {
     volatile int anIntField;
     volatile Integer anIntegerField;
 
-    AtomicLongFieldUpdater aLongFieldUpdater() {
+    AtomicLongFieldUpdater<Atomic8Test> aLongFieldUpdater() {
         return AtomicLongFieldUpdater.newUpdater
             (Atomic8Test.class, "aLongField");
     }
 
-    AtomicIntegerFieldUpdater anIntFieldUpdater() {
+    AtomicIntegerFieldUpdater<Atomic8Test> anIntFieldUpdater() {
         return AtomicIntegerFieldUpdater.newUpdater
             (Atomic8Test.class, "anIntField");
     }
@@ -501,9 +501,6 @@ public class Atomic8Test extends JSR166TestCase {
             () -> aLongFieldUpdater().getAndUpdate(this, null),
             () -> anIntFieldUpdater().getAndUpdate(this, null),
             () -> anIntegerFieldUpdater().getAndUpdate(this, null),
-            ////() -> aLongFieldUpdater().getAndUpdate(null, Atomic8Test::addLong17),
-            ////() -> anIntFieldUpdater().getAndUpdate(null, Atomic8Test::addInt17),
-            ////() -> anIntegerFieldUpdater().getAndUpdate(null, Atomic8Test::addInteger17),
         };
         assertThrows(NullPointerException.class, throwingActions);
     }
@@ -562,6 +559,42 @@ public class Atomic8Test extends JSR166TestCase {
             () -> anIntegerFieldUpdater().accumulateAndGet(this, one, null),
         };
         assertThrows(NullPointerException.class, throwingActions);
+    }
+
+    /**
+     * Object arguments for parameters of type T that are not
+     * instances of the class passed to the newUpdater call will
+     * result in a ClassCastException being thrown.
+     */
+    public void testFieldUpdaters_ClassCastException() {
+        // Use raw types to allow passing wrong object type, provoking CCE
+        final AtomicLongFieldUpdater longUpdater = aLongFieldUpdater();
+        final AtomicIntegerFieldUpdater intUpdater = anIntFieldUpdater();
+        final AtomicReferenceFieldUpdater refUpdater = anIntegerFieldUpdater();
+        final Object obj = new Object();
+        for (Object x : new Object[]{ new Object(), null }) {
+            Runnable[] throwingActions = {
+                () -> longUpdater.get(x),
+                () -> intUpdater.get(x),
+                () -> refUpdater.get(x),
+
+                () -> longUpdater.set(x, 17L),
+                () -> intUpdater.set(x, 17),
+                () -> refUpdater.set(x, (Integer) 17),
+
+                () -> longUpdater.addAndGet(x, 17L),
+                () -> intUpdater.addAndGet(x, 17),
+
+                () -> longUpdater.getAndUpdate(x, y -> y),
+                () -> intUpdater.getAndUpdate(x, y -> y),
+                () -> refUpdater.getAndUpdate(x, y -> y),
+
+                () -> longUpdater.compareAndSet(x, 17L, 42L),
+                () -> intUpdater.compareAndSet(x, 17, 42),
+                () -> refUpdater.compareAndSet(x, (Integer) 17, (Integer) 42),
+            };
+            assertThrows(ClassCastException.class, throwingActions);
+        }
     }
 
 }
