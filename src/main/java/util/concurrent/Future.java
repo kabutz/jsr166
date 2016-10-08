@@ -21,8 +21,7 @@ package java.util.concurrent;
  * declare types of the form {@code Future<?>} and
  * return {@code null} as a result of the underlying task.
  *
- * <p>
- * <b>Sample Usage</b> (Note that the following classes are all
+ * <p><b>Sample Usage</b> (Note that the following classes are all
  * made-up.)
  *
  * <pre> {@code
@@ -30,13 +29,9 @@ package java.util.concurrent;
  * class App {
  *   ExecutorService executor = ...
  *   ArchiveSearcher searcher = ...
- *   void showSearch(final String target)
- *       throws InterruptedException {
- *     Future<String> future
- *       = executor.submit(new Callable<String>() {
- *         public String call() {
- *             return searcher.search(target);
- *         }});
+ *   void showSearch(String target) throws InterruptedException {
+ *     Callable<String> task = () -> searcher.search(target);
+ *     Future<String> future = executor.submit(task);
  *     displayOtherThings(); // do other things while searching
  *     try {
  *       displayText(future.get()); // use future
@@ -48,11 +43,7 @@ package java.util.concurrent;
  * implements {@code Runnable}, and so may be executed by an {@code Executor}.
  * For example, the above construction with {@code submit} could be replaced by:
  * <pre> {@code
- * FutureTask<String> future =
- *   new FutureTask<>(new Callable<String>() {
- *     public String call() {
- *       return searcher.search(target);
- *   }});
+ * FutureTask<String> future = new FutureTask<>(task);
  * executor.execute(future);}</pre>
  *
  * <p>Memory consistency effects: Actions taken by the asynchronous computation
