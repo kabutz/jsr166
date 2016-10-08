@@ -9,8 +9,10 @@ package java.util.concurrent;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.security.AccessController;
 import java.security.AccessControlContext;
 import java.security.Permissions;
+import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -3195,10 +3197,9 @@ public class ForkJoinPool extends AbstractExecutorService {
             new DefaultForkJoinWorkerThreadFactory();
         modifyThreadPermission = new RuntimePermission("modifyThread");
 
-        common = java.security.AccessController.doPrivileged
-            (new java.security.PrivilegedAction<ForkJoinPool>() {
-                    public ForkJoinPool run() {
-                        return new ForkJoinPool((byte)0); }});
+        common = AccessController.doPrivileged(new PrivilegedAction<>() {
+            public ForkJoinPool run() {
+                return new ForkJoinPool((byte)0); }});
 
         COMMON_PARALLELISM = Math.max(common.mode & SMASK, 1);
     }
@@ -3227,12 +3228,11 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
 
         public final ForkJoinWorkerThread newThread(ForkJoinPool pool) {
-            return java.security.AccessController.doPrivileged(
-                new java.security.PrivilegedAction<ForkJoinWorkerThread>() {
-                    public ForkJoinWorkerThread run() {
-                        return new ForkJoinWorkerThread.
-                            InnocuousForkJoinWorkerThread(pool);
-                    }}, INNOCUOUS_ACC);
+            return AccessController.doPrivileged(new PrivilegedAction<>() {
+                public ForkJoinWorkerThread run() {
+                    return new ForkJoinWorkerThread.
+                        InnocuousForkJoinWorkerThread(pool);
+                }}, INNOCUOUS_ACC);
         }
     }
 
