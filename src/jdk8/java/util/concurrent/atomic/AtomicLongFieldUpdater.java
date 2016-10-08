@@ -480,8 +480,8 @@ public abstract class AtomicLongFieldUpdater<T> {
 
         LockedUpdater(final Class<T> tclass, final String fieldName,
                       final Class<?> caller) {
-            Field field = null;
-            int modifiers = 0;
+            final Field field;
+            final int modifiers;
             try {
                 field = AccessController.doPrivileged(
                     new PrivilegedExceptionAction<Field>() {
