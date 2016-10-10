@@ -530,6 +530,7 @@ public class ArrayDequeTest extends JSR166TestCase {
      */
     public void testRemoveFirstOccurrence() {
         ArrayDeque q = populatedDeque(SIZE);
+        assertFalse(q.removeFirstOccurrence(null));
         for (int i = 1; i < SIZE; i += 2) {
             assertTrue(q.removeFirstOccurrence(new Integer(i)));
         }
@@ -538,6 +539,11 @@ public class ArrayDequeTest extends JSR166TestCase {
             assertFalse(q.removeFirstOccurrence(new Integer(i + 1)));
         }
         assertTrue(q.isEmpty());
+        assertFalse(q.removeFirstOccurrence(null));
+        assertFalse(q.removeFirstOccurrence(42));
+        q = new ArrayDeque();
+        assertFalse(q.removeFirstOccurrence(null));
+        assertFalse(q.removeFirstOccurrence(42));
     }
 
     /**
@@ -545,6 +551,7 @@ public class ArrayDequeTest extends JSR166TestCase {
      */
     public void testRemoveLastOccurrence() {
         ArrayDeque q = populatedDeque(SIZE);
+        assertFalse(q.removeLastOccurrence(null));
         for (int i = 1; i < SIZE; i += 2) {
             assertTrue(q.removeLastOccurrence(new Integer(i)));
         }
@@ -553,6 +560,11 @@ public class ArrayDequeTest extends JSR166TestCase {
             assertFalse(q.removeLastOccurrence(new Integer(i + 1)));
         }
         assertTrue(q.isEmpty());
+        assertFalse(q.removeLastOccurrence(null));
+        assertFalse(q.removeLastOccurrence(42));
+        q = new ArrayDeque();
+        assertFalse(q.removeLastOccurrence(null));
+        assertFalse(q.removeLastOccurrence(42));
     }
 
     /**
