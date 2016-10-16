@@ -26,7 +26,7 @@ public class LinkedListTest extends JSR166TestCase {
 
     /**
      * Returns a new queue of given size containing consecutive
-     * Integers 0 ... n.
+     * Integers 0 ... n - 1.
      */
     private LinkedList<Integer> populatedQueue(int n) {
         LinkedList<Integer> q = new LinkedList<Integer>();
@@ -35,6 +35,8 @@ public class LinkedListTest extends JSR166TestCase {
             assertTrue(q.offer(new Integer(i)));
         assertFalse(q.isEmpty());
         assertEquals(n, q.size());
+        assertEquals((Integer) 0, q.peekFirst());
+        assertEquals((Integer) (n - 1), q.peekLast());
         return q;
     }
 

@@ -48,7 +48,7 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
 
     /**
      * Returns a new queue of given size containing consecutive
-     * Integers 0 ... n.
+     * Integers 0 ... n - 1.
      */
     private ArrayBlockingQueue<Integer> populatedQueue(int n) {
         ArrayBlockingQueue<Integer> q = new ArrayBlockingQueue<Integer>(n);
@@ -58,6 +58,7 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
         assertFalse(q.isEmpty());
         assertEquals(0, q.remainingCapacity());
         assertEquals(n, q.size());
+        assertEquals((Integer) 0, q.peek());
         return q;
     }
 

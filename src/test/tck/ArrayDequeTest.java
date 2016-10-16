@@ -35,7 +35,7 @@ public class ArrayDequeTest extends JSR166TestCase {
 
     /**
      * Returns a new deque of given size containing consecutive
-     * Integers 0 ... n.
+     * Integers 0 ... n - 1.
      */
     private ArrayDeque<Integer> populatedDeque(int n) {
         ArrayDeque<Integer> q = new ArrayDeque<Integer>();
@@ -44,6 +44,8 @@ public class ArrayDequeTest extends JSR166TestCase {
             assertTrue(q.offerLast(new Integer(i)));
         assertFalse(q.isEmpty());
         assertEquals(n, q.size());
+        assertEquals((Integer) 0, q.peekFirst());
+        assertEquals((Integer) (n - 1), q.peekLast());
         return q;
     }
 

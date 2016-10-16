@@ -36,7 +36,7 @@ public class ConcurrentLinkedQueueTest extends JSR166TestCase {
 
     /**
      * Returns a new queue of given size containing consecutive
-     * Integers 0 ... n.
+     * Integers 0 ... n - 1.
      */
     private ConcurrentLinkedQueue<Integer> populatedQueue(int n) {
         ConcurrentLinkedQueue<Integer> q = new ConcurrentLinkedQueue<Integer>();
@@ -45,6 +45,7 @@ public class ConcurrentLinkedQueueTest extends JSR166TestCase {
             assertTrue(q.offer(new Integer(i)));
         assertFalse(q.isEmpty());
         assertEquals(n, q.size());
+        assertEquals((Integer) 0, q.peek());
         return q;
     }
 
