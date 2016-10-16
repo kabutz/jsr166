@@ -22,7 +22,15 @@ public class ArrayDequeTest extends JSR166TestCase {
     }
 
     public static Test suite() {
-        return new TestSuite(ArrayDequeTest.class);
+        class Implementation implements CollectionImplementation {
+            public Class<?> klazz() { return ArrayDeque.class; }
+            public Collection emptyCollection() { return new ArrayDeque(); }
+            public Object makeElement(int i) { return i; }
+            public boolean isConcurrent() { return false; }
+            public boolean permitsNulls() { return false; }
+        }
+        return newTestSuite(ArrayDequeTest.class,
+                            CollectionTest.testSuite(new Implementation()));
     }
 
     /**

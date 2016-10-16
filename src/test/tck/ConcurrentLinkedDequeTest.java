@@ -25,7 +25,15 @@ public class ConcurrentLinkedDequeTest extends JSR166TestCase {
     }
 
     public static Test suite() {
-        return new TestSuite(ConcurrentLinkedDequeTest.class);
+        class Implementation implements CollectionImplementation {
+            public Class<?> klazz() { return ConcurrentLinkedDeque.class; }
+            public Collection emptyCollection() { return new ConcurrentLinkedDeque(); }
+            public Object makeElement(int i) { return i; }
+            public boolean isConcurrent() { return true; }
+            public boolean permitsNulls() { return false; }
+        }
+        return newTestSuite(ConcurrentLinkedDequeTest.class,
+                            CollectionTest.testSuite(new Implementation()));
     }
 
     /**
