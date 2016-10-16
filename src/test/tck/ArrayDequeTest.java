@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -38,10 +39,38 @@ public class ArrayDequeTest extends JSR166TestCase {
      * Integers 0 ... n - 1.
      */
     private ArrayDeque<Integer> populatedDeque(int n) {
-        ArrayDeque<Integer> q = new ArrayDeque<Integer>();
+        // Randomize various aspects of memory layout, including
+        // filled-to-capacity and wraparound.
+        final ArrayDeque<Integer> q;
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        switch (rnd.nextInt(6)) {
+        case 0: q = new ArrayDeque<Integer>(); break;
+        case 1: q = new ArrayDeque<Integer>(0); break;
+        case 2: q = new ArrayDeque<Integer>(1); break;
+        case 3: q = new ArrayDeque<Integer>(n - 1); break;
+        case 4: q = new ArrayDeque<Integer>(n); break;
+        case 5: q = new ArrayDeque<Integer>(n + 1); break;
+        default: throw new AssertionError();
+        }
+        switch (rnd.nextInt(3)) {
+        case 0:
+            q.addFirst(42);
+            assertEquals((Integer) 42, q.removeLast());
+            break;
+        case 1:
+            q.addLast(42);
+            assertEquals((Integer) 42, q.removeLast());
+            break;
+        case 2: /* do nothing */ break;
+        default: throw new AssertionError();
+        }
         assertTrue(q.isEmpty());
-        for (int i = 0; i < n; ++i)
-            assertTrue(q.offerLast(new Integer(i)));
+        if (rnd.nextBoolean())
+            for (int i = 0; i < n; i++)
+                assertTrue(q.offerLast((Integer) i));
+        else
+            for (int i = n; --i >= 0; )
+                q.addFirst((Integer) i);
         assertFalse(q.isEmpty());
         assertEquals(n, q.size());
         assertEquals((Integer) 0, q.peekFirst());
