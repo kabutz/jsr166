@@ -46,6 +46,7 @@ public class CollectionTest extends JSR166TestCase {
             Object[] a = new Object[0];
             assertSame(a, c.toArray(a));
         }
+        assertIteratorExhausted(c.iterator());
         Consumer alwaysThrows = (e) -> { throw new AssertionError(); };
         c.forEach(alwaysThrows);
         c.iterator().forEachRemaining(alwaysThrows);
@@ -62,6 +63,7 @@ public class CollectionTest extends JSR166TestCase {
             assertNull(d.peekLast());
             assertNull(d.pollFirst());
             assertNull(d.pollLast());
+            assertIteratorExhausted(d.descendingIterator());
         }
     }
 
@@ -121,7 +123,8 @@ public class CollectionTest extends JSR166TestCase {
                 () -> d.getLast(),
                 () -> d.removeFirst(),
                 () -> d.removeLast(),
-                () -> d.pop());
+                () -> d.pop(),
+                () -> d.descendingIterator().next());
         }
     }
 
