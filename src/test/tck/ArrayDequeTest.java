@@ -1009,6 +1009,14 @@ public class ArrayDequeTest extends JSR166TestCase {
     }
 
     /**
+     * Spliterator.getComparator always throws IllegalStateException
+     */
+    public void testSpliterator_getComparator() {
+        assertThrows(IllegalStateException.class,
+                     () -> new ArrayDeque().spliterator().getComparator());
+    }
+
+    /**
      * Handle capacities near Integer.MAX_VALUE.
      * ant -Dvmoptions=-Xmx24g -Djsr166.expensiveTests=true -Djsr166.tckTestClass=ArrayDequeTest -Djsr166.methodFilter=testHuge tck
      */
