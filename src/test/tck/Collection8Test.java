@@ -155,5 +155,7 @@ public class Collection8Test extends JSR166TestCase {
         assertNull(f2.get(0L, MILLISECONDS));
     }
 
-    // public void testCollection8DebugFail() { fail(); }
+//     public void testCollection8DebugFail() {
+//         fail(impl.klazz().getSimpleName());
+//     }
 }

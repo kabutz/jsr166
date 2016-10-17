@@ -125,5 +125,7 @@ public class CollectionTest extends JSR166TestCase {
         }
     }
 
-    // public void testCollectionDebugFail() { fail(); }
+//     public void testCollectionDebugFail() {
+//         fail(impl.klazz().getSimpleName());
+//     }
 }
