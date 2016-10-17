@@ -1001,6 +1001,7 @@ public class ArrayDequeTest extends JSR166TestCase {
             | Spliterator.SIZED
             | Spliterator.SUBSIZED;
         assertEquals(required, characteristics & required);
+        assertTrue(s.hasCharacteristics(required));
         assertEquals(0, characteristics
                      & (Spliterator.CONCURRENT
                         | Spliterator.DISTINCT
@@ -1034,7 +1035,7 @@ public class ArrayDequeTest extends JSR166TestCase {
                      () -> new ArrayDeque<>(Integer.MAX_VALUE));
 
         q = populatedDeque(0);
-        q.addAll(Collections.nCopies(maxSize - 2, (Integer) 42));
+        assertTrue(q.addAll(Collections.nCopies(maxSize - 2, (Integer) 42)));
         assertEquals((Integer) 42, q.peekFirst());
         assertEquals((Integer) 42, q.peekLast());
         assertEquals(maxSize - 2, q.size());
