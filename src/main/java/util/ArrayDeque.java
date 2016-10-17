@@ -759,25 +759,38 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @since 1.8
      */
     public Spliterator<E> spliterator() {
-        return new ArrayDequeSpliterator(head, size);
+        return new ArrayDequeSpliterator();
     }
 
     final class ArrayDequeSpliterator implements Spliterator<E> {
         private int cursor;
-        private int remaining;
+        private int remaining; // -1 until late-binding first use
 
-        /** Creates new spliterator covering the given array slice. */
+        /** Constructs late-binding spliterator over all elements. */
+        ArrayDequeSpliterator() {
+            this.remaining = -1;
+        }
+
+        /** Constructs spliterator over the given slice. */
         ArrayDequeSpliterator(int cursor, int count) {
             this.cursor = cursor;
             this.remaining = count;
         }
 
+        /** Ensures late-binding initialization; then returns remaining. */
+        private int remaining() {
+            if (remaining < 0) {
+                cursor = head;
+                remaining = size;
+            }
+            return remaining;
+        }
+
         public ArrayDequeSpliterator trySplit() {
-            if (remaining > 1) {
+            if (remaining() > 1) {
                 int mid = remaining >> 1;
                 int oldCursor = cursor;
-                cursor += mid;
-                if (cursor >= elements.length) cursor -= elements.length;
+                cursor = add(cursor, mid, elements.length);
                 remaining -= mid;
                 return new ArrayDequeSpliterator(oldCursor, mid);
             }
@@ -788,13 +801,14 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             Objects.requireNonNull(action);
             final Object[] elements = ArrayDeque.this.elements;
             final int capacity = elements.length;
+            remaining();        // for the initialization side-effect
             for (; remaining > 0; cursor = inc(cursor, capacity), remaining--)
                 action.accept(checkedElementAt(elements, cursor));
         }
 
         public boolean tryAdvance(Consumer<? super E> action) {
             Objects.requireNonNull(action);
-            if (remaining <= 0)
+            if (remaining() == 0)
                 return false;
             action.accept(checkedElementAt(elements, cursor));
             cursor = inc(cursor, elements.length);
@@ -803,7 +817,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         }
 
         public long estimateSize() {
-            return remaining;
+            return remaining();
         }
 
         public int characteristics() {
