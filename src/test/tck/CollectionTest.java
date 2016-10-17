@@ -5,11 +5,15 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.NoSuchElementException;
 import java.util.Queue;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import junit.framework.Test;
 
@@ -126,6 +130,41 @@ public class CollectionTest extends JSR166TestCase {
                 () -> d.pop(),
                 () -> d.descendingIterator().next());
         }
+    }
+
+    public void testRemoveIf() {
+        Collection c = impl.emptyCollection();
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        int n = rnd.nextInt(6);
+        for (int i = 0; i < n; i++) c.add(impl.makeElement(i));
+        AtomicReference threwAt = new AtomicReference(null);
+        ArrayList survivors = new ArrayList(c);
+        ArrayList accepts = new ArrayList();
+        ArrayList rejects = new ArrayList();
+        Predicate randomPredicate = (e) -> {
+            assertNull(threwAt.get());
+            switch (rnd.nextInt(3)) {
+            case 0: accepts.add(e); return true;
+            case 1: rejects.add(e); return false;
+            case 2: threwAt.set(e); throw new ArithmeticException();
+            default: throw new AssertionError();
+            }
+        };
+        try {
+            boolean modified = c.removeIf(randomPredicate);
+            if (!modified) {
+                assertNull(threwAt.get());
+                assertEquals(n, rejects.size());
+                assertEquals(0, accepts.size());
+            }
+        } catch (ArithmeticException ok) {}
+        survivors.removeAll(accepts);
+        assertEquals(n - accepts.size(), c.size());
+        assertTrue(c.containsAll(survivors));
+        assertTrue(survivors.containsAll(rejects));
+        for (Object x : accepts) assertFalse(c.contains(x));
+        if (threwAt.get() == null)
+            assertEquals(accepts.size() + rejects.size(), n);
     }
 
 //     public void testCollectionDebugFail() {
