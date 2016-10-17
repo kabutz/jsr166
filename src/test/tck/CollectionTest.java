@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.NoSuchElementException;
 import java.util.Queue;
+import java.util.function.Consumer;
 
 import junit.framework.Test;
 
@@ -45,7 +46,11 @@ public class CollectionTest extends JSR166TestCase {
             Object[] a = new Object[0];
             assertSame(a, c.toArray(a));
         }
-        c.forEach((e) -> { throw new AssertionError(); });
+        Consumer alwaysThrows = (e) -> { throw new AssertionError(); };
+        c.forEach(alwaysThrows);
+        c.iterator().forEachRemaining(alwaysThrows);
+        c.spliterator().forEachRemaining(alwaysThrows);
+        assertFalse(c.spliterator().tryAdvance(alwaysThrows));
         if (Queue.class.isAssignableFrom(impl.klazz())) {
             Queue q = (Queue) c;
             assertNull(q.peek());
@@ -97,6 +102,9 @@ public class CollectionTest extends JSR166TestCase {
 
     public void testNoSuchElementExceptions() {
         Collection c = impl.emptyCollection();
+        assertThrows(
+            NoSuchElementException.class,
+            () -> c.iterator().next());
 
         if (Queue.class.isAssignableFrom(impl.klazz())) {
             Queue q = (Queue) c;
