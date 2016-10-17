@@ -27,7 +27,7 @@ public class ArrayDequeTest extends JSR166TestCase {
     public static Test suite() {
         class Implementation implements CollectionImplementation {
             public Class<?> klazz() { return ArrayDeque.class; }
-            public Collection emptyCollection() { return new ArrayDeque(); }
+            public Collection emptyCollection() { return populatedDeque(0); }
             public Object makeElement(int i) { return i; }
             public boolean isConcurrent() { return false; }
             public boolean permitsNulls() { return false; }
@@ -40,7 +40,7 @@ public class ArrayDequeTest extends JSR166TestCase {
      * Returns a new deque of given size containing consecutive
      * Integers 0 ... n - 1.
      */
-    private ArrayDeque<Integer> populatedDeque(int n) {
+    private static ArrayDeque<Integer> populatedDeque(int n) {
         // Randomize various aspects of memory layout, including
         // filled-to-capacity and wraparound.
         final ArrayDeque<Integer> q;
