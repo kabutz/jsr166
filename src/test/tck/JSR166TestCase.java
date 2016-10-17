@@ -447,6 +447,7 @@ public class JSR166TestCase extends TestCase {
             AbstractQueuedLongSynchronizerTest.suite(),
             ArrayBlockingQueueTest.suite(),
             ArrayDequeTest.suite(),
+            ArrayListTest.suite(),
             AtomicBooleanTest.suite(),
             AtomicIntegerArrayTest.suite(),
             AtomicIntegerFieldUpdaterTest.suite(),
