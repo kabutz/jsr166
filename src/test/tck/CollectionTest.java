@@ -159,6 +159,14 @@ public class CollectionTest extends JSR166TestCase {
             }
         } catch (ArithmeticException ok) {}
         survivors.removeAll(accepts);
+        if (n - accepts.size() != c.size()) {
+            System.err.println(impl.klazz());
+            System.err.println(c);
+            System.err.println(accepts);
+            System.err.println(rejects);
+            System.err.println(survivors);
+            System.err.println(threwAt.get());
+        }
         assertEquals(n - accepts.size(), c.size());
         assertTrue(c.containsAll(survivors));
         assertTrue(survivors.containsAll(rejects));
