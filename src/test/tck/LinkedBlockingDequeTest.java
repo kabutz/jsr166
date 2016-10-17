@@ -41,9 +41,17 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
     }
 
     public static Test suite() {
+        class Implementation implements CollectionImplementation {
+            public Class<?> klazz() { return LinkedBlockingDeque.class; }
+            public Collection emptyCollection() { return new LinkedBlockingDeque(); }
+            public Object makeElement(int i) { return i; }
+            public boolean isConcurrent() { return true; }
+            public boolean permitsNulls() { return false; }
+        }
         return newTestSuite(LinkedBlockingDequeTest.class,
                             new Unbounded().testSuite(),
-                            new Bounded().testSuite());
+                            new Bounded().testSuite(),
+                            CollectionTest.testSuite(new Implementation()));
     }
 
     /**
