@@ -39,8 +39,16 @@ public class DelayQueueTest extends JSR166TestCase {
     }
 
     public static Test suite() {
+        class Implementation implements CollectionImplementation {
+            public Class<?> klazz() { return DelayQueue.class; }
+            public Collection emptyCollection() { return new DelayQueue(); }
+            public Object makeElement(int i) { return new PDelay(i); }
+            public boolean isConcurrent() { return true; }
+            public boolean permitsNulls() { return false; }
+        }
         return newTestSuite(DelayQueueTest.class,
-                            new Generic().testSuite());
+                            new Generic().testSuite(),
+                            CollectionTest.testSuite(new Implementation()));
     }
 
     /**

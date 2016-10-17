@@ -41,9 +41,17 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
     }
 
     public static Test suite() {
+        class Implementation implements CollectionImplementation {
+            public Class<?> klazz() { return ArrayBlockingQueue.class; }
+            public Collection emptyCollection() { return new ArrayBlockingQueue(SIZE, false); }
+            public Object makeElement(int i) { return i; }
+            public boolean isConcurrent() { return true; }
+            public boolean permitsNulls() { return false; }
+        }
         return newTestSuite(ArrayBlockingQueueTest.class,
                             new Fair().testSuite(),
-                            new NonFair().testSuite());
+                            new NonFair().testSuite(),
+                            CollectionTest.testSuite(new Implementation()));
     }
 
     /**
