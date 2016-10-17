@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Random;
+import java.util.Spliterator;
 import java.util.concurrent.ThreadLocalRandom;
 
 import junit.framework.Test;
@@ -986,6 +987,25 @@ public class ArrayDequeTest extends JSR166TestCase {
             assertFalse(q.removeFirstOccurrence(null));
             assertFalse(q.removeLastOccurrence(null));
         }
+    }
+
+    /**
+     * Spliterator characteristics are as advertised
+     */
+    public void testSpliterator_characteristics() {
+        ArrayDeque q = new ArrayDeque();
+        Spliterator s = q.spliterator();
+        int characteristics = s.characteristics();
+        int required = Spliterator.NONNULL
+            | Spliterator.ORDERED
+            | Spliterator.SIZED
+            | Spliterator.SUBSIZED;
+        assertEquals(required, characteristics & required);
+        assertEquals(0, characteristics
+                     & (Spliterator.CONCURRENT
+                        | Spliterator.DISTINCT
+                        | Spliterator.IMMUTABLE
+                        | Spliterator.SORTED));
     }
 
     /**
