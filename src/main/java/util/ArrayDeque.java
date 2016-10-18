@@ -134,9 +134,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * to ensure that it can hold at least the given number of elements.
      *
      * @param minCapacity the desired minimum capacity
-     * @since 9
      */
-    public void ensureCapacity(int minCapacity) {
+    /* TODO: public */ private void ensureCapacity(int minCapacity) {
         if (minCapacity > elements.length)
             grow(minCapacity - elements.length);
         // checkInvariants();
@@ -144,10 +143,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
 
     /**
      * Minimizes the internal storage of this collection.
-     *
-     * @since 9
      */
-    public void trimToSize() {
+    /* TODO: public */ private void trimToSize() {
         if (size < elements.length) {
             elements = toArray();
             head = 0;
@@ -196,23 +193,6 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * Returns the array index of the last element.
-     * May return invalid index -1 if there are no elements.
-     */
-    final int tail() {
-        return add(head, size - 1, elements.length);
-    }
-
-    /**
-     * Adds i and j, mod modulus.
-     * Precondition and postcondition: 0 <= i < modulus, 0 <= j <= modulus.
-     */
-    static final int add(int i, int j, int modulus) {
-        if ((i += j) - modulus >= 0) i -= modulus;
-        return i;
-    }
-
-    /**
      * Increments i, mod modulus.
      * Precondition and postcondition: 0 <= i < modulus.
      */
@@ -228,6 +208,23 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     static final int dec(int i, int modulus) {
         if (--i < 0) i += modulus;
         return i;
+    }
+
+    /**
+     * Adds i and j, mod modulus.
+     * Precondition and postcondition: 0 <= i < modulus, 0 <= j <= modulus.
+     */
+    static final int add(int i, int j, int modulus) {
+        if ((i += j) - modulus >= 0) i -= modulus;
+        return i;
+    }
+
+    /**
+     * Returns the array index of the last element.
+     * May return invalid index -1 if there are no elements.
+     */
+    final int tail() {
+        return add(head, size - 1, elements.length);
     }
 
     /**
@@ -305,11 +302,11 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     public boolean addAll(Collection<? extends E> c) {
         // checkInvariants();
         Object[] a, elements;
-        int len, capacity, s = size;
-        if ((len = (a = c.toArray()).length) == 0)
+        int newcomers, capacity, s = size;
+        if ((newcomers = (a = c.toArray()).length) == 0)
             return false;
-        while ((capacity = (elements = this.elements).length) - s < len)
-            grow(len - (capacity - s));
+        while ((capacity = (elements = this.elements).length) - s < newcomers)
+            grow(newcomers - (capacity - s));
         int i = add(head, s, capacity);
         for (Object x : a) {
             Objects.requireNonNull(x);
@@ -845,9 +842,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * operator to that element, as specified by {@link List#replaceAll}.
      *
      * @param operator the operator to apply to each element
-     * @since 9
      */
-    public void replaceAll(UnaryOperator<E> operator) {
+    /* TODO: public */ private void replaceAll(UnaryOperator<E> operator) {
         Objects.requireNonNull(operator);
         final Object[] elements = this.elements;
         final int capacity = elements.length;
