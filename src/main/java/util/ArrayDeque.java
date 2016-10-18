@@ -689,8 +689,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
 
         DeqIterator() { cursor = head; }
 
-        void doAdvance() {
-            cursor = inc(cursor, elements.length);
+        int advance(int i, int modulus) {
+            return inc(i, modulus);
         }
 
         void doRemove() {
@@ -708,7 +708,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
                 throw new NoSuchElementException();
             E e = checkedElementAt(elements, cursor);
             lastRet = cursor;
-            doAdvance();
+            cursor = advance(cursor, elements.length);
             remaining--;
             return e;
         }
@@ -724,18 +724,18 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             Objects.requireNonNull(action);
             final Object[] elements = ArrayDeque.this.elements;
             final int capacity = elements.length;
-            for (; remaining > 0; remaining--) {
-                action.accept(checkedElementAt(elements, cursor));
-                doAdvance();
-            }
+            int k = remaining;
+            remaining = 0;
+            for (int i = cursor; --k >= 0; i = advance(i, capacity))
+                action.accept(checkedElementAt(elements, i));
         }
     }
 
     private class DescendingIterator extends DeqIterator {
         DescendingIterator() { cursor = tail(); }
 
-        @Override void doAdvance() {
-            cursor = dec(cursor, elements.length);
+        @Override int advance(int i, int modulus) {
+            return dec(i, modulus);
         }
 
         @Override void doRemove() {
@@ -787,8 +787,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         }
 
         public ArrayDequeSpliterator trySplit() {
-            if (remaining() > 1) {
-                int mid = remaining >> 1;
+            final int mid;
+            if ((mid = remaining() >> 1) > 0) {
                 int oldCursor = cursor;
                 cursor = add(cursor, mid, elements.length);
                 remaining -= mid;
@@ -801,9 +801,10 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             Objects.requireNonNull(action);
             final Object[] elements = ArrayDeque.this.elements;
             final int capacity = elements.length;
-            remaining();        // for the initialization side-effect
-            for (; remaining > 0; cursor = inc(cursor, capacity), remaining--)
-                action.accept(checkedElementAt(elements, cursor));
+            int k = remaining();
+            remaining = 0;
+            for (int i = cursor; --k >= 0; i = inc(i, capacity))
+                action.accept(checkedElementAt(elements, i));
         }
 
         public boolean tryAdvance(Consumer<? super E> action) {
