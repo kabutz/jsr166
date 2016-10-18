@@ -902,9 +902,10 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             }
             return deleted > 0;
         } catch (Throwable ex) {
-            for (; remaining > 0;
-                 remaining--, i = inc(i, capacity), j = inc(j, capacity))
-                elements[j] = elements[i];
+            if (deleted > 0)
+                for (; remaining > 0;
+                     remaining--, i = inc(i, capacity), j = inc(j, capacity))
+                    elements[j] = elements[i];
             throw ex;
         } finally {
             size -= deleted;

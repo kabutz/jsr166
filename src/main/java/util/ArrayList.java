@@ -1516,8 +1516,9 @@ public class ArrayList<E> extends AbstractList<E>
                 throw new ConcurrentModificationException();
             return deleted > 0;
         } catch (Throwable ex) {
-            for (; remaining > 0; remaining--, r++, w++)
-                elementData[w] = elementData[r];
+            if (deleted > 0)
+                for (; remaining > 0; remaining--, r++, w++)
+                    elementData[w] = elementData[r];
             throw ex;
         } finally {
             if (deleted > 0) {
