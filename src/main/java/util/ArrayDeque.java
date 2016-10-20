@@ -134,8 +134,9 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * to ensure that it can hold at least the given number of elements.
      *
      * @param minCapacity the desired minimum capacity
+     * @since TBD
      */
-    /* TODO: public */ private void ensureCapacity(int minCapacity) {
+    /* public */ void ensureCapacity(int minCapacity) {
         if (minCapacity > elements.length)
             grow(minCapacity - elements.length);
         // checkInvariants();
@@ -143,8 +144,10 @@ public class ArrayDeque<E> extends AbstractCollection<E>
 
     /**
      * Minimizes the internal storage of this collection.
+     *
+     * @since TBD
      */
-    /* TODO: public */ private void trimToSize() {
+    /* public */ void trimToSize() {
         if (size < elements.length) {
             elements = toArray();
             head = 0;
@@ -842,8 +845,9 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * operator to that element, as specified by {@link List#replaceAll}.
      *
      * @param operator the operator to apply to each element
+     * @since TBD
      */
-    /* TODO: public */ private void replaceAll(UnaryOperator<E> operator) {
+    /* public */ void replaceAll(UnaryOperator<E> operator) {
         Objects.requireNonNull(operator);
         final Object[] elements = this.elements;
         final int capacity = elements.length;
