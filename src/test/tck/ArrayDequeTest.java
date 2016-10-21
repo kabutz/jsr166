@@ -1019,31 +1019,38 @@ public class ArrayDequeTest extends JSR166TestCase {
 
     /**
      * Handle capacities near Integer.MAX_VALUE.
-     * ant -Dvmoptions=-Xmx24g -Djsr166.expensiveTests=true -Djsr166.tckTestClass=ArrayDequeTest -Djsr166.methodFilter=testHuge tck
+     * ant -Dvmoptions='-Xms22g -Xmx22g' -Djsr166.testImplementationDetails=true -Djsr166.expensiveTests=true -Djsr166.tckTestClass=ArrayDequeTest -Djsr166.methodFilter=testHuge tck
      */
     public void testHuge() {
         if (! (testImplementationDetails
                && expensiveTests
-               && Runtime.getRuntime().freeMemory() > 21_000_000_000L))
+               && Runtime.getRuntime().maxMemory() > 21_000_000_000L))
             return;
-        int maxSize = Integer.MAX_VALUE - 8;
-        ArrayDeque<Integer> q;
 
-        q = new ArrayDeque<>(maxSize);
+        ArrayDeque q;
+        final int maxSize = Integer.MAX_VALUE - 8;
 
         assertThrows(OutOfMemoryError.class,
                      () -> new ArrayDeque<>(Integer.MAX_VALUE));
 
-        q = populatedDeque(0);
-        assertTrue(q.addAll(Collections.nCopies(maxSize - 2, (Integer) 42)));
-        assertEquals((Integer) 42, q.peekFirst());
-        assertEquals((Integer) 42, q.peekLast());
-        assertEquals(maxSize - 2, q.size());
-        q.addFirst((Integer) 0);
-        q.addLast((Integer) 1);
-        assertEquals((Integer) 0, q.peekFirst());
-        assertEquals((Integer) 1, q.peekLast());
-        assertEquals(maxSize, q.size());
+        {
+            q = new ArrayDeque<>(maxSize);
+            q = null;
+        }
+
+        {
+            q = new ArrayDeque();
+            assertTrue(q.addAll(Collections.nCopies(maxSize - 2, (Integer) 42)));
+            assertEquals((Integer) 42, q.peekFirst());
+            assertEquals((Integer) 42, q.peekLast());
+            assertEquals(maxSize - 2, q.size());
+            q.addFirst((Integer) 0);
+            q.addLast((Integer) 1);
+            assertEquals((Integer) 0, q.peekFirst());
+            assertEquals((Integer) 1, q.peekLast());
+            assertEquals(maxSize, q.size());
+            q = null;
+        }
     }
 
 }
