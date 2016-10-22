@@ -22,36 +22,33 @@ public class DequeBash {
     static int nextHead = -1;
     static int size() { return nextTail - nextHead - 1; }
 
-    static int random(int bound) {
-        int x = seed;
-        int t = (x % 127773) * 16807 - (x / 127773) * 2836;
-        seed = (t > 0) ? t : t + 0x7fffffff;
-        return (t & 0x7fffffff) % bound;
-    }
-
     static int random() {
-        int x = seed;
-        int t = (x % 127773) * 16807 - (x / 127773) * 2836;
-        seed = (t > 0) ? t : t + 0x7fffffff;
-        return (t & 0x7fffffff);
+        int r = seed;
+        r ^= r << 13;   // xorshift
+        r ^= r >>> 17;
+        return seed = r ^ (r << 5);
     }
 
+    static int random(int bound) {
+        return (random() & 0x7fffffff) % bound;
+    }
+    
     public static void main(String[] args) throws Exception {
         Class<?> cls = Class.forName(args[0]);
-        int n = 1000000;
-
-        for (int j = 0; j < 3; ++j) {
+        long startTime = System.nanoTime();
+        for (int j = 0; j < 200; ++j) {
             @SuppressWarnings("unchecked")
             Deque<Integer> deque = (Deque<Integer>) cls.newInstance();
             nextTail =  0;
             nextHead = -1;
-            long start = System.nanoTime();
-            mainTest(deque, n);
-            long end = System.nanoTime();
-            long elapsedTimeMillis = (end - start) / (1000L * 1000L);
-            System.out.printf("Time: %d ms%n", elapsedTimeMillis);
+            mainTest(deque, (random() & ((1 << 20) - 1)));
             if (deque.isEmpty()) System.out.print(" ");
+            if ((j % 10) == 9) System.out.print(".");
         }
+        long now = System.nanoTime();
+        long elapsedTimeMillis = (now - startTime) / (1000L * 1000L);
+        System.out.printf("\ntotal time %d ms\n", elapsedTimeMillis);
+        
     }
 
     static void mainTest(Deque<Integer> deque, int n) throws Exception {
