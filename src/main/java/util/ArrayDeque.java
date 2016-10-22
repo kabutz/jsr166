@@ -689,35 +689,59 @@ public class ArrayDeque<E> extends AbstractCollection<E>
 
         DeqIterator() { cursor = head; }
 
-        int advance(int i, int modulus) {
-            return inc(i, modulus);
-        }
-
-        void doRemove() {
-            if (delete(lastRet))
-                // if left-shifted, undo advance in next()
-                cursor = dec(cursor, elements.length);
-        }
-
         public final boolean hasNext() {
             return remaining > 0;
         }
+
+        public E next() {
+            if (remaining == 0)
+                throw new NoSuchElementException();
+            E e = checkedElementAt(elements, cursor);
+            lastRet = cursor;
+            cursor = inc(cursor, elements.length);
+            remaining--;
+            return e;
+        }
+
+        void postDelete(boolean leftShifted) {
+            if (leftShifted)
+                cursor = dec(cursor, elements.length); // undo inc in next
+        }
+
+        public final void remove() {
+            if (lastRet < 0)
+                throw new IllegalStateException();
+            postDelete(delete(lastRet));
+            lastRet = -1;
+        }
+
+        public void forEachRemaining(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
+            final Object[] elements = ArrayDeque.this.elements;
+            final int capacity = elements.length;
+            int k = remaining;
+            remaining = 0;
+            for (int i = cursor; --k >= 0; i = inc(i, capacity))
+                action.accept(checkedElementAt(elements, i));
+        }
+    }
+
+    private class DescendingIterator extends DeqIterator {
+        DescendingIterator() { cursor = tail(); }
 
         public final E next() {
             if (remaining == 0)
                 throw new NoSuchElementException();
             E e = checkedElementAt(elements, cursor);
             lastRet = cursor;
-            cursor = advance(cursor, elements.length);
+            cursor = dec(cursor, elements.length);
             remaining--;
             return e;
         }
 
-        public final void remove() {
-            if (lastRet < 0)
-                throw new IllegalStateException();
-            doRemove();
-            lastRet = -1;
+        void postDelete(boolean leftShifted) {
+            if (!leftShifted)
+                cursor = inc(cursor, elements.length); // undo dec in next
         }
 
         public final void forEachRemaining(Consumer<? super E> action) {
@@ -726,22 +750,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             final int capacity = elements.length;
             int k = remaining;
             remaining = 0;
-            for (int i = cursor; --k >= 0; i = advance(i, capacity))
+            for (int i = cursor; --k >= 0; i = dec(i, capacity))
                 action.accept(checkedElementAt(elements, i));
-        }
-    }
-
-    private class DescendingIterator extends DeqIterator {
-        DescendingIterator() { cursor = tail(); }
-
-        @Override int advance(int i, int modulus) {
-            return dec(i, modulus);
-        }
-
-        @Override void doRemove() {
-            if (!delete(lastRet))
-                // if right-shifted, undo advance in next
-                cursor = inc(cursor, elements.length);
         }
     }
 
