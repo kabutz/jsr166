@@ -983,14 +983,12 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      */
     public void clear() {
         final Object[] elements = this.elements;
-        final int capacity = elements.length;
-        final int h = this.head;
-        final int s = size;
-        if (capacity - h >= s)
-            Arrays.fill(elements, h, h + s, null);
+        final int capacity = elements.length, tail = head + size;
+        if (capacity - tail >= 0)
+            Arrays.fill(elements, head, tail, null);
         else {
-            Arrays.fill(elements, h, capacity, null);
-            Arrays.fill(elements, 0, s - capacity + h, null);
+            Arrays.fill(elements, head, capacity, null);
+            Arrays.fill(elements, 0, tail - capacity, null);
         }
         size = head = 0;
         // checkInvariants();
@@ -1010,11 +1008,23 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @return an array containing all of the elements in this deque
      */
     public Object[] toArray() {
-        final int head = this.head;
-        final int firstLeg;
-        Object[] a = Arrays.copyOfRange(elements, head, head + size);
-        if ((firstLeg = elements.length - head) < size)
-            System.arraycopy(elements, 0, a, firstLeg, size - firstLeg);
+        return toArray(Object[].class);
+    }
+
+    private <T> T[] toArray(Class<T[]> klazz) {
+        final Object[] elements = this.elements;
+        final int capacity = elements.length;
+        final int head = this.head, tail = head + size;
+        final T[] a;
+        if (tail >= 0) {
+            a = Arrays.copyOfRange(elements, head, tail, klazz);
+        } else {
+            // integer overflow!
+            a = Arrays.copyOfRange(elements, 0, size, klazz);
+            System.arraycopy(elements, head, a, 0, capacity - head);
+        }
+        if (tail - capacity > 0)
+            System.arraycopy(elements, 0, a, capacity - head, tail - capacity);
         return a;
     }
 
@@ -1056,20 +1066,20 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      */
     @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
+        final int size = this.size;
+        if (size > a.length)
+            return toArray((Class<T[]>) a.getClass());
         final Object[] elements = this.elements;
-        final int head = this.head;
-        final int firstLeg;
-        boolean wrap = (firstLeg = elements.length - head) < size;
-        if (size > a.length) {
-            a = (T[]) Arrays.copyOfRange(elements, head, head + size,
-                                         a.getClass());
-        } else {
-            System.arraycopy(elements, head, a, 0, wrap ? firstLeg : size);
-            if (size < a.length)
-                a[size] = null;
+        final int capacity = elements.length;
+        final int head = this.head, tail = head + size;
+        if (capacity - tail >= 0)
+            System.arraycopy(elements, head, a, 0, size);
+        else {
+            System.arraycopy(elements, head, a, 0, capacity - head);
+            System.arraycopy(elements, 0, a, capacity - head, tail - capacity);
         }
-        if (wrap)
-            System.arraycopy(elements, 0, a, firstLeg, size - firstLeg);
+        if (size < a.length)
+            a[size] = null;
         return a;
     }
 
