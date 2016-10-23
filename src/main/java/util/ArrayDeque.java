@@ -365,10 +365,10 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      */
     public E removeFirst() {
         // checkInvariants();
-        E x = pollFirst();
-        if (x == null)
+        E e = pollFirst();
+        if (e == null)
             throw new NoSuchElementException();
-        return x;
+        return e;
     }
 
     /**
@@ -376,10 +376,10 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      */
     public E removeLast() {
         // checkInvariants();
-        E x = pollLast();
-        if (x == null)
+        E e = pollLast();
+        if (e == null)
             throw new NoSuchElementException();
-        return x;
+        return e;
     }
 
     public E pollFirst() {
