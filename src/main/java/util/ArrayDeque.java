@@ -187,11 +187,11 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         Object[] elements = c.toArray();
         // defend against c.toArray (incorrectly) not returning Object[]
         // (see e.g. https://bugs.openjdk.java.net/browse/JDK-6260652)
+        size = elements.length;
         if (elements.getClass() != Object[].class)
             elements = Arrays.copyOf(elements, size, Object[].class);
         for (Object obj : elements)
             Objects.requireNonNull(obj);
-        size = elements.length;
         this.elements = elements;
     }
 
