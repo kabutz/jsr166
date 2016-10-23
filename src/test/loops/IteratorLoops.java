@@ -35,7 +35,7 @@ public final class IteratorLoops {
             (Collection<Integer>[])new Collection<?>[NC];
 
         for (int k = 0; k < colls.length; ++k) {
-            Object x = klass.newInstance();
+            Object x = klass.getConstructor().newInstance();
             if (x instanceof Collection)
                 colls[k] = (Collection<Integer>) x;
             else if (x instanceof Map)

@@ -99,7 +99,7 @@ public class MapCheck {
 
     static Map newMap() {
         try {
-            return (Map) mapClass.newInstance();
+            return (Map) mapClass.getConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException("Can't instantiate " + mapClass + ": " + e);
         }

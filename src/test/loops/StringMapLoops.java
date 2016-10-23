@@ -102,7 +102,8 @@ public class StringMapLoops {
 
     static void test(int i, int nkeys, String[] key, Class<?> mapClass) throws Exception {
         System.out.print("Threads: " + i + "\t:");
-        Map<String, String> map = (Map<String,String>)mapClass.newInstance();
+        Map<String, String> map =
+            (Map<String,String>) mapClass.getConstructor().newInstance();
         // Uncomment to start with a non-empty table
         //        for (int j = 0; j < nkeys; j += 4) // start 1/4 occupied
         //            map.put(key[j], key[j]);

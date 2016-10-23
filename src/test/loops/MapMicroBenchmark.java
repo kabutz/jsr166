@@ -233,9 +233,9 @@ public class MapMicroBenchmark {
         }
 
         public long work(int len, int minIters, int maxIters, long timeLimit) {
-            Map m;
+            final Map m;
             try {
-                m = (Map) mapClass.newInstance();
+                m = (Map) mapClass.getConstructor().newInstance();
             } catch (Exception e) {
                 throw new RuntimeException("Can't instantiate " + mapClass + ": " + e);
             }

@@ -66,8 +66,7 @@ public class MapWordLoops {
 
     static Map<String,String> newMap(Class<?> cl) {
         try {
-            Map m = (Map<String,String>)cl.newInstance();
-            return m;
+            return (Map<String,String>) cl.getConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException("Can't instantiate " + cl + ": " + e);
         }

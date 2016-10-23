@@ -105,7 +105,8 @@ public class CollectionLoops {
     static void test(int i, int nk, int nops, Class<?> collectionClass) throws Exception {
         if (print)
             System.out.print("Threads: " + i + "\t:");
-        Collection<Integer> collection = (Collection<Integer>)collectionClass.newInstance();
+        Collection<Integer> collection =
+            (Collection<Integer>) collectionClass.getConstructor().newInstance();
         Integer[] key = makeKeys(nk);
         // Uncomment to start with a non-empty table
         for (int j = 0; j < nk; j += 2)

@@ -66,8 +66,7 @@ public class NavigableSetCheck {
 
     static NavigableSet newSet(Class<?> cl) {
         try {
-            NavigableSet m = (NavigableSet) cl.newInstance();
-            return m;
+            return (NavigableSet) cl.getConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException("Can't instantiate " + cl + ": " + e);
         }
@@ -271,9 +270,9 @@ public class NavigableSetCheck {
 
     static void dtest(NavigableSet s, int size, Integer[] key) {
         timer.start("Add (addAll)           ", size * 2);
-        NavigableSet s2 = null;
+        final NavigableSet s2;
         try {
-            s2 = (NavigableSet) (s.getClass().newInstance());
+            s2 = (NavigableSet) s.getClass().getConstructor().newInstance();
             s2.addAll(s);
         }
         catch (Exception e) { e.printStackTrace(); return; }

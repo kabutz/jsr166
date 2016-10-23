@@ -109,9 +109,9 @@ public class DenseMapMicroBenchmark {
             this.mapClass = mapClass;
         }
         public void work() {
-            Map m = null;
+            final Map m;
             try {
-                m = (Map) mapClass.newInstance();
+                m = (Map) mapClass.getConstructor().newInstance();
             } catch (Exception e) {
                 throw new RuntimeException("Can't instantiate " + mapClass + ": " + e);
             }

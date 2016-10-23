@@ -45,7 +45,8 @@ public class UnboundedQueueFillEmptyLoops {
     }
 
     static void oneRun(Class<?> klass, int n) throws Exception {
-        Queue<Integer> q = (Queue<Integer>) klass.newInstance();
+        Queue<Integer> q =
+            (Queue<Integer>) klass.getConstructor().newInstance();
         int sum = total;
         int m = rng.nextInt(numbers.length);
         long startTime = System.nanoTime();

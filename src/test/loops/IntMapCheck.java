@@ -73,8 +73,7 @@ public class IntMapCheck {
 
     static Map<Integer,Integer> newMap(Class<?> cl) {
         try {
-            Map m = (Map<Integer,Integer>)cl.newInstance();
-            return m;
+            return (Map<Integer,Integer>) cl.getConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException("Can't instantiate " + cl + ": " + e);
         }
@@ -439,9 +438,10 @@ public class IntMapCheck {
         t3("Put (presized)         ", size, s, key, size);
 
         timer.start("Put (putAll)           ", size * 2);
-        Map<Integer,Integer> s2 = null;
+        final Map<Integer,Integer> s2;
         try {
-            s2 = (Map<Integer,Integer>) (s.getClass().newInstance());
+            s2 = (Map<Integer,Integer>)
+                s.getClass().getConstructor().newInstance();
             s2.putAll(s);
         }
         catch (Exception e) { e.printStackTrace(); return; }

@@ -117,7 +117,8 @@ public class ConcurrentDequeLoops {
     }
 
     static void oneRun(Class<?> klass, int n, int items) throws Exception {
-        Deque<Integer> q = (Deque<Integer>) klass.newInstance();
+        Deque<Integer> q =
+            (Deque<Integer>) klass.getConstructor().newInstance();
         LoopHelpers.BarrierTimer timer = new LoopHelpers.BarrierTimer();
         CyclicBarrier barrier = new CyclicBarrier(n + 1, timer);
         totalItems = new AtomicInteger(n * items);

@@ -257,7 +257,7 @@ public class ListBash {
 
     static List<Integer> newList(Class<?> cl, boolean synch) {
         try {
-            List<Integer> s = (List<Integer>) cl.newInstance();
+            List<Integer> s = (List<Integer>) cl.getConstructor().newInstance();
             if (synch)
                 s = Collections.synchronizedList(s);
             if (!s.isEmpty())

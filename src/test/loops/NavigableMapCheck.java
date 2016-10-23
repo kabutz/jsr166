@@ -66,8 +66,7 @@ public class NavigableMapCheck {
 
     static NavigableMap newMap(Class<?> cl) {
         try {
-            NavigableMap m = (NavigableMap) cl.newInstance();
-            return m;
+            return (NavigableMap) cl.getConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException("Can't instantiate " + cl + ": " + e);
         }
@@ -316,9 +315,9 @@ public class NavigableMapCheck {
 
     static void dtest(NavigableMap s, int size, Integer[] key) {
         timer.start("Put (putAll)           ", size * 2);
-        NavigableMap s2 = null;
+        final NavigableMap s2;
         try {
-            s2 = (NavigableMap) (s.getClass().newInstance());
+            s2 = (NavigableMap) s.getClass().getConstructor().newInstance();
             s2.putAll(s);
         }
         catch (Exception e) { e.printStackTrace(); return; }
