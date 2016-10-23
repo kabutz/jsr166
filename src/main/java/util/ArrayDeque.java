@@ -270,13 +270,13 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         else
             elements[head = dec(head, capacity)] = e;
         size = s + 1;
+        // checkInvariants();
     }
 
     private void addFirstSlowPath(E e) {
         grow(1);
         final Object[] elements = this.elements;
         elements[head = dec(head, elements.length)] = e;
-        // checkInvariants();
     }
 
     /**
@@ -297,13 +297,13 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         else
             elements[add(head, s, capacity)] = e;
         size = s + 1;
+        // checkInvariants();
     }
 
     private void addLastSlowPath(E e) {
         grow(1);
         final Object[] elements = this.elements;
         elements[add(head, size, elements.length)] = e;
-        // checkInvariants();
     }
 
     /**
