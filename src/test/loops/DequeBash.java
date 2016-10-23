@@ -32,7 +32,7 @@ public class DequeBash {
     static int random(int bound) {
         return (random() & 0x7fffffff) % bound;
     }
-    
+
     public static void main(String[] args) throws Exception {
         Class<?> cls = Class.forName(args[0]);
         long startTime = System.nanoTime();
@@ -48,7 +48,7 @@ public class DequeBash {
         long now = System.nanoTime();
         long elapsedTimeMillis = (now - startTime) / (1000L * 1000L);
         System.out.printf("\ntotal time %d ms\n", elapsedTimeMillis);
-        
+
     }
 
     static void mainTest(Deque<Integer> deque, int n) throws Exception {
