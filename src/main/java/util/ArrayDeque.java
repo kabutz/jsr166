@@ -317,23 +317,13 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @throws NullPointerException if the specified collection or any
      *         of its elements are null
      */
-    @Override
     public boolean addAll(Collection<? extends E> c) {
+        final int s = size, needed = c.size() - (elements.length - s);
+        if (needed > 0)
+            grow(needed);
+        c.forEach((e) -> addLast(e));
         // checkInvariants();
-        Object[] a, elements;
-        int newcomers, capacity, s = size;
-        if ((newcomers = (a = c.toArray()).length) == 0)
-            return false;
-        while ((capacity = (elements = this.elements).length) - s < newcomers)
-            grow(newcomers - (capacity - s));
-        int i = add(head, s, capacity);
-        for (Object x : a) {
-            Objects.requireNonNull(x);
-            elements[i] = x;
-            i = inc(i, capacity);
-            size++;
-        }
-        return true;
+        return size > s;
     }
 
     /**
@@ -855,7 +845,6 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         }
     }
 
-    @Override
     public void forEach(Consumer<? super E> action) {
         // checkInvariants();
         Objects.requireNonNull(action);
@@ -885,7 +874,6 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     /**
      * @throws NullPointerException {@inheritDoc}
      */
-    @Override
     public boolean removeIf(Predicate<? super E> filter) {
         Objects.requireNonNull(filter);
         return bulkRemove(filter);
@@ -894,7 +882,6 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     /**
      * @throws NullPointerException {@inheritDoc}
      */
-    @Override
     public boolean removeAll(Collection<?> c) {
         Objects.requireNonNull(c);
         return bulkRemove(e -> c.contains(e));
@@ -903,7 +890,6 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     /**
      * @throws NullPointerException {@inheritDoc}
      */
-    @Override
     public boolean retainAll(Collection<?> c) {
         Objects.requireNonNull(c);
         return bulkRemove(e -> !c.contains(e));
