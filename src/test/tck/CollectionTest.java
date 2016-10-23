@@ -45,10 +45,25 @@ public class CollectionTest extends JSR166TestCase {
         assertTrue(c.isEmpty());
         assertEquals(0, c.size());
         assertEquals("[]", c.toString());
-        assertEquals(0, c.toArray().length);
+        {
+            Object[] a = c.toArray();
+            assertEquals(0, a.length);
+            assertSame(Object[].class, a.getClass());
+        }
         {
             Object[] a = new Object[0];
             assertSame(a, c.toArray(a));
+        }
+        {
+            Integer[] a = new Integer[0];
+            assertSame(a, c.toArray(a));
+        }
+        {
+            Integer[] a = { 1, 2, 3};
+            assertSame(a, c.toArray(a));
+            assertNull(a[0]);
+            assertSame(2, a[1]);
+            assertSame(3, a[2]);
         }
         assertIteratorExhausted(c.iterator());
         Consumer alwaysThrows = (e) -> { throw new AssertionError(); };
@@ -79,7 +94,8 @@ public class CollectionTest extends JSR166TestCase {
             () -> c.containsAll(null),
             () -> c.retainAll(null),
             () -> c.removeAll(null),
-            () -> c.removeIf(null));
+            () -> c.removeIf(null),
+            () -> c.toArray(null));
 
         if (!impl.permitsNulls()) {
             assertThrows(
