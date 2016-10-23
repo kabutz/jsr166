@@ -38,7 +38,8 @@ public class DequeBash {
         long startTime = System.nanoTime();
         for (int j = 0; j < 200; ++j) {
             @SuppressWarnings("unchecked")
-            Deque<Integer> deque = (Deque<Integer>) cls.newInstance();
+            Deque<Integer> deque =
+                (Deque<Integer>) cls.getConstructor().newInstance();
             nextTail =  0;
             nextHead = -1;
             mainTest(deque, (random() & ((1 << 20) - 1)));
