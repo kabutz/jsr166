@@ -7,6 +7,8 @@ package java.util;
 
 import java.io.Serializable;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 /**
  * Resizable-array implementation of the {@link Deque} interface.  Array
@@ -52,87 +54,105 @@ import java.util.function.Consumer;
  * Java Collections Framework</a>.
  *
  * @author  Josh Bloch and Doug Lea
- * @since   1.6
  * @param <E> the type of elements held in this deque
+ * @since   1.6
  */
 public class ArrayDeque<E> extends AbstractCollection<E>
                            implements Deque<E>, Cloneable, Serializable
 {
     /**
      * The array in which the elements of the deque are stored.
-     * The capacity of the deque is the length of this array, which is
-     * always a power of two. The array is never allowed to become
-     * full, except transiently within an addX method where it is
-     * resized (see doubleCapacity) immediately upon becoming full,
-     * thus avoiding head and tail wrapping around to equal each
-     * other.  We also guarantee that all array cells not holding
-     * deque elements are always null.
+     * We guarantee that all array cells not holding deque elements
+     * are always null.
      */
-    transient Object[] elements; // non-private to simplify nested class access
+    transient Object[] elements;
 
     /**
      * The index of the element at the head of the deque (which is the
      * element that would be removed by remove() or pop()); or an
-     * arbitrary number equal to tail if the deque is empty.
+     * arbitrary number 0 <= head < elements.length if the deque is empty.
      */
     transient int head;
 
+    /** Number of elements in this collection. */
+    transient int size;
+
     /**
-     * The index at which the next element would be added to the tail
-     * of the deque (via addLast(E), add(E), or push(E)).
+     * The maximum size of array to allocate.
+     * Some VMs reserve some header words in an array.
+     * Attempts to allocate larger arrays may result in
+     * OutOfMemoryError: Requested array size exceeds VM limit
      */
-    transient int tail;
+    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
     /**
-     * The minimum capacity that we'll use for a newly created deque.
-     * Must be a power of 2.
-     */
-    private static final int MIN_INITIAL_CAPACITY = 8;
-
-    // ******  Array allocation and resizing utilities ******
-
-    /**
-     * Allocates empty array to hold the given number of elements.
+     * Increases the capacity of this deque by at least the given amount.
      *
-     * @param numElements  the number of elements to hold
+     * @param needed the required minimum extra capacity; must be positive
      */
-    private void allocateElements(int numElements) {
-        int initialCapacity = MIN_INITIAL_CAPACITY;
-        // Find the best power of two to hold elements.
-        // Tests "<=" because arrays aren't kept full.
-        if (numElements >= initialCapacity) {
-            initialCapacity = numElements;
-            initialCapacity |= (initialCapacity >>>  1);
-            initialCapacity |= (initialCapacity >>>  2);
-            initialCapacity |= (initialCapacity >>>  4);
-            initialCapacity |= (initialCapacity >>>  8);
-            initialCapacity |= (initialCapacity >>> 16);
-            initialCapacity++;
-
-            if (initialCapacity < 0)    // Too many elements, must back off
-                initialCapacity >>>= 1; // Good luck allocating 2^30 elements
+    private void grow(int needed) {
+        // overflow-conscious code
+        // checkInvariants();
+        int oldCapacity = elements.length;
+        int newCapacity;
+        // Double size if small; else grow by 50%
+        int jump = (oldCapacity < 64) ? (oldCapacity + 2) : (oldCapacity >> 1);
+        if (jump < needed
+            || (newCapacity = (oldCapacity + jump)) - MAX_ARRAY_SIZE > 0)
+            newCapacity = newCapacity(needed, jump);
+        elements = Arrays.copyOf(elements, newCapacity);
+        if (oldCapacity - head < size) {
+            // wrap around; slide first leg forward to end of array
+            int newSpace = newCapacity - oldCapacity;
+            System.arraycopy(elements, head,
+                             elements, head + newSpace,
+                             oldCapacity - head);
+            Arrays.fill(elements, head, head + newSpace, null);
+            head += newSpace;
         }
-        elements = new Object[initialCapacity];
+        // checkInvariants();
+    }
+
+    /** Capacity calculation for edge conditions, especially overflow. */
+    private int newCapacity(int needed, int jump) {
+        int oldCapacity = elements.length;
+        int minCapacity;
+        if ((minCapacity = oldCapacity + needed) - MAX_ARRAY_SIZE > 0) {
+            if (minCapacity < 0)
+                throw new IllegalStateException("Sorry, deque too big");
+            return Integer.MAX_VALUE;
+        }
+        if (needed > jump)
+            return minCapacity;
+        return (oldCapacity + jump - MAX_ARRAY_SIZE < 0)
+            ? oldCapacity + jump
+            : MAX_ARRAY_SIZE;
     }
 
     /**
-     * Doubles the capacity of this deque.  Call only when full, i.e.,
-     * when head and tail have wrapped around to become equal.
+     * Increases the internal storage of this collection, if necessary,
+     * to ensure that it can hold at least the given number of elements.
+     *
+     * @param minCapacity the desired minimum capacity
+     * @since TBD
      */
-    private void doubleCapacity() {
-        assert head == tail;
-        int p = head;
-        int n = elements.length;
-        int r = n - p; // number of elements to the right of p
-        int newCapacity = n << 1;
-        if (newCapacity < 0)
-            throw new IllegalStateException("Sorry, deque too big");
-        Object[] a = new Object[newCapacity];
-        System.arraycopy(elements, p, a, 0, r);
-        System.arraycopy(elements, 0, a, r, p);
-        elements = a;
-        head = 0;
-        tail = n;
+    /* public */ void ensureCapacity(int minCapacity) {
+        if (minCapacity > elements.length)
+            grow(minCapacity - elements.length);
+        // checkInvariants();
+    }
+
+    /**
+     * Minimizes the internal storage of this collection.
+     *
+     * @since TBD
+     */
+    /* public */ void trimToSize() {
+        if (size < elements.length) {
+            elements = toArray();
+            head = 0;
+        }
+        // checkInvariants();
     }
 
     /**
@@ -147,10 +167,10 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * Constructs an empty array deque with an initial capacity
      * sufficient to hold the specified number of elements.
      *
-     * @param numElements  lower bound on initial capacity of the deque
+     * @param numElements lower bound on initial capacity of the deque
      */
     public ArrayDeque(int numElements) {
-        allocateElements(numElements);
+        elements = new Object[numElements];
     }
 
     /**
@@ -164,8 +184,70 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @throws NullPointerException if the specified collection is null
      */
     public ArrayDeque(Collection<? extends E> c) {
-        allocateElements(c.size());
-        addAll(c);
+        Object[] elements = c.toArray();
+        // defend against c.toArray (incorrectly) not returning Object[]
+        // (see e.g. https://bugs.openjdk.java.net/browse/JDK-6260652)
+        size = elements.length;
+        if (elements.getClass() != Object[].class)
+            elements = Arrays.copyOf(elements, size, Object[].class);
+        for (Object obj : elements)
+            Objects.requireNonNull(obj);
+        this.elements = elements;
+    }
+
+    /**
+     * Increments i, mod modulus.
+     * Precondition and postcondition: 0 <= i < modulus.
+     */
+    static final int inc(int i, int modulus) {
+        if (++i >= modulus) i = 0;
+        return i;
+    }
+
+    /**
+     * Decrements i, mod modulus.
+     * Precondition and postcondition: 0 <= i < modulus.
+     */
+    static final int dec(int i, int modulus) {
+        if (--i < 0) i = modulus - 1;
+        return i;
+    }
+
+    /**
+     * Adds i and j, mod modulus.
+     * Precondition and postcondition: 0 <= i < modulus, 0 <= j <= modulus.
+     */
+    static final int add(int i, int j, int modulus) {
+        if ((i += j) - modulus >= 0) i -= modulus;
+        return i;
+    }
+
+    /**
+     * Returns the array index of the last element.
+     * May return invalid index -1 if there are no elements.
+     */
+    final int tail() {
+        return add(head, size - 1, elements.length);
+    }
+
+    /**
+     * Returns element at array index i.
+     */
+    @SuppressWarnings("unchecked")
+    private E elementAt(int i) {
+        return (E) elements[i];
+    }
+
+    /**
+     * A version of elementAt that checks for null elements.
+     * This check doesn't catch all possible comodifications,
+     * but does catch ones that corrupt traversal.
+     */
+    E checkedElementAt(Object[] elements, int i) {
+        @SuppressWarnings("unchecked") E e = (E) elements[i];
+        if (e == null)
+            throw new ConcurrentModificationException();
+        return e;
     }
 
     // The main insertion and extraction methods are addFirst,
@@ -179,11 +261,19 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @throws NullPointerException if the specified element is null
      */
     public void addFirst(E e) {
-        if (e == null)
-            throw new NullPointerException();
-        elements[head = (head - 1) & (elements.length - 1)] = e;
-        if (head == tail)
-            doubleCapacity();
+        // checkInvariants();
+        Objects.requireNonNull(e);
+        Object[] elements;
+        int capacity, h;
+        final int s;
+        if ((s = size) == (capacity = (elements = this.elements).length)) {
+            grow(1);
+            capacity = (elements = this.elements).length;
+        }
+        if ((h = head - 1) < 0) h = capacity - 1;
+        elements[head = h] = e;
+        size = s + 1;
+        // checkInvariants();
     }
 
     /**
@@ -195,11 +285,38 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @throws NullPointerException if the specified element is null
      */
     public void addLast(E e) {
-        if (e == null)
-            throw new NullPointerException();
-        elements[tail] = e;
-        if ( (tail = (tail + 1) & (elements.length - 1)) == head)
-            doubleCapacity();
+        // checkInvariants();
+        Objects.requireNonNull(e);
+        Object[] elements;
+        int capacity;
+        final int s;
+        if ((s = size) == (capacity = (elements = this.elements).length)) {
+            grow(1);
+            capacity = (elements = this.elements).length;
+        }
+        elements[add(head, s, capacity)] = e;
+        size = s + 1;
+        // checkInvariants();
+    }
+
+    /**
+     * Adds all of the elements in the specified collection at the end
+     * of this deque, as if by calling {@link #addLast} on each one,
+     * in the order that they are returned by the collection's
+     * iterator.
+     *
+     * @param c the elements to be inserted into this deque
+     * @return {@code true} if this deque changed as a result of the call
+     * @throws NullPointerException if the specified collection or any
+     *         of its elements are null
+     */
+    public boolean addAll(Collection<? extends E> c) {
+        final int s = size, needed = c.size() - (elements.length - s);
+        if (needed > 0)
+            grow(needed);
+        c.forEach((e) -> addLast(e));
+        // checkInvariants();
+        return size > s;
     }
 
     /**
@@ -230,78 +347,77 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @throws NoSuchElementException {@inheritDoc}
      */
     public E removeFirst() {
-        E x = pollFirst();
-        if (x == null)
+        // checkInvariants();
+        E e = pollFirst();
+        if (e == null)
             throw new NoSuchElementException();
-        return x;
+        return e;
     }
 
     /**
      * @throws NoSuchElementException {@inheritDoc}
      */
     public E removeLast() {
-        E x = pollLast();
-        if (x == null)
+        // checkInvariants();
+        E e = pollLast();
+        if (e == null)
             throw new NoSuchElementException();
-        return x;
+        return e;
     }
 
     public E pollFirst() {
+        // checkInvariants();
+        int s, h;
+        if ((s = size) == 0)
+            return null;
         final Object[] elements = this.elements;
-        final int h = head;
-        @SuppressWarnings("unchecked")
-        E result = (E) elements[h];
-        // Element is null if deque empty
-        if (result != null) {
-            elements[h] = null; // Must null out slot
-            head = (h + 1) & (elements.length - 1);
-        }
-        return result;
+        @SuppressWarnings("unchecked") E e = (E) elements[h = head];
+        elements[h] = null;
+        if (++h >= elements.length) h = 0;
+        head = h;
+        size = s - 1;
+        return e;
     }
 
     public E pollLast() {
+        // checkInvariants();
+        final int s, tail;
+        if ((s = size) == 0)
+            return null;
         final Object[] elements = this.elements;
-        final int t = (tail - 1) & (elements.length - 1);
         @SuppressWarnings("unchecked")
-        E result = (E) elements[t];
-        if (result != null) {
-            elements[t] = null;
-            tail = t;
-        }
-        return result;
+        E e = (E) elements[tail = add(head, s - 1, elements.length)];
+        elements[tail] = null;
+        size = s - 1;
+        return e;
     }
 
     /**
      * @throws NoSuchElementException {@inheritDoc}
      */
     public E getFirst() {
-        @SuppressWarnings("unchecked")
-        E result = (E) elements[head];
-        if (result == null)
-            throw new NoSuchElementException();
-        return result;
+        // checkInvariants();
+        if (size == 0) throw new NoSuchElementException();
+        return elementAt(head);
     }
 
     /**
      * @throws NoSuchElementException {@inheritDoc}
      */
     public E getLast() {
-        @SuppressWarnings("unchecked")
-        E result = (E) elements[(tail - 1) & (elements.length - 1)];
-        if (result == null)
-            throw new NoSuchElementException();
-        return result;
+        // checkInvariants();
+        if (size == 0) throw new NoSuchElementException();
+        return elementAt(tail());
     }
 
-    @SuppressWarnings("unchecked")
     public E peekFirst() {
-        // elements[head] is null if deque empty
-        return (E) elements[head];
+        // checkInvariants();
+        return (size == 0) ? null : elementAt(head);
     }
 
-    @SuppressWarnings("unchecked")
     public E peekLast() {
-        return (E) elements[(tail - 1) & (elements.length - 1)];
+        // checkInvariants();
+        return (size == 0) ? null : elementAt(tail());
     }
 
     /**
@@ -318,13 +434,18 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      */
     public boolean removeFirstOccurrence(Object o) {
         if (o != null) {
-            int mask = elements.length - 1;
-            int i = head;
-            for (Object x; (x = elements[i]) != null; i = (i + 1) & mask) {
-                if (o.equals(x)) {
-                    delete(i);
-                    return true;
-                }
+            final Object[] elements = this.elements;
+            final int capacity = elements.length;
+            int from, end, to, leftover;
+            leftover = (end = (from = head) + size)
+                - (to = (capacity - end >= 0) ? end : capacity);
+            for (;; from = 0, to = leftover, leftover = 0) {
+                for (int i = from; i < to; i++)
+                    if (o.equals(elements[i])) {
+                        delete(i);
+                        return true;
+                    }
+                if (leftover == 0) break;
             }
         }
         return false;
@@ -344,13 +465,17 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      */
     public boolean removeLastOccurrence(Object o) {
         if (o != null) {
-            int mask = elements.length - 1;
-            int i = (tail - 1) & mask;
-            for (Object x; (x = elements[i]) != null; i = (i - 1) & mask) {
-                if (o.equals(x)) {
-                    delete(i);
-                    return true;
-                }
+            final Object[] elements = this.elements;
+            final int capacity = elements.length;
+            int from, to, end, leftover;
+            leftover = (to = ((end = (from = tail()) - size) >= -1) ? end : -1) - end;
+            for (;; from = capacity - 1, to = capacity - 1 - leftover, leftover = 0) {
+                for (int i = from; i > to; i--)
+                    if (o.equals(elements[i])) {
+                        delete(i);
+                        return true;
+                    }
+                if (leftover == 0) break;
             }
         }
         return false;
@@ -470,18 +595,10 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         return removeFirst();
     }
 
-    private void checkInvariants() {
-        assert elements[tail] == null;
-        assert head == tail ? elements[head] == null :
-            (elements[head] != null &&
-             elements[(tail - 1) & (elements.length - 1)] != null);
-        assert elements[(head - 1) & (elements.length - 1)] == null;
-    }
-
     /**
-     * Removes the element at the specified position in the elements array,
-     * adjusting head and tail as necessary.  This can result in motion of
-     * elements backwards or forwards in the array.
+     * Removes the element at the specified position in the elements array.
+     * This can result in forward or backwards motion of array elements.
+     * We optimize for least element motion.
      *
      * <p>This method is called delete rather than remove to emphasize
      * that its semantics differ from those of {@link List#remove(int)}.
@@ -489,40 +606,41 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @return true if elements moved backwards
      */
     boolean delete(int i) {
-        checkInvariants();
+        // checkInvariants();
         final Object[] elements = this.elements;
-        final int mask = elements.length - 1;
+        final int capacity = elements.length;
         final int h = head;
-        final int t = tail;
-        final int front = (i - h) & mask;
-        final int back  = (t - i) & mask;
-
-        // Invariant: head <= i < tail mod circularity
-        if (front >= ((t - h) & mask))
-            throw new ConcurrentModificationException();
-
-        // Optimize for least element motion
+        int front;              // number of elements before to-be-deleted elt
+        if ((front = i - h) < 0) front += capacity;
+        final int back = size - front - 1; // number of elements after
         if (front < back) {
+            // move front elements forwards
             if (h <= i) {
                 System.arraycopy(elements, h, elements, h + 1, front);
             } else { // Wrap around
                 System.arraycopy(elements, 0, elements, 1, i);
-                elements[0] = elements[mask];
-                System.arraycopy(elements, h, elements, h + 1, mask - h);
+                elements[0] = elements[capacity - 1];
+                System.arraycopy(elements, h, elements, h + 1, front - (i + 1));
             }
             elements[h] = null;
-            head = (h + 1) & mask;
+            if ((head = (h + 1)) >= capacity) head = 0;
+            size--;
+            // checkInvariants();
             return false;
         } else {
-            if (i < t) { // Copy the null tail as well
+            // move back elements backwards
+            int tail = tail();
+            if (i <= tail) {
                 System.arraycopy(elements, i + 1, elements, i, back);
-                tail = t - 1;
             } else { // Wrap around
-                System.arraycopy(elements, i + 1, elements, i, mask - i);
-                elements[mask] = elements[0];
-                System.arraycopy(elements, 1, elements, 0, t);
-                tail = (t - 1) & mask;
+                int firstLeg = capacity - (i + 1);
+                System.arraycopy(elements, i + 1, elements, i, firstLeg);
+                elements[capacity - 1] = elements[0];
+                System.arraycopy(elements, 1, elements, 0, back - firstLeg - 1);
             }
+            elements[tail] = null;
+            size--;
+            // checkInvariants();
             return true;
         }
     }
@@ -535,7 +653,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @return the number of elements in this deque
      */
     public int size() {
-        return (tail - head) & (elements.length - 1);
+        return size;
     }
 
     /**
@@ -544,7 +662,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @return {@code true} if this deque contains no elements
      */
     public boolean isEmpty() {
-        return head == tail;
+        return size == 0;
     }
 
     /**
@@ -564,100 +682,300 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     private class DeqIterator implements Iterator<E> {
-        /**
-         * Index of element to be returned by subsequent call to next.
-         */
-        private int cursor = head;
+        /** Index of element to be returned by subsequent call to next. */
+        int cursor;
 
-        /**
-         * Tail recorded at construction (also in remove), to stop
-         * iterator and also to check for comodification.
-         */
-        private int fence = tail;
+        /** Number of elements yet to be returned. */
+        int remaining = size;
 
         /**
          * Index of element returned by most recent call to next.
          * Reset to -1 if element is deleted by a call to remove.
          */
-        private int lastRet = -1;
+        int lastRet = -1;
 
-        public boolean hasNext() {
-            return cursor != fence;
+        DeqIterator() { cursor = head; }
+
+        public final boolean hasNext() {
+            return remaining > 0;
         }
 
         public E next() {
-            if (cursor == fence)
+            if (remaining == 0)
                 throw new NoSuchElementException();
-            @SuppressWarnings("unchecked")
-            E result = (E) elements[cursor];
-            // This check doesn't catch all possible comodifications,
-            // but does catch the ones that corrupt traversal
-            if (tail != fence || result == null)
-                throw new ConcurrentModificationException();
+            final Object[] elements = ArrayDeque.this.elements;
+            E e = checkedElementAt(elements, cursor);
             lastRet = cursor;
-            cursor = (cursor + 1) & (elements.length - 1);
-            return result;
+            if (++cursor >= elements.length) cursor = 0;
+            remaining--;
+            return e;
         }
 
-        public void remove() {
+        void postDelete(boolean leftShifted) {
+            if (leftShifted)
+                if (--cursor < 0) cursor = elements.length - 1;
+        }
+
+        public final void remove() {
             if (lastRet < 0)
                 throw new IllegalStateException();
-            if (delete(lastRet)) { // if left-shifted, undo increment in next()
-                cursor = (cursor - 1) & (elements.length - 1);
-                fence = tail;
-            }
+            postDelete(delete(lastRet));
             lastRet = -1;
         }
 
         public void forEachRemaining(Consumer<? super E> action) {
-            Objects.requireNonNull(action);
-            Object[] a = elements;
-            int m = a.length - 1, f = fence, i = cursor;
-            cursor = f;
-            while (i != f) {
-                @SuppressWarnings("unchecked") E e = (E)a[i];
-                i = (i + 1) & m;
-                if (e == null)
-                    throw new ConcurrentModificationException();
-                action.accept(e);
+            int k;
+            if ((k = remaining) > 0) {
+                remaining = 0;
+                ArrayDeque.forEachRemaining(action, elements, cursor, k);
+                if ((lastRet = cursor + k - 1) >= elements.length)
+                    lastRet -= elements.length;
+            }
+        }
+    }
+
+    private class DescendingIterator extends DeqIterator {
+        DescendingIterator() { cursor = tail(); }
+
+        public final E next() {
+            if (remaining == 0)
+                throw new NoSuchElementException();
+            final Object[] elements = ArrayDeque.this.elements;
+            E e = checkedElementAt(elements, cursor);
+            lastRet = cursor;
+            if (--cursor < 0) cursor = elements.length - 1;
+            remaining--;
+            return e;
+        }
+
+        void postDelete(boolean leftShifted) {
+            if (!leftShifted)
+                if (++cursor >= elements.length) cursor = 0;
+        }
+
+        public final void forEachRemaining(Consumer<? super E> action) {
+            int k;
+            if ((k = remaining) > 0) {
+                remaining = 0;
+                forEachRemainingDescending(action, elements, cursor, k);
+                if ((lastRet = cursor - (k - 1)) < 0)
+                    lastRet += elements.length;
             }
         }
     }
 
     /**
-     * This class is nearly a mirror-image of DeqIterator, using tail
-     * instead of head for initial cursor, and head instead of tail
-     * for fence.
+     * Creates a <em><a href="Spliterator.html#binding">late-binding</a></em>
+     * and <em>fail-fast</em> {@link Spliterator} over the elements in this
+     * deque.
+     *
+     * <p>The {@code Spliterator} reports {@link Spliterator#SIZED},
+     * {@link Spliterator#SUBSIZED}, {@link Spliterator#ORDERED}, and
+     * {@link Spliterator#NONNULL}.  Overriding implementations should document
+     * the reporting of additional characteristic values.
+     *
+     * @return a {@code Spliterator} over the elements in this deque
+     * @since 1.8
      */
-    private class DescendingIterator implements Iterator<E> {
-        private int cursor = tail;
-        private int fence = head;
-        private int lastRet = -1;
+    public Spliterator<E> spliterator() {
+        return new ArrayDequeSpliterator();
+    }
 
-        public boolean hasNext() {
-            return cursor != fence;
+    final class ArrayDequeSpliterator implements Spliterator<E> {
+        private int cursor;
+        private int remaining; // -1 until late-binding first use
+
+        /** Constructs late-binding spliterator over all elements. */
+        ArrayDequeSpliterator() {
+            this.remaining = -1;
         }
 
-        public E next() {
-            if (cursor == fence)
-                throw new NoSuchElementException();
-            cursor = (cursor - 1) & (elements.length - 1);
-            @SuppressWarnings("unchecked")
-            E result = (E) elements[cursor];
-            if (head != fence || result == null)
-                throw new ConcurrentModificationException();
-            lastRet = cursor;
-            return result;
+        /** Constructs spliterator over the given slice. */
+        ArrayDequeSpliterator(int cursor, int count) {
+            this.cursor = cursor;
+            this.remaining = count;
         }
 
-        public void remove() {
-            if (lastRet < 0)
-                throw new IllegalStateException();
-            if (!delete(lastRet)) {
-                cursor = (cursor + 1) & (elements.length - 1);
-                fence = head;
+        /** Ensures late-binding initialization; then returns remaining. */
+        private int remaining() {
+            if (remaining < 0) {
+                cursor = head;
+                remaining = size;
             }
-            lastRet = -1;
+            return remaining;
+        }
+
+        public ArrayDequeSpliterator trySplit() {
+            final int mid;
+            if ((mid = remaining() >> 1) > 0) {
+                int oldCursor = cursor;
+                cursor = add(cursor, mid, elements.length);
+                remaining -= mid;
+                return new ArrayDequeSpliterator(oldCursor, mid);
+            }
+            return null;
+        }
+
+        public void forEachRemaining(Consumer<? super E> action) {
+            int k = remaining(); // side effect!
+            remaining = 0;
+            ArrayDeque.forEachRemaining(action, elements, cursor, k);
+        }
+
+        public boolean tryAdvance(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
+            if (remaining() == 0)
+                return false;
+            action.accept(checkedElementAt(elements, cursor));
+            if (++cursor >= elements.length) cursor = 0;
+            remaining--;
+            return true;
+        }
+
+        public long estimateSize() {
+            return remaining();
+        }
+
+        public int characteristics() {
+            return Spliterator.NONNULL
+                | Spliterator.ORDERED
+                | Spliterator.SIZED
+                | Spliterator.SUBSIZED;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void forEach(Consumer<? super E> action) {
+        Objects.requireNonNull(action);
+        final Object[] elements = this.elements;
+        final int capacity = elements.length;
+        int from, end, to, leftover;
+        leftover = (end = (from = head) + size)
+            - (to = (capacity - end >= 0) ? end : capacity);
+        for (;; from = 0, to = leftover, leftover = 0) {
+            for (int i = from; i < to; i++)
+                action.accept((E) elements[i]);
+            if (leftover == 0) break;
+        }
+        // checkInvariants();
+    }
+
+    /**
+     * A variant of forEach that also checks for concurrent
+     * modification, for use in iterators.
+     */
+    static <E> void forEachRemaining(
+        Consumer<? super E> action, Object[] elements, int from, int size) {
+        Objects.requireNonNull(action);
+        final int capacity = elements.length;
+        int end, to, leftover;
+        leftover = (end = from + size)
+            - (to = (capacity - end >= 0) ? end : capacity);
+        for (;; from = 0, to = leftover, leftover = 0) {
+            for (int i = from; i < to; i++) {
+                @SuppressWarnings("unchecked") E e = (E) elements[i];
+                if (e == null)
+                    throw new ConcurrentModificationException();
+                action.accept(e);
+            }
+            if (leftover == 0) break;
+        }
+    }
+
+    static <E> void forEachRemainingDescending(
+        Consumer<? super E> action, Object[] elements, int from, int size) {
+        Objects.requireNonNull(action);
+        final int capacity = elements.length;
+        int end, to, leftover;
+        leftover = (to = ((end = from - size) >= -1) ? end : -1) - end;
+        for (;; from = capacity - 1, to = capacity - 1 - leftover, leftover = 0) {
+            for (int i = from; i > to; i--) {
+                @SuppressWarnings("unchecked") E e = (E) elements[i];
+                if (e == null)
+                    throw new ConcurrentModificationException();
+                action.accept(e);
+            }
+            if (leftover == 0) break;
+        }
+    }
+
+    /**
+     * Replaces each element of this deque with the result of applying the
+     * operator to that element, as specified by {@link List#replaceAll}.
+     *
+     * @param operator the operator to apply to each element
+     * @since TBD
+     */
+    /* public */ void replaceAll(UnaryOperator<E> operator) {
+        Objects.requireNonNull(operator);
+        final Object[] elements = this.elements;
+        final int capacity = elements.length;
+        int from, end, to, leftover;
+        leftover = (end = (from = head) + size)
+            - (to = (capacity - end >= 0) ? end : capacity);
+        for (;; from = 0, to = leftover, leftover = 0) {
+            for (int i = from; i < to; i++)
+                elements[i] = operator.apply(elementAt(i));
+            if (leftover == 0) break;
+        }
+        // checkInvariants();
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean removeIf(Predicate<? super E> filter) {
+        Objects.requireNonNull(filter);
+        return bulkRemove(filter);
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean removeAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> c.contains(e));
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean retainAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> !c.contains(e));
+    }
+
+    /** Implementation of bulk remove methods. */
+    private boolean bulkRemove(Predicate<? super E> filter) {
+        // checkInvariants();
+        final Object[] elements = this.elements;
+        final int capacity = elements.length;
+        int i = head, j = i, remaining = size, deleted = 0;
+        try {
+            for (; remaining > 0; remaining--) {
+                @SuppressWarnings("unchecked") E e = (E) elements[i];
+                if (filter.test(e))
+                    deleted++;
+                else {
+                    if (j != i)
+                        elements[j] = e;
+                    if (++j >= capacity) j = 0;
+                }
+                if (++i >= capacity) i = 0;
+            }
+            return deleted > 0;
+        } catch (Throwable ex) {
+            if (deleted > 0)
+                for (; remaining > 0; remaining--) {
+                    elements[j] = elements[i];
+                    if (++i >= capacity) i = 0;
+                    if (++j >= capacity) j = 0;
+                }
+            throw ex;
+        } finally {
+            size -= deleted;
+            clearSlice(elements, j, deleted);
+            // checkInvariants();
         }
     }
 
@@ -671,11 +989,16 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      */
     public boolean contains(Object o) {
         if (o != null) {
-            int mask = elements.length - 1;
-            int i = head;
-            for (Object x; (x = elements[i]) != null; i = (i + 1) & mask) {
-                if (o.equals(x))
-                    return true;
+            final Object[] elements = this.elements;
+            final int capacity = elements.length;
+            int from, end, to, leftover;
+            leftover = (end = (from = head) + size)
+                - (to = (capacity - end >= 0) ? end : capacity);
+            for (;; from = 0, to = leftover, leftover = 0) {
+                for (int i = from; i < to; i++)
+                    if (o.equals(elements[i]))
+                        return true;
+                if (leftover == 0) break;
             }
         }
         return false;
@@ -703,17 +1026,20 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * The deque will be empty after this call returns.
      */
     public void clear() {
-        int h = head;
-        int t = tail;
-        if (h != t) { // clear all cells
-            head = tail = 0;
-            int i = h;
-            int mask = elements.length - 1;
-            do {
-                elements[i] = null;
-                i = (i + 1) & mask;
-            } while (i != t);
-        }
+        clearSlice(elements, head, size);
+        size = head = 0;
+        // checkInvariants();
+    }
+
+    /**
+     * Nulls out size elements, starting at head.
+     */
+    private static void clearSlice(Object[] elements, int head, int size) {
+        final int capacity = elements.length, end = head + size;
+        final int leg = (capacity - end >= 0) ? end : capacity;
+        Arrays.fill(elements, head, leg, null);
+        if (leg != end)
+            Arrays.fill(elements, 0, end - capacity, null);
     }
 
     /**
@@ -730,13 +1056,23 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @return an array containing all of the elements in this deque
      */
     public Object[] toArray() {
-        final int head = this.head;
-        final int tail = this.tail;
-        boolean wrap = (tail < head);
-        int end = wrap ? tail + elements.length : tail;
-        Object[] a = Arrays.copyOfRange(elements, head, end);
-        if (wrap)
-            System.arraycopy(elements, 0, a, elements.length - head, tail);
+        return toArray(Object[].class);
+    }
+
+    private <T> T[] toArray(Class<T[]> klazz) {
+        final Object[] elements = this.elements;
+        final int capacity = elements.length;
+        final int head = this.head, end = head + size;
+        final T[] a;
+        if (end >= 0) {
+            a = Arrays.copyOfRange(elements, head, end, klazz);
+        } else {
+            // integer overflow!
+            a = Arrays.copyOfRange(elements, 0, size, klazz);
+            System.arraycopy(elements, head, a, 0, capacity - head);
+        }
+        if (end - capacity > 0)
+            System.arraycopy(elements, 0, a, capacity - head, end - capacity);
         return a;
     }
 
@@ -778,22 +1114,18 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      */
     @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
-        final int head = this.head;
-        final int tail = this.tail;
-        boolean wrap = (tail < head);
-        int size = (tail - head) + (wrap ? elements.length : 0);
-        int firstLeg = size - (wrap ? tail : 0);
-        int len = a.length;
-        if (size > len) {
-            a = (T[]) Arrays.copyOfRange(elements, head, head + size,
-                                         a.getClass());
-        } else {
-            System.arraycopy(elements, head, a, 0, firstLeg);
-            if (size < len)
-                a[size] = null;
-        }
-        if (wrap)
-            System.arraycopy(elements, 0, a, firstLeg, tail);
+        final int size = this.size;
+        if (size > a.length)
+            return toArray((Class<T[]>) a.getClass());
+        final Object[] elements = this.elements;
+        final int capacity = elements.length;
+        final int head = this.head, end = head + size;
+        final int front = (capacity - end >= 0) ? size : capacity - head;
+        System.arraycopy(elements, head, a, 0, front);
+        if (front != size)
+            System.arraycopy(elements, 0, a, capacity - head, end - capacity);
+        if (size < a.length)
+            a[size] = null;
         return a;
     }
 
@@ -831,12 +1163,19 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         s.defaultWriteObject();
 
         // Write out size
-        s.writeInt(size());
+        s.writeInt(size);
 
         // Write out elements in order.
-        int mask = elements.length - 1;
-        for (int i = head; i != tail; i = (i + 1) & mask)
-            s.writeObject(elements[i]);
+        final Object[] elements = this.elements;
+        final int capacity = elements.length;
+        int from, end, to, leftover;
+        leftover = (end = (from = head) + size)
+            - (to = (capacity - end >= 0) ? end : capacity);
+        for (;; from = 0, to = leftover, leftover = 0) {
+            for (int i = from; i < to; i++)
+                s.writeObject(elements[i]);
+            if (leftover == 0) break;
+        }
     }
 
     /**
@@ -851,107 +1190,30 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         s.defaultReadObject();
 
         // Read in size and allocate array
-        int size = s.readInt();
-        allocateElements(size);
-        head = 0;
-        tail = size;
+        elements = new Object[size = s.readInt()];
 
         // Read in all elements in the proper order.
         for (int i = 0; i < size; i++)
             elements[i] = s.readObject();
     }
 
-    /**
-     * Creates a <em><a href="Spliterator.html#binding">late-binding</a></em>
-     * and <em>fail-fast</em> {@link Spliterator} over the elements in this
-     * deque.
-     *
-     * <p>The {@code Spliterator} reports {@link Spliterator#SIZED},
-     * {@link Spliterator#SUBSIZED}, {@link Spliterator#ORDERED}, and
-     * {@link Spliterator#NONNULL}.  Overriding implementations should document
-     * the reporting of additional characteristic values.
-     *
-     * @return a {@code Spliterator} over the elements in this deque
-     * @since 1.8
-     */
-    public Spliterator<E> spliterator() {
-        return new DeqSpliterator<>(this, -1, -1);
-    }
-
-    static final class DeqSpliterator<E> implements Spliterator<E> {
-        private final ArrayDeque<E> deq;
-        private int fence;  // -1 until first use
-        private int index;  // current index, modified on traverse/split
-
-        /** Creates new spliterator covering the given array and range. */
-        DeqSpliterator(ArrayDeque<E> deq, int origin, int fence) {
-            this.deq = deq;
-            this.index = origin;
-            this.fence = fence;
-        }
-
-        private int getFence() { // force initialization
-            int t;
-            if ((t = fence) < 0) {
-                t = fence = deq.tail;
-                index = deq.head;
-            }
-            return t;
-        }
-
-        public DeqSpliterator<E> trySplit() {
-            int t = getFence(), h = index, n = deq.elements.length;
-            if (h != t && ((h + 1) & (n - 1)) != t) {
-                if (h > t)
-                    t += n;
-                int m = ((h + t) >>> 1) & (n - 1);
-                return new DeqSpliterator<E>(deq, h, index = m);
-            }
-            return null;
-        }
-
-        public void forEachRemaining(Consumer<? super E> consumer) {
-            if (consumer == null)
-                throw new NullPointerException();
-            Object[] a = deq.elements;
-            int m = a.length - 1, f = getFence(), i = index;
-            index = f;
-            while (i != f) {
-                @SuppressWarnings("unchecked") E e = (E)a[i];
-                i = (i + 1) & m;
-                if (e == null)
-                    throw new ConcurrentModificationException();
-                consumer.accept(e);
-            }
-        }
-
-        public boolean tryAdvance(Consumer<? super E> consumer) {
-            if (consumer == null)
-                throw new NullPointerException();
-            Object[] a = deq.elements;
-            int m = a.length - 1, f = getFence(), i = index;
-            if (i != f) {
-                @SuppressWarnings("unchecked") E e = (E)a[i];
-                index = (i + 1) & m;
-                if (e == null)
-                    throw new ConcurrentModificationException();
-                consumer.accept(e);
-                return true;
-            }
-            return false;
-        }
-
-        public long estimateSize() {
-            int n = getFence() - index;
-            if (n < 0)
-                n += deq.elements.length;
-            return (long) n;
-        }
-
-        @Override
-        public int characteristics() {
-            return Spliterator.ORDERED | Spliterator.SIZED |
-                Spliterator.NONNULL | Spliterator.SUBSIZED;
+    /** debugging */
+    void checkInvariants() {
+        try {
+            int capacity = elements.length;
+            // assert size >= 0 && size <= capacity;
+            // assert head >= 0;
+            // assert capacity == 0 || head < capacity;
+            // assert size == 0 || elements[head] != null;
+            // assert size == 0 || elements[tail()] != null;
+            // assert size == capacity || elements[dec(head, capacity)] == null;
+            // assert size == capacity || elements[inc(tail(), capacity)] == null;
+        } catch (Throwable t) {
+            System.err.printf("head=%d size=%d capacity=%d%n",
+                              head, size, elements.length);
+            System.err.printf("elements=%s%n",
+                              Arrays.toString(elements));
+            throw t;
         }
     }
 
