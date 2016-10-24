@@ -234,7 +234,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * Returns element at array index i.
      */
     @SuppressWarnings("unchecked")
-    final E elementAt(int i) {
+    private E elementAt(int i) {
         return (E) elements[i];
     }
 
