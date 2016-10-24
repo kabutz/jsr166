@@ -7,9 +7,14 @@
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
+import java.util.Spliterator;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -189,6 +194,92 @@ public class CollectionTest extends JSR166TestCase {
         for (Object x : accepts) assertFalse(c.contains(x));
         if (threwAt.get() == null)
             assertEquals(accepts.size() + rejects.size(), n);
+    }
+
+    /**
+     * Various ways of traversing a collection yield same elements
+     */
+    public void testIteratorEquivalence() {
+        Collection c = impl.emptyCollection();
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        int n = rnd.nextInt(6);
+        for (int i = 0; i < n; i++) c.add(impl.makeElement(i));
+        ArrayList iterated = new ArrayList();
+        ArrayList iteratedForEachRemaining = new ArrayList();
+        ArrayList spliterated = new ArrayList();
+        ArrayList foreached = new ArrayList();
+        for (Object x : c) iterated.add(x);
+        c.iterator().forEachRemaining(e -> iteratedForEachRemaining.add(e));
+        c.spliterator().forEachRemaining(e -> spliterated.add(e));
+        c.forEach(e -> foreached.add(e));
+        boolean ordered =
+            c.spliterator().hasCharacteristics(Spliterator.ORDERED);
+        if (c instanceof List || c instanceof Deque)
+            assertTrue(ordered);
+        if (ordered) {
+            assertEquals(iterated, iteratedForEachRemaining);
+            assertEquals(iterated, spliterated);
+            assertEquals(iterated, foreached);
+        } else {
+            HashSet cset = new HashSet(c);
+            assertEquals(cset, new HashSet(iterated));
+            assertEquals(cset, new HashSet(iteratedForEachRemaining));
+            assertEquals(cset, new HashSet(spliterated));
+            assertEquals(cset, new HashSet(foreached));
+        }
+        if (c instanceof Deque) {
+            Deque d = (Deque) c;
+            ArrayList descending = new ArrayList();
+            ArrayList descendingForEachRemaining = new ArrayList();
+            for (Iterator it = d.descendingIterator(); it.hasNext(); )
+                descending.add(it.next());
+            d.descendingIterator().forEachRemaining(
+                e -> descendingForEachRemaining.add(e));
+            Collections.reverse(descending);
+            Collections.reverse(descendingForEachRemaining);
+            assertEquals(iterated, descending);
+            assertEquals(iterated, descendingForEachRemaining);
+        }
+    }
+
+    /**
+     * Calling Iterator#remove() after Iterator#forEachRemaining
+     * should remove last element
+     */
+    public void testRemoveAfterForEachRemaining() {
+        Collection c = impl.emptyCollection();
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        {
+            int n = 3 + rnd.nextInt(2);
+            for (int i = 0; i < n; i++) c.add(impl.makeElement(i));
+            Iterator it = c.iterator();
+            assertTrue(it.hasNext());
+            assertEquals(impl.makeElement(0), it.next());
+            assertTrue(it.hasNext());
+            assertEquals(impl.makeElement(1), it.next());
+            it.forEachRemaining((e) -> {});
+            it.remove();
+            assertEquals(n - 1, c.size());
+            for (int i = 0; i < n - 1; i++)
+                assertTrue(c.contains(impl.makeElement(i)));
+            assertFalse(c.contains(impl.makeElement(n - 1)));
+        }
+        if (c instanceof Deque) {
+            Deque d = (Deque) impl.emptyCollection();
+            int n = 3 + rnd.nextInt(2);
+            for (int i = 0; i < n; i++) d.add(impl.makeElement(i));
+            Iterator it = d.descendingIterator();
+            assertTrue(it.hasNext());
+            assertEquals(impl.makeElement(n - 1), it.next());
+            assertTrue(it.hasNext());
+            assertEquals(impl.makeElement(n - 2), it.next());
+            it.forEachRemaining((e) -> {});
+            it.remove();
+            assertEquals(n - 1, d.size());
+            for (int i = 1; i < n; i++)
+                assertTrue(d.contains(impl.makeElement(i)));
+            assertFalse(d.contains(impl.makeElement(0)));
+        }
     }
 
 //     public void testCollectionDebugFail() {
