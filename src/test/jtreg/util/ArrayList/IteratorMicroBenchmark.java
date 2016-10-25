@@ -253,6 +253,15 @@ public class IteratorMicroBenchmark {
                         for (int j = 0; j < size; ++j)
                             sum += a[j];
                         check.sum(sum);}}},
+            new Job("descending array loop") {
+                public void work() throws Throwable {
+                    Integer[] a = al.toArray(new Integer[0]);
+                    for (int i = 0; i < iterations; i++) {
+                        int sum = 0;
+                        int size = a.length;
+                        for (int j = size - 1; j >= 0; j--)
+                            sum += a[j];
+                        check.sum(sum);}}},
             new Job("Vector get loop") {
                 public void work() throws Throwable {
                     for (int i = 0; i < iterations; i++) {
