@@ -93,7 +93,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     private void grow(int needed) {
         // overflow-conscious code
         // checkInvariants();
-        int oldCapacity = elements.length;
+        final int oldCapacity = elements.length;
         int newCapacity;
         // Double size if small; else grow by 50%
         int jump = (oldCapacity < 64) ? (oldCapacity + 2) : (oldCapacity >> 1);
@@ -115,8 +115,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
 
     /** Capacity calculation for edge conditions, especially overflow. */
     private int newCapacity(int needed, int jump) {
-        int oldCapacity = elements.length;
-        int minCapacity;
+        final int oldCapacity = elements.length, minCapacity;
         if ((minCapacity = oldCapacity + needed) - MAX_ARRAY_SIZE > 0) {
             if (minCapacity < 0)
                 throw new IllegalStateException("Sorry, deque too big");
@@ -368,7 +367,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     public E pollFirst() {
         // checkInvariants();
         int s, h;
-        if ((s = size) == 0)
+        if ((s = size) <= 0)
             return null;
         final Object[] elements = this.elements;
         @SuppressWarnings("unchecked") E e = (E) elements[h = head];
@@ -382,7 +381,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     public E pollLast() {
         // checkInvariants();
         final int s, tail;
-        if ((s = size) == 0)
+        if ((s = size) <= 0)
             return null;
         final Object[] elements = this.elements;
         @SuppressWarnings("unchecked")
@@ -397,27 +396,34 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      */
     public E getFirst() {
         // checkInvariants();
-        if (size == 0) throw new NoSuchElementException();
+        if (size <= 0) throw new NoSuchElementException();
         return elementAt(head);
     }
 
     /**
      * @throws NoSuchElementException {@inheritDoc}
      */
+    @SuppressWarnings("unchecked")
     public E getLast() {
         // checkInvariants();
-        if (size == 0) throw new NoSuchElementException();
-        return elementAt(tail());
+        final int s;
+        if ((s = size) <= 0) throw new NoSuchElementException();
+        final Object[] elements = this.elements;
+        return (E) elements[add(head, s - 1, elements.length)];
     }
 
     public E peekFirst() {
         // checkInvariants();
-        return (size == 0) ? null : elementAt(head);
+        return (size <= 0) ? null : elementAt(head);
     }
 
+    @SuppressWarnings("unchecked")
     public E peekLast() {
         // checkInvariants();
-        return (size == 0) ? null : elementAt(tail());
+        final int s;
+        if ((s = size) <= 0) return null;
+        final Object[] elements = this.elements;
+        return (E) elements[add(head, s - 1, elements.length)];
     }
 
     /**
@@ -701,7 +707,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         }
 
         public E next() {
-            if (remaining == 0)
+            if (remaining <= 0)
                 throw new NoSuchElementException();
             final Object[] elements = ArrayDeque.this.elements;
             E e = checkedElementAt(elements, cursor);
@@ -724,7 +730,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         }
 
         public void forEachRemaining(Consumer<? super E> action) {
-            int k;
+            final int k;
             if ((k = remaining) > 0) {
                 remaining = 0;
                 ArrayDeque.forEachRemaining(action, elements, cursor, k);
@@ -738,7 +744,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         DescendingIterator() { cursor = tail(); }
 
         public final E next() {
-            if (remaining == 0)
+            if (remaining <= 0)
                 throw new NoSuchElementException();
             final Object[] elements = ArrayDeque.this.elements;
             E e = checkedElementAt(elements, cursor);
@@ -754,7 +760,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         }
 
         public final void forEachRemaining(Consumer<? super E> action) {
-            int k;
+            final int k;
             if ((k = remaining) > 0) {
                 remaining = 0;
                 forEachRemainingDescending(action, elements, cursor, k);
@@ -817,18 +823,19 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         }
 
         public void forEachRemaining(Consumer<? super E> action) {
-            int k = remaining(); // side effect!
+            final int k = remaining(); // side effect!
             remaining = 0;
             ArrayDeque.forEachRemaining(action, elements, cursor, k);
         }
 
         public boolean tryAdvance(Consumer<? super E> action) {
             Objects.requireNonNull(action);
-            if (remaining() == 0)
+            final int k;
+            if ((k = remaining()) <= 0)
                 return false;
             action.accept(checkedElementAt(elements, cursor));
             if (++cursor >= elements.length) cursor = 0;
-            remaining--;
+            remaining = k - 1;
             return true;
         }
 
