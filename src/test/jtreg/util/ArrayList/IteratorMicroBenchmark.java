@@ -205,18 +205,16 @@ public class IteratorMicroBenchmark {
 
         final ConcurrentSkipListMap<Integer,Integer> m
             = new ConcurrentSkipListMap<Integer,Integer>();
-        final Vector<Integer> v = new Vector<Integer>(size);
         final ArrayList<Integer> al = new ArrayList<Integer>(size);
-        final ArrayDeque<Integer> ad = new ArrayDeque<Integer>(size);
 
         // Populate collections with random data
         final ThreadLocalRandom rnd = ThreadLocalRandom.current();
         for (int i = 0; i < size; i++) {
             m.put(rnd.nextInt(size), rnd.nextInt(size));
-            v.add(rnd.nextInt(size));
+            al.add(rnd.nextInt(size));
         }
-        al.addAll(v);
-        ad.addAll(v);
+        final Vector<Integer> v = new Vector<Integer>(al);
+        final ArrayDeque<Integer> ad = new ArrayDeque<Integer>(al);
 
         // Also test "short" collections
         final int shortSize = 5;
