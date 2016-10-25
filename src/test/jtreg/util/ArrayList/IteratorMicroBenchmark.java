@@ -407,62 +407,72 @@ public class IteratorMicroBenchmark {
                         check.sum(sum);}}},
             new Job("ArrayList.forEach") {
                 public void work() throws Throwable {
+                    int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
-                        int[] sum = new int[1];
+                        sum[0] = 0;
                         al.forEach(n -> sum[0] += n);
                         check.sum(sum[0]);}}},
             new Job("ArrayDeque.forEach") {
                 public void work() throws Throwable {
+                    int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
-                        int[] sum = new int[1];
+                        sum[0] = 0;
                         ad.forEach(n -> sum[0] += n);
                         check.sum(sum[0]);}}},
             new Job("Vector.forEach") {
                 public void work() throws Throwable {
+                    int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
-                        int[] sum = new int[1];
+                        sum[0] = 0;
                         v.forEach(n -> sum[0] += n);
                         check.sum(sum[0]);}}},
             new Job("ArrayList.iterator().forEachRemaining()") {
                 public void work() throws Throwable {
+                    int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
-                        int[] sum = new int[1];
+                        sum[0] = 0;
                         al.iterator().forEachRemaining(n -> sum[0] += n);
                         check.sum(sum[0]);}}},
             new Job("ArrayDeque.descendingIterator().forEachRemaining()") {
                 public void work() throws Throwable {
+                    int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
-                        int[] sum = new int[1];
+                        sum[0] = 0;
                         ad.descendingIterator().forEachRemaining(n -> sum[0] += n);
                         check.sum(sum[0]);}}},
             new Job("ArrayDeque.iterator().forEachRemaining()") {
                 public void work() throws Throwable {
+                    int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
-                        int[] sum = new int[1];
+                        sum[0] = 0;
                         ad.iterator().forEachRemaining(n -> sum[0] += n);
                         check.sum(sum[0]);}}},
             new Job("Vector.iterator().forEachRemaining()") {
                 public void work() throws Throwable {
+                    int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
-                        int[] sum = new int[1];
+                        sum[0] = 0;
                         v.iterator().forEachRemaining(n -> sum[0] += n);
                         check.sum(sum[0]);}}},
             new Job("ArrayList.spliterator().forEachRemaining()") {
                 public void work() throws Throwable {
+                    int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
-                        int[] sum = new int[1];
+                        sum[0] = 0;
                         al.spliterator().forEachRemaining(n -> sum[0] += n);
                         check.sum(sum[0]);}}},
             new Job("ArrayDeque.spliterator().forEachRemaining()") {
                 public void work() throws Throwable {
+                    int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
-                        int[] sum = new int[1];
+                        sum[0] = 0;
                         ad.spliterator().forEachRemaining(n -> sum[0] += n);
                         check.sum(sum[0]);}}},
             new Job("Vector.spliterator().forEachRemaining()") {
                 public void work() throws Throwable {
+                    int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
-                        int[] sum = new int[1];
+                        sum[0] = 0;
                         v.spliterator().forEachRemaining(n -> sum[0] += n);
                         check.sum(sum[0]);}}},
             new Job("ArrayList subList get loop") {
