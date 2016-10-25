@@ -436,16 +436,16 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         if (o != null) {
             final Object[] elements = this.elements;
             final int capacity = elements.length;
-            int from, end, to, leftover;
-            leftover = (end = (from = head) + size)
+            int from, end, to, todo;
+            todo = (end = (from = head) + size)
                 - (to = (capacity - end >= 0) ? end : capacity);
-            for (;; from = 0, to = leftover, leftover = 0) {
+            for (;; from = 0, to = todo, todo = 0) {
                 for (int i = from; i < to; i++)
                     if (o.equals(elements[i])) {
                         delete(i);
                         return true;
                     }
-                if (leftover == 0) break;
+                if (todo == 0) break;
             }
         }
         return false;
@@ -467,15 +467,15 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         if (o != null) {
             final Object[] elements = this.elements;
             final int capacity = elements.length;
-            int from, to, end, leftover;
-            leftover = (to = ((end = (from = tail()) - size) >= -1) ? end : -1) - end;
-            for (;; from = capacity - 1, to = capacity - 1 - leftover, leftover = 0) {
+            int from, to, end, todo;
+            todo = (to = ((end = (from = tail()) - size) >= -1) ? end : -1) - end;
+            for (;; from = capacity - 1, to = capacity - 1 - todo, todo = 0) {
                 for (int i = from; i > to; i--)
                     if (o.equals(elements[i])) {
                         delete(i);
                         return true;
                     }
-                if (leftover == 0) break;
+                if (todo == 0) break;
             }
         }
         return false;
@@ -849,13 +849,13 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         Objects.requireNonNull(action);
         final Object[] elements = this.elements;
         final int capacity = elements.length;
-        int from, end, to, leftover;
-        leftover = (end = (from = head) + size)
+        int from, end, to, todo;
+        todo = (end = (from = head) + size)
             - (to = (capacity - end >= 0) ? end : capacity);
-        for (;; from = 0, to = leftover, leftover = 0) {
+        for (;; from = 0, to = todo, todo = 0) {
             for (int i = from; i < to; i++)
                 action.accept((E) elements[i]);
-            if (leftover == 0) break;
+            if (todo == 0) break;
         }
         // checkInvariants();
     }
@@ -865,37 +865,37 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * modification, for use in iterators.
      */
     static <E> void forEachRemaining(
-        Consumer<? super E> action, Object[] elements, int from, int size) {
+        Consumer<? super E> action, Object[] elements, int from, int remaining) {
         Objects.requireNonNull(action);
         final int capacity = elements.length;
-        int end, to, leftover;
-        leftover = (end = from + size)
+        int end, to, todo;
+        todo = (end = from + remaining)
             - (to = (capacity - end >= 0) ? end : capacity);
-        for (;; from = 0, to = leftover, leftover = 0) {
+        for (;; from = 0, to = todo, todo = 0) {
             for (int i = from; i < to; i++) {
                 @SuppressWarnings("unchecked") E e = (E) elements[i];
                 if (e == null)
                     throw new ConcurrentModificationException();
                 action.accept(e);
             }
-            if (leftover == 0) break;
+            if (todo == 0) break;
         }
     }
 
     static <E> void forEachRemainingDescending(
-        Consumer<? super E> action, Object[] elements, int from, int size) {
+        Consumer<? super E> action, Object[] elements, int from, int remaining) {
         Objects.requireNonNull(action);
         final int capacity = elements.length;
-        int end, to, leftover;
-        leftover = (to = ((end = from - size) >= -1) ? end : -1) - end;
-        for (;; from = capacity - 1, to = capacity - 1 - leftover, leftover = 0) {
+        int end, to, todo;
+        todo = (to = ((end = from - remaining) >= -1) ? end : -1) - end;
+        for (;; from = capacity - 1, to = capacity - 1 - todo, todo = 0) {
             for (int i = from; i > to; i--) {
                 @SuppressWarnings("unchecked") E e = (E) elements[i];
                 if (e == null)
                     throw new ConcurrentModificationException();
                 action.accept(e);
             }
-            if (leftover == 0) break;
+            if (todo == 0) break;
         }
     }
 
@@ -910,13 +910,13 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         Objects.requireNonNull(operator);
         final Object[] elements = this.elements;
         final int capacity = elements.length;
-        int from, end, to, leftover;
-        leftover = (end = (from = head) + size)
+        int from, end, to, todo;
+        todo = (end = (from = head) + size)
             - (to = (capacity - end >= 0) ? end : capacity);
-        for (;; from = 0, to = leftover, leftover = 0) {
+        for (;; from = 0, to = todo, todo = 0) {
             for (int i = from; i < to; i++)
                 elements[i] = operator.apply(elementAt(i));
-            if (leftover == 0) break;
+            if (todo == 0) break;
         }
         // checkInvariants();
     }
@@ -991,14 +991,14 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         if (o != null) {
             final Object[] elements = this.elements;
             final int capacity = elements.length;
-            int from, end, to, leftover;
-            leftover = (end = (from = head) + size)
+            int from, end, to, todo;
+            todo = (end = (from = head) + size)
                 - (to = (capacity - end >= 0) ? end : capacity);
-            for (;; from = 0, to = leftover, leftover = 0) {
+            for (;; from = 0, to = todo, todo = 0) {
                 for (int i = from; i < to; i++)
                     if (o.equals(elements[i]))
                         return true;
-                if (leftover == 0) break;
+                if (todo == 0) break;
             }
         }
         return false;
@@ -1032,12 +1032,12 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * Nulls out size elements, starting at head.
+     * Nulls out count elements, starting at array index from.
      */
-    private static void clearSlice(Object[] elements, int head, int size) {
-        final int capacity = elements.length, end = head + size;
+    private static void clearSlice(Object[] elements, int from, int count) {
+        final int capacity = elements.length, end = from + count;
         final int leg = (capacity - end >= 0) ? end : capacity;
-        Arrays.fill(elements, head, leg, null);
+        Arrays.fill(elements, from, leg, null);
         if (leg != end)
             Arrays.fill(elements, 0, end - capacity, null);
     }
@@ -1168,13 +1168,13 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         // Write out elements in order.
         final Object[] elements = this.elements;
         final int capacity = elements.length;
-        int from, end, to, leftover;
-        leftover = (end = (from = head) + size)
+        int from, end, to, todo;
+        todo = (end = (from = head) + size)
             - (to = (capacity - end >= 0) ? end : capacity);
-        for (;; from = 0, to = leftover, leftover = 0) {
+        for (;; from = 0, to = todo, todo = 0) {
             for (int i = from; i < to; i++)
                 s.writeObject(elements[i]);
-            if (leftover == 0) break;
+            if (todo == 0) break;
         }
     }
 
