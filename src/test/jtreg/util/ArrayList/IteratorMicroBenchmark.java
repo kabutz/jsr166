@@ -215,6 +215,9 @@ public class IteratorMicroBenchmark {
         }
         final Vector<Integer> v = new Vector<Integer>(al);
         final ArrayDeque<Integer> ad = new ArrayDeque<Integer>(al);
+        // shuffle ArrayDeque elements so they wrap
+        for (int i = 0, n = rnd.nextInt(size); i < n; i++)
+            ad.addLast(ad.removeFirst());
 
         // Also test "short" collections
         final int shortSize = 5;
