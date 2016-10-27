@@ -446,7 +446,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             int i, end, to, todo;
             todo = (end = (i = head) + size)
                 - (to = (capacity - end >= 0) ? end : capacity);
-            for (;; i = 0, to = todo, todo = 0) {
+            for (;; to = todo, i = 0, todo = 0) {
                 for (; i < to; i++)
                     if (o.equals(elements[i])) {
                         delete(i);
@@ -476,7 +476,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             final int capacity = elements.length;
             int i, to, end, todo;
             todo = (to = ((end = (i = tail()) - size) >= -1) ? end : -1) - end;
-            for (;; i = capacity - 1, to = i - todo, todo = 0) {
+            for (;; to = (i = capacity - 1) - todo, todo = 0) {
                 for (; i > to; i--)
                     if (o.equals(elements[i])) {
                         delete(i);
@@ -860,7 +860,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         int i, end, to, todo;
         todo = (end = (i = head) + size)
             - (to = (capacity - end >= 0) ? end : capacity);
-        for (;; i = 0, to = todo, todo = 0) {
+        for (;; to = todo, i = 0, todo = 0) {
             for (; i < to; i++)
                 action.accept((E) elements[i]);
             if (todo == 0) break;
@@ -880,7 +880,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         int end, to, todo;
         todo = (end = i + remaining)
             - (to = (capacity - end >= 0) ? end : capacity);
-        for (;; i = 0, to = todo, todo = 0) {
+        for (;; to = todo, i = 0, todo = 0) {
             for (; i < to; i++)
                 action.accept(nonNullElementAt(elements, i));
             if (todo == 0) break;
@@ -893,7 +893,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         final int capacity = elements.length;
         int end, to, todo;
         todo = (to = ((end = i - remaining) >= -1) ? end : -1) - end;
-        for (;; i = capacity - 1, to = i - todo, todo = 0) {
+        for (;; to = (i = capacity - 1) - todo, todo = 0) {
             for (; i > to; i--)
                 action.accept(nonNullElementAt(elements, i));
             if (todo == 0) break;
@@ -914,7 +914,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         int i, end, to, todo;
         todo = (end = (i = head) + size)
             - (to = (capacity - end >= 0) ? end : capacity);
-        for (;; i = 0, to = todo, todo = 0) {
+        for (;; to = todo, i = 0, todo = 0) {
             for (; i < to; i++)
                 elements[i] = operator.apply(elementAt(i));
             if (todo == 0) break;
@@ -995,7 +995,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             int i, end, to, todo;
             todo = (end = (i = head) + size)
                 - (to = (capacity - end >= 0) ? end : capacity);
-            for (;; i = 0, to = todo, todo = 0) {
+            for (;; to = todo, i = 0, todo = 0) {
                 for (; i < to; i++)
                     if (o.equals(elements[i]))
                         return true;
@@ -1172,7 +1172,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         int i, end, to, todo;
         todo = (end = (i = head) + size)
             - (to = (capacity - end >= 0) ? end : capacity);
-        for (;; i = 0, to = todo, todo = 0) {
+        for (;; to = todo, i = 0, todo = 0) {
             for (; i < to; i++)
                 s.writeObject(elements[i]);
             if (todo == 0) break;
