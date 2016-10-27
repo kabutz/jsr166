@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Spliterator;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CountDownLatch;
@@ -398,7 +399,7 @@ public class IteratorMicroBenchmark {
                         while (it.hasNext())
                             sum += it.next();
                         check.sum(sum);}}},
-            new Job("ArrayDeque descending iterator loop") {
+            new Job("ArrayDeque.descendingIterator() loop") {
                 public void work() throws Throwable {
                     for (int i = 0; i < iterations; i++) {
                         int sum = 0;
@@ -475,6 +476,30 @@ public class IteratorMicroBenchmark {
                     for (int i = 0; i < iterations; i++) {
                         sum[0] = 0;
                         v.spliterator().forEachRemaining(n -> sum[0] += n);
+                        check.sum(sum[0]);}}},
+            new Job("ArrayList.spliterator().tryAdvance()") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        Spliterator<Integer> spliterator = al.spliterator();
+                        do {} while (spliterator.tryAdvance(n -> sum[0] += n));
+                        check.sum(sum[0]);}}},
+            new Job("ArrayDeque.spliterator().tryAdvance()") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        Spliterator<Integer> spliterator = ad.spliterator();
+                        do {} while (spliterator.tryAdvance(n -> sum[0] += n));
+                        check.sum(sum[0]);}}},
+            new Job("Vector.spliterator().tryAdvance()") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        Spliterator<Integer> spliterator = v.spliterator();
+                        do {} while (spliterator.tryAdvance(n -> sum[0] += n));
                         check.sum(sum[0]);}}},
             new Job("ArrayList subList get loop") {
                 public void work() throws Throwable {
