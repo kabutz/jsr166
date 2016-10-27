@@ -476,7 +476,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             final int capacity = elements.length;
             int i, to, end, todo;
             todo = (to = ((end = (i = tail()) - size) >= -1) ? end : -1) - end;
-            for (;; i = capacity - 1, to = capacity - 1 - todo, todo = 0) {
+            for (;; i = capacity - 1, to = i - todo, todo = 0) {
                 for (; i > to; i--)
                     if (o.equals(elements[i])) {
                         delete(i);
@@ -893,7 +893,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         final int capacity = elements.length;
         int end, to, todo;
         todo = (to = ((end = i - remaining) >= -1) ? end : -1) - end;
-        for (;; i = capacity - 1, to = capacity - 1 - todo, todo = 0) {
+        for (;; i = capacity - 1, to = i - todo, todo = 0) {
             for (; i > to; i--)
                 action.accept(nonNullElementAt(elements, i));
             if (todo == 0) break;
