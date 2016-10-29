@@ -105,6 +105,10 @@ public class Collection8Test extends JSR166TestCase {
             () -> c.retainAll(null),
             () -> c.removeAll(null),
             () -> c.removeIf(null),
+            () -> c.forEach(null),
+            () -> c.iterator().forEachRemaining(null),
+            () -> c.spliterator().forEachRemaining(null),
+            () -> c.spliterator().tryAdvance(null),
             () -> c.toArray(null));
 
         if (!impl.permitsNulls()) {
@@ -128,7 +132,8 @@ public class Collection8Test extends JSR166TestCase {
                 () -> d.addLast(null),
                 () -> d.offerFirst(null),
                 () -> d.offerLast(null),
-                () -> d.push(null));
+                () -> d.push(null),
+                () -> d.descendingIterator().forEachRemaining(null));
         }
     }
 

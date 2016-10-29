@@ -731,6 +731,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         }
 
         public void forEachRemaining(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
             final int k;
             if ((k = remaining) > 0) {
                 remaining = 0;
@@ -761,10 +762,18 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         }
 
         public final void forEachRemaining(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
             final int k;
             if ((k = remaining) > 0) {
                 remaining = 0;
-                forEachRemainingDescending(action, elements, cursor, k);
+                final Object[] elements = ArrayDeque.this.elements;
+                int i, end, to, todo;
+                todo = (to = ((end = (i = cursor) - k) >= -1) ? end : -1) - end;
+                for (;; to = (i = elements.length - 1) - todo, todo = 0) {
+                    for (; i > to; i--)
+                        action.accept(nonNullElementAt(elements, i));
+                    if (todo == 0) break;
+                }
                 if ((lastRet = cursor - (k - 1)) < 0)
                     lastRet += elements.length;
             }
@@ -824,6 +833,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         }
 
         public void forEachRemaining(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
             final int k = remaining(); // side effect!
             remaining = 0;
             ArrayDeque.forEachRemaining(action, elements, cursor, k);
@@ -875,26 +885,12 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      */
     static <E> void forEachRemaining(
         Consumer<? super E> action, Object[] es, int i, int remaining) {
-        Objects.requireNonNull(action);
         final int capacity = es.length;
         int end, to, todo;
         todo = (end = i + remaining)
             - (to = (capacity - end >= 0) ? end : capacity);
         for (;; to = todo, i = 0, todo = 0) {
             for (; i < to; i++)
-                action.accept(nonNullElementAt(es, i));
-            if (todo == 0) break;
-        }
-    }
-
-    static <E> void forEachRemainingDescending(
-        Consumer<? super E> action, Object[] es, int i, int remaining) {
-        Objects.requireNonNull(action);
-        final int capacity = es.length;
-        int end, to, todo;
-        todo = (to = ((end = i - remaining) >= -1) ? end : -1) - end;
-        for (;; to = (i = capacity - 1) - todo, todo = 0) {
-            for (; i > to; i--)
                 action.accept(nonNullElementAt(es, i));
             if (todo == 0) break;
         }
