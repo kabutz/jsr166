@@ -14,20 +14,23 @@ public class UnboundedQueueFillEmptyLoops {
     static Integer[] numbers;
 
     public static void main(String[] args) throws Exception {
-        Class<?> klass = null;
-        if (args.length > 0) {
-            try {
-                klass = Class.forName(args[0]);
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException("Class " + args[0] + " not found.");
-            }
+        if (args.length < 2) {
+            System.out.printf(
+                "Usage: UnboundedQueueFillEmptyLoops className [x maxSize]%n");
+            System.exit(1);
+        }
+
+        final Class<?> klass;
+        try {
+            klass = Class.forName(args[0]);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("Class " + args[0] + " not found.");
         }
 
         if (args.length > 2)
             maxSize = Integer.parseInt(args[2]);
 
-        System.out.print("Class: " + klass.getName());
-        System.out.println(" size: " + maxSize);
+        System.out.printf("Class: %s size: %d%n", klass.getName(), maxSize);
 
         numbers = new Integer[maxSize];
         for (int i = 0; i < maxSize; ++i)
