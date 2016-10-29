@@ -8,15 +8,15 @@ import java.util.Random;
 import java.util.Queue;
 
 public class UnboundedQueueFillEmptyLoops {
-    static int maxSize = 10000;
+    static int maxSize = 50000;
     static Random rng = new Random(3153122688L);
     static volatile int total;
     static Integer[] numbers;
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 2) {
+        if (args.length < 1) {
             System.out.printf(
-                "Usage: UnboundedQueueFillEmptyLoops className [x maxSize]%n");
+                "Usage: UnboundedQueueFillEmptyLoops className [maxSize]%n");
             System.exit(1);
         }
 
@@ -27,8 +27,8 @@ public class UnboundedQueueFillEmptyLoops {
             throw new RuntimeException("Class " + args[0] + " not found.");
         }
 
-        if (args.length > 2)
-            maxSize = Integer.parseInt(args[2]);
+        if (args.length > 1)
+            maxSize = Integer.parseInt(args[1]);
 
         System.out.printf("Class: %s size: %d%n", klass.getName(), maxSize);
 
