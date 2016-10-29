@@ -243,8 +243,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * but does catch ones that corrupt traversal.  It's a little
      * surprising that javac allows this abuse of generics.
      */
-    static final <E> E nonNullElementAt(Object[] elements, int i) {
-        @SuppressWarnings("unchecked") E e = (E) elements[i];
+    static final <E> E nonNullElementAt(Object[] es, int i) {
+        @SuppressWarnings("unchecked") E e = (E) es[i];
         if (e == null)
             throw new ConcurrentModificationException();
         return e;
@@ -1035,12 +1035,12 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     /**
      * Nulls out count elements, starting at array index from.
      */
-    private static void clearSlice(Object[] elements, int from, int count) {
-        final int capacity = elements.length, end = from + count;
+    private static void clearSlice(Object[] es, int from, int count) {
+        final int capacity = es.length, end = from + count;
         final int leg = (capacity - end >= 0) ? end : capacity;
-        Arrays.fill(elements, from, leg, null);
+        Arrays.fill(es, from, leg, null);
         if (leg != end)
-            Arrays.fill(elements, 0, end - capacity, null);
+            Arrays.fill(es, 0, end - capacity, null);
     }
 
     /**
