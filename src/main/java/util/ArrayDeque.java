@@ -183,15 +183,15 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @throws NullPointerException if the specified collection is null
      */
     public ArrayDeque(Collection<? extends E> c) {
-        Object[] elements = c.toArray();
+        Object[] es = c.toArray();
         // defend against c.toArray (incorrectly) not returning Object[]
         // (see e.g. https://bugs.openjdk.java.net/browse/JDK-6260652)
-        size = elements.length;
-        if (elements.getClass() != Object[].class)
-            elements = Arrays.copyOf(elements, size, Object[].class);
-        for (Object obj : elements)
+        if (es.getClass() != Object[].class)
+            es = Arrays.copyOf(es, es.length, Object[].class);
+        for (Object obj : es)
             Objects.requireNonNull(obj);
-        this.elements = elements;
+        this.elements = es;
+        this.size = es.length;
     }
 
     /**
@@ -263,15 +263,15 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     public void addFirst(E e) {
         // checkInvariants();
         Objects.requireNonNull(e);
-        Object[] elements;
+        Object[] es;
         int capacity, h;
         final int s;
-        if ((s = size) == (capacity = (elements = this.elements).length)) {
+        if ((s = size) == (capacity = (es = elements).length)) {
             grow(1);
-            capacity = (elements = this.elements).length;
+            capacity = (es = elements).length;
         }
         if ((h = head - 1) < 0) h = capacity - 1;
-        elements[head = h] = e;
+        es[head = h] = e;
         size = s + 1;
         // checkInvariants();
     }
@@ -287,14 +287,14 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     public void addLast(E e) {
         // checkInvariants();
         Objects.requireNonNull(e);
-        Object[] elements;
+        Object[] es;
         int capacity;
         final int s;
-        if ((s = size) == (capacity = (elements = this.elements).length)) {
+        if ((s = size) == (capacity = (es = elements).length)) {
             grow(1);
-            capacity = (elements = this.elements).length;
+            capacity = (es = elements).length;
         }
-        elements[add(head, s, capacity)] = e;
+        es[add(head, s, capacity)] = e;
         size = s + 1;
         // checkInvariants();
     }
