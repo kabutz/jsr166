@@ -4,10 +4,8 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
-import java.util.concurrent.locks.*;
+import java.util.Random;
+import java.util.Queue;
 
 public class UnboundedQueueFillEmptyLoops {
     static int maxSize = 10000;
