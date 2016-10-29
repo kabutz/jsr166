@@ -874,28 +874,28 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * checks for concurrent modification, for use in iterators.
      */
     static <E> void forEachRemaining(
-        Consumer<? super E> action, Object[] elements, int i, int remaining) {
+        Consumer<? super E> action, Object[] es, int i, int remaining) {
         Objects.requireNonNull(action);
-        final int capacity = elements.length;
+        final int capacity = es.length;
         int end, to, todo;
         todo = (end = i + remaining)
             - (to = (capacity - end >= 0) ? end : capacity);
         for (;; to = todo, i = 0, todo = 0) {
             for (; i < to; i++)
-                action.accept(nonNullElementAt(elements, i));
+                action.accept(nonNullElementAt(es, i));
             if (todo == 0) break;
         }
     }
 
     static <E> void forEachRemainingDescending(
-        Consumer<? super E> action, Object[] elements, int i, int remaining) {
+        Consumer<? super E> action, Object[] es, int i, int remaining) {
         Objects.requireNonNull(action);
-        final int capacity = elements.length;
+        final int capacity = es.length;
         int end, to, todo;
         todo = (to = ((end = i - remaining) >= -1) ? end : -1) - end;
         for (;; to = (i = capacity - 1) - todo, todo = 0) {
             for (; i > to; i--)
-                action.accept(nonNullElementAt(elements, i));
+                action.accept(nonNullElementAt(es, i));
             if (todo == 0) break;
         }
     }
