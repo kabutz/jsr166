@@ -967,7 +967,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             throw ex;
         } finally {
             size -= deleted;
-            clearSlice(es, j, deleted);
+            circularClear(es, j, deleted);
             // checkInvariants();
         }
     }
@@ -1018,20 +1018,20 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * The deque will be empty after this call returns.
      */
     public void clear() {
-        clearSlice(elements, head, size);
+        circularClear(elements, head, size);
         size = head = 0;
         // checkInvariants();
     }
 
     /**
-     * Nulls out count elements, starting at array index i.
+     * Nulls out count elements, starting at array index from.
      */
-    private static void clearSlice(Object[] es, int i, int count) {
+    private static void circularClear(Object[] es, int from, int count) {
         int end, to, todo;
-        todo = (end = i + count)
+        todo = (end = from + count)
             - (to = (es.length - end >= 0) ? end : es.length);
-        for (;; to = todo, i = 0, todo = 0) {
-            Arrays.fill(es, i, to, null);
+        for (;; to = todo, from = 0, todo = 0) {
+            Arrays.fill(es, from, to, null);
             if (todo == 0) break;
         }
     }
