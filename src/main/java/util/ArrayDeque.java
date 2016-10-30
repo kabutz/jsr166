@@ -1112,11 +1112,12 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         if ((size = this.size) > a.length)
             return toArray((Class<T[]>) a.getClass());
         final Object[] es = elements;
-        final int head = this.head, end = head + size;
-        final int front = (es.length - end >= 0) ? size : es.length - head;
-        System.arraycopy(es, head, a, 0, front);
-        if (front < size)
-            System.arraycopy(es, 0, a, front, size - front);
+        int i, j, len, todo;
+        todo = size - (len = Math.min(size, es.length - (i = head)));
+        for (j = 0;; j += len, len = todo, todo = 0, i = 0) {
+            System.arraycopy(es, i, a, j, len);
+            if (todo == 0) break;
+        }
         if (size < a.length)
             a[size] = null;
         return a;
