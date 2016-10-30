@@ -501,6 +501,27 @@ public class IteratorMicroBenchmark {
                         Spliterator<Integer> spliterator = v.spliterator();
                         do {} while (spliterator.tryAdvance(n -> sum[0] += n));
                         check.sum(sum[0]);}}},
+            new Job("ArrayList.removeIf") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        al.removeIf(n -> { sum[0] += n; return false; });
+                        check.sum(sum[0]);}}},
+            new Job("ArrayDeque.removeIf") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        ad.removeIf(n -> { sum[0] += n; return false; });
+                        check.sum(sum[0]);}}},
+            new Job("Vector.removeIf") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        v.removeIf(n -> { sum[0] += n; return false; });
+                        check.sum(sum[0]);}}},
             new Job("ArrayList subList get loop") {
                 public void work() throws Throwable {
                     List<Integer> sl = asSubList(al);
