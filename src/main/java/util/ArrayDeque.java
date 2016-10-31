@@ -445,7 +445,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             int i, end, to, todo;
             todo = (end = (i = head) + size)
                 - (to = (es.length - end >= 0) ? end : es.length);
-            for (;; to = todo, i = 0, todo = 0) {
+            for (;; to = todo, todo = 0, i = 0) {
                 for (; i < to; i++)
                     if (o.equals(es[i])) {
                         delete(i);
@@ -867,7 +867,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         int i, end, to, todo;
         todo = (end = (i = head) + size)
             - (to = (es.length - end >= 0) ? end : es.length);
-        for (;; to = todo, i = 0, todo = 0) {
+        for (;; to = todo, todo = 0, i = 0) {
             for (; i < to; i++)
                 action.accept((E) es[i]);
             if (todo == 0) break;
@@ -885,7 +885,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         int end, to, todo;
         todo = (end = i + remaining)
             - (to = (es.length - end >= 0) ? end : es.length);
-        for (;; to = todo, i = 0, todo = 0) {
+        for (;; to = todo, todo = 0, i = 0) {
             for (; i < to; i++)
                 action.accept(nonNullElementAt(es, i));
             if (todo == 0) break;
@@ -906,7 +906,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         int i, end, to, todo;
         todo = (end = (i = head) + size)
             - (to = (es.length - end >= 0) ? end : es.length);
-        for (;; to = todo, i = 0, todo = 0) {
+        for (;; to = todo, todo = 0, i = 0) {
             for (; i < to; i++)
                 es[i] = operator.apply((E) es[i]);
             if (todo == 0) break;
@@ -986,7 +986,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             int i, end, to, todo;
             todo = (end = (i = head) + size)
                 - (to = (es.length - end >= 0) ? end : es.length);
-            for (;; to = todo, i = 0, todo = 0) {
+            for (;; to = todo, todo = 0, i = 0) {
                 for (; i < to; i++)
                     if (o.equals(es[i]))
                         return true;
@@ -1030,7 +1030,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         int end, to, todo;
         todo = (end = from + count)
             - (to = (es.length - end >= 0) ? end : es.length);
-        for (;; to = todo, from = 0, todo = 0) {
+        for (;; to = todo, todo = 0, from = 0) {
             Arrays.fill(es, from, to, null);
             if (todo == 0) break;
         }
@@ -1164,7 +1164,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         int i, end, to, todo;
         todo = (end = (i = head) + size)
             - (to = (es.length - end >= 0) ? end : es.length);
-        for (;; to = todo, i = 0, todo = 0) {
+        for (;; to = todo, todo = 0, i = 0) {
             for (; i < to; i++)
                 s.writeObject(es[i]);
             if (todo == 0) break;
