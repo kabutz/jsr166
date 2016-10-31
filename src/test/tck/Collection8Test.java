@@ -182,28 +182,31 @@ public class Collection8Test extends JSR166TestCase {
             }
         };
         try {
-            boolean modified = c.removeIf(randomPredicate);
-            if (!modified) {
-                assertNull(threwAt.get());
-                assertEquals(n, rejects.size());
-                assertEquals(0, accepts.size());
-            }
-        } catch (ArithmeticException ok) {}
-        survivors.removeAll(accepts);
-        if (n - accepts.size() != c.size()) {
+            try {
+                boolean modified = c.removeIf(randomPredicate);
+                if (!modified) {
+                    assertNull(threwAt.get());
+                    assertEquals(n, rejects.size());
+                    assertEquals(0, accepts.size());
+                }
+            } catch (ArithmeticException ok) {}
+            survivors.removeAll(accepts);
+            assertEquals(n - accepts.size(), c.size());
+            assertTrue(c.containsAll(survivors));
+            assertTrue(survivors.containsAll(rejects));
+            for (Object x : accepts) assertFalse(c.contains(x));
+            if (threwAt.get() == null)
+                assertEquals(accepts.size() + rejects.size(), n);
+        } catch (Throwable ex) {
             System.err.println(impl.klazz());
-            System.err.println(c);
-            System.err.println(accepts);
-            System.err.println(rejects);
+            System.err.printf("c=%s%n", c);
+            System.err.printf("n=%d%n", n);
+            System.err.printf("accepts=%s%n", accepts);
+            System.err.printf("rejects=%s%n", rejects);
             System.err.println(survivors);
-            System.err.println(threwAt.get());
+            System.err.printf("threw=%s%n", threwAt.get());
+            throw ex;
         }
-        assertEquals(n - accepts.size(), c.size());
-        assertTrue(c.containsAll(survivors));
-        assertTrue(survivors.containsAll(rejects));
-        for (Object x : accepts) assertFalse(c.contains(x));
-        if (threwAt.get() == null)
-            assertEquals(accepts.size() + rejects.size(), n);
     }
 
     /**
