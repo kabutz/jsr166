@@ -7,6 +7,7 @@
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
@@ -68,10 +69,10 @@ public class ExecutorCompletionService9Test extends JSR166TestCase {
             use(result);
     }
 
-    HashSet<Integer> results;
+    ArrayList<Integer> results;
 
     void use(Integer x) {
-        if (results == null) results = new HashSet<Integer>();
+        if (results == null) results = new ArrayList<Integer>();
         results.add(x);
     }
 
@@ -80,6 +81,7 @@ public class ExecutorCompletionService9Test extends JSR166TestCase {
      */
     public void testSolveAll()
         throws InterruptedException, ExecutionException {
+        results = null;
         Set<Callable<Integer>> solvers = Set.of(
             () -> null,
             () -> 1,
@@ -87,7 +89,8 @@ public class ExecutorCompletionService9Test extends JSR166TestCase {
             () -> 3,
             () -> null);
         solveAll(cachedThreadPool, solvers);
-        assertEquals(Set.of(1, 2, 3), results);
+        results.sort(Comparator.naturalOrder());
+        assertEquals(List.of(1, 2, 3), results);
     }
 
     /**
@@ -95,6 +98,7 @@ public class ExecutorCompletionService9Test extends JSR166TestCase {
      */
     public void testSolveAny()
         throws InterruptedException {
+        results = null;
         Set<Callable<Integer>> solvers = Set.of(
             () -> { throw new ArithmeticException(); },
             () -> null,
@@ -102,7 +106,7 @@ public class ExecutorCompletionService9Test extends JSR166TestCase {
             () -> 2);
         solveAny(cachedThreadPool, solvers);
         assertEquals(1, results.size());
-        Integer elt = results.iterator().next();
+        Integer elt = results.get(0);
         assertTrue(elt.equals(1) || elt.equals(2));
     }
 
