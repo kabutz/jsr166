@@ -939,37 +939,74 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /** Implementation of bulk remove methods. */
+    @SuppressWarnings("unchecked")
     private boolean bulkRemove(Predicate<? super E> filter) {
         // checkInvariants();
         final Object[] es = elements;
-        final int capacity = es.length;
-        int i = head, j = i, remaining = size, deleted = 0;
-        try {
-            for (; remaining > 0; remaining--) {
-                @SuppressWarnings("unchecked") E e = (E) es[i];
-                if (filter.test(e))
-                    deleted++;
-                else {
-                    if (j != i)
-                        es[j] = e;
-                    if (++j >= capacity) j = 0;
-                }
-                if (++i >= capacity) i = 0;
-            }
-            return deleted > 0;
-        } catch (Throwable ex) {
-            if (deleted > 0)
-                for (; remaining > 0; remaining--) {
-                    es[j] = es[i];
-                    if (++i >= capacity) i = 0;
-                    if (++j >= capacity) j = 0;
-                }
-            throw ex;
-        } finally {
-            size -= deleted;
-            circularClear(es, j, deleted);
-            // checkInvariants();
+        int i, end, to, todo;
+        todo = (end = (i = head) + size)
+            - (to = (es.length - end >= 0) ? end : es.length);
+        // Optimize for initial run of non-removed elements
+        findFirstRemoved:
+        for (;; to = todo, todo = 0, i = 0) {
+            for (; i < to; i++)
+                if (filter.test((E) es[i]))
+                    break findFirstRemoved;
+            if (todo == 0) return false;
         }
+        bulkRemoveModified(filter, i, to, todo);
+        return true;
+    }
+
+    /**
+     * Helper for bulkRemove, in case of at least one deletion.
+     * @param i valid index of first element to be deleted
+     */
+    @SuppressWarnings("unchecked")
+    private void bulkRemoveModified(
+        Predicate<? super E> filter, int i, int to, int todo) {
+        final Object[] es = elements;
+        final int capacity = es.length;
+        // a two-finger algorithm, with hare i and tortoise j
+        int j = i++;
+        try {
+            for (;;) {
+                E e;
+                // In this loop, i and j are on the same leg, with i > j
+                for (; i < to; i++)
+                    if (!filter.test(e = (E) es[i]))
+                        es[j++] = e;
+                if (todo == 0) break;
+                // In this loop, j is on the first leg, i on the second
+                for (to = todo, todo = 0, i = 0; i < to && j < capacity; i++)
+                    if (!filter.test(e = (E) es[i]))
+                        es[j++] = e;
+                if (i >= to) break;
+                j = 0;          // j rejoins i on second leg
+            }
+            bulkRemoveClear(es, j, i);
+            // checkInvariants();
+        } catch (Throwable ex) {
+            // copy remaining elements
+            for (int remaining = (to - i) + todo; --remaining >= 0;) {
+                es[j] = es[i];
+                if (++i >= capacity) i = 0;
+                if (++j >= capacity) j = 0;
+            }
+            bulkRemoveClear(es, j, i);
+            // checkInvariants();
+            throw ex;
+        }
+    }
+
+    /**
+     * Nulls out all elements from index j upto index i.
+     */
+    private void bulkRemoveClear(Object[] es, int j, int i) {
+        int deleted;
+        if ((deleted = i - j) <= 0) deleted += es.length;
+        size -= deleted;
+        circularClear(es, j, deleted);
     }
 
     /**
@@ -1025,6 +1062,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
 
     /**
      * Nulls out count elements, starting at array index from.
+     * Special case (from == es.length) is treated the same as (from == 0).
      */
     private static void circularClear(Object[] es, int from, int count) {
         int end, to, todo;
