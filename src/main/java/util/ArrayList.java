@@ -1494,39 +1494,37 @@ public class ArrayList<E> extends AbstractList<E>
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean removeIf(Predicate<? super E> filter) {
         Objects.requireNonNull(filter);
-        final int expectedModCount = modCount;
-        final Object[] elementData = this.elementData;
-        int r = 0, w = 0, remaining = size, deleted = 0;
-        try {
-            for (; remaining > 0; remaining--, r++) {
-                @SuppressWarnings("unchecked") E e = (E) elementData[r];
-                if (filter.test(e))
-                    deleted++;
-                else {
-                    if (r != w)
-                        elementData[w] = e;
-                    w++;
-                }
-            }
-            if (modCount != expectedModCount)
-                throw new ConcurrentModificationException();
-            return deleted > 0;
-        } catch (Throwable ex) {
-            if (deleted > 0)
-                for (; remaining > 0; remaining--, r++, w++)
-                    elementData[w] = elementData[r];
-            throw ex;
-        } finally {
-            if (deleted > 0) {
-                modCount++;
-                size -= deleted;
-                while (--deleted >= 0)
-                    elementData[w++] = null;
+        int expectedModCount = modCount;
+        final Object[] es = elementData;
+        final int size = this.size;
+        final boolean modified;
+        int r;
+        for (r = 0; r < size; r++)
+            if (filter.test((E) es[r]))
+                break;
+        if (modified = (r < size)) {
+            expectedModCount++;
+            modCount++;
+            int w = r++;
+            try {
+                for (E e; r < size; r++)
+                    if (!filter.test(e = (E) es[r]))
+                        es[w++] = e;
+                Arrays.fill(es, (this.size = w), size, null);
+            } catch (Throwable ex) {
+                // copy remaining elements
+                System.arraycopy(es, r, es, w, size - r);
+                Arrays.fill(es, (this.size = w + size - r), size, null);
+                throw ex;
             }
         }
+        if (modCount != expectedModCount)
+            throw new ConcurrentModificationException();
+        return modified;
     }
 
     @Override
