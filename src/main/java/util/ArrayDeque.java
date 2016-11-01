@@ -90,7 +90,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      *
      * @param needed the required minimum extra capacity; must be positive
      */
-    private void grow(int needed) {
+    private Object[] grow(int needed) {
         // overflow-conscious code
         // checkInvariants();
         final int oldCapacity = elements.length;
@@ -110,6 +110,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             Arrays.fill(elements, head, head + newSpace, null);
             head += newSpace;
         }
+        return elements;
         // checkInvariants();
     }
 
@@ -266,10 +267,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         Object[] es;
         int capacity, h;
         final int s;
-        if ((s = size) == (capacity = (es = elements).length)) {
-            grow(1);
-            capacity = (es = elements).length;
-        }
+        if ((s = size) == (capacity = (es = elements).length))
+            capacity = (es = grow(1)).length;
         if ((h = head - 1) < 0) h = capacity - 1;
         es[head = h] = e;
         size = s + 1;
@@ -290,10 +289,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         Object[] es;
         int capacity;
         final int s;
-        if ((s = size) == (capacity = (es = elements).length)) {
-            grow(1);
-            capacity = (es = elements).length;
-        }
+        if ((s = size) == (capacity = (es = elements).length))
+            capacity = (es = grow(1)).length;
         es[add(head, s, capacity)] = e;
         size = s + 1;
         // checkInvariants();
