@@ -182,6 +182,7 @@ public class Collection8Test extends JSR166TestCase {
             }
         };
         try {
+            assertFalse(survivors.contains(null));
             try {
                 boolean modified = c.removeIf(randomPredicate);
                 if (!modified) {
@@ -203,7 +204,7 @@ public class Collection8Test extends JSR166TestCase {
             System.err.printf("n=%d%n", n);
             System.err.printf("accepts=%s%n", accepts);
             System.err.printf("rejects=%s%n", rejects);
-            System.err.println(survivors);
+            System.err.printf("survivors=%s%n", survivors);
             System.err.printf("threw=%s%n", threwAt.get());
             throw ex;
         }
