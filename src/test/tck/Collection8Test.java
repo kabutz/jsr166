@@ -81,6 +81,8 @@ public class Collection8Test extends JSR166TestCase {
         c.iterator().forEachRemaining(alwaysThrows);
         c.spliterator().forEachRemaining(alwaysThrows);
         assertFalse(c.spliterator().tryAdvance(alwaysThrows));
+        if (c.spliterator().hasCharacteristics(Spliterator.SIZED))
+            assertEquals(0, c.spliterator().estimateSize());
         if (Queue.class.isAssignableFrom(impl.klazz())) {
             Queue q = (Queue) c;
             assertNull(q.peek());
@@ -93,6 +95,7 @@ public class Collection8Test extends JSR166TestCase {
             assertNull(d.pollFirst());
             assertNull(d.pollLast());
             assertIteratorExhausted(d.descendingIterator());
+            d.descendingIterator().forEachRemaining(alwaysThrows);
         }
     }
 
