@@ -499,7 +499,8 @@ public class JSR166TestCase extends TestCase {
             TreeMapTest.suite(),
             TreeSetTest.suite(),
             TreeSubMapTest.suite(),
-            TreeSubSetTest.suite());
+            TreeSubSetTest.suite(),
+            VectorTest.suite());
 
         // Java8+ test classes
         if (atLeastJava8()) {
