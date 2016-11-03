@@ -37,7 +37,8 @@ import java.util.concurrent.locks.LockSupport;
  * tasks are submitted to the pool from external clients.  Especially
  * when setting <em>asyncMode</em> to true in constructors, {@code
  * ForkJoinPool}s may also be appropriate for use with event-style
- * tasks that are never joined.
+ * tasks that are never joined. All worker threads are initialized
+ * with {@link Thread#isDaemon} set {@code true}.
  *
  * <p>A static {@link #commonPool()} is available and appropriate for
  * most applications. The common pool is used by any ForkJoinTask that
