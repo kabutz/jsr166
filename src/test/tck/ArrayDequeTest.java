@@ -572,14 +572,17 @@ public class ArrayDequeTest extends JSR166TestCase {
      * removeFirstOccurrence(x) removes x and returns true if present
      */
     public void testRemoveFirstOccurrence() {
-        ArrayDeque q = populatedDeque(SIZE);
+        Deque<Integer> q = populatedDeque(SIZE);
         assertFalse(q.removeFirstOccurrence(null));
         for (int i = 1; i < SIZE; i += 2) {
-            assertTrue(q.removeFirstOccurrence(new Integer(i)));
+            assertTrue(q.removeFirstOccurrence(i));
+            assertFalse(q.contains(i));
         }
         for (int i = 0; i < SIZE; i += 2) {
-            assertTrue(q.removeFirstOccurrence(new Integer(i)));
-            assertFalse(q.removeFirstOccurrence(new Integer(i + 1)));
+            assertTrue(q.removeFirstOccurrence(i));
+            assertFalse(q.removeFirstOccurrence(i + 1));
+            assertFalse(q.contains(i));
+            assertFalse(q.contains(i + 1));
         }
         assertTrue(q.isEmpty());
         assertFalse(q.removeFirstOccurrence(null));
@@ -593,14 +596,17 @@ public class ArrayDequeTest extends JSR166TestCase {
      * removeLastOccurrence(x) removes x and returns true if present
      */
     public void testRemoveLastOccurrence() {
-        ArrayDeque q = populatedDeque(SIZE);
+        Deque<Integer> q = populatedDeque(SIZE);
         assertFalse(q.removeLastOccurrence(null));
         for (int i = 1; i < SIZE; i += 2) {
-            assertTrue(q.removeLastOccurrence(new Integer(i)));
+            assertTrue(q.removeLastOccurrence(i));
+            assertFalse(q.contains(i));
         }
         for (int i = 0; i < SIZE; i += 2) {
-            assertTrue(q.removeLastOccurrence(new Integer(i)));
-            assertFalse(q.removeLastOccurrence(new Integer(i + 1)));
+            assertTrue(q.removeLastOccurrence(i));
+            assertFalse(q.removeLastOccurrence(i + 1));
+            assertFalse(q.contains(i));
+            assertFalse(q.contains(i + 1));
         }
         assertTrue(q.isEmpty());
         assertFalse(q.removeLastOccurrence(null));
@@ -917,6 +923,7 @@ public class ArrayDequeTest extends JSR166TestCase {
         assertNotSame(y, x);
         assertEquals(x.size(), y.size());
         assertEquals(x.toString(), y.toString());
+        assertEquals(Arrays.toString(x.toArray()), Arrays.toString(y.toArray()));
         assertTrue(Arrays.equals(x.toArray(), y.toArray()));
         while (!x.isEmpty()) {
             assertFalse(y.isEmpty());
