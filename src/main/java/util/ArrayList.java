@@ -716,7 +716,6 @@ public class ArrayList<E> extends AbstractList<E>
      * @see Collection#contains(Object)
      */
     public boolean removeAll(Collection<?> c) {
-        Objects.requireNonNull(c);
         return batchRemove(c, false);
     }
 
@@ -737,34 +736,34 @@ public class ArrayList<E> extends AbstractList<E>
      * @see Collection#contains(Object)
      */
     public boolean retainAll(Collection<?> c) {
-        Objects.requireNonNull(c);
         return batchRemove(c, true);
     }
 
     private boolean batchRemove(Collection<?> c, boolean complement) {
-        final Object[] elementData = this.elementData;
-        int r = 0, w = 0;
-        boolean modified = false;
-        try {
-            for (; r < size; r++)
-                if (c.contains(elementData[r]) == complement)
-                    elementData[w++] = elementData[r];
-        } finally {
-            // Preserve behavioral compatibility with AbstractCollection,
-            // even if c.contains() throws.
-            if (r != size) {
-                System.arraycopy(elementData, r,
-                                 elementData, w,
-                                 size - r);
+        Objects.requireNonNull(c);
+        final Object[] es = elementData;
+        final int size = this.size;
+        final boolean modified;
+        int r;
+        // Optimize for initial run of survivors
+        for (r = 0; r < size; r++)
+            if (c.contains(es[r]) != complement)
+                break;
+        if (modified = (r < size)) {
+            int w = r++;
+            try {
+                for (Object e; r < size; r++)
+                    if (c.contains(e = es[r]) == complement)
+                        es[w++] = e;
+            } catch (Throwable ex) {
+                // Preserve behavioral compatibility with AbstractCollection,
+                // even if c.contains() throws.
+                System.arraycopy(es, r, es, w, size - r);
                 w += size - r;
-            }
-            if (w != size) {
-                // clear to let GC do its work
-                for (int i = w; i < size; i++)
-                    elementData[i] = null;
+                throw ex;
+            } finally {
                 modCount += size - w;
-                size = w;
-                modified = true;
+                Arrays.fill(es, (this.size = w), size, null);
             }
         }
         return modified;
@@ -1503,6 +1502,7 @@ public class ArrayList<E> extends AbstractList<E>
         final int size = this.size;
         final boolean modified;
         int r;
+        // Optimize for initial run of survivors
         for (r = 0; r < size; r++)
             if (filter.test((E) es[r]))
                 break;
@@ -1514,12 +1514,13 @@ public class ArrayList<E> extends AbstractList<E>
                 for (E e; r < size; r++)
                     if (!filter.test(e = (E) es[r]))
                         es[w++] = e;
-                Arrays.fill(es, (this.size = w), size, null);
             } catch (Throwable ex) {
                 // copy remaining elements
                 System.arraycopy(es, r, es, w, size - r);
-                Arrays.fill(es, (this.size = w + size - r), size, null);
+                w += size - r;
                 throw ex;
+            } finally {
+                Arrays.fill(es, (this.size = w), size, null);
             }
         }
         if (modCount != expectedModCount)
