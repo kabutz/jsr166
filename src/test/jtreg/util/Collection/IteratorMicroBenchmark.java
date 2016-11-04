@@ -232,16 +232,12 @@ public class IteratorMicroBenchmark {
 //             "iterations=%d size=%d, warmup=%1g, filter=\"%s\"%n",
 //             iterations, size, warmupSeconds, filter);
 
-        final ConcurrentSkipListMap<Integer,Integer> m
-            = new ConcurrentSkipListMap<Integer,Integer>();
         final ArrayList<Integer> al = new ArrayList<Integer>(size);
 
         // Populate collections with random data
         final ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        for (int i = 0; i < size; i++) {
-            m.put(rnd.nextInt(size), rnd.nextInt(size));
+        for (int i = 0; i < size; i++)
             al.add(rnd.nextInt(size));
-        }
 
         final ArrayDeque<Integer> ad = new ArrayDeque<>(al);
         final ArrayBlockingQueue<Integer> abq = new ArrayBlockingQueue<>(al.size());
