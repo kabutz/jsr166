@@ -29,10 +29,7 @@
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Deque;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
@@ -40,12 +37,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Spliterator;
 import java.util.Vector;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
@@ -56,7 +47,7 @@ import java.util.regex.Pattern;
  * Usage: [iterations=N] [size=N] [filter=REGEXP] [warmup=SECONDS]
  *
  * To run this in micro-benchmark mode, simply run as a normal java program.
- * Be patient; this program runs for a very long time.
+ * Be patient; this runs for an hour!
  * For faster runs, restrict execution using command line args.
  *
  * @author Martin Buchholz
@@ -69,10 +60,7 @@ public class IteratorMicroBenchmark {
         public abstract void work() throws Throwable;
     }
 
-    int iterations;
-    int size;
-    double warmupSeconds;
-    Pattern filter;
+    static double warmupSeconds = 10;
 
     // --------------- GC finalization infrastructure ---------------
 
@@ -101,28 +89,26 @@ public class IteratorMicroBenchmark {
      * compiling everything worth compiling.
      * Returns array of average times per job per run.
      */
-    long[] time0(List<Job> jobs) throws Throwable {
+    private static long[] time0(Job ... jobs) throws Throwable {
         final long warmupNanos = (long) (warmupSeconds * 1000L * 1000L * 1000L);
-        final int size = jobs.size();
-        long[] nanoss = new long[size];
-        for (int i = 0; i < size; i++) {
+        long[] nanoss = new long[jobs.length];
+        for (int i = 0; i < jobs.length; i++) {
             if (warmupNanos > 0) forceFullGc();
             long t0 = System.nanoTime();
             long t;
             int j = 0;
-            do { jobs.get(i).work(); j++; }
+            do { jobs[i].work(); j++; }
             while ((t = System.nanoTime() - t0) < warmupNanos);
             nanoss[i] = t/j;
         }
         return nanoss;
     }
 
-    void time(List<Job> jobs) throws Throwable {
+    private static void time(Job ... jobs) throws Throwable {
         if (warmupSeconds > 0) time0(jobs); // Warm up run
-        final int size = jobs.size();
-        final long[] nanoss = time0(jobs); // Real timing run
-        final long[] milliss = new long[size];
-        final double[] ratios = new double[size];
+        long[] nanoss = time0(jobs); // Real timing run
+        long[] milliss = new long[jobs.length];
+        double[] ratios = new double[jobs.length];
 
         final String nameHeader   = "Method";
         final String millisHeader = "Millis";
@@ -132,8 +118,8 @@ public class IteratorMicroBenchmark {
         int millisWidth = millisHeader.length();
         int ratioWidth  = ratioHeader.length();
 
-        for (int i = 0; i < size; i++) {
-            nameWidth = Math.max(nameWidth, jobs.get(i).name().length());
+        for (int i = 0; i < jobs.length; i++) {
+            nameWidth = Math.max(nameWidth, jobs[i].name().length());
 
             milliss[i] = nanoss[i]/(1000L * 1000L);
             millisWidth = Math.max(millisWidth,
@@ -151,8 +137,8 @@ public class IteratorMicroBenchmark {
         System.out.printf(headerFormat, "Method", "Millis", "Ratio");
 
         // Print out absolute and relative times, calibrated against first job
-        for (int i = 0; i < size; i++)
-            System.out.printf(format, jobs.get(i).name(), milliss[i], ratios[i]);
+        for (int i = 0; i < jobs.length; i++)
+            System.out.printf(format, jobs[i].name(), milliss[i], ratios[i]);
     }
 
     private static String keywordValue(String[] args, String keyword) {
@@ -177,13 +163,17 @@ public class IteratorMicroBenchmark {
         return (val == null) ? null : Pattern.compile(val);
     }
 
-    private static List<Job> filter(Pattern filter, List<Job> jobs) {
+    private static Job[] filter(Pattern filter, Job[] jobs) {
         if (filter == null) return jobs;
-        ArrayList<Job> newJobs = new ArrayList<>();
+        Job[] newJobs = new Job[jobs.length];
+        int n = 0;
         for (Job job : jobs)
             if (filter.matcher(job.name()).find())
-                newJobs.add(job);
-        return newJobs;
+                newJobs[n++] = job;
+        // Arrays.copyOf not available in JDK 5
+        Job[] ret = new Job[n];
+        System.arraycopy(newJobs, 0, ret, 0, n);
+        return ret;
     }
 
     private static void deoptimize(int sum) {
@@ -205,28 +195,11 @@ public class IteratorMicroBenchmark {
                     public void remove()     {        it.remove(); }};}};
     }
 
-    // Checks for correctness *and* prevents loop optimizations
-    class Check {
-        private int sum;
-        public void sum(int sum) {
-            if (this.sum == 0)
-                this.sum = sum;
-            if (this.sum != sum)
-                throw new AssertionError("Sum mismatch");
-        }
-    }
-    final Check check      = new Check();
-    final Check shortCheck = new Check();
-
     public static void main(String[] args) throws Throwable {
-        new IteratorMicroBenchmark().run(args);
-    }
-
-    void run(String[] args) throws Throwable {
-        iterations    = intArg(args, "iterations", 100_000);
-        size          = intArg(args, "size", 1000);
-        warmupSeconds = doubleArg(args, "warmup", 10);
-        filter        = patternArg(args, "filter");
+        final int iterations = intArg(args, "iterations", 100_000);
+        final int size       = intArg(args, "size", 1000);
+        warmupSeconds        = doubleArg(args, "warmup", 10);
+        final Pattern filter = patternArg(args, "filter");
 //         System.out.printf(
 //             "iterations=%d size=%d, warmup=%1g, filter=\"%s\"%n",
 //             iterations, size, warmupSeconds, filter);
@@ -241,28 +214,31 @@ public class IteratorMicroBenchmark {
             m.put(rnd.nextInt(size), rnd.nextInt(size));
             al.add(rnd.nextInt(size));
         }
-        final Vector<Integer> v = new Vector<>(al);
-
-        final ArrayDeque<Integer> ad = new ArrayDeque<>(al);
+        final Vector<Integer> v = new Vector<Integer>(al);
+        final ArrayDeque<Integer> ad = new ArrayDeque<Integer>(al);
         // shuffle ArrayDeque elements so they wrap
         for (int i = 0, n = rnd.nextInt(size); i < n; i++)
             ad.addLast(ad.removeFirst());
 
-        final ArrayBlockingQueue<Integer> abq = new ArrayBlockingQueue<>(al.size());
-        abq.addAll(al);
-
-        final ConcurrentLinkedQueue<Integer> clq = new ConcurrentLinkedQueue<>(al);
-        final ConcurrentLinkedDeque<Integer> cld = new ConcurrentLinkedDeque<>(al);
-        final LinkedBlockingQueue<Integer> lbq = new LinkedBlockingQueue<>(al);
-        final LinkedBlockingDeque<Integer> lbd = new LinkedBlockingDeque<>(al);
-        final LinkedTransferQueue<Integer> ltq = new LinkedTransferQueue<>(al);
-
         // Also test "short" collections
         final int shortSize = 5;
-        final Vector<Integer> sv = new Vector<>(v.subList(0, shortSize));
-        final ArrayList<Integer> sal = new ArrayList<>(sv);
+        final Vector<Integer> sv = new Vector<Integer>(v.subList(0, shortSize));
+        final ArrayList<Integer> sal = new ArrayList<Integer>(sv);
 
-        Job[] initialJobs = {
+        // Checks for correctness *and* prevents loop optimizations
+        class Check {
+            private int sum;
+            public void sum(int sum) {
+                if (this.sum == 0)
+                    this.sum = sum;
+                if (this.sum != sum)
+                    throw new AssertionError("Sum mismatch");
+            }
+        }
+        final Check check      = new Check();
+        final Check shortCheck = new Check();
+
+        Job[] jobs = {
 //          new Job("Vector iterate desugared") {
 //              public void work() throws Throwable {
 //                  for (int i = 0; i < iterations; i++) {
@@ -641,86 +617,6 @@ public class IteratorMicroBenchmark {
                         deoptimize(sum);}}}
         };
 
-        ArrayList<Job> jobs = new ArrayList<>(Arrays.asList(initialJobs));
-
-        // Add in pure interface jobs
-        List.of(al, ad, v, abq, lbd, lbq, ltq, clq, cld).stream()
-            .forEach(x -> {
-                         jobs.addAll(collectionJobs(x));
-                         if (x instanceof Deque)
-                             jobs.addAll(dequeJobs((Deque<Integer>)x));
-                     });
-
         time(filter(filter, jobs));
-    }
-
-    List<Job> collectionJobs(Collection<Integer> x) {
-        String klazz = x.getClass().getSimpleName();
-        String desc = klazz + " Collection interface";
-        return List.of(
-            new Job(desc + " iterate for loop") {
-                public void work() throws Throwable {
-                    for (int i = 0; i < iterations; i++) {
-                        int sum = 0;
-                        for (Integer n : x)
-                            sum += n;
-                        check.sum(sum);}}},
-            new Job(desc + " .iterator().forEachRemaining()") {
-                public void work() throws Throwable {
-                    int[] sum = new int[1];
-                    for (int i = 0; i < iterations; i++) {
-                        sum[0] = 0;
-                        x.iterator().forEachRemaining(n -> sum[0] += n);
-                        check.sum(sum[0]);}}},
-            new Job(desc + " .spliterator().tryAdvance()") {
-                public void work() throws Throwable {
-                    int[] sum = new int[1];
-                    for (int i = 0; i < iterations; i++) {
-                        sum[0] = 0;
-                        Spliterator<Integer> spliterator = x.spliterator();
-                        do {} while (spliterator.tryAdvance(n -> sum[0] += n));
-                        check.sum(sum[0]);}}},
-            new Job(desc + " .spliterator().forEachRemaining()") {
-                public void work() throws Throwable {
-                    int[] sum = new int[1];
-                    for (int i = 0; i < iterations; i++) {
-                        sum[0] = 0;
-                        x.spliterator().forEachRemaining(n -> sum[0] += n);
-                        check.sum(sum[0]);}}},
-            new Job(desc + " .removeIf") {
-                public void work() throws Throwable {
-                    int[] sum = new int[1];
-                    for (int i = 0; i < iterations; i++) {
-                        sum[0] = 0;
-                        x.removeIf(n -> { sum[0] += n; return false; });
-                        check.sum(sum[0]);}}},
-            new Job(desc + " .foreach") {
-                public void work() throws Throwable {
-                    int[] sum = new int[1];
-                    for (int i = 0; i < iterations; i++) {
-                        sum[0] = 0;
-                        x.forEach(n -> sum[0] += n);
-                        check.sum(sum[0]);}}});
-    }
-
-    List<Job> dequeJobs(Deque<Integer> x) {
-        String klazz = x.getClass().getSimpleName();
-        String desc = klazz + " Deque interface";
-        return List.of(
-            new Job(desc + " .descendingIterator() loop") {
-                public void work() throws Throwable {
-                    for (int i = 0; i < iterations; i++) {
-                        int sum = 0;
-                        Iterator<Integer> it = x.descendingIterator();
-                        while (it.hasNext())
-                            sum += it.next();
-                        check.sum(sum);}}},
-            new Job(desc + " .descendingIterator().forEachRemaining()") {
-                public void work() throws Throwable {
-                    int[] sum = new int[1];
-                    for (int i = 0; i < iterations; i++) {
-                        sum[0] = 0;
-                        x.descendingIterator().forEachRemaining(n -> sum[0] += n);
-                        check.sum(sum[0]);}}});
     }
 }
