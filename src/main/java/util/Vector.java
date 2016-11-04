@@ -513,7 +513,7 @@ public class Vector<E>
      * Returns the last component of the vector.
      *
      * @return  the last component of the vector, i.e., the component at index
-     *          <code>size()&nbsp;-&nbsp;1</code>.
+     *          {@code size() - 1}
      * @throws NoSuchElementException if this vector is empty
      */
     public synchronized E lastElement() {
@@ -855,10 +855,10 @@ public class Vector<E>
      * Shifts any subsequent elements to the left (subtracts one from their
      * indices).  Returns the element that was removed from the Vector.
      *
-     * @throws ArrayIndexOutOfBoundsException if the index is out of range
-     *         ({@code index < 0 || index >= size()})
      * @param index the index of the element to be removed
      * @return element that was removed
+     * @throws ArrayIndexOutOfBoundsException if the index is out of range
+     *         ({@code index < 0 || index >= size()})
      * @since 1.2
      */
     public synchronized E remove(int index) {
@@ -949,8 +949,9 @@ public class Vector<E>
      *         or if the specified collection is null
      * @since 1.2
      */
-    public synchronized boolean removeAll(Collection<?> c) {
-        return super.removeAll(c);
+    public boolean removeAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> c.contains(e));
     }
 
     /**
@@ -972,8 +973,48 @@ public class Vector<E>
      *         or if the specified collection is null
      * @since 1.2
      */
-    public synchronized boolean retainAll(Collection<?> c) {
-        return super.retainAll(c);
+    public boolean retainAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> !c.contains(e));
+    }
+
+    @Override
+    public boolean removeIf(Predicate<? super E> filter) {
+        Objects.requireNonNull(filter);
+        return bulkRemove(filter);
+    }
+
+    @SuppressWarnings("unchecked")
+    private synchronized boolean bulkRemove(Predicate<? super E> filter) {
+        int expectedModCount = modCount;
+        final Object[] es = elementData;
+        final int size = elementCount;
+        final boolean modified;
+        int r;
+        // Optimize for initial run of survivors
+        for (r = 0; r < size; r++)
+            if (filter.test((E) es[r]))
+                break;
+        if (modified = (r < size)) {
+            expectedModCount++;
+            modCount++;
+            int w = r++;
+            try {
+                for (E e; r < size; r++)
+                    if (!filter.test(e = (E) es[r]))
+                        es[w++] = e;
+            } catch (Throwable ex) {
+                // copy remaining elements
+                System.arraycopy(es, r, es, w, size - r);
+                w += size - r;
+                throw ex;
+            } finally {
+                Arrays.fill(es, elementCount = w, size, null);
+            }
+        }
+        if (modCount != expectedModCount)
+            throw new ConcurrentModificationException();
+        return modified;
     }
 
     /**
@@ -1303,50 +1344,6 @@ public class Vector<E>
 
     @Override
     @SuppressWarnings("unchecked")
-    public synchronized boolean removeIf(Predicate<? super E> filter) {
-        Objects.requireNonNull(filter);
-        // figure out which elements are to be removed
-        // any exception thrown from the filter predicate at this stage
-        // will leave the collection unmodified
-        int removeCount = 0;
-        final int size = elementCount;
-        final BitSet removeSet = new BitSet(size);
-        final int expectedModCount = modCount;
-        for (int i=0; modCount == expectedModCount && i < size; i++) {
-            @SuppressWarnings("unchecked")
-            final E element = (E) elementData[i];
-            if (filter.test(element)) {
-                removeSet.set(i);
-                removeCount++;
-            }
-        }
-        if (modCount != expectedModCount) {
-            throw new ConcurrentModificationException();
-        }
-
-        // shift surviving elements left over the spaces left by removed elements
-        final boolean anyToRemove = removeCount > 0;
-        if (anyToRemove) {
-            final int newSize = size - removeCount;
-            for (int i=0, j=0; (i < size) && (j < newSize); i++, j++) {
-                i = removeSet.nextClearBit(i);
-                elementData[j] = elementData[i];
-            }
-            for (int k=newSize; k < size; k++) {
-                elementData[k] = null;  // Let gc do its work
-            }
-            elementCount = newSize;
-            if (modCount != expectedModCount) {
-                throw new ConcurrentModificationException();
-            }
-            modCount++;
-        }
-
-        return anyToRemove;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
     public synchronized void replaceAll(UnaryOperator<E> operator) {
         Objects.requireNonNull(operator);
         final int expectedModCount = modCount;
@@ -1410,7 +1407,7 @@ public class Vector<E>
         private int getFence() { // initialize on first use
             int hi;
             if ((hi = fence) < 0) {
-                synchronized(list) {
+                synchronized (list) {
                     array = list.elementData;
                     expectedModCount = list.modCount;
                     hi = fence = list.elementCount;
@@ -1449,7 +1446,7 @@ public class Vector<E>
                 throw new NullPointerException();
             if ((lst = list) != null) {
                 if ((hi = fence) < 0) {
-                    synchronized(lst) {
+                    synchronized (lst) {
                         expectedModCount = lst.modCount;
                         a = array = lst.elementData;
                         hi = fence = lst.elementCount;
