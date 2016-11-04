@@ -217,16 +217,16 @@ public class IteratorMicroBenchmark {
                 throw new AssertionError("Sum mismatch");
         }
     }
-    final Check check      = new Check();
+    volatile Check check = new Check();
 
     public static void main(String[] args) throws Throwable {
         new IteratorMicroBenchmark().run(args);
     }
 
     void run(String[] args) throws Throwable {
-        iterations    = intArg(args, "iterations", 100_000);
+        iterations    = intArg(args, "iterations", 10_000);
         size          = intArg(args, "size", 1000);
-        warmupSeconds = doubleArg(args, "warmup", 10);
+        warmupSeconds = doubleArg(args, "warmup", 5);
         filter        = patternArg(args, "filter");
 //         System.out.printf(
 //             "iterations=%d size=%d, warmup=%1g, filter=\"%s\"%n",
