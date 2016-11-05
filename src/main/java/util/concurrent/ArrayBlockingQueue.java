@@ -17,6 +17,7 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 /**
  * A bounded {@linkplain BlockingQueue blocking queue} backed by an
@@ -1335,6 +1336,25 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             (this, (Spliterator.ORDERED |
                     Spliterator.NONNULL |
                     Spliterator.CONCURRENT));
+    }
+
+    public void forEach(Consumer<? super E> action) {
+        Objects.requireNonNull(action);
+        final ReentrantLock lock = this.lock;
+        lock.lock();
+        try {
+            if (count > 0) {
+                final Object[] items = this.items;
+                final int putIndex = this.putIndex;
+                int i = takeIndex;
+                do {
+                    action.accept(itemAt(i));
+                    if (++i == items.length) i = 0;
+                } while (i != putIndex);
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
 }
