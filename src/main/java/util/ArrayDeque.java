@@ -475,9 +475,9 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     public boolean removeLastOccurrence(Object o) {
         if (o != null) {
             final Object[] es = elements;
-            for (int i = last(), end = head - 1, to = (i >= end) ? end : -1;
-                 ; i = es.length - 1, to = end) {
-                for (; i > to; i--)
+            for (int i = tail, end = head, to = (i >= end) ? end : 0;
+                 ; i = es.length, to = end) {
+                while (--i >= to)
                     if (o.equals(es[i])) {
                         delete(i);
                         return true;
