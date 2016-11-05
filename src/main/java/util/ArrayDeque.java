@@ -244,14 +244,6 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * Returns the array index of the last element.
-     * May return invalid index -1 if there are no elements.
-     */
-    final int last() {
-        return dec(tail, elements.length);
-    }
-
-    /**
      * Returns element at array index i.
      * This is a slight abuse of generics, accepted by javac.
      */
@@ -752,7 +744,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     private class DescendingIterator extends DeqIterator {
-        DescendingIterator() { cursor = last(); }
+        DescendingIterator() { cursor = dec(tail, elements.length); }
 
         public final E next() {
             if (remaining <= 0)
