@@ -108,6 +108,15 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
+     * Decrements i, mod modulus.
+     * Precondition and postcondition: 0 <= i < modulus.
+     */
+    static final int dec(int i, int modulus) {
+        if (--i < 0) i = modulus - 1;
+        return i;
+    }
+
+    /**
      * Returns item at index i.
      */
     @SuppressWarnings("unchecked")
@@ -116,10 +125,20 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
+     * Returns element at array index i.
+     * This is a slight abuse of generics, accepted by javac.
+     */
+    @SuppressWarnings("unchecked")
+    final static <E> E itemAt(Object[] es, int i) {
+        return (E) es[i];
+    }
+
+    /**
      * Inserts element at current put position, advances, and signals.
      * Call only when holding lock.
      */
     private void enqueue(E x) {
+        // checkInvariants();
         // assert lock.getHoldCount() == 1;
         // assert items[putIndex] == null;
         final Object[] items = this.items;
@@ -127,6 +146,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         if (++putIndex == items.length) putIndex = 0;
         count++;
         notEmpty.signal();
+        // checkInvariants();
     }
 
     /**
@@ -134,6 +154,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * Call only when holding lock.
      */
     private E dequeue() {
+        // checkInvariants();
         // assert lock.getHoldCount() == 1;
         // assert items[takeIndex] != null;
         final Object[] items = this.items;
@@ -145,6 +166,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         if (itrs != null)
             itrs.elementDequeued();
         notFull.signal();
+        // checkInvariants();
         return x;
     }
 
@@ -154,6 +176,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * Call only when holding lock.
      */
     void removeAt(final int removeIndex) {
+        // checkInvariants();
         // assert lock.getHoldCount() == 1;
         // assert items[removeIndex] != null;
         // assert removeIndex >= 0 && removeIndex < items.length;
@@ -335,6 +358,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 nanos = notFull.awaitNanos(nanos);
             }
             enqueue(e);
+            // checkInvariants();
             return true;
         } finally {
             lock.unlock();
@@ -373,6 +397,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                     return null;
                 nanos = notEmpty.awaitNanos(nanos);
             }
+            // checkInvariants();
             return dequeue();
         } finally {
             lock.unlock();
@@ -1345,15 +1370,38 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         try {
             if (count > 0) {
                 final Object[] items = this.items;
-                final int putIndex = this.putIndex;
-                int i = takeIndex;
-                do {
-                    action.accept(itemAt(i));
-                    if (++i == items.length) i = 0;
-                } while (i != putIndex);
+                for (int i = takeIndex, end = putIndex,
+                         to = (i < end) ? end : items.length;
+                     ; i = 0, to = end) {
+                    for (; i < to; i++)
+                        action.accept(itemAt(items, i));
+                    if (to == end) break;
+                }
             }
         } finally {
             lock.unlock();
+        }
+    }
+
+    /** debugging */
+    void checkInvariants() {
+        // meta-assertion
+        // assert lock.isHeldByCurrentThread();
+        try {
+            int capacity = items.length;
+            // assert capacity > 0;
+            // assert takeIndex >= 0 && takeIndex < capacity;
+            // assert putIndex >= 0 && putIndex < capacity;
+            // assert count <= capacity;
+            // assert takeIndex == putIndex || items[takeIndex] != null;
+            // assert count == capacity || items[putIndex] == null;
+            // assert takeIndex == putIndex || items[dec(putIndex, capacity)] != null;
+        } catch (Throwable t) {
+            System.err.printf("takeIndex=%d putIndex=%d capacity=%d%n",
+                              takeIndex, putIndex, items.length);
+            System.err.printf("items=%s%n",
+                              Arrays.toString(items));
+            throw t;
         }
     }
 
