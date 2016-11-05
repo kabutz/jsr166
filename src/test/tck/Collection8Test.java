@@ -92,12 +92,12 @@ public class Collection8Test extends JSR166TestCase {
             assertEquals(0, c.spliterator().estimateSize());
         assertFalse(c.contains(bomb()));
         assertFalse(c.remove(bomb()));
-        if (Queue.class.isAssignableFrom(impl.klazz())) {
+        if (c instanceof Queue) {
             Queue q = (Queue) c;
             assertNull(q.peek());
             assertNull(q.poll());
         }
-        if (Deque.class.isAssignableFrom(impl.klazz())) {
+        if (c instanceof Deque) {
             Deque d = (Deque) c;
             assertNull(d.peekFirst());
             assertNull(d.peekLast());
