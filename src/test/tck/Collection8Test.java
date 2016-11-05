@@ -49,6 +49,13 @@ public class Collection8Test extends JSR166TestCase {
                                       impl);
     }
 
+    Object bomb() {
+        return new Object() {
+                public boolean equals(Object x) { throw new AssertionError(); }
+                public int hashCode() { throw new AssertionError(); }
+            };
+    }
+
     /** Checks properties of empty collections. */
     public void testEmptyMeansEmpty() {
         Collection c = impl.emptyCollection();
@@ -83,6 +90,8 @@ public class Collection8Test extends JSR166TestCase {
         assertFalse(c.spliterator().tryAdvance(alwaysThrows));
         if (c.spliterator().hasCharacteristics(Spliterator.SIZED))
             assertEquals(0, c.spliterator().estimateSize());
+        assertFalse(c.contains(bomb()));
+        assertFalse(c.remove(bomb()));
         if (Queue.class.isAssignableFrom(impl.klazz())) {
             Queue q = (Queue) c;
             assertNull(q.peek());
@@ -96,6 +105,8 @@ public class Collection8Test extends JSR166TestCase {
             assertNull(d.pollLast());
             assertIteratorExhausted(d.descendingIterator());
             d.descendingIterator().forEachRemaining(alwaysThrows);
+            assertFalse(d.removeFirstOccurrence(bomb()));
+            assertFalse(d.removeLastOccurrence(bomb()));
         }
     }
 
