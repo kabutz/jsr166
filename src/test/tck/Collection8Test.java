@@ -59,6 +59,17 @@ public class Collection8Test extends JSR166TestCase {
     /** Checks properties of empty collections. */
     public void testEmptyMeansEmpty() {
         Collection c = impl.emptyCollection();
+        emptyMeansEmpty(c);
+
+        if (c instanceof java.io.Serializable)
+            emptyMeansEmpty(serialClone(c));
+
+        Collection clone = cloneableClone(c);
+        if (clone != null)
+            emptyMeansEmpty(clone);
+    }
+
+    void emptyMeansEmpty(Collection c) {
         assertTrue(c.isEmpty());
         assertEquals(0, c.size());
         assertEquals("[]", c.toString());
