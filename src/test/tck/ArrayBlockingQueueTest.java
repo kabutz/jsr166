@@ -27,13 +27,13 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
 
     public static class Fair extends BlockingQueueTest {
         protected BlockingQueue emptyCollection() {
-            return new ArrayBlockingQueue(SIZE, true);
+            return populatedQueue(0, SIZE, 2 * SIZE, true);
         }
     }
 
     public static class NonFair extends BlockingQueueTest {
         protected BlockingQueue emptyCollection() {
-            return new ArrayBlockingQueue(SIZE, false);
+            return populatedQueue(0, SIZE, 2 * SIZE, false);
         }
     }
 
@@ -44,7 +44,10 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
     public static Test suite() {
         class Implementation implements CollectionImplementation {
             public Class<?> klazz() { return ArrayBlockingQueue.class; }
-            public Collection emptyCollection() { return new ArrayBlockingQueue(SIZE, false); }
+            public Collection emptyCollection() {
+                boolean fair = ThreadLocalRandom.current().nextBoolean();
+                return populatedQueue(0, SIZE, 2 * SIZE, fair);
+            }
             public Object makeElement(int i) { return i; }
             public boolean isConcurrent() { return true; }
             public boolean permitsNulls() { return false; }
@@ -59,15 +62,33 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
      * Returns a new queue of given size containing consecutive
      * Integers 0 ... n - 1.
      */
-    private ArrayBlockingQueue<Integer> populatedQueue(int n) {
-        ArrayBlockingQueue<Integer> q = new ArrayBlockingQueue<Integer>(n);
+    static ArrayBlockingQueue<Integer> populatedQueue(int n) {
+        return populatedQueue(n, n, n, false);
+    }
+
+    /**
+     * Returns a new queue of given size containing consecutive
+     * Integers 0 ... n - 1, with given capacity range and fairness.
+     */
+    static ArrayBlockingQueue<Integer> populatedQueue(
+        int size, int minCapacity, int maxCapacity, boolean fair) {
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        int capacity = rnd.nextInt(minCapacity, maxCapacity + 1);
+        ArrayBlockingQueue<Integer> q = new ArrayBlockingQueue<>(capacity);
         assertTrue(q.isEmpty());
-        for (int i = 0; i < n; i++)
-            assertTrue(q.offer(new Integer(i)));
-        assertFalse(q.isEmpty());
-        assertEquals(0, q.remainingCapacity());
-        assertEquals(n, q.size());
-        assertEquals((Integer) 0, q.peek());
+        // shuffle circular array elements so they wrap
+        {
+            int n = rnd.nextInt(capacity);
+            for (int i = 0; i < n; i++) q.add(42);
+            for (int i = 0; i < n; i++) q.remove();
+        }
+        for (int i = 0; i < size; i++)
+            assertTrue(q.offer((Integer) i));
+        assertEquals(size == 0, q.isEmpty());
+        assertEquals(capacity - size, q.remainingCapacity());
+        assertEquals(size, q.size());
+        if (size > 0)
+            assertEquals((Integer) 0, q.peek());
         return q;
     }
 
