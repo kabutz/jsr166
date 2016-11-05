@@ -469,7 +469,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             final Object[] es = elements;
             for (int i = tail, end = head, to = (i >= end) ? end : 0;
                  ; i = es.length, to = end) {
-                while (--i >= to)
+                for (i--; i > to - 1; i--)
                     if (o.equals(es[i])) {
                         delete(i);
                         return true;
@@ -773,7 +773,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
                 throw new ConcurrentModificationException();
             for (int i = cursor, end = head, to = (i >= end) ? end : 0;
                  ; i = es.length - 1, to = end) {
-                for (; i >= to; i--)
+                // hotspot generates faster code than for: i >= to !
+                for (; i > to - 1; i--)
                     action.accept(elementAt(es, i));
                 if (to == end) {
                     if (end != head)
