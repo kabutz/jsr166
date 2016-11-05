@@ -245,26 +245,35 @@ public class Collection8Test extends JSR166TestCase {
         for (int i = 0; i < n; i++) c.add(impl.makeElement(i));
         ArrayList iterated = new ArrayList();
         ArrayList iteratedForEachRemaining = new ArrayList();
+        ArrayList tryAdvanced = new ArrayList();
         ArrayList spliterated = new ArrayList();
-        ArrayList foreached = new ArrayList();
+        ArrayList forEached = new ArrayList();
+        ArrayList removeIfed = new ArrayList();
         for (Object x : c) iterated.add(x);
         c.iterator().forEachRemaining(e -> iteratedForEachRemaining.add(e));
+        for (Spliterator s = c.spliterator();
+             s.tryAdvance(e -> tryAdvanced.add(e)); ) {}
         c.spliterator().forEachRemaining(e -> spliterated.add(e));
-        c.forEach(e -> foreached.add(e));
+        c.forEach(e -> forEached.add(e));
+        c.removeIf(e -> { removeIfed.add(e); return false; });
         boolean ordered =
             c.spliterator().hasCharacteristics(Spliterator.ORDERED);
         if (c instanceof List || c instanceof Deque)
             assertTrue(ordered);
         if (ordered) {
             assertEquals(iterated, iteratedForEachRemaining);
+            assertEquals(iterated, tryAdvanced);
             assertEquals(iterated, spliterated);
-            assertEquals(iterated, foreached);
+            assertEquals(iterated, forEached);
+            assertEquals(iterated, removeIfed);
         } else {
             HashSet cset = new HashSet(c);
             assertEquals(cset, new HashSet(iterated));
             assertEquals(cset, new HashSet(iteratedForEachRemaining));
+            assertEquals(cset, new HashSet(tryAdvanced));
             assertEquals(cset, new HashSet(spliterated));
-            assertEquals(cset, new HashSet(foreached));
+            assertEquals(cset, new HashSet(forEached));
+            assertEquals(cset, new HashSet(removeIfed));
         }
         if (c instanceof Deque) {
             Deque d = (Deque) c;
