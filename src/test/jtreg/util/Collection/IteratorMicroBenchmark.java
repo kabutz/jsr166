@@ -308,7 +308,7 @@ public class IteratorMicroBenchmark {
                         sum[0] = 0;
                         x.removeIf(n -> { sum[0] += n; return false; });
                         check.sum(sum[0]);}}},
-            new Job(desc + " .foreach") {
+            new Job(desc + " .forEach") {
                 public void work() throws Throwable {
                     int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
