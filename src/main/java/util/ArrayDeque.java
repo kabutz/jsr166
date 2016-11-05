@@ -779,12 +779,12 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             final Object[] es = elements;
             if (es[cursor] == null || sub(cursor, head, es.length) + 1 != r)
                 throw new ConcurrentModificationException();
-            for (int i = cursor, end = head - 1, to = (i >= end) ? end : -1;
+            for (int i = cursor, end = head, to = (i >= end) ? end : 0;
                  ; i = es.length - 1, to = end) {
-                for (; i > to; i--)
+                for (; i >= to; i--)
                     action.accept(elementAt(es, i));
                 if (to == end) {
-                    if (end != head - 1)
+                    if (end != head)
                         throw new ConcurrentModificationException();
                     lastRet = head;
                     break;
