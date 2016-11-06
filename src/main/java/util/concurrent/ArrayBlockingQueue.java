@@ -129,8 +129,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * This is a slight abuse of generics, accepted by javac.
      */
     @SuppressWarnings("unchecked")
-    final static <E> E itemAt(Object[] es, int i) {
-        return (E) es[i];
+    final static <E> E itemAt(Object[] items, int i) {
+        return (E) items[i];
     }
 
     /**
@@ -397,9 +397,9 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                     return null;
                 nanos = notEmpty.awaitNanos(nanos);
             }
-            // checkInvariants();
             return dequeue();
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -491,6 +491,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             }
             return false;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -521,6 +522,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             }
             return false;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -624,15 +626,9 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            int k = count;
-            if (k > 0) {
-                final Object[] items = this.items;
-                final int putIndex = this.putIndex;
-                int i = takeIndex;
-                do {
-                    items[i] = null;
-                    if (++i == items.length) i = 0;
-                } while (i != putIndex);
+            int k;
+            if ((k = count) > 0) {
+                circularClear(items, takeIndex, putIndex);
                 takeIndex = putIndex;
                 count = 0;
                 if (itrs != null)
@@ -641,7 +637,20 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                     notFull.signal();
             }
         } finally {
+            // checkInvariants();
             lock.unlock();
+        }
+    }
+
+    /**
+     * Nulls out slots starting at array index i, upto index end.
+     * If i == end, the entire array is cleared!
+     */
+    private static void circularClear(Object[] items, int i, int end) {
+        for (int to = (i < end) ? end : items.length;
+             ; i = 0, to = end) {
+            Arrays.fill(items, i, to, null);
+            if (to == end) break;
         }
     }
 
@@ -1381,6 +1390,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 }
             }
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
