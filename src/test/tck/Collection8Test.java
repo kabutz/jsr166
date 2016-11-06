@@ -5,6 +5,7 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
+import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.ArrayList;
@@ -174,7 +175,7 @@ public class Collection8Test extends JSR166TestCase {
             assertThrows(
                 NullPointerException.class,
                 () -> {
-                    try { q.offer(null, 1L, MILLISECONDS); }
+                    try { q.offer(null, 1L, HOURS); }
                     catch (InterruptedException ex) {
                         throw new AssertionError(ex);
                     }},
@@ -189,12 +190,12 @@ public class Collection8Test extends JSR166TestCase {
             assertThrows(
                 NullPointerException.class,
                 () -> {
-                    try { q.offerFirst(null, 1L, MILLISECONDS); }
+                    try { q.offerFirst(null, 1L, HOURS); }
                     catch (InterruptedException ex) {
                         throw new AssertionError(ex);
                     }},
                 () -> {
-                    try { q.offerLast(null, 1L, MILLISECONDS); }
+                    try { q.offerLast(null, 1L, HOURS); }
                     catch (InterruptedException ex) {
                         throw new AssertionError(ex);
                     }},
