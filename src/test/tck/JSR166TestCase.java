@@ -1836,7 +1836,7 @@ public class JSR166TestCase extends TestCase {
                         ((Collection) o).add(null);}});
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     <T> T serialClone(T o) {
         try {
