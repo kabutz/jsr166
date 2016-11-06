@@ -579,11 +579,13 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
      * clear removes all elements
      */
     public void testClear() {
-        ArrayBlockingQueue q = populatedQueue(SIZE);
+        int size = ThreadLocalRandom.current().nextInt(1, 5);
+        ArrayBlockingQueue q = populatedQueue(size, size, 2 * size, false);
+        int capacity = size + q.remainingCapacity();
         q.clear();
         assertTrue(q.isEmpty());
         assertEquals(0, q.size());
-        assertEquals(SIZE, q.remainingCapacity());
+        assertEquals(capacity, q.remainingCapacity());
         q.add(one);
         assertFalse(q.isEmpty());
         assertTrue(q.contains(one));
