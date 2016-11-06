@@ -11,6 +11,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Queue;
@@ -104,17 +105,25 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
     /**
      * Constructor throws IAE if capacity argument nonpositive
      */
-    public void testConstructor2() {
-        try {
-            new ArrayBlockingQueue(0);
-            shouldThrow();
-        } catch (IllegalArgumentException success) {}
+    public void testConstructor_nonPositiveCapacity() {
+        for (int i : new int[] { 0, -1, Integer.MIN_VALUE }) {
+            try {
+                new ArrayBlockingQueue(i);
+                shouldThrow();
+            } catch (IllegalArgumentException success) {}
+            for (boolean fair : new boolean[] { true, false }) {
+                try {
+                    new ArrayBlockingQueue(i, fair);
+                    shouldThrow();
+                } catch (IllegalArgumentException success) {}
+            }
+        }
     }
 
     /**
      * Initializing from null Collection throws NPE
      */
-    public void testConstructor3() {
+    public void testConstructor_nullCollection() {
         try {
             new ArrayBlockingQueue(1, true, null);
             shouldThrow();
@@ -149,13 +158,13 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
     /**
      * Initializing from too large collection throws IAE
      */
-    public void testConstructor6() {
-        Integer[] ints = new Integer[SIZE];
-        for (int i = 0; i < SIZE; ++i)
-            ints[i] = i;
-        Collection<Integer> elements = Arrays.asList(ints);
+    public void testConstructor_collectionTooLarge() {
+        // just barely fits - succeeds
+        new ArrayBlockingQueue(SIZE, false,
+                               Collections.nCopies(SIZE, ""));
         try {
-            new ArrayBlockingQueue(SIZE - 1, false, elements);
+            new ArrayBlockingQueue(SIZE - 1, false,
+                                   Collections.nCopies(SIZE, ""));
             shouldThrow();
         } catch (IllegalArgumentException success) {}
     }
@@ -177,12 +186,12 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
      * Queue transitions from empty to full when elements added
      */
     public void testEmptyFull() {
-        ArrayBlockingQueue q = new ArrayBlockingQueue(2);
+        BlockingQueue q = populatedQueue(0, 2, 2, false);
         assertTrue(q.isEmpty());
         assertEquals(2, q.remainingCapacity());
         q.add(one);
         assertFalse(q.isEmpty());
-        q.add(two);
+        assertTrue(q.offer(two));
         assertFalse(q.isEmpty());
         assertEquals(0, q.remainingCapacity());
         assertFalse(q.offer(three));
@@ -192,15 +201,18 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
      * remainingCapacity decreases on add, increases on remove
      */
     public void testRemainingCapacity() {
-        BlockingQueue q = populatedQueue(SIZE);
-        for (int i = 0; i < SIZE; ++i) {
-            assertEquals(i, q.remainingCapacity());
-            assertEquals(SIZE, q.size() + q.remainingCapacity());
+        int size = ThreadLocalRandom.current().nextInt(1, SIZE);
+        BlockingQueue q = populatedQueue(size, size, 2 * size, false);
+        int spare = q.remainingCapacity();
+        int capacity = spare + size;
+        for (int i = 0; i < size; i++) {
+            assertEquals(spare + i, q.remainingCapacity());
+            assertEquals(capacity, q.size() + q.remainingCapacity());
             assertEquals(i, q.remove());
         }
-        for (int i = 0; i < SIZE; ++i) {
-            assertEquals(SIZE - i, q.remainingCapacity());
-            assertEquals(SIZE, q.size() + q.remainingCapacity());
+        for (int i = 0; i < size; i++) {
+            assertEquals(capacity - i, q.remainingCapacity());
+            assertEquals(capacity, q.size() + q.remainingCapacity());
             assertTrue(q.add(i));
         }
     }
