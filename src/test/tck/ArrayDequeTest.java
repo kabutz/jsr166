@@ -42,7 +42,7 @@ public class ArrayDequeTest extends JSR166TestCase {
      */
     private static ArrayDeque<Integer> populatedDeque(int n) {
         // Randomize various aspects of memory layout, including
-        // filled-to-capacity and wraparound.
+        // capacity slop and wraparound.
         final ArrayDeque<Integer> q;
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
         switch (rnd.nextInt(6)) {
