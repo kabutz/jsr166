@@ -257,7 +257,6 @@ public class Collection8Test extends JSR166TestCase {
             }
         };
         try {
-            assertFalse(survivors.contains(null));
             try {
                 boolean modified = c.removeIf(randomPredicate);
                 if (!modified) {
