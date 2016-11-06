@@ -9,6 +9,7 @@ import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
@@ -244,9 +245,17 @@ public class Collection8Test extends JSR166TestCase {
         int n = rnd.nextInt(6);
         for (int i = 0; i < n; i++) c.add(impl.makeElement(i));
         AtomicReference threwAt = new AtomicReference(null);
-        ArrayList survivors = new ArrayList(c);
+        List orig = rnd.nextBoolean()
+            ? new ArrayList(c)
+            : Arrays.asList(c.toArray());
+
+        // Merely creating an iterator can change ArrayBlockingQueue behavior
+        Iterator it = rnd.nextBoolean() ? c.iterator() : null;
+
+        ArrayList survivors = new ArrayList();
         ArrayList accepts = new ArrayList();
         ArrayList rejects = new ArrayList();
+
         Predicate randomPredicate = (e) -> {
             assertNull(threwAt.get());
             switch (rnd.nextInt(3)) {
@@ -259,27 +268,42 @@ public class Collection8Test extends JSR166TestCase {
         try {
             try {
                 boolean modified = c.removeIf(randomPredicate);
-                if (!modified) {
-                    assertNull(threwAt.get());
-                    assertEquals(n, rejects.size());
-                    assertEquals(0, accepts.size());
-                }
-            } catch (ArithmeticException ok) {}
-            survivors.removeAll(accepts);
-            assertEquals(n - accepts.size(), c.size());
+                assertNull(threwAt.get());
+                assertEquals(modified, accepts.size() > 0);
+                assertEquals(modified, rejects.size() != n);
+                assertEquals(accepts.size() + rejects.size(), n);
+                assertEquals(rejects, Arrays.asList(c.toArray()));
+            } catch (ArithmeticException ok) {
+                assertNotNull(threwAt.get());
+                assertTrue(c.contains(threwAt.get()));
+            }
+            if (it != null && impl.isConcurrent())
+                // check for weakly consistent iterator
+                while (it.hasNext()) assertTrue(orig.contains(it.next()));
+            switch (rnd.nextInt(4)) {
+            case 0: survivors.addAll(c); break;
+            case 1: survivors.addAll(Arrays.asList(c.toArray())); break;
+            case 2: c.forEach(e -> survivors.add(e)); break;
+            case 3: for (Object e : c) survivors.add(e); break;
+            }
+            assertTrue(orig.containsAll(accepts));
+            assertTrue(orig.containsAll(rejects));
+            assertTrue(orig.containsAll(survivors));
+            assertTrue(orig.containsAll(c));
+            assertTrue(c.containsAll(rejects));
             assertTrue(c.containsAll(survivors));
             assertTrue(survivors.containsAll(rejects));
+            assertEquals(n - accepts.size(), c.size());
             for (Object x : accepts) assertFalse(c.contains(x));
-            if (threwAt.get() == null)
-                assertEquals(accepts.size() + rejects.size(), n);
         } catch (Throwable ex) {
             System.err.println(impl.klazz());
             System.err.printf("c=%s%n", c);
             System.err.printf("n=%d%n", n);
+            System.err.printf("orig=%s%n", orig);
             System.err.printf("accepts=%s%n", accepts);
             System.err.printf("rejects=%s%n", rejects);
             System.err.printf("survivors=%s%n", survivors);
-            System.err.printf("threw=%s%n", threwAt.get());
+            System.err.printf("threwAt=%s%n", threwAt.get());
             throw ex;
         }
     }
