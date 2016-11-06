@@ -565,8 +565,10 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
      * contains(x) reports true when elements added but not yet removed
      */
     public void testContains() {
-        ArrayBlockingQueue q = populatedQueue(SIZE);
-        for (int i = 0; i < SIZE; ++i) {
+        int size = ThreadLocalRandom.current().nextInt(1, SIZE);
+        ArrayBlockingQueue q = populatedQueue(size, size, 2 * size, false);
+        assertFalse(q.contains(null));
+        for (int i = 0; i < size; ++i) {
             assertTrue(q.contains(new Integer(i)));
             assertEquals(i, q.poll());
             assertFalse(q.contains(new Integer(i)));
