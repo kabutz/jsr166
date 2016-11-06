@@ -18,6 +18,7 @@ import java.util.Spliterators;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * A bounded {@linkplain BlockingQueue blocking queue} backed by an
@@ -101,10 +102,12 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     // Internal helper methods
 
     /**
-     * Circularly decrements array index i.
+     * Increments i, mod modulus.
+     * Precondition and postcondition: 0 <= i < modulus.
      */
-    final int dec(int i) {
-        return ((i == 0) ? items.length : i) - 1;
+    static final int inc(int i, int modulus) {
+        if (++i >= modulus) i = 0;
+        return i;
     }
 
     /**
@@ -1294,7 +1297,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 }
                 else if (x > removedDistance) {
                     // assert cursor != prevTakeIndex;
-                    this.cursor = cursor = dec(cursor);
+                    this.cursor = cursor = dec(cursor, len);
                 }
             }
             int lastRet = this.lastRet;
@@ -1303,7 +1306,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 if (x == removedDistance)
                     this.lastRet = lastRet = REMOVED;
                 else if (x > removedDistance)
-                    this.lastRet = lastRet = dec(lastRet);
+                    this.lastRet = lastRet = dec(lastRet, len);
             }
             int nextIndex = this.nextIndex;
             if (nextIndex >= 0) {
@@ -1311,7 +1314,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 if (x == removedDistance)
                     this.nextIndex = nextIndex = REMOVED;
                 else if (x > removedDistance)
-                    this.nextIndex = nextIndex = dec(nextIndex);
+                    this.nextIndex = nextIndex = dec(nextIndex, len);
             }
             if (cursor < 0 && nextIndex < 0 && lastRet < 0) {
                 this.prevTakeIndex = DETACHED;
@@ -1393,6 +1396,101 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         } finally {
             // checkInvariants();
             lock.unlock();
+        }
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean removeIf(Predicate<? super E> filter) {
+        Objects.requireNonNull(filter);
+        return bulkRemove(filter);
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean removeAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> c.contains(e));
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean retainAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> !c.contains(e));
+    }
+
+    /** Implementation of bulk remove methods. */
+    private boolean bulkRemove(Predicate<? super E> filter) {
+        final ReentrantLock lock = this.lock;
+        lock.lock();
+        try {
+            if (itrs == null) { // check for active iterators
+                if (count > 0) {
+                    final Object[] items = this.items;
+                    // Optimize for initial run of survivors
+                    for (int i = takeIndex, end = putIndex,
+                             to = (i < end) ? end : items.length;
+                         ; i = 0, to = end) {
+                        for (; i < to; i++)
+                            if (filter.test(itemAt(items, i)))
+                                return bulkRemoveModified(filter, i, to);
+                        if (to == end) break;
+                    }
+                }
+                return false;
+            }
+        } finally {
+            // checkInvariants();
+            lock.unlock();
+        }
+        // Active iterators are too hairy!
+        // Punting (for now) to the slow n^2 algorithm ...
+        return super.removeIf(filter);
+    }
+
+    /**
+     * Helper for bulkRemove, in case of at least one deletion.
+     * @param i valid index of first element to be deleted
+     */
+    private boolean bulkRemoveModified(
+        Predicate<? super E> filter, int i, int to) {
+        final Object[] items = this.items;
+        final int capacity = items.length;
+        // a two-finger algorithm, with hare i reading, tortoise j writing
+        int j = i++;
+        final int end = putIndex;
+        try {
+            for (;; j = 0) {    // j rejoins i on second leg
+                E e;
+                // In this loop, i and j are on the same leg, with i > j
+                for (; i < to; i++)
+                    if (!filter.test(e = itemAt(items, i)))
+                        items[j++] = e;
+                if (to == end) break;
+                // In this loop, j is on the first leg, i on the second
+                for (i = 0, to = end; i < to && j < capacity; i++)
+                    if (!filter.test(e = itemAt(items, i)))
+                        items[j++] = e;
+                if (i >= to) {
+                    if (j == capacity) j = 0; // "corner" case
+                    break;
+                }
+            }
+            return true;
+        } catch (Throwable ex) {
+            // copy remaining elements
+            for (; i != end; i = inc(i, capacity), j = inc(j, capacity))
+                items[j] = items[i];
+            throw ex;
+        } finally {
+            int deleted = putIndex - j;
+            if (deleted <= 0) deleted += capacity;
+            count -= deleted;
+            circularClear(items, putIndex = j, end);
         }
     }
 
