@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Spliterator;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
@@ -57,7 +59,7 @@ public class Collection8Test extends JSR166TestCase {
     }
 
     /** Checks properties of empty collections. */
-    public void testEmptyMeansEmpty() {
+    public void testEmptyMeansEmpty() throws InterruptedException {
         Collection c = impl.emptyCollection();
         emptyMeansEmpty(c);
 
@@ -69,7 +71,7 @@ public class Collection8Test extends JSR166TestCase {
             emptyMeansEmpty(clone);
     }
 
-    void emptyMeansEmpty(Collection c) {
+    void emptyMeansEmpty(Collection c) throws InterruptedException {
         assertTrue(c.isEmpty());
         assertEquals(0, c.size());
         assertEquals("[]", c.toString());
@@ -119,9 +121,18 @@ public class Collection8Test extends JSR166TestCase {
             assertFalse(d.removeFirstOccurrence(bomb()));
             assertFalse(d.removeLastOccurrence(bomb()));
         }
+        if (c instanceof BlockingQueue) {
+            BlockingQueue q = (BlockingQueue) c;
+            assertNull(q.poll(0L, MILLISECONDS));
+        }
+        if (c instanceof BlockingDeque) {
+            BlockingDeque q = (BlockingDeque) c;
+            assertNull(q.pollFirst(0L, MILLISECONDS));
+            assertNull(q.pollLast(0L, MILLISECONDS));
+        }
     }
 
-    public void testNullPointerExceptions() {
+    public void testNullPointerExceptions() throws InterruptedException {
         Collection c = impl.emptyCollection();
         assertThrows(
             NullPointerException.class,
@@ -141,15 +152,13 @@ public class Collection8Test extends JSR166TestCase {
                 NullPointerException.class,
                 () -> c.add(null));
         }
-        if (!impl.permitsNulls()
-            && Queue.class.isAssignableFrom(impl.klazz())) {
+        if (!impl.permitsNulls() && c instanceof Queue) {
             Queue q = (Queue) c;
             assertThrows(
                 NullPointerException.class,
                 () -> q.offer(null));
         }
-        if (!impl.permitsNulls()
-            && Deque.class.isAssignableFrom(impl.klazz())) {
+        if (!impl.permitsNulls() && c instanceof Deque) {
             Deque d = (Deque) c;
             assertThrows(
                 NullPointerException.class,
@@ -160,6 +169,31 @@ public class Collection8Test extends JSR166TestCase {
                 () -> d.push(null),
                 () -> d.descendingIterator().forEachRemaining(null));
         }
+        if (!impl.permitsNulls() && c instanceof BlockingQueue) {
+            BlockingQueue q = (BlockingQueue) c;
+            assertThrows(
+                NullPointerException.class,
+                () -> {
+                    try { q.offer(null, 1L, MILLISECONDS); }
+                    catch (InterruptedException ex) {
+                        throw new AssertionError(ex);
+                    }});
+        }
+        if (!impl.permitsNulls() && c instanceof BlockingDeque) {
+            BlockingDeque q = (BlockingDeque) c;
+            assertThrows(
+                NullPointerException.class,
+                () -> {
+                    try { q.offerFirst(null, 1L, MILLISECONDS); }
+                    catch (InterruptedException ex) {
+                        throw new AssertionError(ex);
+                    }},
+                () -> {
+                    try { q.offerLast(null, 1L, MILLISECONDS); }
+                    catch (InterruptedException ex) {
+                        throw new AssertionError(ex);
+                    }});
+        }
     }
 
     public void testNoSuchElementExceptions() {
@@ -168,14 +202,14 @@ public class Collection8Test extends JSR166TestCase {
             NoSuchElementException.class,
             () -> c.iterator().next());
 
-        if (Queue.class.isAssignableFrom(impl.klazz())) {
+        if (c instanceof Queue) {
             Queue q = (Queue) c;
             assertThrows(
                 NoSuchElementException.class,
                 () -> q.element(),
                 () -> q.remove());
         }
-        if (Deque.class.isAssignableFrom(impl.klazz())) {
+        if (c instanceof Deque) {
             Deque d = (Deque) c;
             assertThrows(
                 NoSuchElementException.class,
