@@ -26,7 +26,7 @@ import java.util.concurrent.CountDownLatch;
  */
 
 /**
- * Highly coupled to the implementation of ArrayBlockingQueue.
+ * Tightly coupled to the implementation of ArrayBlockingQueue.
  * Uses reflection to inspect queue and iterator state.
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
