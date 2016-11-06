@@ -231,12 +231,10 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
      */
     public void testAdd() {
         ArrayBlockingQueue q = new ArrayBlockingQueue(SIZE);
-        for (int i = 0; i < SIZE; ++i) {
-            assertTrue(q.add(new Integer(i)));
-        }
+        for (int i = 0; i < SIZE; i++) assertTrue(q.add((Integer) i));
         assertEquals(0, q.remainingCapacity());
         try {
-            q.add(new Integer(SIZE));
+            q.add((Integer) SIZE);
             shouldThrow();
         } catch (IllegalStateException success) {}
     }
@@ -270,13 +268,17 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
     /**
      * addAll throws ISE if not enough room
      */
-    public void testAddAll4() {
-        ArrayBlockingQueue q = new ArrayBlockingQueue(1);
-        Integer[] ints = new Integer[SIZE];
-        for (int i = 0; i < SIZE; ++i)
-            ints[i] = new Integer(i);
+    public void testAddAll_insufficientSpace() {
+        int size = ThreadLocalRandom.current().nextInt(SIZE);
+        ArrayBlockingQueue q = populatedQueue(0, size, size, false);
+        // Just fits:
+        q.addAll(populatedQueue(size, size, 2 * size, false));
+        assertEquals(0, q.remainingCapacity());
+        assertEquals(size, q.size());
+        assertEquals(0, q.peek());
         try {
-            q.addAll(Arrays.asList(ints));
+            q = populatedQueue(0, size, size, false);
+            q.addAll(Collections.nCopies(size + 1, 42));
             shouldThrow();
         } catch (IllegalStateException success) {}
     }
