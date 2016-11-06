@@ -478,15 +478,16 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         try {
             if (count > 0) {
                 final Object[] items = this.items;
-                final int putIndex = this.putIndex;
-                int i = takeIndex;
-                do {
-                    if (o.equals(items[i])) {
-                        removeAt(i);
-                        return true;
-                    }
-                    if (++i == items.length) i = 0;
-                } while (i != putIndex);
+                for (int i = takeIndex, end = putIndex,
+                         to = (i < end) ? end : items.length;
+                     ; i = 0, to = end) {
+                    for (; i < to; i++)
+                        if (o.equals(items[i])) {
+                            removeAt(i);
+                            return true;
+                        }
+                    if (to == end) break;
+                }
             }
             return false;
         } finally {
