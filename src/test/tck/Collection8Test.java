@@ -412,7 +412,7 @@ public class Collection8Test extends JSR166TestCase {
         final Object x = impl.makeElement(1);
         final Object y = impl.makeElement(2);
         final ArrayList found = new ArrayList();
-        Consumer<Object> spy = o -> { found.add(o); };
+        Consumer<Object> spy = o -> found.add(o);
         c.stream().forEach(spy);
         assertTrue(found.isEmpty());
 
@@ -446,7 +446,7 @@ public class Collection8Test extends JSR166TestCase {
             Runnable checkElt = () -> {
                 threadsStarted.countDown();
                 while (!done.get())
-                    c.stream().forEach(x -> { assertSame(x, elt); }); };
+                    c.stream().forEach(x -> assertSame(x, elt)); };
             Runnable addRemove = () -> {
                 threadsStarted.countDown();
                 while (!done.get()) {
@@ -470,7 +470,7 @@ public class Collection8Test extends JSR166TestCase {
         final Object x = impl.makeElement(1);
         final Object y = impl.makeElement(2);
         final ArrayList found = new ArrayList();
-        Consumer<Object> spy = o -> { found.add(o); };
+        Consumer<Object> spy = o -> found.add(o);
         c.forEach(spy);
         assertTrue(found.isEmpty());
 
@@ -504,7 +504,7 @@ public class Collection8Test extends JSR166TestCase {
             Runnable checkElt = () -> {
                 threadsStarted.countDown();
                 while (!done.get())
-                    c.forEach(x -> { assertSame(x, elt); }); };
+                    c.forEach(x -> assertSame(x, elt)); };
             Runnable addRemove = () -> {
                 threadsStarted.countDown();
                 while (!done.get()) {
