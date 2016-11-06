@@ -129,7 +129,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * This is a slight abuse of generics, accepted by javac.
      */
     @SuppressWarnings("unchecked")
-    final static <E> E itemAt(Object[] items, int i) {
+    static <E> E itemAt(Object[] items, int i) {
         return (E) items[i];
     }
 
