@@ -262,6 +262,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         final ReentrantLock lock = this.lock;
         lock.lock(); // Lock only for visibility, not mutual exclusion
         try {
+            final Object[] items = this.items;
             int i = 0;
             try {
                 for (E e : c)
@@ -272,6 +273,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             count = i;
             putIndex = (i == capacity) ? 0 : i;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
