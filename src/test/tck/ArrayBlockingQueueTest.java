@@ -269,7 +269,7 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
      * addAll throws ISE if not enough room
      */
     public void testAddAll_insufficientSpace() {
-        int size = ThreadLocalRandom.current().nextInt(SIZE);
+        int size = ThreadLocalRandom.current().nextInt(1, SIZE);
         ArrayBlockingQueue q = populatedQueue(0, size, size, false);
         // Just fits:
         q.addAll(populatedQueue(size, size, 2 * size, false));
@@ -937,8 +937,8 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
      */
     public void testNeverContainsNull() {
         Collection<?>[] qs = {
-            new ArrayBlockingQueue<Object>(10),
-            populatedQueue(2),
+            populatedQueue(0, 1, 10, false),
+            populatedQueue(2, 2, 10, true),
         };
 
         for (Collection<?> q : qs) {
