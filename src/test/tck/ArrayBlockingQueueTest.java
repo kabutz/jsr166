@@ -25,18 +25,6 @@ import junit.framework.Test;
 
 public class ArrayBlockingQueueTest extends JSR166TestCase {
 
-    public static class Fair extends BlockingQueueTest {
-        protected BlockingQueue emptyCollection() {
-            return populatedQueue(0, SIZE, 2 * SIZE, true);
-        }
-    }
-
-    public static class NonFair extends BlockingQueueTest {
-        protected BlockingQueue emptyCollection() {
-            return populatedQueue(0, SIZE, 2 * SIZE, false);
-        }
-    }
-
     public static void main(String[] args) {
         main(suite(), args);
     }
@@ -52,10 +40,24 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
             public boolean isConcurrent() { return true; }
             public boolean permitsNulls() { return false; }
         }
-        return newTestSuite(ArrayBlockingQueueTest.class,
-                            new Fair().testSuite(),
-                            new NonFair().testSuite(),
-                            CollectionTest.testSuite(new Implementation()));
+
+        return newTestSuite(
+            ArrayBlockingQueueTest.class,
+            new Fair().testSuite(),
+            new NonFair().testSuite(),
+            CollectionTest.testSuite(new Implementation()));
+    }
+
+    public static class Fair extends BlockingQueueTest {
+        protected BlockingQueue emptyCollection() {
+            return populatedQueue(0, SIZE, 2 * SIZE, true);
+        }
+    }
+
+    public static class NonFair extends BlockingQueueTest {
+        protected BlockingQueue emptyCollection() {
+            return populatedQueue(0, SIZE, 2 * SIZE, false);
+        }
     }
 
     /**
