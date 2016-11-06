@@ -51,7 +51,7 @@ package java.util.concurrent;
  *   List<Future<Result>> futures = new ArrayList<>(n);
  *   Result result = null;
  *   try {
- *     solvers.forEach((solver) -> futures.add(cs.submit(solver)));
+ *     solvers.forEach(solver -> futures.add(cs.submit(solver)));
  *     for (int i = n; i > 0; i--) {
  *       try {
  *         Result r = cs.take().get();
@@ -62,7 +62,7 @@ package java.util.concurrent;
  *       } catch (ExecutionException ignore) {}
  *     }
  *   } finally {
- *     futures.forEach((future) -> future.cancel(true));
+ *     futures.forEach(future -> future.cancel(true));
  *   }
  *
  *   if (result != null)
