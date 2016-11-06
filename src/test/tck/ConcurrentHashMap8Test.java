@@ -63,7 +63,7 @@ public class ConcurrentHashMap8Test extends JSR166TestCase {
      */
     public void testComputeIfAbsent() {
         ConcurrentHashMap map = map5();
-        map.computeIfAbsent(six, (x) -> "Z");
+        map.computeIfAbsent(six, x -> "Z");
         assertTrue(map.containsKey(six));
     }
 
@@ -72,7 +72,7 @@ public class ConcurrentHashMap8Test extends JSR166TestCase {
      */
     public void testComputeIfAbsent2() {
         ConcurrentHashMap map = map5();
-        assertEquals("A", map.computeIfAbsent(one, (x) -> "Z"));
+        assertEquals("A", map.computeIfAbsent(one, x -> "Z"));
     }
 
     /**
@@ -80,7 +80,7 @@ public class ConcurrentHashMap8Test extends JSR166TestCase {
      */
     public void testComputeIfAbsent3() {
         ConcurrentHashMap map = map5();
-        map.computeIfAbsent(six, (x) -> null);
+        map.computeIfAbsent(six, x -> null);
         assertFalse(map.containsKey(six));
     }
 
@@ -1107,7 +1107,7 @@ public class ConcurrentHashMap8Test extends JSR166TestCase {
                 public void realRun() {
                     int result = 0;
                     for (int i = 0; i < iterations; i++)
-                        result += map.computeIfAbsent(i % mapSize, (k) -> k + k);
+                        result += map.computeIfAbsent(i % mapSize, k -> k + k);
                     if (result == -42) throw new Error();
                 }};
             for (int i = 0; i < threads; i++)

@@ -123,7 +123,7 @@ public class CountedCompleter8Test extends JSR166TestCase {
         Integer[] a = new Integer[n];
         for (int i = 0; i < n; i++) a[i] = i + 1;
         AtomicInteger ai = new AtomicInteger(0);
-        action.accept(a, (x) -> ai.addAndGet(x));
+        action.accept(a, x -> ai.addAndGet(x));
         assertEquals(n * (n + 1) / 2, ai.get());
     }
 

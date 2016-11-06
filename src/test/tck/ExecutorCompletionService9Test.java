@@ -51,7 +51,7 @@ public class ExecutorCompletionService9Test extends JSR166TestCase {
         List<Future<Integer>> futures = new ArrayList<>(n);
         Integer result = null;
         try {
-            solvers.forEach((solver) -> futures.add(cs.submit(solver)));
+            solvers.forEach(solver -> futures.add(cs.submit(solver)));
             for (int i = n; i > 0; i--) {
                 try {
                     Integer r = cs.take().get();
@@ -62,7 +62,7 @@ public class ExecutorCompletionService9Test extends JSR166TestCase {
                 } catch (ExecutionException ignore) {}
             }
         } finally {
-            futures.forEach((future) -> future.cancel(true));
+            futures.forEach(future -> future.cancel(true));
         }
 
         if (result != null)
