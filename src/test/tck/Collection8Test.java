@@ -169,7 +169,7 @@ public class Collection8Test extends JSR166TestCase {
                 () -> d.push(null),
                 () -> d.descendingIterator().forEachRemaining(null));
         }
-        if (!impl.permitsNulls() && c instanceof BlockingQueue) {
+        if (c instanceof BlockingQueue) {
             BlockingQueue q = (BlockingQueue) c;
             assertThrows(
                 NullPointerException.class,
@@ -177,9 +177,14 @@ public class Collection8Test extends JSR166TestCase {
                     try { q.offer(null, 1L, MILLISECONDS); }
                     catch (InterruptedException ex) {
                         throw new AssertionError(ex);
+                    }},
+                () -> {
+                    try { q.put(null); }
+                    catch (InterruptedException ex) {
+                        throw new AssertionError(ex);
                     }});
         }
-        if (!impl.permitsNulls() && c instanceof BlockingDeque) {
+        if (c instanceof BlockingDeque) {
             BlockingDeque q = (BlockingDeque) c;
             assertThrows(
                 NullPointerException.class,
@@ -190,6 +195,16 @@ public class Collection8Test extends JSR166TestCase {
                     }},
                 () -> {
                     try { q.offerLast(null, 1L, MILLISECONDS); }
+                    catch (InterruptedException ex) {
+                        throw new AssertionError(ex);
+                    }},
+                () -> {
+                    try { q.putFirst(null); }
+                    catch (InterruptedException ex) {
+                        throw new AssertionError(ex);
+                    }},
+                () -> {
+                    try { q.putLast(null); }
                     catch (InterruptedException ex) {
                         throw new AssertionError(ex);
                     }});
