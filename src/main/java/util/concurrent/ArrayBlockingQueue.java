@@ -138,7 +138,6 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * Call only when holding lock.
      */
     private void enqueue(E x) {
-        // checkInvariants();
         // assert lock.getHoldCount() == 1;
         // assert items[putIndex] == null;
         final Object[] items = this.items;
@@ -154,7 +153,6 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * Call only when holding lock.
      */
     private E dequeue() {
-        // checkInvariants();
         // assert lock.getHoldCount() == 1;
         // assert items[takeIndex] != null;
         final Object[] items = this.items;
@@ -176,7 +174,6 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * Call only when holding lock.
      */
     void removeAt(final int removeIndex) {
-        // checkInvariants();
         // assert lock.getHoldCount() == 1;
         // assert items[removeIndex] != null;
         // assert removeIndex >= 0 && removeIndex < items.length;
@@ -207,6 +204,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 itrs.removedAt(removeIndex);
         }
         notFull.signal();
+        // checkInvariants();
     }
 
     /**
@@ -272,8 +270,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             }
             count = i;
             putIndex = (i == capacity) ? 0 : i;
-        } finally {
             // checkInvariants();
+        } finally {
             lock.unlock();
         }
     }
@@ -360,9 +358,9 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 nanos = notFull.awaitNanos(nanos);
             }
             enqueue(e);
-            // checkInvariants();
             return true;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -711,6 +709,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 }
             }
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -1399,8 +1398,9 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
 
     /** debugging */
     void checkInvariants() {
-        // meta-assertion
+        // meta-assertions
         // assert lock.isHeldByCurrentThread();
+        // assert lock.getHoldCount() == 1;
         try {
             int capacity = items.length;
             // assert capacity > 0;
@@ -1411,8 +1411,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             // assert count == capacity || items[putIndex] == null;
             // assert takeIndex == putIndex || items[dec(putIndex, capacity)] != null;
         } catch (Throwable t) {
-            System.err.printf("takeIndex=%d putIndex=%d capacity=%d%n",
-                              takeIndex, putIndex, items.length);
+            System.err.printf("takeIndex=%d putIndex=%d count=%d capacity=%d%n",
+                              takeIndex, putIndex, count, items.length);
             System.err.printf("items=%s%n",
                               Arrays.toString(items));
             throw t;
