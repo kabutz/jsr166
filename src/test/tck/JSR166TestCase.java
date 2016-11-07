@@ -1828,7 +1828,7 @@ public class JSR166TestCase extends TestCase {
         }
     }
 
-    void assertImmutable(Object o) {
+    void assertImmutable(final Object o) {
         if (o instanceof Collection) {
             assertThrows(
                 UnsupportedOperationException.class,
