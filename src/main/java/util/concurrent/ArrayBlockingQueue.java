@@ -1203,6 +1203,38 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             return x;
         }
 
+        public void forEachRemaining(Consumer<? super E> action) {
+            // assert lock.getHoldCount() == 0;
+            Objects.requireNonNull(action);
+            final ReentrantLock lock = ArrayBlockingQueue.this.lock;
+            lock.lock();
+            try {
+                final E x = nextItem;
+                if (x == null) return;
+                if (!isDetached())
+                    incorporateDequeues();
+                action.accept(nextItem);
+                if (isDetached() || cursor < 0) return;
+                final Object[] items = ArrayBlockingQueue.this.items;
+                for (int i = cursor, end = putIndex,
+                         to = (i < end) ? end : items.length;
+                     ; i = 0, to = end) {
+                    for (; i < to; i++)
+                        action.accept(itemAt(items, i));
+                    if (to == end) break;
+                }
+            } finally {
+                // Calling forEachRemaining is a strong hint that this
+                // iteration is surely over; supporting remove() after
+                // forEachRemaining() is more trouble than it's worth
+                cursor = NONE;
+                nextIndex = lastRet = NONE;
+                nextItem = lastItem = null;
+                detach();
+                lock.unlock();
+            }
+        }
+
         public void remove() {
             // assert lock.getHoldCount() == 0;
             final ReentrantLock lock = ArrayBlockingQueue.this.lock;

@@ -365,7 +365,7 @@ public class Collection8Test extends JSR166TestCase {
 
     /**
      * Calling Iterator#remove() after Iterator#forEachRemaining
-     * should remove last element
+     * should (maybe) remove last element
      */
     public void testRemoveAfterForEachRemaining() {
         Collection c = impl.emptyCollection();
@@ -378,12 +378,18 @@ public class Collection8Test extends JSR166TestCase {
             assertEquals(impl.makeElement(0), it.next());
             assertTrue(it.hasNext());
             assertEquals(impl.makeElement(1), it.next());
-            it.forEachRemaining(e -> {});
-            it.remove();
-            assertEquals(n - 1, c.size());
-            for (int i = 0; i < n - 1; i++)
-                assertTrue(c.contains(impl.makeElement(i)));
-            assertFalse(c.contains(impl.makeElement(n - 1)));
+            it.forEachRemaining(e -> assertTrue(c.contains(e)));
+            if (testImplementationDetails) {
+                if (c instanceof java.util.concurrent.ArrayBlockingQueue) {
+                    assertIteratorExhausted(it);
+                } else {
+                    it.remove();
+                    assertEquals(n - 1, c.size());
+                    for (int i = 0; i < n - 1; i++)
+                        assertTrue(c.contains(impl.makeElement(i)));
+                    assertFalse(c.contains(impl.makeElement(n - 1)));
+                }
+            }
         }
         if (c instanceof Deque) {
             Deque d = (Deque) impl.emptyCollection();
@@ -394,12 +400,14 @@ public class Collection8Test extends JSR166TestCase {
             assertEquals(impl.makeElement(n - 1), it.next());
             assertTrue(it.hasNext());
             assertEquals(impl.makeElement(n - 2), it.next());
-            it.forEachRemaining(e -> {});
-            it.remove();
-            assertEquals(n - 1, d.size());
-            for (int i = 1; i < n; i++)
-                assertTrue(d.contains(impl.makeElement(i)));
-            assertFalse(d.contains(impl.makeElement(0)));
+            it.forEachRemaining(e -> assertTrue(c.contains(e)));
+            if (testImplementationDetails) {
+                it.remove();
+                assertEquals(n - 1, d.size());
+                for (int i = 1; i < n; i++)
+                    assertTrue(d.contains(impl.makeElement(i)));
+                assertFalse(d.contains(impl.makeElement(0)));
+            }
         }
     }
 
