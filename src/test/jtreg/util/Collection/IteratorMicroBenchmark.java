@@ -270,23 +270,22 @@ public class IteratorMicroBenchmark {
 
     List<Job> collectionJobs(Collection<Integer> x) {
         String klazz = x.getClass().getSimpleName();
-        String desc = klazz + " Collection interface";
         return List.of(
-            new Job(desc + " iterate for loop") {
+            new Job(klazz + " iterate for loop") {
                 public void work() throws Throwable {
                     for (int i = 0; i < iterations; i++) {
                         int sum = 0;
                         for (Integer n : x)
                             sum += n;
                         check.sum(sum);}}},
-            new Job(desc + " .iterator().forEachRemaining()") {
+            new Job(klazz + " .iterator().forEachRemaining()") {
                 public void work() throws Throwable {
                     int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
                         sum[0] = 0;
                         x.iterator().forEachRemaining(n -> sum[0] += n);
                         check.sum(sum[0]);}}},
-            new Job(desc + " .spliterator().tryAdvance()") {
+            new Job(klazz + " .spliterator().tryAdvance()") {
                 public void work() throws Throwable {
                     int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
@@ -294,21 +293,21 @@ public class IteratorMicroBenchmark {
                         Spliterator<Integer> spliterator = x.spliterator();
                         do {} while (spliterator.tryAdvance(n -> sum[0] += n));
                         check.sum(sum[0]);}}},
-            new Job(desc + " .spliterator().forEachRemaining()") {
+            new Job(klazz + " .spliterator().forEachRemaining()") {
                 public void work() throws Throwable {
                     int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
                         sum[0] = 0;
                         x.spliterator().forEachRemaining(n -> sum[0] += n);
                         check.sum(sum[0]);}}},
-            new Job(desc + " .removeIf") {
+            new Job(klazz + " .removeIf") {
                 public void work() throws Throwable {
                     int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
                         sum[0] = 0;
                         x.removeIf(n -> { sum[0] += n; return false; });
                         check.sum(sum[0]);}}},
-            new Job(desc + " .forEach") {
+            new Job(klazz + " .forEach") {
                 public void work() throws Throwable {
                     int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
@@ -319,9 +318,8 @@ public class IteratorMicroBenchmark {
 
     List<Job> dequeJobs(Deque<Integer> x) {
         String klazz = x.getClass().getSimpleName();
-        String desc = klazz + " Deque interface";
         return List.of(
-            new Job(desc + " .descendingIterator() loop") {
+            new Job(klazz + " .descendingIterator() loop") {
                 public void work() throws Throwable {
                     for (int i = 0; i < iterations; i++) {
                         int sum = 0;
@@ -329,7 +327,7 @@ public class IteratorMicroBenchmark {
                         while (it.hasNext())
                             sum += it.next();
                         check.sum(sum);}}},
-            new Job(desc + " .descendingIterator().forEachRemaining()") {
+            new Job(klazz + " .descendingIterator().forEachRemaining()") {
                 public void work() throws Throwable {
                     int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
