@@ -15,9 +15,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
-import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadLocalRandom;
 
 /*
  * @test
@@ -31,7 +31,7 @@ import java.util.concurrent.CountDownLatch;
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class IteratorConsistency {
-    final Random rnd = new Random();
+    final ThreadLocalRandom rnd = ThreadLocalRandom.current();
     final int CAPACITY = 20;
     Field itrsField;
     Field itemsField;
@@ -116,6 +116,10 @@ public class IteratorConsistency {
         if (rnd.nextBoolean()) {
             check(!it.hasNext());
             check(isDetached(it));
+        }
+        if (rnd.nextBoolean()) {
+            it.forEachRemaining(e -> { throw new AssertionError(); });
+            checkDetached(it);
         }
         if (rnd.nextBoolean())
             try { it.next(); fail("should throw"); }
