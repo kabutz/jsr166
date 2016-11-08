@@ -779,7 +779,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
                 if (to == end) {
                     if (end != head)
                         throw new ConcurrentModificationException();
-                    lastRet = head;
+                    lastRet = end;
                     break;
                 }
             }
