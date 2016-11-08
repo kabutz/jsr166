@@ -603,6 +603,7 @@ public class Semaphore implements java.io.Serializable {
 
     /**
      * Acquires and returns all permits that are immediately available.
+     * Upon return, zero permits are available.
      *
      * @return the number of permits acquired
      */
