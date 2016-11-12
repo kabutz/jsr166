@@ -168,7 +168,16 @@ public class ThreadLocalRandom extends Random {
         return r;
     }
 
-    // We must define this, but never use it.
+    /**
+     * Generates a pseudorandom number with the indicated number of
+     * bits. Unlike in superclass @{link Random}, this method is never
+     * internally called or used by any other publicly accessible
+     * method.
+     *
+     * @param  bits random bits
+     * @return the next pseudorandom value from this random number
+     *         generator's sequence
+     */
     protected int next(int bits) {
         return (int)(mix64(nextSeed()) >>> (64 - bits));
     }
