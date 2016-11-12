@@ -530,6 +530,20 @@ public final class SplittableRandom {
             Double.longBitsToDouble(Double.doubleToLongBits(bound) - 1);
     }
 
+        /**
+     * Generates a pseudorandom number with the indicated number of
+     * bits. Unlike in superclass @{link Random}, this method is never
+     * internally called or used by any other publicly accessible
+     * method.
+     *
+     * @param  bits random bits
+     * @return the next pseudorandom value from this random number
+     *         generator's sequence
+     */
+    protected int next(int bits) {
+        return (int)(nextLong() >>> (64 - bits));
+    }
+
     /**
      * Returns a pseudorandom {@code double} value between the specified
      * origin (inclusive) and bound (exclusive).
