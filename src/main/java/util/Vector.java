@@ -992,9 +992,8 @@ public class Vector<E>
         final boolean modified;
         int r;
         // Optimize for initial run of survivors
-        for (r = 0; r < size; r++)
-            if (filter.test((E) es[r]))
-                break;
+        for (r = 0; r < size && !filter.test((E) es[r]); r++)
+            ;
         if (modified = (r < size)) {
             expectedModCount++;
             modCount++;
