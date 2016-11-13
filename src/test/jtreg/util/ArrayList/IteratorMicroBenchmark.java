@@ -522,6 +522,14 @@ public class IteratorMicroBenchmark {
                         sum[0] = 0;
                         v.removeIf(n -> { sum[0] += n; return false; });
                         check.sum(sum[0]);}}},
+            new Job("ArrayList subList .removeIf") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    List<Integer> sl = asSubList(al);
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        sl.removeIf(n -> { sum[0] += n; return false; });
+                        check.sum(sum[0]);}}},
             new Job("ArrayList subList get loop") {
                 public void work() throws Throwable {
                     List<Integer> sl = asSubList(al);
