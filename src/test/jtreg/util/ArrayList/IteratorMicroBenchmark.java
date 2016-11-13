@@ -47,7 +47,7 @@ import java.util.regex.Pattern;
  * Usage: [iterations=N] [size=N] [filter=REGEXP] [warmup=SECONDS]
  *
  * To run this in micro-benchmark mode, simply run as a normal java program.
- * Be patient; this runs for an hour!
+ * Be patient; this program runs for a very long time.
  * For faster runs, restrict execution using command line args.
  *
  * @author Martin Buchholz
