@@ -693,7 +693,7 @@ public class Vector<E>
     public synchronized Object clone() {
         try {
             @SuppressWarnings("unchecked")
-                Vector<E> v = (Vector<E>) super.clone();
+            Vector<E> v = (Vector<E>) super.clone();
             v.elementData = Arrays.copyOf(elementData, elementCount);
             v.modCount = 0;
             return v;
@@ -1269,14 +1269,11 @@ public class Vector<E>
                 if (i >= size) {
                     return;
                 }
-        @SuppressWarnings("unchecked")
-                final E[] elementData = (E[]) Vector.this.elementData;
-                if (i >= elementData.length) {
+                final Object[] es = elementData;
+                if (i >= es.length)
                     throw new ConcurrentModificationException();
-                }
-                while (i != size && modCount == expectedModCount) {
-                    action.accept(elementData[i++]);
-                }
+                while (i < size && modCount == expectedModCount)
+                    action.accept(elementAt(es, i++));
                 // update once at end of iteration to reduce heap write traffic
                 cursor = i;
                 lastRet = i - 1;
@@ -1347,29 +1344,24 @@ public class Vector<E>
     public synchronized void forEach(Consumer<? super E> action) {
         Objects.requireNonNull(action);
         final int expectedModCount = modCount;
-        @SuppressWarnings("unchecked")
-        final E[] elementData = (E[]) this.elementData;
-        final int elementCount = this.elementCount;
-        for (int i=0; modCount == expectedModCount && i < elementCount; i++) {
-            action.accept(elementData[i]);
-        }
-        if (modCount != expectedModCount) {
+        final Object[] es = elementData;
+        final int size = elementCount;
+        for (int i = 0; modCount == expectedModCount && i < size; i++)
+            action.accept(elementAt(es, i));
+        if (modCount != expectedModCount)
             throw new ConcurrentModificationException();
-        }
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public synchronized void replaceAll(UnaryOperator<E> operator) {
         Objects.requireNonNull(operator);
         final int expectedModCount = modCount;
+        final Object[] es = elementData;
         final int size = elementCount;
-        for (int i=0; modCount == expectedModCount && i < size; i++) {
-            elementData[i] = operator.apply((E) elementData[i]);
-        }
-        if (modCount != expectedModCount) {
+        for (int i = 0; modCount == expectedModCount && i < size; i++)
+            es[i] = operator.apply(elementAt(es, i));
+        if (modCount != expectedModCount)
             throw new ConcurrentModificationException();
-        }
         modCount++;
     }
 
@@ -1410,7 +1402,7 @@ public class Vector<E>
         private int fence; // -1 until used; then one past last index
         private int expectedModCount; // initialized when fence set
 
-        /** Create new spliterator covering the given  range */
+        /** Create new spliterator covering the given range */
         VectorSpliterator(Vector<E> list, Object[] array, int origin, int fence,
                           int expectedModCount) {
             this.list = list;
