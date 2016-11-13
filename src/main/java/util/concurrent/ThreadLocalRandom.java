@@ -170,7 +170,7 @@ public class ThreadLocalRandom extends Random {
 
     /**
      * Generates a pseudorandom number with the indicated number of
-     * bits. Unlike in superclass @{link Random}, this method is never
+     * bits. Unlike in superclass {@link Random}, this method is never
      * internally called or used by any other publicly accessible
      * method.
      *
