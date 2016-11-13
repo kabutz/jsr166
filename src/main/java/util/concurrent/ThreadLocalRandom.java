@@ -171,7 +171,7 @@ public class ThreadLocalRandom extends Random {
     /**
      * Generates a pseudorandom number with the indicated number of
      * low-order bits.  Because this class has no subclasses, this
-     * method cannot be invoked or overriden.
+     * method cannot be invoked or overridden.
      *
      * @param  bits random bits
      * @return the next pseudorandom value from this random number
