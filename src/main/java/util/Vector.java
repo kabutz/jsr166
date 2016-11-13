@@ -585,6 +585,7 @@ public class Vector<E>
         modCount++;
         elementCount--;
         elementData[elementCount] = null; /* to let gc do its work */
+        // checkInvariants();
     }
 
     /**
@@ -675,10 +676,7 @@ public class Vector<E>
      * method (which is part of the {@link List} interface).
      */
     public synchronized void removeAllElements() {
-        // Let gc do its work
-        for (int i = 0; i < elementCount; i++)
-            elementData[i] = null;
-
+        Arrays.fill(elementData, 0, elementCount, null);
         modCount++;
         elementCount = 0;
     }
@@ -810,6 +808,7 @@ public class Vector<E>
             elementData = grow();
         elementData[s] = e;
         elementCount = s + 1;
+        // checkInvariants();
     }
 
     /**
@@ -878,6 +877,7 @@ public class Vector<E>
                              numMoved);
         elementData[--elementCount] = null; // Let gc do its work
 
+        // checkInvariants();
         return oldValue;
     }
 
@@ -933,6 +933,7 @@ public class Vector<E>
                 elementData = grow(s + numNew);
             System.arraycopy(a, 0, elementData, s, numNew);
             elementCount = s + numNew;
+            // checkInvariants();
             return true;
         }
     }
@@ -1030,6 +1031,7 @@ public class Vector<E>
         }
         if (modCount != expectedModCount)
             throw new ConcurrentModificationException();
+        // checkInvariants();
         return modified;
     }
 
@@ -1071,6 +1073,7 @@ public class Vector<E>
                              numMoved);
         System.arraycopy(a, 0, elementData, index, numNew);
         elementCount = s + numNew;
+        // checkInvariants();
         return true;
     }
 
@@ -1152,15 +1155,13 @@ public class Vector<E>
      * (If {@code toIndex==fromIndex}, this operation has no effect.)
      */
     protected synchronized void removeRange(int fromIndex, int toIndex) {
-        int numMoved = elementCount - toIndex;
-        System.arraycopy(elementData, toIndex, elementData, fromIndex,
-                         numMoved);
+        final Object[] es = elementData;
+        final int oldSize = elementCount;
+        System.arraycopy(es, toIndex, es, fromIndex, oldSize - toIndex);
 
-        // Let gc do its work
         modCount++;
-        int newElementCount = elementCount - (toIndex-fromIndex);
-        while (elementCount != newElementCount)
-            elementData[--elementCount] = null;
+        Arrays.fill(es, elementCount -= (toIndex - fromIndex), oldSize, null);
+        // checkInvariants();
     }
 
     /**
@@ -1350,6 +1351,7 @@ public class Vector<E>
             action.accept(elementAt(es, i));
         if (modCount != expectedModCount)
             throw new ConcurrentModificationException();
+        // checkInvariants();
     }
 
     @Override
@@ -1363,6 +1365,7 @@ public class Vector<E>
         if (modCount != expectedModCount)
             throw new ConcurrentModificationException();
         modCount++;
+        // checkInvariants();
     }
 
     @SuppressWarnings("unchecked")
@@ -1370,10 +1373,10 @@ public class Vector<E>
     public synchronized void sort(Comparator<? super E> c) {
         final int expectedModCount = modCount;
         Arrays.sort((E[]) elementData, 0, elementCount, c);
-        if (modCount != expectedModCount) {
+        if (modCount != expectedModCount)
             throw new ConcurrentModificationException();
-        }
         modCount++;
+        // checkInvariants();
     }
 
     /**
@@ -1479,5 +1482,10 @@ public class Vector<E>
         public int characteristics() {
             return Spliterator.ORDERED | Spliterator.SIZED | Spliterator.SUBSIZED;
         }
+    }
+
+    void checkInvariants() {
+        // assert elementCount >= 0;
+        // assert elementCount == elementData.length || elementData[elementCount] == null;
     }
 }

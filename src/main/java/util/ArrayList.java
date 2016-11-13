@@ -501,6 +501,7 @@ public class ArrayList<E> extends AbstractList<E>
                          s - index);
         elementData[index] = element;
         size = s + 1;
+        // checkInvariants();
     }
 
     /**
@@ -524,6 +525,7 @@ public class ArrayList<E> extends AbstractList<E>
                              numMoved);
         elementData[--size] = null; // clear to let GC do its work
 
+        // checkInvariants();
         return oldValue;
     }
 
@@ -557,7 +559,7 @@ public class ArrayList<E> extends AbstractList<E>
         return false;
     }
 
-    /*
+    /**
      * Private remove method that skips bounds checking and does not
      * return the value removed.
      */
@@ -576,11 +578,7 @@ public class ArrayList<E> extends AbstractList<E>
      */
     public void clear() {
         modCount++;
-
-        // clear to let GC do its work
-        for (int i = 0; i < size; i++)
-            elementData[i] = null;
-
+        Arrays.fill(elementData, 0, size, null);
         size = 0;
     }
 
@@ -609,6 +607,7 @@ public class ArrayList<E> extends AbstractList<E>
             elementData = grow(s + numNew);
         System.arraycopy(a, 0, elementData, s, numNew);
         size = s + numNew;
+        // checkInvariants();
         return true;
     }
 
@@ -647,6 +646,7 @@ public class ArrayList<E> extends AbstractList<E>
                              numMoved);
         System.arraycopy(a, 0, elementData, index, numNew);
         size = s + numNew;
+        // checkInvariants();
         return true;
     }
 
@@ -669,16 +669,11 @@ public class ArrayList<E> extends AbstractList<E>
                     outOfBoundsMsg(fromIndex, toIndex));
         }
         modCount++;
-        int numMoved = size - toIndex;
-        System.arraycopy(elementData, toIndex, elementData, fromIndex,
-                         numMoved);
-
-        // clear to let GC do its work
-        int newSize = size - (toIndex-fromIndex);
-        for (int i = newSize; i < size; i++) {
-            elementData[i] = null;
-        }
-        size = newSize;
+        final Object[] es = elementData;
+        final int oldSize = size;
+        System.arraycopy(es, toIndex, es, fromIndex, oldSize - toIndex);
+        Arrays.fill(es, size -= (toIndex - fromIndex), oldSize, null);
+        // checkInvariants();
     }
 
     /**
@@ -772,6 +767,7 @@ public class ArrayList<E> extends AbstractList<E>
                 Arrays.fill(es, size -= deleted, oldSize, null);
             }
         }
+        // checkInvariants();
         return modified;
     }
 
@@ -1124,6 +1120,7 @@ public class ArrayList<E> extends AbstractList<E>
         public boolean removeAll(Collection<?> c) {
             return batchRemove(c, false);
         }
+
         public boolean retainAll(Collection<?> c) {
             return batchRemove(c, true);
         }
@@ -1380,12 +1377,10 @@ public class ArrayList<E> extends AbstractList<E>
         final int expectedModCount = modCount;
         final Object[] es = elementData;
         final int size = this.size;
-        for (int i = 0; modCount == expectedModCount && i < size; i++) {
+        for (int i = 0; modCount == expectedModCount && i < size; i++)
             action.accept(elementAt(es, i));
-        }
-        if (modCount != expectedModCount) {
+        if (modCount != expectedModCount)
             throw new ConcurrentModificationException();
-        }
     }
 
     /**
@@ -1575,6 +1570,7 @@ public class ArrayList<E> extends AbstractList<E>
         }
         if (modCount != expectedModCount)
             throw new ConcurrentModificationException();
+        // checkInvariants();
         return modified;
     }
 
@@ -1584,13 +1580,12 @@ public class ArrayList<E> extends AbstractList<E>
         final int expectedModCount = modCount;
         final Object[] es = elementData;
         final int size = this.size;
-        for (int i=0; modCount == expectedModCount && i < size; i++) {
+        for (int i = 0; modCount == expectedModCount && i < size; i++)
             es[i] = operator.apply(elementAt(es, i));
-        }
-        if (modCount != expectedModCount) {
+        if (modCount != expectedModCount)
             throw new ConcurrentModificationException();
-        }
         modCount++;
+        // checkInvariants();
     }
 
     @Override
@@ -1598,9 +1593,14 @@ public class ArrayList<E> extends AbstractList<E>
     public void sort(Comparator<? super E> c) {
         final int expectedModCount = modCount;
         Arrays.sort((E[]) elementData, 0, size, c);
-        if (modCount != expectedModCount) {
+        if (modCount != expectedModCount)
             throw new ConcurrentModificationException();
-        }
         modCount++;
+        // checkInvariants();
+    }
+
+    void checkInvariants() {
+        // assert size >= 0;
+        // assert size == elementData.length || elementData[size] == null;
     }
 }
