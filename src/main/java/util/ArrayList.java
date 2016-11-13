@@ -721,7 +721,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @see Collection#contains(Object)
      */
     public boolean removeAll(Collection<?> c) {
-        return batchRemove(c, false);
+        return batchRemove(c, false, 0, size);
     }
 
     /**
@@ -741,17 +741,17 @@ public class ArrayList<E> extends AbstractList<E>
      * @see Collection#contains(Object)
      */
     public boolean retainAll(Collection<?> c) {
-        return batchRemove(c, true);
+        return batchRemove(c, true, 0, size);
     }
 
-    private boolean batchRemove(Collection<?> c, boolean complement) {
+    boolean batchRemove(Collection<?> c, boolean complement,
+                        final int from, final int end) {
         Objects.requireNonNull(c);
         final Object[] es = elementData;
-        final int end = size;
         final boolean modified;
         int r;
         // Optimize for initial run of survivors
-        for (r = 0; r < end && c.contains(es[r]) == complement; r++)
+        for (r = from; r < end && c.contains(es[r]) == complement; r++)
             ;
         if (modified = (r < end)) {
             int w = r++;
@@ -766,8 +766,10 @@ public class ArrayList<E> extends AbstractList<E>
                 w += end - r;
                 throw ex;
             } finally {
-                modCount += end - w;
-                Arrays.fill(es, size = w, end, null);
+                final int oldSize = size, deleted = end - w;
+                modCount += deleted;
+                System.arraycopy(es, end, es, w, oldSize - end);
+                Arrays.fill(es, size -= deleted, oldSize, null);
             }
         }
         return modified;
@@ -1119,6 +1121,32 @@ public class ArrayList<E> extends AbstractList<E>
             return true;
         }
 
+        public boolean removeAll(Collection<?> c) {
+            return batchRemove(c, false);
+        }
+        public boolean retainAll(Collection<?> c) {
+            return batchRemove(c, true);
+        }
+
+        private boolean batchRemove(Collection<?> c, boolean complement) {
+            checkForComodification();
+            int oldSize = root.size;
+            boolean modified =
+                root.batchRemove(c, complement, offset, offset + size);
+            if (modified)
+                updateSizeAndModCount(root.size - oldSize);
+            return modified;
+        }
+
+        public boolean removeIf(Predicate<? super E> filter) {
+            checkForComodification();
+            int oldSize = root.size;
+            boolean modified = root.removeIf(filter, offset, offset + size);
+            if (modified)
+                updateSizeAndModCount(root.size - oldSize);
+            return modified;
+        }
+
         public Iterator<E> iterator() {
             return listIterator();
         }
@@ -1418,7 +1446,7 @@ public class ArrayList<E> extends AbstractList<E>
         private int fence; // -1 until used; then one past last index
         private int expectedModCount; // initialized when fence set
 
-        /** Create new spliterator covering the given  range */
+        /** Create new spliterator covering the given range */
         ArrayListSpliterator(ArrayList<E> list, int origin, int fence,
                              int expectedModCount) {
             this.list = list; // OK if null unless traversed
@@ -1509,15 +1537,19 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     @Override
-        public boolean removeIf(Predicate<? super E> filter) {
+    public boolean removeIf(Predicate<? super E> filter) {
+        return removeIf(filter, 0, size);
+    }
+
+    boolean removeIf(Predicate<? super E> filter,
+                     final int from, final int end) {
         Objects.requireNonNull(filter);
         int expectedModCount = modCount;
         final Object[] es = elementData;
-        final int end = size;
         final boolean modified;
         int i;
         // Optimize for initial run of survivors
-        for (i = 0; i < end && !filter.test(elementAt(es, i)); i++)
+        for (i = from; i < end && !filter.test(elementAt(es, i)); i++)
             ;
         // Tolerate predicates that reentrantly access the collection for
         // read (but writers still get CME), so traverse once to find
@@ -1531,11 +1563,15 @@ public class ArrayList<E> extends AbstractList<E>
             for (i = beg + 1; i < end; i++)
                 if (filter.test(elementAt(es, i)))
                     setBit(deathRow, i - beg);
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
             int w = beg;
             for (i = beg; i < end; i++)
                 if (isClear(deathRow, i - beg))
                     es[w++] = es[i];
-            Arrays.fill(es, size = w, end, null);
+            final int oldSize = size;
+            System.arraycopy(es, end, es, w, oldSize - end);
+            Arrays.fill(es, size -= (end - w), oldSize, null);
         }
         if (modCount != expectedModCount)
             throw new ConcurrentModificationException();
