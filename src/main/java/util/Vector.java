@@ -759,6 +759,11 @@ public class Vector<E>
         return (E) elementData[index];
     }
 
+    @SuppressWarnings("unchecked")
+    static <E> E elementAt(Object[] es, int index) {
+        return (E) es[index];
+    }
+
     /**
      * Returns the element at the specified position in this Vector.
      *
@@ -984,32 +989,44 @@ public class Vector<E>
         return bulkRemove(filter);
     }
 
-    @SuppressWarnings("unchecked")
+    // A tiny bit set implementation
+
+    private static long[] nBits(int n) {
+        return new long[((n - 1) >> 6) + 1];
+    }
+    private static void setBit(long[] bits, int i) {
+        bits[i >> 6] |= 1L << i;
+    }
+    private static boolean isClear(long[] bits, int i) {
+        return (bits[i >> 6] & (1L << i)) == 0;
+    }
+
     private synchronized boolean bulkRemove(Predicate<? super E> filter) {
         int expectedModCount = modCount;
         final Object[] es = elementData;
-        final int size = elementCount;
+        final int end = elementCount;
         final boolean modified;
-        int r;
+        int i;
         // Optimize for initial run of survivors
-        for (r = 0; r < size && !filter.test((E) es[r]); r++)
+        for (i = 0; i < end && !filter.test(elementAt(es, i)); i++)
             ;
-        if (modified = (r < size)) {
+        // Tolerate predicates that reentrantly access the collection for
+        // read (but writers still get CME), so traverse once to find
+        // elements to delete, a second pass to physically expunge.
+        if (modified = (i < end)) {
             expectedModCount++;
             modCount++;
-            int w = r++;
-            try {
-                for (E e; r < size; r++)
-                    if (!filter.test(e = (E) es[r]))
-                        es[w++] = e;
-            } catch (Throwable ex) {
-                // copy remaining elements
-                System.arraycopy(es, r, es, w, size - r);
-                w += size - r;
-                throw ex;
-            } finally {
-                Arrays.fill(es, elementCount = w, size, null);
-            }
+            final int beg = i;
+            final long[] deathRow = nBits(end - beg);
+            deathRow[0] = 1L;   // set bit 0
+            for (i = beg + 1; i < end; i++)
+                if (filter.test(elementAt(es, i)))
+                    setBit(deathRow, i - beg);
+            int w = beg;
+            for (i = beg; i < end; i++)
+                if (isClear(deathRow, i - beg))
+                    es[w++] = es[i];
+            Arrays.fill(es, elementCount = w, end, null);
         }
         if (modCount != expectedModCount)
             throw new ConcurrentModificationException();

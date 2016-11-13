@@ -241,6 +241,8 @@ public class Collection8Test extends JSR166TestCase {
 
     public void testRemoveIf() {
         Collection c = impl.emptyCollection();
+        boolean ordered =
+            c.spliterator().hasCharacteristics(Spliterator.ORDERED);
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
         int n = rnd.nextInt(6);
         for (int i = 0; i < n; i++) c.add(impl.makeElement(i));
@@ -272,7 +274,13 @@ public class Collection8Test extends JSR166TestCase {
                 assertEquals(modified, accepts.size() > 0);
                 assertEquals(modified, rejects.size() != n);
                 assertEquals(accepts.size() + rejects.size(), n);
-                assertEquals(rejects, Arrays.asList(c.toArray()));
+                if (ordered) {
+                    assertEquals(rejects,
+                                 Arrays.asList(c.toArray()));
+                } else {
+                    assertEquals(new HashSet(rejects),
+                                 new HashSet(Arrays.asList(c.toArray())));
+                }
             } catch (ArithmeticException ok) {
                 assertNotNull(threwAt.get());
                 assertTrue(c.contains(threwAt.get()));
@@ -293,8 +301,17 @@ public class Collection8Test extends JSR166TestCase {
             assertTrue(c.containsAll(rejects));
             assertTrue(c.containsAll(survivors));
             assertTrue(survivors.containsAll(rejects));
-            assertEquals(n - accepts.size(), c.size());
-            for (Object x : accepts) assertFalse(c.contains(x));
+            if (threwAt.get() == null) {
+                assertEquals(n - accepts.size(), c.size());
+                for (Object x : accepts) assertFalse(c.contains(x));
+            } else {
+                // Two acceptable behaviors: entire removeIf call is one
+                // transaction, or each element processed is one transaction.
+                assertTrue(n == c.size() || n == c.size() + accepts.size());
+                int k = 0;
+                for (Object x : accepts) if (c.contains(x)) k++;
+                assertTrue(k == accepts.size() || k == 0);
+            }
         } catch (Throwable ex) {
             System.err.println(impl.klazz());
             System.err.printf("c=%s%n", c);

@@ -141,6 +141,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * Call only when holding lock.
      */
     private void enqueue(E x) {
+        // assert lock.isHeldByCurrentThread();
         // assert lock.getHoldCount() == 1;
         // assert items[putIndex] == null;
         final Object[] items = this.items;
@@ -156,6 +157,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * Call only when holding lock.
      */
     private E dequeue() {
+        // assert lock.isHeldByCurrentThread();
         // assert lock.getHoldCount() == 1;
         // assert items[takeIndex] != null;
         final Object[] items = this.items;
@@ -177,6 +179,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * Call only when holding lock.
      */
     void removeAt(final int removeIndex) {
+        // assert lock.isHeldByCurrentThread();
         // assert lock.getHoldCount() == 1;
         // assert items[removeIndex] != null;
         // assert removeIndex >= 0 && removeIndex < items.length;
@@ -820,7 +823,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
          * there is known to be at least one iterator to collect
          */
         void doSomeSweeping(boolean tryHarder) {
-            // assert lock.getHoldCount() == 1;
+            // assert lock.isHeldByCurrentThread();
             // assert head != null;
             int probes = tryHarder ? LONG_SWEEP_PROBES : SHORT_SWEEP_PROBES;
             Node o, p;
@@ -876,7 +879,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
          * Adds a new iterator to the linked list of tracked iterators.
          */
         void register(Itr itr) {
-            // assert lock.getHoldCount() == 1;
+            // assert lock.isHeldByCurrentThread();
             head = new Node(itr, head);
         }
 
@@ -886,7 +889,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
          * Notifies all iterators, and expunges any that are now stale.
          */
         void takeIndexWrapped() {
-            // assert lock.getHoldCount() == 1;
+            // assert lock.isHeldByCurrentThread();
             cycles++;
             for (Node o = null, p = head; p != null;) {
                 final Itr it = p.get();
@@ -943,7 +946,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
          * clears all weak refs, and unlinks the itrs datastructure.
          */
         void queueIsEmpty() {
-            // assert lock.getHoldCount() == 1;
+            // assert lock.isHeldByCurrentThread();
             for (Node p = head; p != null; p = p.next) {
                 Itr it = p.get();
                 if (it != null) {
@@ -959,7 +962,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
          * Called whenever an element has been dequeued (at takeIndex).
          */
         void elementDequeued() {
-            // assert lock.getHoldCount() == 1;
+            // assert lock.isHeldByCurrentThread();
             if (count == 0)
                 queueIsEmpty();
             else if (takeIndex == 0)
@@ -1020,7 +1023,6 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         private static final int DETACHED = -3;
 
         Itr() {
-            // assert lock.getHoldCount() == 0;
             lastRet = NONE;
             final ReentrantLock lock = ArrayBlockingQueue.this.lock;
             lock.lock();
@@ -1053,12 +1055,12 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         }
 
         boolean isDetached() {
-            // assert lock.getHoldCount() == 1;
+            // assert lock.isHeldByCurrentThread();
             return prevTakeIndex < 0;
         }
 
         private int incCursor(int index) {
-            // assert lock.getHoldCount() == 1;
+            // assert lock.isHeldByCurrentThread();
             if (++index == items.length) index = 0;
             if (index == putIndex) index = NONE;
             return index;
@@ -1083,7 +1085,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
          * operation on this iterator.  Call only from iterating thread.
          */
         private void incorporateDequeues() {
-            // assert lock.getHoldCount() == 1;
+            // assert lock.isHeldByCurrentThread();
             // assert itrs != null;
             // assert !isDetached();
             // assert count > 0;
@@ -1126,7 +1128,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
          */
         private void detach() {
             // Switch to detached mode
-            // assert lock.getHoldCount() == 1;
+            // assert lock.isHeldByCurrentThread();
             // assert cursor == NONE;
             // assert nextIndex < 0;
             // assert lastRet < 0 || nextItem == null;
@@ -1146,7 +1148,6 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
          * triggered by queue modifications.
          */
         public boolean hasNext() {
-            // assert lock.getHoldCount() == 0;
             if (nextItem != null)
                 return true;
             noNext();
@@ -1176,7 +1177,6 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         }
 
         public E next() {
-            // assert lock.getHoldCount() == 0;
             final E x = nextItem;
             if (x == null)
                 throw new NoSuchElementException();
@@ -1204,7 +1204,6 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         }
 
         public void forEachRemaining(Consumer<? super E> action) {
-            // assert lock.getHoldCount() == 0;
             Objects.requireNonNull(action);
             final ReentrantLock lock = ArrayBlockingQueue.this.lock;
             lock.lock();
@@ -1236,9 +1235,9 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         }
 
         public void remove() {
-            // assert lock.getHoldCount() == 0;
             final ReentrantLock lock = ArrayBlockingQueue.this.lock;
             lock.lock();
+            // assert lock.getHoldCount() == 1;
             try {
                 if (!isDetached())
                     incorporateDequeues(); // might update lastRet or detach
@@ -1276,7 +1275,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
          * from next(), as promised by returning true from hasNext().
          */
         void shutdown() {
-            // assert lock.getHoldCount() == 1;
+            // assert lock.isHeldByCurrentThread();
             cursor = NONE;
             if (nextIndex >= 0)
                 nextIndex = REMOVED;
@@ -1304,7 +1303,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
          * @return true if this iterator should be unlinked from itrs
          */
         boolean removedAt(int removedIndex) {
-            // assert lock.getHoldCount() == 1;
+            // assert lock.isHeldByCurrentThread();
             if (isDetached())
                 return true;
 
@@ -1361,7 +1360,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
          * @return true if this iterator should be unlinked from itrs
          */
         boolean takeIndexWrapped() {
-            // assert lock.getHoldCount() == 1;
+            // assert lock.isHeldByCurrentThread();
             if (isDetached())
                 return true;
             if (itrs.cycles - prevCycles > 1) {
@@ -1469,7 +1468,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                          ; i = 0, to = end) {
                         for (; i < to; i++)
                             if (filter.test(itemAt(items, i)))
-                                return bulkRemoveModified(filter, i, to);
+                                return bulkRemoveModified(filter, i);
                         if (to == end) break;
                     }
                 }
@@ -1484,53 +1483,77 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         return super.removeIf(filter);
     }
 
+    // A tiny bit set implementation
+
+    private static long[] nBits(int n) {
+        return new long[((n - 1) >> 6) + 1];
+    }
+    private static void setBit(long[] bits, int i) {
+        bits[i >> 6] |= 1L << i;
+    }
+    private static boolean isClear(long[] bits, int i) {
+        return (bits[i >> 6] & (1L << i)) == 0;
+    }
+
+    /**
+     * Returns circular distance from i to j, disambiguating i == j to
+     * items.length; never returns 0.
+     */
+    private int distanceNonEmpty(int i, int j) {
+        if ((j -= i) <= 0) j += items.length;
+        return j;
+    }
+
     /**
      * Helper for bulkRemove, in case of at least one deletion.
-     * @param i valid index of first element to be deleted
+     * Tolerate predicates that reentrantly access the collection for
+     * read (but not write), so traverse once to find elements to
+     * delete, a second pass to physically expunge.
+     *
+     * @param beg valid index of first element to be deleted
      */
     private boolean bulkRemoveModified(
-        Predicate<? super E> filter, int i, int to) {
-        final Object[] items = this.items;
+        Predicate<? super E> filter, final int beg) {
+        final Object[] es = items;
         final int capacity = items.length;
-        // a two-finger algorithm, with hare i reading, tortoise j writing
-        int j = i++;
         final int end = putIndex;
-        try {
-            for (;; j = 0) {    // j rejoins i on second leg
-                E e;
-                // In this loop, i and j are on the same leg, with i > j
-                for (; i < to; i++)
-                    if (!filter.test(e = itemAt(items, i)))
-                        items[j++] = e;
-                if (to == end) break;
-                // In this loop, j is on the first leg, i on the second
-                for (i = 0, to = end; i < to && j < capacity; i++)
-                    if (!filter.test(e = itemAt(items, i)))
-                        items[j++] = e;
-                if (i >= to) {
-                    if (j == capacity) j = 0; // "corner" case
-                    break;
-                }
-            }
-            return true;
-        } catch (Throwable ex) {
-            // copy remaining elements
-            for (; i != end; i = inc(i, capacity), j = inc(j, capacity))
-                items[j] = items[i];
-            throw ex;
-        } finally {
-            int deleted = putIndex - j;
-            if (deleted <= 0) deleted += capacity;
-            count -= deleted;
-            circularClear(items, putIndex = j, end);
+        final long[] deathRow = nBits(distanceNonEmpty(beg, putIndex));
+        deathRow[0] = 1L;   // set bit 0
+        for (int i = beg + 1, to = (i <= end) ? end : es.length, k = beg;
+             ; i = 0, to = end, k -= capacity) {
+            for (; i < to; i++)
+                if (filter.test(itemAt(es, i)))
+                    setBit(deathRow, i - k);
+            if (to == end) break;
         }
+        // a two-finger traversal, with hare i reading, tortoise w writing
+        int w = beg;
+        for (int i = beg + 1, to = (i <= end) ? end : es.length, k = beg;
+             ; w = 0) { // w rejoins i on second leg
+            // In this loop, i and w are on the same leg, with i > w
+            for (; i < to; i++)
+                if (isClear(deathRow, i - k))
+                    es[w++] = es[i];
+            if (to == end) break;
+            // In this loop, w is on the first leg, i on the second
+            for (i = 0, to = end, k -= capacity; i < to && w < capacity; i++)
+                if (isClear(deathRow, i - k))
+                    es[w++] = es[i];
+            if (i >= to) {
+                if (w == capacity) w = 0; // "corner" case
+                break;
+            }
+        }
+        count -= distanceNonEmpty(w, end);
+        circularClear(es, putIndex = w, end);
+        // checkInvariants();
+        return true;
     }
 
     /** debugging */
     void checkInvariants() {
         // meta-assertions
         // assert lock.isHeldByCurrentThread();
-        // assert lock.getHoldCount() == 1;
         try {
             int capacity = items.length;
             // assert capacity > 0;

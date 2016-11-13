@@ -950,7 +950,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
              ; i = 0, to = end) {
             for (; i < to; i++)
                 if (filter.test(elementAt(es, i)))
-                    return bulkRemoveModified(filter, i, to);
+                    return bulkRemoveModified(filter, i);
             if (to == end) {
                 if (end != tail) throw new ConcurrentModificationException();
                 break;
@@ -959,45 +959,62 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         return false;
     }
 
+    // A tiny bit set implementation
+
+    private static long[] nBits(int n) {
+        return new long[((n - 1) >> 6) + 1];
+    }
+    private static void setBit(long[] bits, int i) {
+        bits[i >> 6] |= 1L << i;
+    }
+    private static boolean isClear(long[] bits, int i) {
+        return (bits[i >> 6] & (1L << i)) == 0;
+    }
+
     /**
      * Helper for bulkRemove, in case of at least one deletion.
-     * @param i valid index of first element to be deleted
+     * Tolerate predicates that reentrantly access the collection for
+     * read (but writers still get CME), so traverse once to find
+     * elements to delete, a second pass to physically expunge.
+     *
+     * @param beg valid index of first element to be deleted
      */
     private boolean bulkRemoveModified(
-        Predicate<? super E> filter, int i, int to) {
+        Predicate<? super E> filter, final int beg) {
         final Object[] es = elements;
         final int capacity = es.length;
-        // a two-finger algorithm, with hare i reading, tortoise j writing
-        int j = i++;
         final int end = tail;
-        try {
-            for (;; j = 0) {    // j rejoins i on second leg
-                E e;
-                // In this loop, i and j are on the same leg, with i > j
-                for (; i < to; i++)
-                    if (!filter.test(e = elementAt(es, i)))
-                        es[j++] = e;
-                if (to == end) break;
-                // In this loop, j is on the first leg, i on the second
-                for (i = 0, to = end; i < to && j < capacity; i++)
-                    if (!filter.test(e = elementAt(es, i)))
-                        es[j++] = e;
-                if (i >= to) {
-                    if (j == capacity) j = 0; // "corner" case
-                    break;
-                }
-            }
-            return true;
-        } catch (Throwable ex) {
-            // copy remaining elements
-            for (; i != end; i = inc(i, capacity), j = inc(j, capacity))
-                es[j] = es[i];
-            throw ex;
-        } finally {
-            if (end != tail) throw new ConcurrentModificationException();
-            circularClear(es, tail = j, end);
-            // checkInvariants();
+        final long[] deathRow = nBits(sub(end, beg, capacity));
+        deathRow[0] = 1L;   // set bit 0
+        for (int i = beg + 1, to = (i <= end) ? end : es.length, k = beg;
+             ; i = 0, to = end, k -= capacity) {
+            for (; i < to; i++)
+                if (filter.test(elementAt(es, i)))
+                    setBit(deathRow, i - k);
+            if (to == end) break;
         }
+        // a two-finger traversal, with hare i reading, tortoise w writing
+        int w = beg;
+        for (int i = beg + 1, to = (i <= end) ? end : es.length, k = beg;
+             ; w = 0) { // w rejoins i on second leg
+            // In this loop, i and w are on the same leg, with i > w
+            for (; i < to; i++)
+                if (isClear(deathRow, i - k))
+                    es[w++] = es[i];
+            if (to == end) break;
+            // In this loop, w is on the first leg, i on the second
+            for (i = 0, to = end, k -= capacity; i < to && w < capacity; i++)
+                if (isClear(deathRow, i - k))
+                    es[w++] = es[i];
+            if (i >= to) {
+                if (w == capacity) w = 0; // "corner" case
+                break;
+            }
+        }
+        if (end != tail) throw new ConcurrentModificationException();
+        circularClear(es, tail = w, end);
+        // checkInvariants();
+        return true;
     }
 
     /**
