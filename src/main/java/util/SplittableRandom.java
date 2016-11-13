@@ -532,16 +532,15 @@ public final class SplittableRandom {
 
     /**
      * Generates a pseudorandom number with the indicated number of
-     * bits. Unlike in superclass {@link Random}, this method is never
-     * internally called or used by any other publicly accessible
-     * method.
+     * low-order bits.  Because this class has no subclasses, this
+     * method cannot be invoked or overridden.
      *
      * @param  bits random bits
      * @return the next pseudorandom value from this random number
      *         generator's sequence
      */
     protected int next(int bits) {
-        return (int)(nextLong() >>> (64 - bits));
+        return nextInt() >>> (32 - bits);
     }
 
     /**
