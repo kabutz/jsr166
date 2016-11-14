@@ -61,12 +61,23 @@ public class Collection8Test extends JSR166TestCase {
     }
 
     /** Checks properties of empty collections. */
-    public void testEmptyMeansEmpty() throws InterruptedException {
+    public void testEmptyMeansEmpty() throws Throwable {
         Collection c = impl.emptyCollection();
         emptyMeansEmpty(c);
 
-        if (c instanceof java.io.Serializable)
-            emptyMeansEmpty(serialClone(c));
+        if (c instanceof java.io.Serializable) {
+            try {
+                emptyMeansEmpty(serialClonePossiblyFailing(c));
+            } catch (java.io.NotSerializableException ex) {
+                // excusable when we have a serializable wrapper around
+                // a non-serializable collection, as can happen with:
+                // Vector.subList() => wrapped AbstractList$RandomAccessSubList
+                if (testImplementationDetails
+                    && (! c.getClass().getName().matches(
+                                "java.util.Collections.*")))
+                    throw ex;
+            }
+        }
 
         Collection clone = cloneableClone(c);
         if (clone != null)

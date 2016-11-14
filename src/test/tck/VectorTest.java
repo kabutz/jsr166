@@ -7,6 +7,7 @@
 
 import java.util.Vector;
 import java.util.Collection;
+import java.util.List;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -19,13 +20,20 @@ public class VectorTest extends JSR166TestCase {
     public static Test suite() {
         class Implementation implements CollectionImplementation {
             public Class<?> klazz() { return Vector.class; }
-            public Collection emptyCollection() { return new Vector(); }
+            public List emptyCollection() { return new Vector(); }
             public Object makeElement(int i) { return i; }
             public boolean isConcurrent() { return false; }
             public boolean permitsNulls() { return true; }
         }
-        return newTestSuite(// VectorTest.class,
-                            CollectionTest.testSuite(new Implementation()));
+        class SubListImplementation extends Implementation {
+            public List emptyCollection() {
+                return super.emptyCollection().subList(0, 0);
+            }
+        }
+        return newTestSuite(
+                // VectorTest.class,
+                CollectionTest.testSuite(new Implementation()),
+                CollectionTest.testSuite(new SubListImplementation()));
     }
 
 }
