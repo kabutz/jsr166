@@ -1207,7 +1207,8 @@ public class ArrayList<E> extends AbstractList<E>
                         consumer.accept((E) elementData[offset + (i++)]);
                     }
                     // update once at end of iteration to reduce heap write traffic
-                    lastRet = cursor = i;
+                    cursor = i;
+                    lastRet = i - 1;
                     checkForComodification();
                 }
 
