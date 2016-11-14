@@ -1537,22 +1537,21 @@ public class ArrayList<E> extends AbstractList<E>
         return removeIf(filter, 0, size);
     }
 
-    boolean removeIf(Predicate<? super E> filter,
-                     final int from, final int end) {
+    /**
+     * Removes all elements satisfying the given predicate, from index
+     * i (inclusive) to index end (exclusive).
+     */
+    boolean removeIf(Predicate<? super E> filter, int i, final int end) {
         Objects.requireNonNull(filter);
         int expectedModCount = modCount;
         final Object[] es = elementData;
-        final boolean modified;
-        int i;
         // Optimize for initial run of survivors
-        for (i = from; i < end && !filter.test(elementAt(es, i)); i++)
+        for (; i < end && !filter.test(elementAt(es, i)); i++)
             ;
         // Tolerate predicates that reentrantly access the collection for
         // read (but writers still get CME), so traverse once to find
         // elements to delete, a second pass to physically expunge.
-        if (modified = (i < end)) {
-            expectedModCount++;
-            modCount++;
+        if (i < end) {
             final int beg = i;
             final long[] deathRow = nBits(end - beg);
             deathRow[0] = 1L;   // set bit 0
@@ -1561,6 +1560,8 @@ public class ArrayList<E> extends AbstractList<E>
                     setBit(deathRow, i - beg);
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
+            expectedModCount++;
+            modCount++;
             int w = beg;
             for (i = beg; i < end; i++)
                 if (isClear(deathRow, i - beg))
@@ -1568,11 +1569,14 @@ public class ArrayList<E> extends AbstractList<E>
             final int oldSize = size;
             System.arraycopy(es, end, es, w, oldSize - end);
             Arrays.fill(es, size -= (end - w), oldSize, null);
+            // checkInvariants();
+            return true;
+        } else {
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            // checkInvariants();
+            return false;
         }
-        if (modCount != expectedModCount)
-            throw new ConcurrentModificationException();
-        // checkInvariants();
-        return modified;
     }
 
     @Override

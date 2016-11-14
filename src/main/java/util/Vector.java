@@ -1006,7 +1006,6 @@ public class Vector<E>
         int expectedModCount = modCount;
         final Object[] es = elementData;
         final int end = elementCount;
-        final boolean modified;
         int i;
         // Optimize for initial run of survivors
         for (i = 0; i < end && !filter.test(elementAt(es, i)); i++)
@@ -1014,25 +1013,30 @@ public class Vector<E>
         // Tolerate predicates that reentrantly access the collection for
         // read (but writers still get CME), so traverse once to find
         // elements to delete, a second pass to physically expunge.
-        if (modified = (i < end)) {
-            expectedModCount++;
-            modCount++;
+        if (i < end) {
             final int beg = i;
             final long[] deathRow = nBits(end - beg);
             deathRow[0] = 1L;   // set bit 0
             for (i = beg + 1; i < end; i++)
                 if (filter.test(elementAt(es, i)))
                     setBit(deathRow, i - beg);
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            expectedModCount++;
+            modCount++;
             int w = beg;
             for (i = beg; i < end; i++)
                 if (isClear(deathRow, i - beg))
                     es[w++] = es[i];
             Arrays.fill(es, elementCount = w, end, null);
+            // checkInvariants();
+            return true;
+        } else {
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            // checkInvariants();
+            return false;
         }
-        if (modCount != expectedModCount)
-            throw new ConcurrentModificationException();
-        // checkInvariants();
-        return modified;
     }
 
     /**
