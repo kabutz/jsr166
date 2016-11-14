@@ -28,8 +28,15 @@ public class LinkedListTest extends JSR166TestCase {
             public boolean isConcurrent() { return false; }
             public boolean permitsNulls() { return true; }
         }
-        return newTestSuite(LinkedListTest.class,
-                            CollectionTest.testSuite(new Implementation()));
+        class SubListImplementation extends Implementation {
+            public Collection emptyCollection() {
+                return new LinkedList().subList(0, 0);
+            }
+        }
+        return newTestSuite(
+                LinkedListTest.class,
+                CollectionTest.testSuite(new Implementation()),
+                CollectionTest.testSuite(new SubListImplementation()));
     }
 
     /**
