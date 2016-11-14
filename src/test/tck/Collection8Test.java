@@ -314,7 +314,9 @@ public class Collection8Test extends JSR166TestCase {
             }
         } catch (Throwable ex) {
             System.err.println(impl.klazz());
-            System.err.printf("c=%s%n", c);
+            // c is at risk of corruption if we got here, so be lenient
+            try { System.err.printf("c=%s%n", c); }
+            catch (Throwable t) { t.printStackTrace(); }
             System.err.printf("n=%d%n", n);
             System.err.printf("orig=%s%n", orig);
             System.err.printf("accepts=%s%n", accepts);
