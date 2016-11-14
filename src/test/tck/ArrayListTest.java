@@ -7,6 +7,7 @@
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -19,13 +20,20 @@ public class ArrayListTest extends JSR166TestCase {
     public static Test suite() {
         class Implementation implements CollectionImplementation {
             public Class<?> klazz() { return ArrayList.class; }
-            public Collection emptyCollection() { return new ArrayList(); }
+            public List emptyCollection() { return new ArrayList(); }
             public Object makeElement(int i) { return i; }
             public boolean isConcurrent() { return false; }
             public boolean permitsNulls() { return true; }
         }
-        return newTestSuite(// ArrayListTest.class,
-                            CollectionTest.testSuite(new Implementation()));
+        class SubListImplementation extends Implementation {
+            public List emptyCollection() {
+                return super.emptyCollection().subList(0, 0);
+            }
+        }
+        return newTestSuite(
+                // ArrayListTest.class,
+                CollectionTest.testSuite(new Implementation()),
+                CollectionTest.testSuite(new SubListImplementation()));
     }
 
 }
