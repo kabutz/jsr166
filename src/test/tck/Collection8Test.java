@@ -25,12 +25,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.Phaser;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import junit.framework.Test;
 
@@ -532,32 +534,66 @@ public class Collection8Test extends JSR166TestCase {
         assertTrue(found.isEmpty());
     }
 
-    public void testForEachConcurrentStressTest() throws Throwable {
+    /**
+     * Motley crew of threads concurrently randomly hammer the collection.
+     */
+    public void testDetectRaces() throws Throwable {
         if (!impl.isConcurrent()) return;
+        final ThreadLocalRandom rnd = ThreadLocalRandom.current();
         final Collection c = impl.emptyCollection();
         final long testDurationMillis = timeoutMillis();
         final AtomicBoolean done = new AtomicBoolean(false);
-        final Object elt = impl.makeElement(1);
-        final Future<?> f1, f2;
+        final Object one = impl.makeElement(1);
+        final Object two = impl.makeElement(2);
+        final List<Future<?>> futures;
+        final Phaser threadsStarted = new Phaser(1); // register this thread
+        final List<Runnable> tasks = List.<Runnable>of(
+            () -> c.forEach(x -> assertTrue(x == one || x == two)),
+            () -> c.stream().forEach(x -> assertTrue(x == one || x == two)),
+            () -> c.spliterator().trySplit(),
+            () -> {
+                Spliterator s = c.spliterator();
+                s.tryAdvance(x -> assertTrue(x == one || x == two));
+                s.trySplit();
+            },
+            () -> {
+                Spliterator s = c.spliterator();
+                do {} while (s.tryAdvance(x -> assertTrue(x == one || x == two)));
+            },
+            () -> {
+                for (Object x : c) assertTrue(x == one || x == two);
+            },
+            () -> {
+                assertTrue(c.add(one));
+                assertTrue(c.contains(one));
+                assertTrue(c.remove(one));
+                assertFalse(c.contains(one));
+            },
+            () -> {
+                assertTrue(c.add(two));
+                assertTrue(c.contains(two));
+                assertTrue(c.remove(two));
+                assertFalse(c.contains(two));
+            })
+            .stream()
+            .filter(task -> rnd.nextBoolean()) // random subset
+            .map(task -> (Runnable) () -> {
+                     threadsStarted.arriveAndAwaitAdvance();
+                     while (!done.get())
+                         task.run();
+                 })
+            .collect(Collectors.toList());
         final ExecutorService pool = Executors.newCachedThreadPool();
         try (PoolCleaner cleaner = cleaner(pool, done)) {
-            final CountDownLatch threadsStarted = new CountDownLatch(2);
-            Runnable checkElt = () -> {
-                threadsStarted.countDown();
-                while (!done.get())
-                    c.forEach(x -> assertSame(x, elt)); };
-            Runnable addRemove = () -> {
-                threadsStarted.countDown();
-                while (!done.get()) {
-                    assertTrue(c.add(elt));
-                    assertTrue(c.remove(elt));
-                }};
-            f1 = pool.submit(checkElt);
-            f2 = pool.submit(addRemove);
+            threadsStarted.bulkRegister(tasks.size());
+            futures = tasks.stream()
+                .map(task -> pool.submit(task))
+                .collect(Collectors.toList());
+            threadsStarted.arriveAndDeregister();
             Thread.sleep(testDurationMillis);
         }
-        assertNull(f1.get(0L, MILLISECONDS));
-        assertNull(f2.get(0L, MILLISECONDS));
+        for (Future future : futures)
+            assertNull(future.get(0L, MILLISECONDS));
     }
 
 //     public void testCollection8DebugFail() {
