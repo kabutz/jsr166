@@ -547,7 +547,7 @@ public class Collection8Test extends JSR166TestCase {
         final Object two = impl.makeElement(2);
         final List<Future<?>> futures;
         final Phaser threadsStarted = new Phaser(1); // register this thread
-        final List<Runnable> tasks = List.<Runnable>of(
+        final Runnable[] frobbers = {
             () -> c.forEach(x -> assertTrue(x == one || x == two)),
             () -> c.stream().forEach(x -> assertTrue(x == one || x == two)),
             () -> c.spliterator().trySplit(),
@@ -574,8 +574,10 @@ public class Collection8Test extends JSR166TestCase {
                 assertTrue(c.contains(two));
                 assertTrue(c.remove(two));
                 assertFalse(c.contains(two));
-            })
-            .stream()
+            },
+        };
+        final List<Runnable> tasks =
+            Arrays.stream(frobbers)
             .filter(task -> rnd.nextBoolean()) // random subset
             .map(task -> (Runnable) () -> {
                      threadsStarted.arriveAndAwaitAdvance();
