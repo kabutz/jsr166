@@ -40,8 +40,8 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
         }
         return newTestSuite(
                 CopyOnWriteArrayListTest.class,
-                CollectionTest.testSuite(new Implementation()));
-                //CollectionTest.testSuite(new SubListImplementation()));
+                CollectionTest.testSuite(new Implementation()),
+                CollectionTest.testSuite(new SubListImplementation()));
     }
 
     static CopyOnWriteArrayList<Integer> populatedArray(int n) {
