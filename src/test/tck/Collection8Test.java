@@ -400,7 +400,7 @@ public class Collection8Test extends JSR166TestCase {
     public void testRemoveAfterForEachRemaining() {
         Collection c = impl.emptyCollection();
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        {
+        testCollection: {
             int n = 3 + rnd.nextInt(2);
             for (int i = 0; i < n; i++) c.add(impl.makeElement(i));
             Iterator it = c.iterator();
@@ -413,7 +413,10 @@ public class Collection8Test extends JSR166TestCase {
                 if (c instanceof java.util.concurrent.ArrayBlockingQueue) {
                     assertIteratorExhausted(it);
                 } else {
-                    it.remove();
+                    try { it.remove(); }
+                    catch (UnsupportedOperationException ok) {
+                        break testCollection;
+                    }
                     assertEquals(n - 1, c.size());
                     for (int i = 0; i < n - 1; i++)
                         assertTrue(c.contains(impl.makeElement(i)));
