@@ -30,13 +30,10 @@ public class ArrayListTest extends JSR166TestCase {
                 return super.emptyCollection().subList(0, 0);
             }
         }
-        return atLeastJava9()
-            ? newTestSuite(
+        return newTestSuite(
                 // ArrayListTest.class,
                 CollectionTest.testSuite(new Implementation()),
-                CollectionTest.testSuite(new SubListImplementation()))
-            : newTestSuite(
-                CollectionTest.testSuite(new Implementation()));
+                CollectionTest.testSuite(new SubListImplementation()));
     }
 
 }
