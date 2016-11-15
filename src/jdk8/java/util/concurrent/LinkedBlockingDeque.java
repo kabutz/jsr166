@@ -1118,15 +1118,16 @@ public class LinkedBlockingDeque<E>
             int b = batch;
             int n = (b <= 0) ? 1 : (b >= MAX_BATCH) ? MAX_BATCH : b + 1;
             if (!exhausted &&
-                ((h = current) != null || (h = q.first) != null) &&
-                h.next != null) {
+                (((h = current) != null && h != h.next)
+                 || (h = q.first) != null)
+                && h.next != null) {
                 Object[] a = new Object[n];
                 final ReentrantLock lock = q.lock;
                 int i = 0;
                 Node<E> p = current;
                 lock.lock();
                 try {
-                    if (p != null || (p = q.first) != null) {
+                    if ((p != null && p != p.next) || (p = q.first) != null) {
                         do {
                             if ((a[i] = p.item) != null)
                                 ++i;
@@ -1154,64 +1155,65 @@ public class LinkedBlockingDeque<E>
 
         public void forEachRemaining(Consumer<? super E> action) {
             if (action == null) throw new NullPointerException();
-            final LinkedBlockingDeque<E> q = this.queue;
-            final ReentrantLock lock = q.lock;
             if (!exhausted) {
                 exhausted = true;
                 Node<E> p = current;
+                current = null;
+                final LinkedBlockingDeque<E> q = this.queue;
+                final ReentrantLock lock = q.lock;
                 do {
-                    E e = null;
+                    E e;
                     lock.lock();
                     try {
                         if (p == null)
                             p = q.first;
-                        while (p != null) {
+                        do {
+                            if (p == null)
+                                return;
                             e = p.item;
-                            p = p.next;
-                            if (e != null)
-                                break;
-                        }
+                            if (p == (p = p.next)) p = q.first;
+                        } while (e == null);
                     } finally {
                         lock.unlock();
                     }
-                    if (e != null)
-                        action.accept(e);
+                    action.accept(e);
                 } while (p != null);
             }
         }
 
         public boolean tryAdvance(Consumer<? super E> action) {
             if (action == null) throw new NullPointerException();
-            final LinkedBlockingDeque<E> q = this.queue;
-            final ReentrantLock lock = q.lock;
-            if (!exhausted) {
-                E e = null;
+            if (!exhausted) findElement: {
+                final LinkedBlockingDeque<E> q = this.queue;
+                final ReentrantLock lock = q.lock;
+                E e;
+                Node<E> p = current;
                 lock.lock();
                 try {
-                    if (current == null)
-                        current = q.first;
-                    while (current != null) {
-                        e = current.item;
-                        current = current.next;
-                        if (e != null)
-                            break;
-                    }
+                    if (p == null)
+                        p = q.first;
+                    do {
+                        if (p == null) break findElement;
+                        e = p.item;
+                        if (p == (p = p.next)) p = q.first;
+                    } while (e == null);
                 } finally {
                     lock.unlock();
                 }
-                if (current == null)
+                action.accept(e);
+                if ((current = p) == null)
                     exhausted = true;
-                if (e != null) {
-                    action.accept(e);
-                    return true;
-                }
+                return true;
             }
+            current = null;
+            exhausted = true;
             return false;
         }
 
         public int characteristics() {
-            return Spliterator.ORDERED | Spliterator.NONNULL |
-                Spliterator.CONCURRENT;
+            return (Spliterator.ORDERED |
+                    Spliterator.NONNULL |
+                    Spliterator.CONCURRENT);
         }
     }
 
