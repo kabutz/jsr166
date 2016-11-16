@@ -30,33 +30,33 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 /**
- * Resizable-array implementation of the <tt>List</tt> interface.  Implements
+ * Resizable-array implementation of the {@code List} interface.  Implements
  * all optional list operations, and permits all elements, including
- * <tt>null</tt>.  In addition to implementing the <tt>List</tt> interface,
+ * {@code null}.  In addition to implementing the {@code List} interface,
  * this class provides methods to manipulate the size of the array that is
  * used internally to store the list.  (This class is roughly equivalent to
- * <tt>Vector</tt>, except that it is unsynchronized.)
+ * {@code Vector}, except that it is unsynchronized.)
  *
- * <p>The <tt>size</tt>, <tt>isEmpty</tt>, <tt>get</tt>, <tt>set</tt>,
- * <tt>iterator</tt>, and <tt>listIterator</tt> operations run in constant
- * time.  The <tt>add</tt> operation runs in <i>amortized constant time</i>,
+ * <p>The {@code size}, {@code isEmpty}, {@code get}, {@code set},
+ * {@code iterator}, and {@code listIterator} operations run in constant
+ * time.  The {@code add} operation runs in <i>amortized constant time</i>,
  * that is, adding n elements requires O(n) time.  All of the other operations
  * run in linear time (roughly speaking).  The constant factor is low compared
- * to that for the <tt>LinkedList</tt> implementation.
+ * to that for the {@code LinkedList} implementation.
  *
- * <p>Each <tt>ArrayList</tt> instance has a <i>capacity</i>.  The capacity is
+ * <p>Each {@code ArrayList} instance has a <i>capacity</i>.  The capacity is
  * the size of the array used to store the elements in the list.  It is always
  * at least as large as the list size.  As elements are added to an ArrayList,
  * its capacity grows automatically.  The details of the growth policy are not
  * specified beyond the fact that adding an element has constant amortized
  * time cost.
  *
- * <p>An application can increase the capacity of an <tt>ArrayList</tt> instance
- * before adding a large number of elements using the <tt>ensureCapacity</tt>
+ * <p>An application can increase the capacity of an {@code ArrayList} instance
+ * before adding a large number of elements using the {@code ensureCapacity}
  * operation.  This may reduce the amount of incremental reallocation.
  *
  * <p><strong>Note that this implementation is not synchronized.</strong>
- * If multiple threads access an <tt>ArrayList</tt> instance concurrently,
+ * If multiple threads access an {@code ArrayList} instance concurrently,
  * and at least one of the threads modifies the list structurally, it
  * <i>must</i> be synchronized externally.  (A structural modification is
  * any operation that adds or deletes one or more elements, or explicitly
@@ -102,7 +102,6 @@ import java.util.function.UnaryOperator;
  * @see     Vector
  * @since   1.2
  */
-
 public class ArrayList<E> extends AbstractList<E>
         implements List<E>, RandomAccess, Cloneable, java.io.Serializable
 {
@@ -186,9 +185,9 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
-     * Trims the capacity of this <tt>ArrayList</tt> instance to be the
+     * Trims the capacity of this {@code ArrayList} instance to be the
      * list's current size.  An application can use this operation to minimize
-     * the storage of an <tt>ArrayList</tt> instance.
+     * the storage of an {@code ArrayList} instance.
      */
     public void trimToSize() {
         modCount++;
@@ -200,7 +199,7 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
-     * Increases the capacity of this <tt>ArrayList</tt> instance, if
+     * Increases the capacity of this {@code ArrayList} instance, if
      * necessary, to ensure that it can hold at least the number of elements
      * specified by the minimum capacity argument.
      *
@@ -279,22 +278,22 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
-     * Returns <tt>true</tt> if this list contains no elements.
+     * Returns {@code true} if this list contains no elements.
      *
-     * @return <tt>true</tt> if this list contains no elements
+     * @return {@code true} if this list contains no elements
      */
     public boolean isEmpty() {
         return size == 0;
     }
 
     /**
-     * Returns <tt>true</tt> if this list contains the specified element.
-     * More formally, returns <tt>true</tt> if and only if this list contains
-     * at least one element <tt>e</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
+     * Returns {@code true} if this list contains the specified element.
+     * More formally, returns {@code true} if and only if this list contains
+     * at least one element {@code e} such that
+     * {@code Objects.equals(o, e)}.
      *
      * @param o element whose presence in this list is to be tested
-     * @return <tt>true</tt> if this list contains the specified element
+     * @return {@code true} if this list contains the specified element
      */
     public boolean contains(Object o) {
         return indexOf(o) >= 0;
@@ -303,8 +302,8 @@ public class ArrayList<E> extends AbstractList<E>
     /**
      * Returns the index of the first occurrence of the specified element
      * in this list, or -1 if this list does not contain the element.
-     * More formally, returns the lowest index <tt>i</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;o.equals(get(i)))</tt>,
+     * More formally, returns the lowest index {@code i} such that
+     * {@code Objects.equals(o, get(i))},
      * or -1 if there is no such index.
      */
     public int indexOf(Object o) {
@@ -323,8 +322,8 @@ public class ArrayList<E> extends AbstractList<E>
     /**
      * Returns the index of the last occurrence of the specified element
      * in this list, or -1 if this list does not contain the element.
-     * More formally, returns the highest index <tt>i</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;o.equals(get(i)))</tt>,
+     * More formally, returns the highest index {@code i} such that
+     * {@code Objects.equals(o, get(i))},
      * or -1 if there is no such index.
      */
     public int lastIndexOf(Object o) {
@@ -341,10 +340,10 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
-     * Returns a shallow copy of this <tt>ArrayList</tt> instance.  (The
+     * Returns a shallow copy of this {@code ArrayList} instance.  (The
      * elements themselves are not copied.)
      *
-     * @return a clone of this <tt>ArrayList</tt> instance
+     * @return a clone of this {@code ArrayList} instance
      */
     public Object clone() {
         try {
@@ -387,7 +386,7 @@ public class ArrayList<E> extends AbstractList<E>
      * <p>If the list fits in the specified array with room to spare
      * (i.e., the array has more elements than the list), the element in
      * the array immediately following the end of the collection is set to
-     * <tt>null</tt>.  (This is useful in determining the length of the
+     * {@code null}.  (This is useful in determining the length of the
      * list <i>only</i> if the caller knows that the list does not contain
      * any null elements.)
      *
@@ -452,7 +451,7 @@ public class ArrayList<E> extends AbstractList<E>
      * Appends the specified element to the end of this list.
      *
      * @param e element to be appended to this list
-     * @return <tt>true</tt> (as specified by {@link Collection#add})
+     * @return {@code true} (as specified by {@link Collection#add})
      */
     public boolean add(E e) {
         ensureCapacityInternal(size + 1);  // Increments modCount!!
@@ -507,14 +506,14 @@ public class ArrayList<E> extends AbstractList<E>
      * Removes the first occurrence of the specified element from this list,
      * if it is present.  If the list does not contain the element, it is
      * unchanged.  More formally, removes the element with the lowest index
-     * <tt>i</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;o.equals(get(i)))</tt>
-     * (if such an element exists).  Returns <tt>true</tt> if this list
+     * {@code i} such that
+     * {@code Objects.equals(o, get(i))}
+     * (if such an element exists).  Returns {@code true} if this list
      * contained the specified element (or equivalently, if this list
      * changed as a result of the call).
      *
      * @param o element to be removed from this list, if present
-     * @return <tt>true</tt> if this list contained the specified element
+     * @return {@code true} if this list contained the specified element
      */
     public boolean remove(Object o) {
         if (o == null) {
@@ -570,7 +569,7 @@ public class ArrayList<E> extends AbstractList<E>
      * list is nonempty.)
      *
      * @param c collection containing elements to be added to this list
-     * @return <tt>true</tt> if this list changed as a result of the call
+     * @return {@code true} if this list changed as a result of the call
      * @throws NullPointerException if the specified collection is null
      */
     public boolean addAll(Collection<? extends E> c) {
@@ -593,7 +592,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @param index index at which to insert the first element from the
      *              specified collection
      * @param c collection containing elements to be added to this list
-     * @return <tt>true</tt> if this list changed as a result of the call
+     * @return {@code true} if this list changed as a result of the call
      * @throws IndexOutOfBoundsException {@inheritDoc}
      * @throws NullPointerException if the specified collection is null
      */
@@ -741,12 +740,12 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
-     * Save the state of the <tt>ArrayList</tt> instance to a stream (that
+     * Save the state of the {@code ArrayList} instance to a stream (that
      * is, serialize it).
      *
-     * @serialData The length of the array backing the <tt>ArrayList</tt>
+     * @serialData The length of the array backing the {@code ArrayList}
      *             instance is emitted (int), followed by all of its elements
-     *             (each an <tt>Object</tt>) in the proper order.
+     *             (each an {@code Object}) in the proper order.
      */
     private void writeObject(java.io.ObjectOutputStream s)
         throws java.io.IOException{
@@ -768,7 +767,7 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
-     * Reconstitute the <tt>ArrayList</tt> instance from a stream (that is,
+     * Reconstitute the {@code ArrayList} instance from a stream (that is,
      * deserialize it).
      */
     private void readObject(java.io.ObjectInputStream s)
