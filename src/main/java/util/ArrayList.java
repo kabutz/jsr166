@@ -912,25 +912,21 @@ public class ArrayList<E> extends AbstractList<E>
         }
 
         @Override
-        @SuppressWarnings("unchecked")
-        public void forEachRemaining(Consumer<? super E> consumer) {
-            Objects.requireNonNull(consumer);
+        public void forEachRemaining(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
             final int size = ArrayList.this.size;
             int i = cursor;
-            if (i >= size) {
-                return;
+            if (i < size) {
+                final Object[] es = elementData;
+                if (i >= es.length)
+                    throw new ConcurrentModificationException();
+                for (; i < size && modCount == expectedModCount; i++)
+                    action.accept(elementAt(es, i));
+                // update once at end to reduce heap write traffic
+                cursor = i;
+                lastRet = i - 1;
+                checkForComodification();
             }
-            final Object[] elementData = ArrayList.this.elementData;
-            if (i >= elementData.length) {
-                throw new ConcurrentModificationException();
-            }
-            while (i != size && modCount == expectedModCount) {
-                consumer.accept((E) elementData[i++]);
-            }
-            // update once at end of iteration to reduce heap write traffic
-            cursor = i;
-            lastRet = i - 1;
-            checkForComodification();
         }
 
         final void checkForComodification() {
@@ -1191,25 +1187,21 @@ public class ArrayList<E> extends AbstractList<E>
                     return (E) elementData[offset + (lastRet = i)];
                 }
 
-                @SuppressWarnings("unchecked")
-                public void forEachRemaining(Consumer<? super E> consumer) {
-                    Objects.requireNonNull(consumer);
+                public void forEachRemaining(Consumer<? super E> action) {
+                    Objects.requireNonNull(action);
                     final int size = SubList.this.size;
                     int i = cursor;
-                    if (i >= size) {
-                        return;
+                    if (i < size) {
+                        final Object[] es = root.elementData;
+                        if (offset + i >= es.length)
+                            throw new ConcurrentModificationException();
+                        for (; i < size && modCount == expectedModCount; i++)
+                            action.accept(elementAt(es, offset + i));
+                        // update once at end to reduce heap write traffic
+                        cursor = i;
+                        lastRet = i - 1;
+                        checkForComodification();
                     }
-                    final Object[] elementData = root.elementData;
-                    if (offset + i >= elementData.length) {
-                        throw new ConcurrentModificationException();
-                    }
-                    while (i != size && modCount == expectedModCount) {
-                        consumer.accept((E) elementData[offset + (i++)]);
-                    }
-                    // update once at end of iteration to reduce heap write traffic
-                    cursor = i;
-                    lastRet = i - 1;
-                    checkForComodification();
                 }
 
                 public int nextIndex() {
