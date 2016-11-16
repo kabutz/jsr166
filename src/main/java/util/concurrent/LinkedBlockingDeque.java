@@ -1155,59 +1155,58 @@ public class LinkedBlockingDeque<E>
 
         public void forEachRemaining(Consumer<? super E> action) {
             if (action == null) throw new NullPointerException();
-            if (!exhausted) {
-                exhausted = true;
-                Node<E> p = current;
-                current = null;
-                final LinkedBlockingDeque<E> q = this.queue;
-                final ReentrantLock lock = q.lock;
-                do {
-                    E e;
-                    lock.lock();
-                    try {
-                        if (p == null)
-                            p = q.first;
-                        do {
-                            if (p == null)
-                                return;
-                            e = p.item;
-                            if (p == (p = p.next)) p = q.first;
-                        } while (e == null);
-                    } finally {
-                        lock.unlock();
-                    }
-                    action.accept(e);
-                } while (p != null);
-            }
-        }
-
-        public boolean tryAdvance(Consumer<? super E> action) {
-            if (action == null) throw new NullPointerException();
-            if (!exhausted) findElement: {
-                final LinkedBlockingDeque<E> q = this.queue;
-                final ReentrantLock lock = q.lock;
+            if (exhausted)
+                return;
+            exhausted = true;
+            final LinkedBlockingDeque<E> q = this.queue;
+            final ReentrantLock lock = q.lock;
+            Node<E> p = current;
+            current = null;
+            do {
                 E e;
-                Node<E> p = current;
                 lock.lock();
                 try {
-                    if (p == null)
+                    if (p == null || (p == p.next))
                         p = q.first;
                     do {
-                        if (p == null) break findElement;
+                        if (p == null)
+                            return;
                         e = p.item;
-                        if (p == (p = p.next)) p = q.first;
+                        p = p.next;
                     } while (e == null);
                 } finally {
                     lock.unlock();
                 }
                 action.accept(e);
-                if ((current = p) == null)
-                    exhausted = true;
-                return true;
+            } while (p != null);
+        }
+
+        public boolean tryAdvance(Consumer<? super E> action) {
+            if (action == null) throw new NullPointerException();
+            if (exhausted)
+                return false;
+            final LinkedBlockingDeque<E> q = this.queue;
+            final ReentrantLock lock = q.lock;
+            Node<E> p = current;
+            E e = null;
+            lock.lock();
+            try {
+                if (p == null || p == p.next)
+                    p = q.first;
+                do {
+                    if (p == null)
+                        break;
+                    e = p.item;
+                    p = p.next;
+                } while (e == null);
+            } finally {
+                lock.unlock();
             }
-            current = null;
-            exhausted = true;
-            return false;
+            exhausted = ((current = p) == null);
+            if (e == null)
+                return false;
+            action.accept(e);
+            return true;
         }
 
         public int characteristics() {
