@@ -1127,12 +1127,10 @@ public class LinkedBlockingDeque<E>
                 Node<E> p = current;
                 lock.lock();
                 try {
-                    if ((p != null && p != p.next) || (p = q.first) != null) {
-                        do {
-                            if ((a[i] = p.item) != null)
-                                ++i;
-                        } while ((p = p.next) != null && i < n);
-                    }
+                    if (((p != null && p != p.next) || (p = q.first) != null)
+                        && p.item != null)
+                        for (; p != null && i < n; p = p.next)
+                            a[i++] = p.item;
                 } finally {
                     lock.unlock();
                 }
