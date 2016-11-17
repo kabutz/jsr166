@@ -1163,21 +1163,18 @@ public class LinkedBlockingDeque<E>
             Node<E> p = current;
             current = null;
             do {
-                E e;
+                E e = null;
                 lock.lock();
                 try {
-                    if (p == null || (p == p.next))
-                        p = q.first;
-                    do {
-                        if (p == null)
-                            return;
+                    if ((p != null && p != p.next) || (p = q.first) != null) {
                         e = p.item;
                         p = p.next;
-                    } while (e == null);
+                    }
                 } finally {
                     lock.unlock();
                 }
-                action.accept(e);
+                if (e != null)
+                    action.accept(e);
             } while (p != null);
         }
 
@@ -1191,14 +1188,10 @@ public class LinkedBlockingDeque<E>
             E e = null;
             lock.lock();
             try {
-                if (p == null || p == p.next)
-                    p = q.first;
-                do {
-                    if (p == null)
-                        break;
+                if ((p != null && p != p.next) || (p = q.first) != null) {
                     e = p.item;
                     p = p.next;
-                } while (e == null);
+                }
             } finally {
                 lock.unlock();
             }
