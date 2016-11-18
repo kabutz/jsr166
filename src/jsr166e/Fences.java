@@ -4,7 +4,7 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-package java.util.concurrent.atomic;
+package jsr166e;
 
 /**
  * <b>This file exists for documentation reference but is not part of
