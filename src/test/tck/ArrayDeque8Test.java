@@ -51,43 +51,42 @@ public class ArrayDeque8Test extends JSR166TestCase {
 
     /**
      * Handle capacities near Integer.MAX_VALUE.
-     * ant -Dvmoptions='-Xms28g -Xmx28g' -Djsr166.testImplementationDetails=true -Djsr166.expensiveTests=true -Djsr166.tckTestClass=ArrayDequeTest -Djsr166.methodFilter=testHuge tck
+     * ant -Dvmoptions='-Xms28g -Xmx28g' -Djsr166.expensiveTests=true -Djsr166.tckTestClass=ArrayDeque8Test -Djsr166.methodFilter=testHugeCapacity tck
      */
-    public void testHuge() {
+    public void testHugeCapacity() {
         if (! (testImplementationDetails
                && expensiveTests
                && Runtime.getRuntime().maxMemory() > 24L * (1 << 30)))
             return;
 
-        ArrayDeque q;
-        Integer e = 42;
-        final int maxSize = Integer.MAX_VALUE - 8;
+        final Integer e = 42;
+        final int maxArraySize = Integer.MAX_VALUE - 8;
 
         assertThrows(OutOfMemoryError.class,
-                     () -> new ArrayDeque<>(Integer.MAX_VALUE));
+                     () -> new ArrayDeque(Integer.MAX_VALUE));
 
         {
-            q = new ArrayDeque<>(maxSize);
+            ArrayDeque q = new ArrayDeque(maxArraySize - 1);
             assertEquals(0, q.size());
             assertTrue(q.isEmpty());
             q = null;
         }
 
         {
-            q = new ArrayDeque();
-            assertTrue(q.addAll(Collections.nCopies(maxSize - 2, e)));
+            ArrayDeque q = new ArrayDeque();
+            assertTrue(q.addAll(Collections.nCopies(maxArraySize - 3, e)));
             assertEquals(e, q.peekFirst());
             assertEquals(e, q.peekLast());
-            assertEquals(maxSize - 2, q.size());
+            assertEquals(maxArraySize - 3, q.size());
             q.addFirst((Integer) 0);
             q.addLast((Integer) 1);
             assertEquals((Integer) 0, q.peekFirst());
             assertEquals((Integer) 1, q.peekLast());
-            assertEquals(maxSize, q.size());
+            assertEquals(maxArraySize - 1, q.size());
 
             ArrayDeque qq = q;
             ArrayDeque smallish = new ArrayDeque(
-                Collections.nCopies(Integer.MAX_VALUE - maxSize + 1, e));
+                Collections.nCopies(Integer.MAX_VALUE - q.size() + 1, e));
             assertThrows(
                 IllegalStateException.class,
                 () -> qq.addAll(qq),
