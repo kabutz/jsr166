@@ -68,13 +68,15 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      *
      * Because in a circular array, elements are in general stored in
      * two disjoint such slices, we help the VM by writing unusual
-     * nested loops for all traversals over the elements.
+     * nested loops for all traversals over the elements.  Having only
+     * one hot inner loop body instead of two or three eases human
+     * maintenance and encourages VM loop inlining into the caller.
      */
 
     /**
      * The array in which the elements of the deque are stored.
-     * We guarantee that all array cells not holding deque elements
-     * are always null.
+     * All array cells not holding deque elements are always null.
+     * The array always has at least one null slot (at tail).
      */
     transient Object[] elements;
 
@@ -88,7 +90,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
 
     /**
      * The index at which the next element would be added to the tail
-     * of the deque (via addLast(E), add(E), or push(E)).
+     * of the deque (via addLast(E), add(E), or push(E));
+     * elements[tail] is always null.
      */
     transient int tail;
 
@@ -187,7 +190,10 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @param numElements lower bound on initial capacity of the deque
      */
     public ArrayDeque(int numElements) {
-        elements = new Object[Math.max(1, numElements + 1)];
+        elements =
+            new Object[(numElements < 1) ? 1 :
+                       (numElements == Integer.MAX_VALUE) ? Integer.MAX_VALUE :
+                       numElements + 1];
     }
 
     /**
@@ -201,7 +207,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @throws NullPointerException if the specified collection is null
      */
     public ArrayDeque(Collection<? extends E> c) {
-        elements = new Object[c.size() + 1];
+        this(c.size());
         addAll(c);
     }
 
@@ -224,19 +230,21 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * Adds i and j, mod modulus.
-     * Precondition and postcondition: 0 <= i < modulus, 0 <= j <= modulus.
+     * Circularly adds the given distance to index i, mod modulus.
+     * Precondition: 0 <= i < modulus, 0 <= distance <= modulus.
+     * @return index 0 <= i < modulus
      */
-    static final int add(int i, int j, int modulus) {
-        if ((i += j) - modulus >= 0) i -= modulus;
+    static final int add(int i, int distance, int modulus) {
+        if ((i += distance) - modulus >= 0) distance -= modulus;
         return i;
     }
 
     /**
      * Subtracts j from i, mod modulus.
-     * Index i must be logically ahead of j.
-     * Returns the "circular distance" from j to i.
-     * Precondition and postcondition: 0 <= i < modulus, 0 <= j < modulus.
+     * Index i must be logically ahead of index j.
+     * Precondition: 0 <= i < modulus, 0 <= j < modulus.
+     * @return the "circular distance" from j to i; corner case i == j
+     * is diambiguated to "empty", returning 0.
      */
     static final int sub(int i, int j, int modulus) {
         if ((i -= j) < 0) i += modulus;
@@ -862,9 +870,9 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             if ((t = fence) < 0) t = getFence();
             if (t == (i = cursor))
                 return false;
-            final Object[] es;
-            action.accept(nonNullElementAt(es = elements, i));
+            final Object[] es = elements;
             cursor = inc(i, es.length);
+            action.accept(nonNullElementAt(es, i));
             return true;
         }
 
@@ -1232,6 +1240,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
 
     /** debugging */
     void checkInvariants() {
+        // Use head and tail fields with empty slot at tail strategy.
+        // head == tail disambiguates to "empty".
         try {
             int capacity = elements.length;
             // assert head >= 0 && head < capacity;
