@@ -304,7 +304,7 @@ public class Collection8Test extends JSR166TestCase {
             switch (rnd.nextInt(4)) {
             case 0: survivors.addAll(c); break;
             case 1: survivors.addAll(Arrays.asList(c.toArray())); break;
-            case 2: c.forEach(e -> survivors.add(e)); break;
+            case 2: c.forEach(survivors::add); break;
             case 3: for (Object e : c) survivors.add(e); break;
             }
             assertTrue(orig.containsAll(accepts));
@@ -355,11 +355,11 @@ public class Collection8Test extends JSR166TestCase {
         ArrayList forEached = new ArrayList();
         ArrayList removeIfed = new ArrayList();
         for (Object x : c) iterated.add(x);
-        c.iterator().forEachRemaining(e -> iteratedForEachRemaining.add(e));
+        c.iterator().forEachRemaining(iteratedForEachRemaining::add);
         for (Spliterator s = c.spliterator();
-             s.tryAdvance(e -> tryAdvanced.add(e)); ) {}
-        c.spliterator().forEachRemaining(e -> spliterated.add(e));
-        c.forEach(e -> forEached.add(e));
+             s.tryAdvance(tryAdvanced::add); ) {}
+        c.spliterator().forEachRemaining(spliterated::add);
+        c.forEach(forEached::add);
         c.removeIf(e -> { removeIfed.add(e); return false; });
         boolean ordered =
             c.spliterator().hasCharacteristics(Spliterator.ORDERED);
@@ -589,7 +589,7 @@ public class Collection8Test extends JSR166TestCase {
         try (PoolCleaner cleaner = cleaner(pool, done)) {
             threadsStarted.bulkRegister(tasks.size());
             futures = tasks.stream()
-                .map(task -> pool.submit(task))
+                .map(pool::submit)
                 .collect(Collectors.toList());
             threadsStarted.arriveAndDeregister();
             Thread.sleep(testDurationMillis);
