@@ -1098,36 +1098,32 @@ public class LinkedBlockingDeque<E>
     }
 
     /** A customized variant of Spliterators.IteratorSpliterator */
-    static final class LBDSpliterator<E> implements Spliterator<E> {
+    private final class LBDSpliterator implements Spliterator<E> {
         static final int MAX_BATCH = 1 << 25;  // max batch array size;
-        final LinkedBlockingDeque<E> queue;
         Node<E> current;    // current node; null until initialized
         int batch;          // batch size for splits
         boolean exhausted;  // true when no more nodes
         long est;           // size estimate
-        LBDSpliterator(LinkedBlockingDeque<E> queue) {
-            this.queue = queue;
-            this.est = queue.size();
-        }
+
+        LBDSpliterator() { est = size(); }
 
         public long estimateSize() { return est; }
 
         public Spliterator<E> trySplit() {
             Node<E> h;
-            final LinkedBlockingDeque<E> q = this.queue;
             int b = batch;
             int n = (b <= 0) ? 1 : (b >= MAX_BATCH) ? MAX_BATCH : b + 1;
             if (!exhausted &&
                 (((h = current) != null && h != h.next)
-                 || (h = q.first) != null)
+                 || (h = first) != null)
                 && h.next != null) {
                 Object[] a = new Object[n];
-                final ReentrantLock lock = q.lock;
+                final ReentrantLock lock = LinkedBlockingDeque.this.lock;
                 int i = 0;
                 Node<E> p = current;
                 lock.lock();
                 try {
-                    if (((p != null && p != p.next) || (p = q.first) != null)
+                    if (((p != null && p != p.next) || (p = first) != null)
                         && p.item != null)
                         for (; p != null && i < n; p = p.next)
                             a[i++] = p.item;
@@ -1156,15 +1152,14 @@ public class LinkedBlockingDeque<E>
             if (exhausted)
                 return;
             exhausted = true;
-            final LinkedBlockingDeque<E> q = this.queue;
-            final ReentrantLock lock = q.lock;
+            final ReentrantLock lock = LinkedBlockingDeque.this.lock;
             Node<E> p = current;
             current = null;
             do {
                 E e = null;
                 lock.lock();
                 try {
-                    if ((p != null && p != p.next) || (p = q.first) != null) {
+                    if ((p != null && p != p.next) || (p = first) != null) {
                         e = p.item;
                         p = p.next;
                     }
@@ -1180,13 +1175,12 @@ public class LinkedBlockingDeque<E>
             if (action == null) throw new NullPointerException();
             if (exhausted)
                 return false;
-            final LinkedBlockingDeque<E> q = this.queue;
-            final ReentrantLock lock = q.lock;
+            final ReentrantLock lock = LinkedBlockingDeque.this.lock;
             Node<E> p = current;
             E e = null;
             lock.lock();
             try {
-                if ((p != null && p != p.next) || (p = q.first) != null) {
+                if ((p != null && p != p.next) || (p = first) != null) {
                     e = p.item;
                     p = p.next;
                 }
@@ -1224,7 +1218,7 @@ public class LinkedBlockingDeque<E>
      * @since 1.8
      */
     public Spliterator<E> spliterator() {
-        return new LBDSpliterator<E>(this);
+        return new LBDSpliterator();
     }
 
     /**
