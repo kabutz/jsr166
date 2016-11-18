@@ -325,7 +325,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         final int s = size(), needed;
         if ((needed = s + c.size() - elements.length + 1) > 0)
             grow(needed);
-        c.forEach(e -> addLast(e));
+        c.forEach(this::addLast);
         // checkInvariants();
         return size() > s;
     }
