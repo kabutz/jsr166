@@ -1561,8 +1561,10 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         // assert lock.isHeldByCurrentThread();
         try {
             // Unlike ArrayDeque, we have a count field but no spare slot.
-            // We prefer ArrayDeque's strategy, but our field layout is
-            // baked into the serial form, and so is annoying to change.
+            // We prefer ArrayDeque's strategy (and the names of its fields!),
+            // but our field layout is baked into the serial form, and so is
+            // too annoying to change.
+            //
             // putIndex == takeIndex must be disambiguated by checking count.
             int capacity = items.length;
             // assert capacity > 0;
