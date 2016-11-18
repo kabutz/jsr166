@@ -58,6 +58,11 @@ import java.util.function.Predicate;
 public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         implements BlockingQueue<E>, java.io.Serializable {
 
+    /*
+     * Much of the implementation mechanics, especially the unusual
+     * nested loops, are shared and co-maintained with ArrayDeque.
+     */
+
     /**
      * Serialization ID. This class relies on default serialization
      * even for the items array, which is default-serialized, even if
@@ -1555,6 +1560,10 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         // meta-assertions
         // assert lock.isHeldByCurrentThread();
         try {
+            // Unlike ArrayDeque, we have a count field but no spare slot.
+            // We prefer ArrayDeque's strategy, but our field layout is
+            // baked into the serial form, and so is annoying to change.
+            // putIndex == takeIndex must be disambiguated by checking count.
             int capacity = items.length;
             // assert capacity > 0;
             // assert takeIndex >= 0 && takeIndex < capacity;
