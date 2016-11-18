@@ -175,6 +175,7 @@ public class LinkedBlockingDeque<E>
                     throw new IllegalStateException("Deque full");
             }
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -317,6 +318,7 @@ public class LinkedBlockingDeque<E>
         try {
             return linkFirst(node);
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -332,6 +334,7 @@ public class LinkedBlockingDeque<E>
         try {
             return linkLast(node);
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -349,6 +352,7 @@ public class LinkedBlockingDeque<E>
             while (!linkFirst(node))
                 notFull.await();
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -366,6 +370,7 @@ public class LinkedBlockingDeque<E>
             while (!linkLast(node))
                 notFull.await();
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -389,6 +394,7 @@ public class LinkedBlockingDeque<E>
             }
             return true;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -412,6 +418,7 @@ public class LinkedBlockingDeque<E>
             }
             return true;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -440,6 +447,7 @@ public class LinkedBlockingDeque<E>
         try {
             return unlinkFirst();
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -450,6 +458,7 @@ public class LinkedBlockingDeque<E>
         try {
             return unlinkLast();
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -463,6 +472,7 @@ public class LinkedBlockingDeque<E>
                 notEmpty.await();
             return x;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -476,6 +486,7 @@ public class LinkedBlockingDeque<E>
                 notEmpty.await();
             return x;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -494,6 +505,7 @@ public class LinkedBlockingDeque<E>
             }
             return x;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -512,6 +524,7 @@ public class LinkedBlockingDeque<E>
             }
             return x;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -540,6 +553,7 @@ public class LinkedBlockingDeque<E>
         try {
             return (first == null) ? null : first.item;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -550,6 +564,7 @@ public class LinkedBlockingDeque<E>
         try {
             return (last == null) ? null : last.item;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -567,6 +582,7 @@ public class LinkedBlockingDeque<E>
             }
             return false;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -584,6 +600,7 @@ public class LinkedBlockingDeque<E>
             }
             return false;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -690,6 +707,7 @@ public class LinkedBlockingDeque<E>
         try {
             return capacity - count;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -727,6 +745,7 @@ public class LinkedBlockingDeque<E>
             }
             return n;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -779,6 +798,7 @@ public class LinkedBlockingDeque<E>
         try {
             return count;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -801,6 +821,7 @@ public class LinkedBlockingDeque<E>
                     return true;
             return false;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -870,6 +891,7 @@ public class LinkedBlockingDeque<E>
                 a[k++] = p.item;
             return a;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -925,6 +947,7 @@ public class LinkedBlockingDeque<E>
                 a[k] = null;
             return a;
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -952,6 +975,7 @@ public class LinkedBlockingDeque<E>
             count = 0;
             notFull.signalAll();
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -1017,6 +1041,7 @@ public class LinkedBlockingDeque<E>
                 next = firstNode();
                 nextItem = (next == null) ? null : next.item;
             } finally {
+                // checkInvariants();
                 lock.unlock();
             }
         }
@@ -1052,6 +1077,7 @@ public class LinkedBlockingDeque<E>
                 next = succ(next);
                 nextItem = (next == null) ? null : next.item;
             } finally {
+                // checkInvariants();
                 lock.unlock();
             }
         }
@@ -1080,6 +1106,7 @@ public class LinkedBlockingDeque<E>
                 if (n.item != null)
                     unlink(n);
             } finally {
+                // checkInvariants();
                 lock.unlock();
             }
         }
@@ -1128,6 +1155,7 @@ public class LinkedBlockingDeque<E>
                         for (; p != null && i < n; p = p.next)
                             a[i++] = p.item;
                 } finally {
+                    // checkInvariants();
                     lock.unlock();
                 }
                 if ((current = p) == null) {
@@ -1164,6 +1192,7 @@ public class LinkedBlockingDeque<E>
                         p = p.next;
                     }
                 } finally {
+                    // checkInvariants();
                     lock.unlock();
                 }
                 if (e != null)
@@ -1185,6 +1214,7 @@ public class LinkedBlockingDeque<E>
                     p = p.next;
                 }
             } finally {
+                // checkInvariants();
                 lock.unlock();
             }
             exhausted = ((current = p) == null);
@@ -1242,6 +1272,7 @@ public class LinkedBlockingDeque<E>
             // Use trailing null as sentinel
             s.writeObject(null);
         } finally {
+            // checkInvariants();
             lock.unlock();
         }
     }
@@ -1266,6 +1297,16 @@ public class LinkedBlockingDeque<E>
             if (item == null)
                 break;
             add(item);
+        }
+    }
+
+    void checkInvariants() {
+        // assert lock.isHeldByCurrentThread();
+        // Nodes may get self-linked or lose their item, but only
+        // after being unlinked and becoming unreachable from first.
+        for (Node<E> p = first; p != null; p = p.next) {
+            // assert p.next != p;
+            // assert p.item != null;
         }
     }
 
