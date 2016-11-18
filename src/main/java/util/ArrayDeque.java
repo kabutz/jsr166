@@ -866,9 +866,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         public boolean tryAdvance(Consumer<? super E> action) {
             if (action == null)
                 throw new NullPointerException();
-            int t, i;
-            if ((t = fence) < 0) t = getFence();
-            if (t == (i = cursor))
+            final int t, i;
+            if ((t = getFence()) == (i = cursor))
                 return false;
             final Object[] es = elements;
             cursor = inc(i, es.length);
