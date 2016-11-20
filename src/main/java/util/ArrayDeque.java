@@ -1106,6 +1106,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         final T[] a;
         final int head = this.head, tail = this.tail, end;
         if ((end = tail + ((head <= tail) ? 0 : es.length)) >= 0) {
+            // Uses null extension feature of copyOfRange
             a = Arrays.copyOfRange(es, head, end, klazz);
         } else {
             // integer overflow!
