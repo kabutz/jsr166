@@ -1104,17 +1104,16 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     private <T> T[] toArray(Class<T[]> klazz) {
         final Object[] es = elements;
         final T[] a;
-        final int size = size(), head = this.head, end;
-        final int len = Math.min(size, es.length - head);
-        if ((end = head + size) >= 0) {
+        final int head = this.head, tail = this.tail, end;
+        if ((end = tail + ((head <= tail) ? 0 : es.length)) >= 0) {
             a = Arrays.copyOfRange(es, head, end, klazz);
         } else {
             // integer overflow!
-            a = Arrays.copyOfRange(es, 0, size, klazz);
-            System.arraycopy(es, head, a, 0, len);
+            a = Arrays.copyOfRange(es, 0, end - head, klazz);
+            System.arraycopy(es, head, a, 0, es.length - head);
         }
-        if (tail < head)
-            System.arraycopy(es, 0, a, len, tail);
+        if (end != tail)
+            System.arraycopy(es, 0, a, es.length - head, tail);
         return a;
     }
 
