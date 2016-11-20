@@ -322,8 +322,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      *         of its elements are null
      */
     public boolean addAll(Collection<? extends E> c) {
-        final int s = size(), needed;
-        if ((needed = s + c.size() - elements.length + 1) > 0)
+        final int s, needed;
+        if ((needed = (s = size()) + c.size() + 1 - elements.length) > 0)
             grow(needed);
         c.forEach(this::addLast);
         // checkInvariants();
