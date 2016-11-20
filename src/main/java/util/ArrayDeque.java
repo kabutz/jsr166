@@ -616,10 +616,11 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         // checkInvariants();
         final Object[] es = elements;
         final int capacity = es.length;
-        final int h = head;
+        final int h, t;
         // number of elements before to-be-deleted elt
-        final int front = sub(i, h, capacity);
-        final int back = size() - front - 1; // number of elements after
+        final int front = sub(i, h = head, capacity);
+        // number of elements after to-be-deleted elt
+        final int back = sub(t = tail, i, capacity) - 1;
         if (front < back) {
             // move front elements forwards
             if (h <= i) {
@@ -635,14 +636,13 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             return false;
         } else {
             // move back elements backwards
-            tail = dec(tail, capacity);
+            tail = dec(t, capacity);
             if (i <= tail) {
                 System.arraycopy(es, i + 1, es, i, back);
             } else { // Wrap around
-                int firstLeg = capacity - (i + 1);
-                System.arraycopy(es, i + 1, es, i, firstLeg);
+                System.arraycopy(es, i + 1, es, i, capacity - (i + 1));
                 es[capacity - 1] = es[0];
-                System.arraycopy(es, 1, es, 0, back - firstLeg - 1);
+                System.arraycopy(es, 1, es, 0, t - 1);
             }
             es[tail] = null;
             // checkInvariants();
