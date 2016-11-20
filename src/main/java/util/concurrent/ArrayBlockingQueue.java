@@ -1231,8 +1231,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 // Calling forEachRemaining is a strong hint that this
                 // iteration is surely over; supporting remove() after
                 // forEachRemaining() is more trouble than it's worth
-                cursor = NONE;
-                nextIndex = lastRet = NONE;
+                cursor = nextIndex = lastRet = NONE;
                 nextItem = lastItem = null;
                 detach();
                 lock.unlock();
