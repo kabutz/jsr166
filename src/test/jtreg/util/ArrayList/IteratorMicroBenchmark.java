@@ -622,7 +622,61 @@ public class IteratorMicroBenchmark {
                         int sum = 0;
                         for (Map.Entry<Integer,Integer> e : m.entrySet())
                             sum += e.getKey();
-                        deoptimize(sum);}}}
+                        deoptimize(sum);}}},
+            new Job("ArrayList.toArray()") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        for (Object o : al.toArray())
+                            sum[0] += (Integer) o;
+                        check.sum(sum[0]);}}},
+            new Job("ArrayList.toArray(a)") {
+                public void work() throws Throwable {
+                    Integer[] a = new Integer[size];
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        al.toArray(a);
+                        for (Object o : a)
+                            sum[0] += (Integer) o;
+                        check.sum(sum[0]);}}},
+            new Job("ArrayDeque.toArray()") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        for (Object o : ad.toArray())
+                            sum[0] += (Integer) o;
+                        check.sum(sum[0]);}}},
+            new Job("ArrayDeque.toArray(a)") {
+                public void work() throws Throwable {
+                    Integer[] a = new Integer[size];
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        ad.toArray(a);
+                        for (Object o : a)
+                            sum[0] += (Integer) o;
+                        check.sum(sum[0]);}}},
+            new Job("Vector.toArray()") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        for (Object o : v.toArray())
+                            sum[0] += (Integer) o;
+                        check.sum(sum[0]);}}},
+            new Job("Vector.toArray(a)") {
+                public void work() throws Throwable {
+                    Integer[] a = new Integer[size];
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        v.toArray(a);
+                        for (Object o : a)
+                            sum[0] += (Integer) o;
+                        check.sum(sum[0]);}}},
         };
 
         time(filter(filter, jobs));

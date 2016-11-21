@@ -331,6 +331,15 @@ public class IteratorMicroBenchmark {
                         x.toArray(a);
                         for (Object o : a)
                             sum[0] += (Integer) o;
+                        check.sum(sum[0]);}}},
+            new Job(klazz + " .toArray(empty)") {
+                public void work() throws Throwable {
+                    Integer[] empty = new Integer[0];
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        for (Integer o : x.toArray(empty))
+                            sum[0] += o;
                         check.sum(sum[0]);}}});
     }
 
