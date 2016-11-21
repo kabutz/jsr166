@@ -864,14 +864,15 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         }
 
         public boolean tryAdvance(Consumer<? super E> action) {
-            if (action == null)
-                throw new NullPointerException();
-            final int t, i;
-            if ((t = getFence()) == (i = cursor))
-                return false;
+            Objects.requireNonNull(action);
             final Object[] es = elements;
+            if (fence < 0) { fence = tail; cursor = head; } // late-binding
+            final int i;
+            if ((i = cursor) == fence)
+                return false;
+            E e = nonNullElementAt(es, i);
             cursor = inc(i, es.length);
-            action.accept(nonNullElementAt(es, i));
+            action.accept(e);
             return true;
         }
 
