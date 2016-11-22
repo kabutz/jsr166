@@ -39,16 +39,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Spliterator;
 import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.LinkedTransferQueue;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -246,12 +247,14 @@ public class RemoveMicroBenchmark {
             new LinkedList<>(),
             new Vector<>(),
             new ArrayDeque<>(),
+            new PriorityQueue<>(),
             new ArrayBlockingQueue<>(al.size()),
             new ConcurrentLinkedQueue<>(),
             new ConcurrentLinkedDeque<>(),
             new LinkedBlockingQueue<>(),
             new LinkedBlockingDeque<>(),
-            new LinkedTransferQueue<>())
+            new LinkedTransferQueue<>(),
+            new PriorityBlockingQueue<>())
             .stream().forEach(
                 x -> {
                     String klazz = x.getClass().getSimpleName();
