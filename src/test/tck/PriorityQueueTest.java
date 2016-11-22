@@ -22,7 +22,15 @@ public class PriorityQueueTest extends JSR166TestCase {
         main(suite(), args);
     }
     public static Test suite() {
-        return new TestSuite(PriorityQueueTest.class);
+        class Implementation implements CollectionImplementation {
+            public Class<?> klazz() { return PriorityQueue.class; }
+            public Collection emptyCollection() { return new PriorityQueue(); }
+            public Object makeElement(int i) { return i; }
+            public boolean isConcurrent() { return false; }
+            public boolean permitsNulls() { return false; }
+        }
+        return newTestSuite(PriorityQueueTest.class,
+                            CollectionTest.testSuite(new Implementation()));
     }
 
     static class MyReverseComparator implements Comparator {
