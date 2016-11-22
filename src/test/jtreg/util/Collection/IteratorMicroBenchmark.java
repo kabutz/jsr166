@@ -38,6 +38,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Spliterator;
 import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -46,6 +47,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.LinkedTransferQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
@@ -252,12 +254,14 @@ public class IteratorMicroBenchmark {
         ArrayList<Job> jobs = new ArrayList<>(Arrays.asList());
 
         List.of(al, ad, abq,
+                new PriorityQueue<>(al),
                 new Vector<>(al),
                 new ConcurrentLinkedQueue<>(al),
                 new ConcurrentLinkedDeque<>(al),
                 new LinkedBlockingQueue<>(al),
                 new LinkedBlockingDeque<>(al),
-                new LinkedTransferQueue<>(al))
+                new LinkedTransferQueue<>(al),
+                new PriorityBlockingQueue<>(al))
             .stream()
             .forEach(x -> {
                          jobs.addAll(collectionJobs(x));
