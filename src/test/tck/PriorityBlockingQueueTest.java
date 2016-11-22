@@ -42,9 +42,17 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
     }
 
     public static Test suite() {
+        class Implementation implements CollectionImplementation {
+            public Class<?> klazz() { return PriorityBlockingQueue.class; }
+            public Collection emptyCollection() { return new PriorityBlockingQueue(); }
+            public Object makeElement(int i) { return i; }
+            public boolean isConcurrent() { return true; }
+            public boolean permitsNulls() { return false; }
+        }
         return newTestSuite(PriorityBlockingQueueTest.class,
                             new Generic().testSuite(),
-                            new InitialCapacity().testSuite());
+                            new InitialCapacity().testSuite(),
+                            CollectionTest.testSuite(new Implementation()));
     }
 
     /** Sample Comparator */
