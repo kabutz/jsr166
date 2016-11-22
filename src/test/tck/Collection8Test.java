@@ -545,6 +545,8 @@ public class Collection8Test extends JSR166TestCase {
         final AtomicBoolean done = new AtomicBoolean(false);
         final Object one = impl.makeElement(1);
         final Object two = impl.makeElement(2);
+        final Object[] emptyArray =
+            (Object[]) java.lang.reflect.Array.newInstance(one.getClass(), 0);
         final List<Future<?>> futures;
         final Phaser threadsStarted = new Phaser(1); // register this thread
         final Runnable[] frobbers = {
@@ -562,6 +564,12 @@ public class Collection8Test extends JSR166TestCase {
             },
             () -> {
                 for (Object x : c) assertTrue(x == one || x == two);
+            },
+            () -> {
+                for (Object x : c.toArray()) assertTrue(x == one || x == two);
+            },
+            () -> {
+                for (Object x : c.toArray(emptyArray)) assertTrue(x == one || x == two);
             },
             () -> {
                 assertTrue(c.add(one));
