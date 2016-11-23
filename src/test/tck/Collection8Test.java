@@ -613,6 +613,7 @@ public class Collection8Test extends JSR166TestCase {
      */
     public void testLateBindingStyle() {
         if (!testImplementationDetails) return;
+        if (impl.klazz() == ArrayList.class) return; // for jdk8
         // Immutable (snapshot) spliterators are exempt
         if (impl.emptyCollection().spliterator()
             .hasCharacteristics(Spliterator.IMMUTABLE))
