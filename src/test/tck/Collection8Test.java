@@ -606,6 +606,39 @@ public class Collection8Test extends JSR166TestCase {
             assertNull(future.get(0L, MILLISECONDS));
     }
 
+    /**
+     * Spliterators are either IMMUTABLE or truly late-binding or, if
+     * concurrent, use the same "late-binding style" of returning
+     * elements added between creation and first use.
+     */
+    public void testLateBindingStyle() {
+        if (!testImplementationDetails) return;
+        // Immutable (snapshot) spliterators are exempt
+        if (impl.emptyCollection().spliterator()
+            .hasCharacteristics(Spliterator.IMMUTABLE))
+            return;
+        final Object one = impl.makeElement(1);
+        {
+            final Collection c = impl.emptyCollection();
+            final Spliterator split = c.spliterator();
+            c.add(one);
+            assertTrue(split.tryAdvance(e -> { assertSame(e, one); }));
+            assertFalse(split.tryAdvance(e -> { throw new AssertionError(); }));
+            assertTrue(c.contains(one));
+        }
+        {
+            final AtomicLong count = new AtomicLong(0);
+            final Collection c = impl.emptyCollection();
+            final Spliterator split = c.spliterator();
+            c.add(one);
+            split.forEachRemaining(
+                e -> { assertSame(e, one); count.getAndIncrement(); });
+            assertEquals(1L, count.get());
+            assertFalse(split.tryAdvance(e -> { throw new AssertionError(); }));
+            assertTrue(c.contains(one));
+        }
+    }
+
 //     public void testCollection8DebugFail() {
 //         fail(impl.klazz().getSimpleName());
 //     }
