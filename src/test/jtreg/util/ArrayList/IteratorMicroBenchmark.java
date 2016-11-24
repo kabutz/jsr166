@@ -60,7 +60,8 @@ public class IteratorMicroBenchmark {
         public abstract void work() throws Throwable;
     }
 
-    static double warmupSeconds = 10;
+    static double warmupSeconds;
+    static long warmupNanos;
 
     // --------------- GC finalization infrastructure ---------------
 
@@ -90,22 +91,22 @@ public class IteratorMicroBenchmark {
      * Returns array of average times per job per run.
      */
     private static long[] time0(Job ... jobs) throws Throwable {
-        final long warmupNanos = (long) (warmupSeconds * 1000L * 1000L * 1000L);
         long[] nanoss = new long[jobs.length];
         for (int i = 0; i < jobs.length; i++) {
             if (warmupNanos > 0) forceFullGc();
-            long t0 = System.nanoTime();
-            long t;
-            int j = 0;
-            do { jobs[i].work(); j++; }
-            while ((t = System.nanoTime() - t0) < warmupNanos);
-            nanoss[i] = t/j;
+            Job job = jobs[i];
+            long totalTime;
+            int runs = 0;
+            long startTime = System.nanoTime();
+            do { job.work(); runs++; }
+            while ((totalTime = System.nanoTime() - startTime) < warmupNanos);
+            nanoss[i] = totalTime/runs;
         }
         return nanoss;
     }
 
     private static void time(Job ... jobs) throws Throwable {
-        if (warmupSeconds > 0) time0(jobs); // Warm up run
+        if (warmupSeconds > 0.0) time0(jobs); // Warm up run
         long[] nanoss = time0(jobs); // Real timing run
         long[] milliss = new long[jobs.length];
         double[] ratios = new double[jobs.length];
@@ -198,8 +199,11 @@ public class IteratorMicroBenchmark {
     public static void main(String[] args) throws Throwable {
         final int iterations = intArg(args, "iterations", 100_000);
         final int size       = intArg(args, "size", 1000);
-        warmupSeconds        = doubleArg(args, "warmup", 10);
+        warmupSeconds        = doubleArg(args, "warmup", 7.0);
         final Pattern filter = patternArg(args, "filter");
+
+        warmupNanos = (long) (warmupSeconds * (1000L * 1000L * 1000L));
+
 //         System.out.printf(
 //             "iterations=%d size=%d, warmup=%1g, filter=\"%s\"%n",
 //             iterations, size, warmupSeconds, filter);

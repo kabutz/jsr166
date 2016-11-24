@@ -76,6 +76,7 @@ public class IteratorMicroBenchmark {
     int iterations;
     int size;
     double warmupSeconds;
+    long warmupNanos;
     Pattern filter;
 
     // --------------- GC finalization infrastructure ---------------
@@ -106,23 +107,23 @@ public class IteratorMicroBenchmark {
      * Returns array of average times per job per run.
      */
     long[] time0(List<Job> jobs) throws Throwable {
-        final long warmupNanos = (long) (warmupSeconds * 1000L * 1000L * 1000L);
         final int size = jobs.size();
         long[] nanoss = new long[size];
         for (int i = 0; i < size; i++) {
             if (warmupNanos > 0) forceFullGc();
-            long t0 = System.nanoTime();
-            long t;
-            int j = 0;
-            do { jobs.get(i).work(); j++; }
-            while ((t = System.nanoTime() - t0) < warmupNanos);
-            nanoss[i] = t/j;
+            Job job = jobs.get(i);
+            long totalTime;
+            int runs = 0;
+            long startTime = System.nanoTime();
+            do { job.work(); runs++; }
+            while ((totalTime = System.nanoTime() - startTime) < warmupNanos);
+            nanoss[i] = totalTime/runs;
         }
         return nanoss;
     }
 
     void time(List<Job> jobs) throws Throwable {
-        if (warmupSeconds > 0) time0(jobs); // Warm up run
+        if (warmupNanos > 0) time0(jobs); // Warm up run
         final int size = jobs.size();
         final long[] nanoss = time0(jobs); // Real timing run
         final long[] milliss = new long[size];
@@ -228,8 +229,11 @@ public class IteratorMicroBenchmark {
     void run(String[] args) throws Throwable {
         iterations    = intArg(args, "iterations", 10_000);
         size          = intArg(args, "size", 1000);
-        warmupSeconds = doubleArg(args, "warmup", 5);
+        warmupSeconds = doubleArg(args, "warmup", 7.0);
         filter        = patternArg(args, "filter");
+
+        warmupNanos = (long) (warmupSeconds * (1000L * 1000L * 1000L));
+
 //         System.out.printf(
 //             "iterations=%d size=%d, warmup=%1g, filter=\"%s\"%n",
 //             iterations, size, warmupSeconds, filter);
