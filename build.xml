@@ -63,7 +63,6 @@
   <property name="build.classes.dir"           location="${build.dir}/classes"/>
   <property name="build.testcases.dir"         location="${build.dir}/testcases"/>
   <property name="build.loops.dir"             location="${build.dir}/loops"/>
-  <property name="build.reports.dir"           location="${build.dir}/reports"/>
 
   <property name="build.4jdk7.dir"             location="${build.dir}/jsr166-4jdk7"/>
   <property name="build.4jdk7.classes.dir"     location="${build.4jdk7.dir}/classes"/>
