@@ -32,6 +32,7 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -78,6 +79,7 @@ public class IteratorMicroBenchmark {
     double warmupSeconds;
     long warmupNanos;
     Pattern filter;
+    boolean shuffle;
 
     // --------------- GC finalization infrastructure ---------------
 
@@ -182,6 +184,13 @@ public class IteratorMicroBenchmark {
         return (val == null) ? null : Pattern.compile(val);
     }
 
+    private static boolean booleanArg(String[] args, String keyword) {
+        String val = keywordValue(args, keyword);
+        if (val == null || val.equals("false")) return false;
+        if (val.equals("true")) return true;
+        throw new IllegalArgumentException(val);
+    }
+
     private static List<Job> filter(Pattern filter, List<Job> jobs) {
         if (filter == null) return jobs;
         ArrayList<Job> newJobs = new ArrayList<>();
@@ -231,6 +240,7 @@ public class IteratorMicroBenchmark {
         size          = intArg(args, "size", 1000);
         warmupSeconds = doubleArg(args, "warmup", 7.0);
         filter        = patternArg(args, "filter");
+        shuffle       = booleanArg(args, "shuffle");
 
         warmupNanos = (long) (warmupSeconds * (1000L * 1000L * 1000L));
 
@@ -272,6 +282,8 @@ public class IteratorMicroBenchmark {
                          if (x instanceof Deque)
                              jobs.addAll(dequeJobs((Deque<Integer>)x));
                      });
+
+        if (shuffle) Collections.shuffle(jobs);
 
         time(filter(filter, jobs));
     }
