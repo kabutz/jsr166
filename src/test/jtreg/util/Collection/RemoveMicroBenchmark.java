@@ -43,6 +43,7 @@ import java.util.PriorityQueue;
 import java.util.Spliterator;
 import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
@@ -263,6 +264,10 @@ public class RemoveMicroBenchmark {
                         Deque<Integer> deque = (Deque<Integer>) x;
                         jobs.addAll(dequeJobs(klazz, () -> deque, al));
                     }
+                    if (x instanceof BlockingQueue) {
+                        BlockingQueue<Integer> q = (BlockingQueue<Integer>) x;
+                        jobs.addAll(blockingQueueJobs(klazz, () -> q, al));
+                    }
                     if (x instanceof List) {
                         List<Integer> list = (List<Integer>) x;
                         jobs.addAll(
@@ -368,6 +373,37 @@ public class RemoveMicroBenchmark {
                             sum[0] += it.next();
                             it.remove();
                         }
+                        check.sum(sum[0]);}}});
+    }
+
+    List<Job> blockingQueueJobs(
+        String description,
+        Supplier<BlockingQueue<Integer>> supplier,
+        ArrayList<Integer> al) {
+        return List.of(
+            new Job(description + " drainTo(sink)") {
+                public void work() throws Throwable {
+                    BlockingQueue<Integer> x = supplier.get();
+                    ArrayList<Integer> sink = new ArrayList<>();
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        sink.clear();
+                        x.addAll(al);
+                        x.drainTo(sink);
+                        sink.forEach(e -> sum[0] += e);
+                        check.sum(sum[0]);}}},
+            new Job(description + " drainTo(sink, n)") {
+                public void work() throws Throwable {
+                    BlockingQueue<Integer> x = supplier.get();
+                    ArrayList<Integer> sink = new ArrayList<>();
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        sink.clear();
+                        x.addAll(al);
+                        x.drainTo(sink, al.size());
+                        sink.forEach(e -> sum[0] += e);
                         check.sum(sum[0]);}}});
     }
 }
