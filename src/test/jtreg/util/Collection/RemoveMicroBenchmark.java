@@ -32,6 +32,7 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -73,11 +74,24 @@ public class RemoveMicroBenchmark {
         public abstract void work() throws Throwable;
     }
 
-    int iterations;
-    int size;
-    double warmupSeconds;
-    long warmupNanos;
-    Pattern filter;
+    final int iterations;
+    final int size;             // number of elements in collections
+    final double warmupSeconds;
+    final long warmupNanos;
+    final Pattern filter;       // select subset of Jobs to run
+    final boolean reverse;      // reverse order of Jobs
+    final boolean shuffle;      // randomize order of Jobs
+
+    RemoveMicroBenchmark(String[] args) {
+        iterations    = intArg(args, "iterations", 10_000);
+        size          = intArg(args, "size", 1000);
+        warmupSeconds = doubleArg(args, "warmup", 7.0);
+        filter        = patternArg(args, "filter");
+        reverse       = booleanArg(args, "reverse");
+        shuffle       = booleanArg(args, "shuffle");
+
+        warmupNanos = (long) (warmupSeconds * (1000L * 1000L * 1000L));
+    }
 
     // --------------- GC finalization infrastructure ---------------
 
@@ -182,6 +196,13 @@ public class RemoveMicroBenchmark {
         return (val == null) ? null : Pattern.compile(val);
     }
 
+    private static boolean booleanArg(String[] args, String keyword) {
+        String val = keywordValue(args, keyword);
+        if (val == null || val.equals("false")) return false;
+        if (val.equals("true")) return true;
+        throw new IllegalArgumentException(val);
+    }
+
     private static List<Job> filter(Pattern filter, List<Job> jobs) {
         if (filter == null) return jobs;
         ArrayList<Job> newJobs = new ArrayList<>();
@@ -223,17 +244,10 @@ public class RemoveMicroBenchmark {
     volatile Check check = new Check();
 
     public static void main(String[] args) throws Throwable {
-        new RemoveMicroBenchmark().run(args);
+        new RemoveMicroBenchmark(args).run();
     }
 
-    void run(String[] args) throws Throwable {
-        iterations    = intArg(args, "iterations", 10_000);
-        size          = intArg(args, "size", 1000);
-        warmupSeconds = doubleArg(args, "warmup", 5);
-        filter        = patternArg(args, "filter");
-
-        warmupNanos = (long) (warmupSeconds * (1000L * 1000L * 1000L));
-
+    void run() throws Throwable {
 //         System.out.printf(
 //             "iterations=%d size=%d, warmup=%1g, filter=\"%s\"%n",
 //             iterations, size, warmupSeconds, filter);
@@ -281,6 +295,9 @@ public class RemoveMicroBenchmark {
                                 al));
                     }
                 });
+
+        if (reverse) Collections.reverse(jobs);
+        if (shuffle) Collections.shuffle(jobs);
 
         time(filter(filter, jobs));
     }
