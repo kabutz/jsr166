@@ -329,16 +329,15 @@
     </condition>
 
     <delete dir="@{workdir}/JTwork"   quiet="true"/>
-    <delete dir="@{workdir}/JTreport" quiet="true"/>
     <jtreg dir="${jtreg@{target}.src.dir}"
            jdk="${jdk@{target}.home}"
-           workDir="@{workdir}/JTwork"
-           reportDir="@{workdir}/JTreport">
+           workDir="@{workdir}/JTwork">
       <patternset refid="jdk@{target}.jtreg.tests"/>
       <arg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
       <arg value="-javacoptions:--patch-module java.base=${build.classes.dir}/java.base" if:set="modules"/>
       <arg value="-vmoptions:--patch-module java.base=${build.classes.dir}/java.base" if:set="modules"/>
       <arg value="-agentvm"/>
+      <arg value="-noreport"/>
       <arg value="-verbose:${jtreg.verbose}"/>
       <arg value="-vmoptions:-esa -ea"/>
       <arg value="-automatic"/>
