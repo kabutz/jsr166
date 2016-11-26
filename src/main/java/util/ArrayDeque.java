@@ -710,8 +710,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
                 throw new NoSuchElementException();
             final Object[] es = elements;
             E e = nonNullElementAt(es, cursor);
-            lastRet = cursor;
-            cursor = inc(cursor, es.length);
+            cursor = inc(lastRet = cursor, es.length);
             remaining--;
             return e;
         }
