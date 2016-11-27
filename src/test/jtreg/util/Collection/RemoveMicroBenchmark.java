@@ -44,6 +44,7 @@ import java.util.PriorityQueue;
 import java.util.Spliterator;
 import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -286,6 +287,10 @@ public class RemoveMicroBenchmark {
                         BlockingQueue<Integer> q = (BlockingQueue<Integer>) x;
                         jobs.addAll(blockingQueueJobs(klazz, () -> q, al));
                     }
+                    if (x instanceof BlockingDeque) {
+                        BlockingDeque<Integer> q = (BlockingDeque<Integer>) x;
+                        jobs.addAll(blockingDequeJobs(klazz, () -> q, al));
+                    }
                     if (x instanceof List) {
                         List<Integer> list = (List<Integer>) x;
                         jobs.addAll(
@@ -445,6 +450,33 @@ public class RemoveMicroBenchmark {
                         x.addAll(al);
                         x.drainTo(sink, al.size());
                         sink.forEach(e -> sum[0] += e);
+                        check.sum(sum[0]);}}});
+    }
+
+    List<Job> blockingDequeJobs(
+        String description,
+        Supplier<BlockingDeque<Integer>> supplier,
+        ArrayList<Integer> al) {
+        return List.of(
+            new Job(description + " timed pollFirst()") {
+                public void work() throws Throwable {
+                    BlockingDeque<Integer> x = supplier.get();
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        x.addAll(al);
+                        for (Integer e; (e = x.pollFirst(0L, TimeUnit.DAYS)) != null; )
+                            sum[0] += e;
+                        check.sum(sum[0]);}}},
+            new Job(description + " timed pollLast()") {
+                public void work() throws Throwable {
+                    BlockingDeque<Integer> x = supplier.get();
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        x.addAll(al);
+                        for (Integer e; (e = x.pollLast(0L, TimeUnit.DAYS)) != null; )
+                            sum[0] += e;
                         check.sum(sum[0]);}}});
     }
 }
