@@ -394,6 +394,26 @@ public class RemoveMicroBenchmark {
                             sum[0] += it.next();
                             it.remove();
                         }
+                        check.sum(sum[0]);}}},
+            new Job(description + " pollFirst()") {
+                public void work() throws Throwable {
+                    Deque<Integer> x = supplier.get();
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        x.addAll(al);
+                        for (Integer e; (e = x.pollFirst()) != null; )
+                            sum[0] += e;
+                        check.sum(sum[0]);}}},
+            new Job(description + " pollLast()") {
+                public void work() throws Throwable {
+                    Deque<Integer> x = supplier.get();
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        x.addAll(al);
+                        for (Integer e; (e = x.pollLast()) != null; )
+                            sum[0] += e;
                         check.sum(sum[0]);}}});
     }
 
