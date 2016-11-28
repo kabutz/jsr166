@@ -21,6 +21,7 @@ import java.util.Queue;
 import java.util.Spliterator;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
@@ -353,6 +354,8 @@ public class Collection8Test extends JSR166TestCase {
         ArrayList tryAdvanced = new ArrayList();
         ArrayList spliterated = new ArrayList();
         ArrayList forEached = new ArrayList();
+        ArrayList streamForEached = new ArrayList();
+        ConcurrentLinkedQueue parallelStreamForEached = new ConcurrentLinkedQueue();
         ArrayList removeIfed = new ArrayList();
         for (Object x : c) iterated.add(x);
         c.iterator().forEachRemaining(iteratedForEachRemaining::add);
@@ -360,24 +363,29 @@ public class Collection8Test extends JSR166TestCase {
              s.tryAdvance(tryAdvanced::add); ) {}
         c.spliterator().forEachRemaining(spliterated::add);
         c.forEach(forEached::add);
+        c.stream().forEach(streamForEached::add);
+        c.parallelStream().forEach(parallelStreamForEached::add);
         c.removeIf(e -> { removeIfed.add(e); return false; });
         boolean ordered =
             c.spliterator().hasCharacteristics(Spliterator.ORDERED);
         if (c instanceof List || c instanceof Deque)
             assertTrue(ordered);
+        HashSet cset = new HashSet(c);
+        assertEquals(cset, new HashSet(parallelStreamForEached));
         if (ordered) {
             assertEquals(iterated, iteratedForEachRemaining);
             assertEquals(iterated, tryAdvanced);
             assertEquals(iterated, spliterated);
             assertEquals(iterated, forEached);
+            assertEquals(iterated, streamForEached);
             assertEquals(iterated, removeIfed);
         } else {
-            HashSet cset = new HashSet(c);
             assertEquals(cset, new HashSet(iterated));
             assertEquals(cset, new HashSet(iteratedForEachRemaining));
             assertEquals(cset, new HashSet(tryAdvanced));
             assertEquals(cset, new HashSet(spliterated));
             assertEquals(cset, new HashSet(forEached));
+            assertEquals(cset, new HashSet(streamForEached));
             assertEquals(cset, new HashSet(removeIfed));
         }
         if (c instanceof Deque) {
@@ -549,28 +557,24 @@ public class Collection8Test extends JSR166TestCase {
             (Object[]) java.lang.reflect.Array.newInstance(one.getClass(), 0);
         final List<Future<?>> futures;
         final Phaser threadsStarted = new Phaser(1); // register this thread
+        final Consumer checkSanity = x -> assertTrue(x == one || x == two);
         final Runnable[] frobbers = {
-            () -> c.forEach(x -> assertTrue(x == one || x == two)),
-            () -> c.stream().forEach(x -> assertTrue(x == one || x == two)),
+            () -> c.forEach(checkSanity),
+            () -> c.stream().forEach(checkSanity),
+            () -> c.parallelStream().forEach(checkSanity),
             () -> c.spliterator().trySplit(),
             () -> {
                 Spliterator s = c.spliterator();
-                s.tryAdvance(x -> assertTrue(x == one || x == two));
+                s.tryAdvance(checkSanity);
                 s.trySplit();
             },
             () -> {
                 Spliterator s = c.spliterator();
-                do {} while (s.tryAdvance(x -> assertTrue(x == one || x == two)));
+                do {} while (s.tryAdvance(checkSanity));
             },
-            () -> {
-                for (Object x : c) assertTrue(x == one || x == two);
-            },
-            () -> {
-                for (Object x : c.toArray()) assertTrue(x == one || x == two);
-            },
-            () -> {
-                for (Object x : c.toArray(emptyArray)) assertTrue(x == one || x == two);
-            },
+            () -> { for (Object x : c) checkSanity.accept(x); },
+            () -> { for (Object x : c.toArray()) checkSanity.accept(x); },
+            () -> { for (Object x : c.toArray(emptyArray)) checkSanity.accept(x); },
             () -> {
                 assertTrue(c.add(one));
                 assertTrue(c.contains(one));
