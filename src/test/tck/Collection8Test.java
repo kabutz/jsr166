@@ -353,6 +353,7 @@ public class Collection8Test extends JSR166TestCase {
         ArrayList iteratedForEachRemaining = new ArrayList();
         ArrayList tryAdvanced = new ArrayList();
         ArrayList spliterated = new ArrayList();
+        ArrayList splitonced = new ArrayList();
         ArrayList forEached = new ArrayList();
         ArrayList streamForEached = new ArrayList();
         ConcurrentLinkedQueue parallelStreamForEached = new ConcurrentLinkedQueue();
@@ -362,6 +363,11 @@ public class Collection8Test extends JSR166TestCase {
         for (Spliterator s = c.spliterator();
              s.tryAdvance(tryAdvanced::add); ) {}
         c.spliterator().forEachRemaining(spliterated::add);
+        {                       // trySplit returns "strict prefix"
+            Spliterator s1 = c.spliterator(), s2 = s1.trySplit();
+            if (s2 != null) s2.forEachRemaining(splitonced::add);
+            s1.forEachRemaining(splitonced::add);
+        }
         c.forEach(forEached::add);
         c.stream().forEach(streamForEached::add);
         c.parallelStream().forEach(parallelStreamForEached::add);
@@ -376,6 +382,7 @@ public class Collection8Test extends JSR166TestCase {
             assertEquals(iterated, iteratedForEachRemaining);
             assertEquals(iterated, tryAdvanced);
             assertEquals(iterated, spliterated);
+            assertEquals(iterated, splitonced);
             assertEquals(iterated, forEached);
             assertEquals(iterated, streamForEached);
             assertEquals(iterated, removeIfed);
@@ -384,6 +391,7 @@ public class Collection8Test extends JSR166TestCase {
             assertEquals(cset, new HashSet(iteratedForEachRemaining));
             assertEquals(cset, new HashSet(tryAdvanced));
             assertEquals(cset, new HashSet(spliterated));
+            assertEquals(cset, new HashSet(splitonced));
             assertEquals(cset, new HashSet(forEached));
             assertEquals(cset, new HashSet(streamForEached));
             assertEquals(cset, new HashSet(removeIfed));
