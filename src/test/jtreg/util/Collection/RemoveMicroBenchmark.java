@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Spliterator;
 import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -279,6 +280,10 @@ public class RemoveMicroBenchmark {
                 x -> {
                     String klazz = x.getClass().getSimpleName();
                     jobs.addAll(collectionJobs(klazz, () -> x, al));
+                    if (x instanceof Queue) {
+                        Queue<Integer> queue = (Queue<Integer>) x;
+                        jobs.addAll(queueJobs(klazz, () -> queue, al));
+                    }
                     if (x instanceof Deque) {
                         Deque<Integer> deque = (Deque<Integer>) x;
                         jobs.addAll(dequeJobs(klazz, () -> deque, al));
@@ -379,6 +384,23 @@ public class RemoveMicroBenchmark {
                         x.addAll(al);
                         x.forEach(e -> sum[0] += e);
                         x.clear();
+                        check.sum(sum[0]);}}});
+    }
+
+    List<Job> queueJobs(
+        String description,
+        Supplier<Queue<Integer>> supplier,
+        ArrayList<Integer> al) {
+        return List.of(
+            new Job(description + " poll()") {
+                public void work() throws Throwable {
+                    Queue<Integer> x = supplier.get();
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        x.addAll(al);
+                        for (Integer e; (e = x.poll()) != null; )
+                            sum[0] += e;
                         check.sum(sum[0]);}}});
     }
 
