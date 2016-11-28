@@ -557,7 +557,8 @@ public class Collection8Test extends JSR166TestCase {
         if (!impl.isConcurrent()) return;
         final ThreadLocalRandom rnd = ThreadLocalRandom.current();
         final Collection c = impl.emptyCollection();
-        final long testDurationMillis = timeoutMillis();
+        final long testDurationMillis
+            = expensiveTests ? LONG_DELAY_MS : timeoutMillis();
         final AtomicBoolean done = new AtomicBoolean(false);
         final Object one = impl.makeElement(1);
         final Object two = impl.makeElement(2);
