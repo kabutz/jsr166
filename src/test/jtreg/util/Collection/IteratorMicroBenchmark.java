@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -274,6 +275,7 @@ public class IteratorMicroBenchmark {
         ArrayList<Job> jobs = new ArrayList<>(Arrays.asList());
 
         List.of(al, ad, abq,
+                new LinkedList<>(al),
                 new PriorityQueue<>(al),
                 new Vector<>(al),
                 new ConcurrentLinkedQueue<>(al),
