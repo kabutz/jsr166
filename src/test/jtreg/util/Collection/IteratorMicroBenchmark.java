@@ -27,6 +27,8 @@
  * @run main IteratorMicroBenchmark iterations=1 size=8 warmup=0
  */
 
+import static java.util.stream.Collectors.summingInt;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -365,7 +367,17 @@ public class IteratorMicroBenchmark {
                         sum[0] = 0;
                         for (Integer o : x.toArray(empty))
                             sum[0] += o;
-                        check.sum(sum[0]);}}});
+                        check.sum(sum[0]);}}},
+            new Job(klazz + " .stream().collect") {
+                public void work() throws Throwable {
+                    for (int i = 0; i < iterations; i++) {
+                        check.sum(x.stream()
+                                  .collect(summingInt(e -> e)));}}},
+            new Job(klazz + " .parallelStream().collect") {
+                public void work() throws Throwable {
+                    for (int i = 0; i < iterations; i++) {
+                        check.sum(x.parallelStream()
+                                  .collect(summingInt(e -> e)));}}});
     }
 
     List<Job> dequeJobs(Deque<Integer> x) {
