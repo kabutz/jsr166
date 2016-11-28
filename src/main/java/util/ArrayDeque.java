@@ -235,7 +235,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @return index 0 <= i < modulus
      */
     static final int add(int i, int distance, int modulus) {
-        if ((i += distance) - modulus >= 0) distance -= modulus;
+        if ((i += distance) - modulus >= 0) i -= modulus;
         return i;
     }
 
@@ -820,6 +820,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
 
         /** Constructs spliterator over the given range. */
         DeqSpliterator(int origin, int fence) {
+            // assert 0 <= origin && origin < elements.length;
+            // assert 0 <= fence && fence < elements.length;
             this.cursor = origin;
             this.fence = fence;
         }
@@ -1242,8 +1244,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         // head == tail disambiguates to "empty".
         try {
             int capacity = elements.length;
-            // assert head >= 0 && head < capacity;
-            // assert tail >= 0 && tail < capacity;
+            // assert 0 <= head && head < capacity;
+            // assert 0 <= tail && tail < capacity;
             // assert capacity > 0;
             // assert size() < capacity;
             // assert head == tail || elements[head] != null;
