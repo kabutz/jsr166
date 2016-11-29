@@ -564,7 +564,7 @@ public class Collection8Test extends JSR166TestCase {
         final Object two = impl.makeElement(2);
         final Consumer checkSanity = x -> assertTrue(x == one || x == two);
         final Consumer<Object[]> checkArraySanity = array -> {
-            assertTrue(array.length <= 2);
+            // assertTrue(array.length <= 2); // duplicates are permitted
             for (Object x : array) assertTrue(x == one || x == two);
         };
         final Object[] emptyArray =
