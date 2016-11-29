@@ -406,6 +406,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
     /**
      * Establishes the heap invariant (described above) in the entire tree,
      * assuming nothing about the order of the elements prior to the call.
+     * This classic algorithm due to Floyd (1964) is known to be O(size).
      */
     private void heapify() {
         Object[] array = queue;
