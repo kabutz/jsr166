@@ -145,12 +145,12 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * Inserts element at current put position, advances, and signals.
      * Call only when holding lock.
      */
-    private void enqueue(E x) {
+    private void enqueue(E e) {
         // assert lock.isHeldByCurrentThread();
         // assert lock.getHoldCount() == 1;
         // assert items[putIndex] == null;
         final Object[] items = this.items;
-        items[putIndex] = x;
+        items[putIndex] = e;
         if (++putIndex == items.length) putIndex = 0;
         count++;
         notEmpty.signal();
@@ -167,7 +167,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         // assert items[takeIndex] != null;
         final Object[] items = this.items;
         @SuppressWarnings("unchecked")
-        E x = (E) items[takeIndex];
+        E e = (E) items[takeIndex];
         items[takeIndex] = null;
         if (++takeIndex == items.length) takeIndex = 0;
         count--;
@@ -175,7 +175,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             itrs.elementDequeued();
         notFull.signal();
         // checkInvariants();
-        return x;
+        return e;
     }
 
     /**
@@ -697,8 +697,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             try {
                 while (i < n) {
                     @SuppressWarnings("unchecked")
-                    E x = (E) items[take];
-                    c.add(x);
+                    E e = (E) items[take];
+                    c.add(e);
                     items[take] = null;
                     if (++take == items.length) take = 0;
                     i++;
@@ -1182,8 +1182,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         }
 
         public E next() {
-            final E x = nextItem;
-            if (x == null)
+            final E e = nextItem;
+            if (e == null)
                 throw new NoSuchElementException();
             final ReentrantLock lock = ArrayBlockingQueue.this.lock;
             lock.lock();
@@ -1205,7 +1205,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             } finally {
                 lock.unlock();
             }
-            return x;
+            return e;
         }
 
         public void forEachRemaining(Consumer<? super E> action) {
@@ -1213,11 +1213,11 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             final ReentrantLock lock = ArrayBlockingQueue.this.lock;
             lock.lock();
             try {
-                final E x = nextItem;
-                if (x == null) return;
+                final E e = nextItem;
+                if (e == null) return;
                 if (!isDetached())
                     incorporateDequeues();
-                action.accept(nextItem);
+                action.accept(e);
                 if (isDetached() || cursor < 0) return;
                 final Object[] items = ArrayBlockingQueue.this.items;
                 for (int i = cursor, end = putIndex,
