@@ -908,15 +908,12 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
     /**
      * Immutable snapshot spliterator that binds to elements "late".
      */
-    static final class PBQSpliterator<E> implements Spliterator<E> {
-        final PriorityBlockingQueue<E> queue;
+    final class PBQSpliterator implements Spliterator<E> {
         Object[] array;
         int index;
         int fence;
 
-        PBQSpliterator(PriorityBlockingQueue<E> queue, Object[] array,
-                       int index, int fence) {
-            this.queue = queue;
+        PBQSpliterator(Object[] array, int index, int fence) {
             this.array = array;
             this.index = index;
             this.fence = fence;
@@ -925,14 +922,14 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         final int getFence() {
             int hi;
             if ((hi = fence) < 0)
-                hi = fence = (array = queue.toArray()).length;
+                hi = fence = (array = toArray()).length;
             return hi;
         }
 
-        public PBQSpliterator<E> trySplit() {
+        public PBQSpliterator trySplit() {
             int hi = getFence(), lo = index, mid = (lo + hi) >>> 1;
             return (lo >= mid) ? null :
-                new PBQSpliterator<E>(queue, array, lo, index = mid);
+                new PBQSpliterator(array, lo, index = mid);
         }
 
         @SuppressWarnings("unchecked")
@@ -941,7 +938,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
             if (action == null)
                 throw new NullPointerException();
             if ((a = array) == null)
-                fence = (a = queue.toArray()).length;
+                fence = (a = toArray()).length;
             if ((hi = fence) <= a.length &&
                 (i = index) >= 0 && i < (index = hi)) {
                 do { action.accept((E)a[i]); } while (++i < hi);
@@ -959,7 +956,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
             return false;
         }
 
-        public long estimateSize() { return (long)(getFence() - index); }
+        public long estimateSize() { return getFence() - index; }
 
         public int characteristics() {
             return Spliterator.NONNULL | Spliterator.SIZED | Spliterator.SUBSIZED;
@@ -984,7 +981,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      * @since 1.8
      */
     public Spliterator<E> spliterator() {
-        return new PBQSpliterator<E>(this, null, 0, -1);
+        return new PBQSpliterator(null, 0, -1);
     }
 
     // VarHandle mechanics

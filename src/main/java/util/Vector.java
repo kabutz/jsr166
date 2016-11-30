@@ -1398,21 +1398,19 @@ public class Vector<E>
      */
     @Override
     public Spliterator<E> spliterator() {
-        return new VectorSpliterator<>(this, null, 0, -1, 0);
+        return new VectorSpliterator(null, 0, -1, 0);
     }
 
     /** Similar to ArrayList Spliterator */
-    static final class VectorSpliterator<E> implements Spliterator<E> {
-        private final Vector<E> list;
+    final class VectorSpliterator implements Spliterator<E> {
         private Object[] array;
         private int index; // current index, modified on advance/split
         private int fence; // -1 until used; then one past last index
         private int expectedModCount; // initialized when fence set
 
         /** Create new spliterator covering the given range */
-        VectorSpliterator(Vector<E> list, Object[] array, int origin, int fence,
+        VectorSpliterator(Object[] array, int origin, int fence,
                           int expectedModCount) {
-            this.list = list;
             this.array = array;
             this.index = origin;
             this.fence = fence;
@@ -1422,10 +1420,10 @@ public class Vector<E>
         private int getFence() { // initialize on first use
             int hi;
             if ((hi = fence) < 0) {
-                synchronized (list) {
-                    array = list.elementData;
-                    expectedModCount = list.modCount;
-                    hi = fence = list.elementCount;
+                synchronized (Vector.this) {
+                    array = elementData;
+                    expectedModCount = modCount;
+                    hi = fence = elementCount;
                 }
             }
             return hi;
@@ -1434,8 +1432,7 @@ public class Vector<E>
         public Spliterator<E> trySplit() {
             int hi = getFence(), lo = index, mid = (lo + hi) >>> 1;
             return (lo >= mid) ? null :
-                new VectorSpliterator<>(list, array, lo, index = mid,
-                                        expectedModCount);
+                new VectorSpliterator(array, lo, index = mid, expectedModCount);
         }
 
         @SuppressWarnings("unchecked")
@@ -1446,7 +1443,7 @@ public class Vector<E>
             if (getFence() > (i = index)) {
                 index = i + 1;
                 action.accept((E)array[i]);
-                if (list.modCount != expectedModCount)
+                if (modCount != expectedModCount)
                     throw new ConcurrentModificationException();
                 return true;
             }
@@ -1456,25 +1453,23 @@ public class Vector<E>
         @SuppressWarnings("unchecked")
         public void forEachRemaining(Consumer<? super E> action) {
             int i, hi; // hoist accesses and checks from loop
-            Vector<E> lst; Object[] a;
+            Object[] a;
             if (action == null)
                 throw new NullPointerException();
-            if ((lst = list) != null) {
-                if ((hi = fence) < 0) {
-                    synchronized (lst) {
-                        expectedModCount = lst.modCount;
-                        a = array = lst.elementData;
-                        hi = fence = lst.elementCount;
-                    }
+            if ((hi = fence) < 0) {
+                synchronized (Vector.this) {
+                    expectedModCount = modCount;
+                    a = array = elementData;
+                    hi = fence = elementCount;
                 }
-                else
-                    a = array;
-                if (a != null && (i = index) >= 0 && (index = hi) <= a.length) {
-                    while (i < hi)
-                        action.accept((E) a[i++]);
-                    if (lst.modCount == expectedModCount)
-                        return;
-                }
+            }
+            else
+                a = array;
+            if (a != null && (i = index) >= 0 && (index = hi) <= a.length) {
+                while (i < hi)
+                    action.accept((E) a[i++]);
+                if (modCount == expectedModCount)
+                    return;
             }
             throw new ConcurrentModificationException();
         }

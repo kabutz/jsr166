@@ -813,23 +813,20 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * @since 1.8
      */
     public final Spliterator<E> spliterator() {
-        return new PriorityQueueSpliterator<>(this, 0, -1, 0);
+        return new PriorityQueueSpliterator(0, -1, 0);
     }
 
-    static final class PriorityQueueSpliterator<E> implements Spliterator<E> {
+    final class PriorityQueueSpliterator implements Spliterator<E> {
         /*
          * This is very similar to ArrayList Spliterator, except for
          * extra null checks.
          */
-        private final PriorityQueue<E> pq;
         private int index;            // current index, modified on advance/split
         private int fence;            // -1 until first use
         private int expectedModCount; // initialized when fence set
 
         /** Creates new spliterator covering the given range. */
-        PriorityQueueSpliterator(PriorityQueue<E> pq, int origin, int fence,
-                                 int expectedModCount) {
-            this.pq = pq;
+        PriorityQueueSpliterator(int origin, int fence, int expectedModCount) {
             this.index = origin;
             this.fence = fence;
             this.expectedModCount = expectedModCount;
@@ -838,29 +835,28 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         private int getFence() { // initialize fence to size on first use
             int hi;
             if ((hi = fence) < 0) {
-                expectedModCount = pq.modCount;
-                hi = fence = pq.size;
+                expectedModCount = modCount;
+                hi = fence = size;
             }
             return hi;
         }
 
-        public PriorityQueueSpliterator<E> trySplit() {
+        public PriorityQueueSpliterator trySplit() {
             int hi = getFence(), lo = index, mid = (lo + hi) >>> 1;
             return (lo >= mid) ? null :
-                new PriorityQueueSpliterator<>(pq, lo, index = mid,
-                                               expectedModCount);
+                new PriorityQueueSpliterator(lo, index = mid, expectedModCount);
         }
 
         @SuppressWarnings("unchecked")
         public void forEachRemaining(Consumer<? super E> action) {
             int i, hi, mc; // hoist accesses and checks from loop
-            PriorityQueue<E> q; Object[] a;
+            final Object[] a;
             if (action == null)
                 throw new NullPointerException();
-            if ((q = pq) != null && (a = q.queue) != null) {
+            if ((a = queue) != null) {
                 if ((hi = fence) < 0) {
-                    mc = q.modCount;
-                    hi = q.size;
+                    mc = modCount;
+                    hi = size;
                 }
                 else
                     mc = expectedModCount;
@@ -871,7 +867,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
                                 break;
                             action.accept(e);
                         }
-                        else if (q.modCount != mc)
+                        else if (modCount != mc)
                             break;
                         else
                             return;
@@ -887,11 +883,11 @@ public class PriorityQueue<E> extends AbstractQueue<E>
             int hi = getFence(), lo = index;
             if (lo >= 0 && lo < hi) {
                 index = lo + 1;
-                @SuppressWarnings("unchecked") E e = (E)pq.queue[lo];
+                @SuppressWarnings("unchecked") E e = (E)queue[lo];
                 if (e == null)
                     throw new ConcurrentModificationException();
                 action.accept(e);
-                if (pq.modCount != expectedModCount)
+                if (modCount != expectedModCount)
                     throw new ConcurrentModificationException();
                 return true;
             }
@@ -899,7 +895,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         }
 
         public long estimateSize() {
-            return (long) (getFence() - index);
+            return getFence() - index;
         }
 
         public int characteristics() {

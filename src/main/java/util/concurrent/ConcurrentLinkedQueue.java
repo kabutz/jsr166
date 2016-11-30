@@ -772,23 +772,18 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     }
 
     /** A customized variant of Spliterators.IteratorSpliterator */
-    static final class CLQSpliterator<E> implements Spliterator<E> {
+    final class CLQSpliterator implements Spliterator<E> {
         static final int MAX_BATCH = 1 << 25;  // max batch array size;
-        final ConcurrentLinkedQueue<E> queue;
         Node<E> current;    // current node; null until initialized
         int batch;          // batch size for splits
         boolean exhausted;  // true when no more nodes
-        CLQSpliterator(ConcurrentLinkedQueue<E> queue) {
-            this.queue = queue;
-        }
 
         public Spliterator<E> trySplit() {
             Node<E> p;
-            final ConcurrentLinkedQueue<E> q = this.queue;
             int b = batch;
             int n = (b <= 0) ? 1 : (b >= MAX_BATCH) ? MAX_BATCH : b + 1;
             if (!exhausted &&
-                ((p = current) != null || (p = q.first()) != null) &&
+                ((p = current) != null || (p = first()) != null) &&
                 p.next != null) {
                 Object[] a = new Object[n];
                 int i = 0;
@@ -796,7 +791,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                     if ((a[i] = p.item) != null)
                         ++i;
                     if (p == (p = p.next))
-                        p = q.first();
+                        p = first();
                 } while (p != null && i < n);
                 if ((current = p) == null)
                     exhausted = true;
@@ -814,14 +809,13 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         public void forEachRemaining(Consumer<? super E> action) {
             Node<E> p;
             if (action == null) throw new NullPointerException();
-            final ConcurrentLinkedQueue<E> q = this.queue;
             if (!exhausted &&
-                ((p = current) != null || (p = q.first()) != null)) {
+                ((p = current) != null || (p = first()) != null)) {
                 exhausted = true;
                 do {
                     E e = p.item;
                     if (p == (p = p.next))
-                        p = q.first();
+                        p = first();
                     if (e != null)
                         action.accept(e);
                 } while (p != null);
@@ -831,14 +825,13 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         public boolean tryAdvance(Consumer<? super E> action) {
             Node<E> p;
             if (action == null) throw new NullPointerException();
-            final ConcurrentLinkedQueue<E> q = this.queue;
             if (!exhausted &&
-                ((p = current) != null || (p = q.first()) != null)) {
+                ((p = current) != null || (p = first()) != null)) {
                 E e;
                 do {
                     e = p.item;
                     if (p == (p = p.next))
-                        p = q.first();
+                        p = first();
                 } while (e == null && p != null);
                 if ((current = p) == null)
                     exhausted = true;
@@ -876,7 +869,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      */
     @Override
     public Spliterator<E> spliterator() {
-        return new CLQSpliterator<E>(this);
+        return new CLQSpliterator();
     }
 
     // VarHandle mechanics
