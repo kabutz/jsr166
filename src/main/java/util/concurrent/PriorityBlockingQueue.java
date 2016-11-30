@@ -850,8 +850,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         public E next() {
             if (cursor >= array.length)
                 throw new NoSuchElementException();
-            lastRet = cursor;
-            return (E)array[cursor++];
+            return (E)array[lastRet = cursor++];
         }
 
         public void remove() {
