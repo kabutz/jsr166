@@ -1452,26 +1452,15 @@ public class Vector<E>
 
         @SuppressWarnings("unchecked")
         public void forEachRemaining(Consumer<? super E> action) {
-            int i, hi; // hoist accesses and checks from loop
-            Object[] a;
             if (action == null)
                 throw new NullPointerException();
-            if ((hi = fence) < 0) {
-                synchronized (Vector.this) {
-                    expectedModCount = modCount;
-                    a = array = elementData;
-                    hi = fence = elementCount;
-                }
-            }
-            else
-                a = array;
-            if (a != null && (i = index) >= 0 && (index = hi) <= a.length) {
-                while (i < hi)
-                    action.accept((E) a[i++]);
-                if (modCount == expectedModCount)
-                    return;
-            }
-            throw new ConcurrentModificationException();
+            final int hi = getFence();
+            final Object[] a = array;
+            int i;
+            for (i = index, index = hi; i < hi; i++)
+                action.accept((E) a[i]);
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
         }
 
         public long estimateSize() {
