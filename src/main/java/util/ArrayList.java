@@ -772,15 +772,17 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
-     * Save the state of the {@code ArrayList} instance to a stream (that
-     * is, serialize it).
+     * Saves the state of the {@code ArrayList} instance to a stream
+     * (that is, serializes it).
      *
+     * @param s the stream
+     * @throws java.io.IOException if an I/O error occurs
      * @serialData The length of the array backing the {@code ArrayList}
      *             instance is emitted (int), followed by all of its elements
      *             (each an {@code Object}) in the proper order.
      */
     private void writeObject(java.io.ObjectOutputStream s)
-        throws java.io.IOException{
+        throws java.io.IOException {
         // Write out element count, and any hidden stuff
         int expectedModCount = modCount;
         s.defaultWriteObject();
@@ -799,8 +801,12 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
-     * Reconstitute the {@code ArrayList} instance from a stream (that is,
-     * deserialize it).
+     * Reconstitutes the {@code ArrayList} instance from a stream (that is,
+     * deserializes it).
+     * @param s the stream
+     * @throws ClassNotFoundException if the class of a serialized object
+     *         could not be found
+     * @throws java.io.IOException if an I/O error occurs
      */
     private void readObject(java.io.ObjectInputStream s)
         throws java.io.IOException, ClassNotFoundException {

@@ -1169,10 +1169,13 @@ public class Vector<E>
     }
 
     /**
-     * Save the state of the {@code Vector} instance to a stream (that
-     * is, serialize it).
+     * Saves the state of the {@code Vector} instance to a stream
+     * (that is, serializes it).
      * This method performs synchronization to ensure the consistency
      * of the serialized data.
+     *
+     * @param s the stream
+     * @throws java.io.IOException if an I/O error occurs
      */
     private void writeObject(java.io.ObjectOutputStream s)
             throws java.io.IOException {
