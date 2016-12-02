@@ -823,10 +823,6 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     final class PriorityQueueSpliterator implements Spliterator<E> {
-        /*
-         * This is very similar to ArrayList Spliterator, except for
-         * extra null checks.
-         */
         private int index;            // current index, modified on advance/split
         private int fence;            // -1 until first use
         private int expectedModCount; // initialized when fence set
@@ -855,46 +851,33 @@ public class PriorityQueue<E> extends AbstractQueue<E>
 
         @SuppressWarnings("unchecked")
         public void forEachRemaining(Consumer<? super E> action) {
-            int i, hi, mc; // hoist accesses and checks from loop
-            final Object[] a;
             if (action == null)
                 throw new NullPointerException();
-            if ((a = queue) != null) {
-                if ((hi = fence) < 0) {
-                    mc = modCount;
-                    hi = size;
-                }
-                else
-                    mc = expectedModCount;
-                if ((i = index) >= 0 && (index = hi) <= a.length) {
-                    for (E e;; ++i) {
-                        if (i < hi) {
-                            if ((e = (E) a[i]) == null) // must be CME
-                                break;
-                            action.accept(e);
-                        }
-                        else if (modCount != mc)
-                            break;
-                        else
-                            return;
-                    }
-                }
+            if (fence < 0) { fence = size; expectedModCount = modCount; }
+            final Object[] a = queue;
+            int i, hi; E e;
+            for (i = index, index = hi = fence; i < hi; i++) {
+                if ((e = (E) a[i]) == null)
+                    break;      // must be CME
+                action.accept(e);
             }
-            throw new ConcurrentModificationException();
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
         }
 
+        @SuppressWarnings("unchecked")
         public boolean tryAdvance(Consumer<? super E> action) {
             if (action == null)
                 throw new NullPointerException();
-            int hi = getFence(), lo = index;
-            if (lo >= 0 && lo < hi) {
-                index = lo + 1;
-                @SuppressWarnings("unchecked") E e = (E)queue[lo];
-                if (e == null)
+            if (fence < 0) { fence = size; expectedModCount = modCount; }
+            int i;
+            if ((i = index) < fence) {
+                index = i + 1;
+                E e;
+                if ((e = (E) queue[i]) == null
+                    || modCount != expectedModCount)
                     throw new ConcurrentModificationException();
                 action.accept(e);
-                if (modCount != expectedModCount)
-                    throw new ConcurrentModificationException();
                 return true;
             }
             return false;
