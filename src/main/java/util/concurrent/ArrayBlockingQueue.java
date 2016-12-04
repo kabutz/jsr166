@@ -655,12 +655,14 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
 
     /**
      * Nulls out slots starting at array index i, upto index end.
-     * If i == end, the entire array is cleared!
+     * Condition i == end means "full" - the entire array is cleared.
      */
     private static void circularClear(Object[] items, int i, int end) {
+        // assert 0 <= i && i < items.length;
+        // assert 0 <= end && end < items.length;
         for (int to = (i < end) ? end : items.length;
              ; i = 0, to = end) {
-            Arrays.fill(items, i, to, null);
+            for (; i < to; i++) items[i] = null;
             if (to == end) break;
         }
     }
