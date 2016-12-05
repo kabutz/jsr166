@@ -306,9 +306,9 @@ public class Vector<E>
         modCount++;
         if (newSize > elementData.length)
             grow(newSize);
-        for (int i = newSize; i < elementCount; i++)
-            elementData[i] = null;
-        elementCount = newSize;
+        final Object[] es = elementData;
+        for (int to = elementCount, i = elementCount = newSize; i < to; i++)
+            es[i] = null;
     }
 
     /**
@@ -676,9 +676,10 @@ public class Vector<E>
      * method (which is part of the {@link List} interface).
      */
     public synchronized void removeAllElements() {
-        Arrays.fill(elementData, 0, elementCount, null);
+        final Object[] es = elementData;
+        for (int to = elementCount, i = elementCount = 0; i < to; i++)
+            es[i] = null;
         modCount++;
-        elementCount = 0;
     }
 
     /**
@@ -1028,7 +1029,8 @@ public class Vector<E>
             for (i = beg; i < end; i++)
                 if (isClear(deathRow, i - beg))
                     es[w++] = es[i];
-            Arrays.fill(es, elementCount = w, end, null);
+            for (i = elementCount = w; i < end; i++)
+                es[i] = null;
             // checkInvariants();
             return true;
         } else {
@@ -1159,13 +1161,16 @@ public class Vector<E>
      * (If {@code toIndex==fromIndex}, this operation has no effect.)
      */
     protected synchronized void removeRange(int fromIndex, int toIndex) {
-        final Object[] es = elementData;
-        final int oldSize = elementCount;
-        System.arraycopy(es, toIndex, es, fromIndex, oldSize - toIndex);
-
         modCount++;
-        Arrays.fill(es, elementCount -= (toIndex - fromIndex), oldSize, null);
+        shiftTailOverGap(elementData, fromIndex, toIndex);
         // checkInvariants();
+    }
+
+    /** Erases the gap from lo to hi, by sliding down following elements. */
+    private void shiftTailOverGap(Object[] es, int lo, int hi) {
+        System.arraycopy(es, hi, es, lo, elementCount - hi);
+        for (int to = elementCount, i = (elementCount -= hi - lo); i < to; i++)
+            es[i] = null;
     }
 
     /**

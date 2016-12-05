@@ -578,8 +578,9 @@ public class ArrayList<E> extends AbstractList<E>
      */
     public void clear() {
         modCount++;
-        Arrays.fill(elementData, 0, size, null);
-        size = 0;
+        final Object[] es = elementData;
+        for (int to = size, i = size = 0; i < to; i++)
+            es[i] = null;
     }
 
     /**
@@ -669,11 +670,15 @@ public class ArrayList<E> extends AbstractList<E>
                     outOfBoundsMsg(fromIndex, toIndex));
         }
         modCount++;
-        final Object[] es = elementData;
-        final int oldSize = size;
-        System.arraycopy(es, toIndex, es, fromIndex, oldSize - toIndex);
-        Arrays.fill(es, size -= (toIndex - fromIndex), oldSize, null);
+        shiftTailOverGap(elementData, fromIndex, toIndex);
         // checkInvariants();
+    }
+
+    /** Erases the gap from lo to hi, by sliding down following elements. */
+    private void shiftTailOverGap(Object[] es, int lo, int hi) {
+        System.arraycopy(es, hi, es, lo, size - hi);
+        for (int to = size, i = (size -= hi - lo); i < to; i++)
+            es[i] = null;
     }
 
     /**
@@ -761,10 +766,8 @@ public class ArrayList<E> extends AbstractList<E>
                 w += end - r;
                 throw ex;
             } finally {
-                final int oldSize = size, deleted = end - w;
-                modCount += deleted;
-                System.arraycopy(es, end, es, w, oldSize - end);
-                Arrays.fill(es, size -= deleted, oldSize, null);
+                modCount += end - w;
+                shiftTailOverGap(es, w, end);
             }
         }
         // checkInvariants();
@@ -1553,9 +1556,7 @@ public class ArrayList<E> extends AbstractList<E>
             for (i = beg; i < end; i++)
                 if (isClear(deathRow, i - beg))
                     es[w++] = es[i];
-            final int oldSize = size;
-            System.arraycopy(es, end, es, w, oldSize - end);
-            Arrays.fill(es, size -= (end - w), oldSize, null);
+            shiftTailOverGap(es, w, end);
             // checkInvariants();
             return true;
         } else {
