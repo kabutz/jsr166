@@ -18,6 +18,7 @@ import java.util.Queue;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * An unbounded thread-safe {@linkplain Queue queue} based on linked nodes.
@@ -436,17 +437,15 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         if (o != null) {
             Node<E> next, pred = null;
             for (Node<E> p = first(); p != null; pred = p, p = next) {
+                final E item;
                 boolean removed = false;
-                E item = p.item;
-                if (item != null) {
-                    if (!o.equals(item)) {
-                        next = succ(p);
+                next = succ(p);
+                if ((item = p.item) != null) {
+                    if (!o.equals(item))
                         continue;
-                    }
                     removed = ITEM.compareAndSet(p, item, null);
                 }
 
-                next = succ(p);
                 if (pred != null && next != null) // unlink
                     NEXT.weakCompareAndSet(pred, p, next);
                 if (removed)
@@ -668,7 +667,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             restartFromHead: for (;;) {
                 Node<E> h, p, q;
                 for (p = h = head;; p = q) {
-                    E item;
+                    final E item;
                     if ((item = p.item) != null) {
                         nextNode = p;
                         nextItem = item;
@@ -870,6 +869,58 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     @Override
     public Spliterator<E> spliterator() {
         return new CLQSpliterator();
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean removeIf(Predicate<? super E> filter) {
+        Objects.requireNonNull(filter);
+        return bulkRemove(filter);
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean removeAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> c.contains(e));
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean retainAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> !c.contains(e));
+    }
+
+    /** Implementation of bulk remove methods. */
+    private boolean bulkRemove(Predicate<? super E> filter) {
+        boolean removed = false;
+        Node<E> next, pred = null;
+        for (Node<E> p = first(); p != null; pred = p, p = next) {
+            final E item;
+            next = succ(p);
+            if ((item = p.item) != null) {
+                if (!filter.test(item))
+                    continue;
+                if (ITEM.compareAndSet(p, item, null))
+                    removed = true;
+            }
+
+            if (pred != null && next != null) // unlink
+                NEXT.weakCompareAndSet(pred, p, next);
+        }
+        return removed;
+    }
+
+    public void forEach(Consumer<? super E> action) {
+        Objects.requireNonNull(action);
+        E item;
+        for (Node<E> p = first(); p != null; p = succ(p))
+            if ((item = p.item) != null)
+                action.accept(item);
     }
 
     // VarHandle mechanics

@@ -19,6 +19,7 @@ import java.util.Queue;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * An unbounded concurrent {@linkplain Deque deque} based on linked nodes.
@@ -964,9 +965,10 @@ public class ConcurrentLinkedDeque<E>
     public boolean removeFirstOccurrence(Object o) {
         Objects.requireNonNull(o);
         for (Node<E> p = first(); p != null; p = succ(p)) {
-            E item = p.item;
-            if (item != null && o.equals(item) &&
-                ITEM.compareAndSet(p, item, null)) {
+            final E item;
+            if ((item = p.item) != null
+                && o.equals(item)
+                && ITEM.compareAndSet(p, item, null)) {
                 unlink(p);
                 return true;
             }
@@ -989,9 +991,10 @@ public class ConcurrentLinkedDeque<E>
     public boolean removeLastOccurrence(Object o) {
         Objects.requireNonNull(o);
         for (Node<E> p = last(); p != null; p = pred(p)) {
-            E item = p.item;
-            if (item != null && o.equals(item) &&
-                ITEM.compareAndSet(p, item, null)) {
+            final E item;
+            if ((item = p.item) != null
+                && o.equals(item)
+                && ITEM.compareAndSet(p, item, null)) {
                 unlink(p);
                 return true;
             }
@@ -1525,6 +1528,54 @@ public class ConcurrentLinkedDeque<E>
             }
         }
         initHeadTail(h, t);
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean removeIf(Predicate<? super E> filter) {
+        Objects.requireNonNull(filter);
+        return bulkRemove(filter);
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean removeAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> c.contains(e));
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean retainAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> !c.contains(e));
+    }
+
+    /** Implementation of bulk remove methods. */
+    private boolean bulkRemove(Predicate<? super E> filter) {
+        boolean removed = false;
+        for (Node<E> p = first(), succ; p != null; p = succ) {
+            succ = succ(p);
+            final E item;
+            if ((item = p.item) != null
+                && filter.test(item)
+                && ITEM.compareAndSet(p, item, null)) {
+                unlink(p);
+                removed = true;
+            }
+        }
+        return removed;
+    }
+
+    public void forEach(Consumer<? super E> action) {
+        Objects.requireNonNull(action);
+        E item;
+        for (Node<E> p = first(); p != null; p = succ(p))
+            if ((item = p.item) != null)
+                action.accept(item);
     }
 
     // VarHandle mechanics
