@@ -836,8 +836,8 @@ public class ConcurrentLinkedDeque<E>
 
     public E peekFirst() {
         for (Node<E> p = first(); p != null; p = succ(p)) {
-            E item = p.item;
-            if (item != null)
+            final E item;
+            if ((item = p.item) != null)
                 return item;
         }
         return null;
@@ -845,8 +845,8 @@ public class ConcurrentLinkedDeque<E>
 
     public E peekLast() {
         for (Node<E> p = last(); p != null; p = pred(p)) {
-            E item = p.item;
-            if (item != null)
+            final E item;
+            if ((item = p.item) != null)
                 return item;
         }
         return null;
@@ -868,8 +868,9 @@ public class ConcurrentLinkedDeque<E>
 
     public E pollFirst() {
         for (Node<E> p = first(); p != null; p = succ(p)) {
-            E item = p.item;
-            if (item != null && ITEM.compareAndSet(p, item, null)) {
+            final E item;
+            if ((item = p.item) != null
+                && ITEM.compareAndSet(p, item, null)) {
                 unlink(p);
                 return item;
             }
@@ -879,8 +880,9 @@ public class ConcurrentLinkedDeque<E>
 
     public E pollLast() {
         for (Node<E> p = last(); p != null; p = pred(p)) {
-            E item = p.item;
-            if (item != null && ITEM.compareAndSet(p, item, null)) {
+            final E item;
+            if ((item = p.item) != null
+                && ITEM.compareAndSet(p, item, null)) {
                 unlink(p);
                 return item;
             }
@@ -1013,8 +1015,8 @@ public class ConcurrentLinkedDeque<E>
     public boolean contains(Object o) {
         if (o != null) {
             for (Node<E> p = first(); p != null; p = succ(p)) {
-                E item = p.item;
-                if (item != null && o.equals(item))
+                final E item;
+                if ((item = p.item) != null && o.equals(item))
                     return true;
             }
         }
@@ -1155,8 +1157,8 @@ public class ConcurrentLinkedDeque<E>
             int charLength = 0;
             int size = 0;
             for (Node<E> p = first(); p != null;) {
-                E item = p.item;
-                if (item != null) {
+                final E item;
+                if ((item = p.item) != null) {
                     if (a == null)
                         a = new String[4];
                     else if (size == a.length)
@@ -1181,8 +1183,8 @@ public class ConcurrentLinkedDeque<E>
         restartFromHead: for (;;) {
             int size = 0;
             for (Node<E> p = first(); p != null;) {
-                E item = p.item;
-                if (item != null) {
+                final E item;
+                if ((item = p.item) != null) {
                     if (x == null)
                         x = new Object[4];
                     else if (size == x.length)
@@ -1334,8 +1336,8 @@ public class ConcurrentLinkedDeque<E>
                     nextItem = null;
                     break;
                 }
-                E item = p.item;
-                if (item != null) {
+                final E item;
+                if ((item = p.item) != null) {
                     nextNode = p;
                     nextItem = item;
                     break;
@@ -1494,8 +1496,8 @@ public class ConcurrentLinkedDeque<E>
 
         // Write out all elements in the proper order.
         for (Node<E> p = first(); p != null; p = succ(p)) {
-            E item = p.item;
-            if (item != null)
+            final E item;
+            if ((item = p.item) != null)
                 s.writeObject(item);
         }
 
