@@ -301,9 +301,9 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         restartFromHead:
         for (;;) {
             for (Node<E> h = head, p = h, q;;) {
-                E item = p.item;
-
-                if (item != null && ITEM.compareAndSet(p, item, null)) {
+                final E item;
+                if ((item = p.item) != null
+                    && ITEM.compareAndSet(p, item, null)) {
                     // Successful CAS is the linearization point
                     // for item to be removed from this queue.
                     if (p != h) // hop two nodes at a time
@@ -326,8 +326,9 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         restartFromHead:
         for (;;) {
             for (Node<E> h = head, p = h, q;;) {
-                E item = p.item;
-                if (item != null || (q = p.next) == null) {
+                final E item;
+                if ((item = p.item) != null
+                    || (q = p.next) == null) {
                     updateHead(h, p);
                     return item;
                 }
@@ -414,8 +415,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     public boolean contains(Object o) {
         if (o != null) {
             for (Node<E> p = first(); p != null; p = succ(p)) {
-                E item = p.item;
-                if (item != null && o.equals(item))
+                final E item;
+                if ((item = p.item) != null && o.equals(item))
                     return true;
             }
         }
@@ -437,9 +438,9 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         if (o != null) {
             Node<E> next, pred = null;
             for (Node<E> p = first(); p != null; pred = p, p = next) {
-                final E item;
                 boolean removed = false;
                 next = succ(p);
+                final E item;
                 if ((item = p.item) != null) {
                     if (!o.equals(item))
                         continue;
@@ -523,8 +524,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             int charLength = 0;
             int size = 0;
             for (Node<E> p = first(); p != null;) {
-                E item = p.item;
-                if (item != null) {
+                final E item;
+                if ((item = p.item) != null) {
                     if (a == null)
                         a = new String[4];
                     else if (size == a.length)
@@ -549,8 +550,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         restartFromHead: for (;;) {
             int size = 0;
             for (Node<E> p = first(); p != null;) {
-                E item = p.item;
-                if (item != null) {
+                final E item;
+                if ((item = p.item) != null) {
                     if (x == null)
                         x = new Object[4];
                     else if (size == x.length)
@@ -732,8 +733,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
 
         // Write out all elements in the proper order.
         for (Node<E> p = first(); p != null; p = succ(p)) {
-            Object item = p.item;
-            if (item != null)
+            final E item;
+            if ((item = p.item) != null)
                 s.writeObject(item);
         }
 
@@ -900,8 +901,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         boolean removed = false;
         Node<E> next, pred = null;
         for (Node<E> p = first(); p != null; pred = p, p = next) {
-            final E item;
             next = succ(p);
+            final E item;
             if ((item = p.item) != null) {
                 if (!filter.test(item))
                     continue;
