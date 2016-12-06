@@ -1425,7 +1425,17 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
          */
         private boolean checkControl(Flow.Subscriber<? super T> s, int c) {
             boolean stat = true;
-            if ((c & ERROR) != 0) {
+            if ((c & SUBSCRIBE) != 0) {
+                if (CTL.compareAndSet(this, c, c & ~SUBSCRIBE)) {
+                    try {
+                        if (s != null)
+                            s.onSubscribe(this);
+                    } catch (Throwable ex) {
+                        onError(ex);
+                    }
+                }
+            }
+            else if ((c & ERROR) != 0) {
                 Throwable ex = pendingError;
                 ctl = DISABLED;           // no need for CAS
                 if (ex != null) {         // null if errorless cancel
@@ -1433,16 +1443,6 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                         if (s != null)
                             s.onError(ex);
                     } catch (Throwable ignore) {
-                    }
-                }
-            }
-            else if ((c & SUBSCRIBE) != 0) {
-                if (CTL.compareAndSet(this, c, c & ~SUBSCRIBE)) {
-                    try {
-                        if (s != null)
-                            s.onSubscribe(this);
-                    } catch (Throwable ex) {
-                        onError(ex);
                     }
                 }
             }
