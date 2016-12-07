@@ -550,6 +550,41 @@ public class Collection8Test extends JSR166TestCase {
         assertTrue(found.isEmpty());
     }
 
+    /** TODO: promote to a common utility */
+    static <T> T chooseOne(T ... ts) {
+        return ts[ThreadLocalRandom.current().nextInt(ts.length)];
+    }
+
+    /** TODO: more random adders and removers */
+    static <E> Runnable adderRemover(Collection<E> c, E e) {
+        return chooseOne(
+            () -> {
+                assertTrue(c.add(e));
+                assertTrue(c.contains(e));
+                assertTrue(c.remove(e));
+                assertFalse(c.contains(e));
+            },
+            () -> {
+                assertTrue(c.add(e));
+                assertTrue(c.contains(e));
+                assertTrue(c.removeIf(x -> x == e));
+                assertFalse(c.contains(e));
+            },
+            () -> {
+                assertTrue(c.add(e));
+                assertTrue(c.contains(e));
+                for (Iterator it = c.iterator();; )
+                    if (it.next() == e) {
+                        try { it.remove(); }
+                        catch (UnsupportedOperationException ok) {
+                            c.remove(e);
+                        }
+                        break;
+                    }
+                assertFalse(c.contains(e));
+            });
+    }
+
     /**
      * Motley crew of threads concurrently randomly hammer the collection.
      */
@@ -589,17 +624,20 @@ public class Collection8Test extends JSR166TestCase {
             () -> checkArraySanity.accept(c.toArray()),
             () -> checkArraySanity.accept(c.toArray(emptyArray)),
             () -> {
-                assertTrue(c.add(one));
-                assertTrue(c.contains(one));
-                assertTrue(c.remove(one));
-                assertFalse(c.contains(one));
-            },
-            () -> {
-                assertTrue(c.add(two));
-                assertTrue(c.contains(two));
-                assertTrue(c.remove(two));
-                assertFalse(c.contains(two));
-            },
+                Object[] a = new Object[5];
+                Object three = impl.makeElement(3);
+                Arrays.fill(a, 0, a.length, three);
+                Object[] x = c.toArray(a);
+                if (x == a)
+                    for (int i = 0; i < a.length && a[i] != null; i++)
+                        checkSanity.accept(a[i]);
+                    // A careful reading of the spec does not support:
+                    // for (i++; i < a.length; i++) assertSame(three, a[i]);
+                else
+                    checkArraySanity.accept(x);
+                },
+            adderRemover(c, one),
+            adderRemover(c, two),
         };
         final List<Runnable> tasks =
             Arrays.stream(frobbers)
