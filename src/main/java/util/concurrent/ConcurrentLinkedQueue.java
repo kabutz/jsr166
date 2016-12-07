@@ -84,7 +84,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     /*
      * This is a modification of the Michael & Scott algorithm,
      * adapted for a garbage-collected environment, with support for
-     * interior node deletion (to support remove(Object)).  For
+     * interior node deletion (to support e.g. remove(Object)).  For
      * explanation, read the paper.
      *
      * Note that like most non-blocking algorithms in this package,
@@ -132,12 +132,14 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * it is possible for tail to lag behind head (why not)?
      *
      * CASing a Node's item reference to null atomically removes the
-     * element from the queue.  Iterators skip over Nodes with null
-     * items.  Prior implementations of this class had a race between
-     * poll() and remove(Object) where the same element would appear
-     * to be successfully removed by two concurrent operations.  The
-     * method remove(Object) also lazily unlinks deleted Nodes, but
-     * this is merely an optimization.
+     * element from the queue.  Iterators and other traversal methods
+     * skip over Nodes with null items.  Prior implementations of this
+     * class had a race between poll() and remove(Object) where the
+     * same element would appear to be successfully removed by two
+     * concurrent operations.  Some traversal methods, including all
+     * interior removal methods other than via Iterator.remove, try to
+     * unlink any deleted Nodes encountered during traversal, but this
+     * is merely an optimization.  See comments in bulkRemove.
      *
      * When constructing a Node (before enqueuing it) we avoid paying
      * for a volatile write to item.  This allows the cost of enqueue
@@ -262,6 +264,21 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     }
 
     /**
+     * Tries to CAS pred.next (or head, if pred is null) from c to p.
+     */
+    private boolean tryCasSuccessor(Node<E> pred, Node<E> c, Node<E> p) {
+        // assert c.item == null;
+        // assert c != p;
+        if (pred != null)
+            return NEXT.compareAndSet(pred, c, p);
+        if (HEAD.compareAndSet(this, c, p)) {
+            NEXT.setRelease(c, c);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Inserts the specified element at the tail of this queue.
      * As the queue is unbounded, this method will never return {@code false}.
      *
@@ -298,9 +315,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     }
 
     public E poll() {
-        restartFromHead:
-        for (;;) {
-            for (Node<E> h = head, p = h, q;;) {
+        restartFromHead: for (;;) {
+            for (Node<E> h = head, p = h, q;; p = q) {
                 final E item;
                 if ((item = p.item) != null
                     && ITEM.compareAndSet(p, item, null)) {
@@ -316,16 +332,13 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                 }
                 else if (p == q)
                     continue restartFromHead;
-                else
-                    p = q;
             }
         }
     }
 
     public E peek() {
-        restartFromHead:
-        for (;;) {
-            for (Node<E> h = head, p = h, q;;) {
+        restartFromHead: for (;;) {
+            for (Node<E> h = head, p = h, q;; p = q) {
                 final E item;
                 if ((item = p.item) != null
                     || (q = p.next) == null) {
@@ -334,8 +347,6 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                 }
                 else if (p == q)
                     continue restartFromHead;
-                else
-                    p = q;
             }
         }
     }
@@ -349,9 +360,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * of losing a race to a concurrent poll().
      */
     Node<E> first() {
-        restartFromHead:
-        for (;;) {
-            for (Node<E> h = head, p = h, q;;) {
+        restartFromHead: for (;;) {
+            for (Node<E> h = head, p = h, q;; p = q) {
                 boolean hasItem = (p.item != null);
                 if (hasItem || (q = p.next) == null) {
                     updateHead(h, p);
@@ -359,8 +369,6 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                 }
                 else if (p == q)
                     continue restartFromHead;
-                else
-                    p = q;
             }
         }
     }
@@ -413,14 +421,24 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * @return {@code true} if this queue contains the specified element
      */
     public boolean contains(Object o) {
-        if (o != null) {
-            for (Node<E> p = first(); p != null; p = succ(p)) {
+        if (o == null) return false;
+        restartFromHead: for (;;) {
+            for (Node<E> p = head, c = p, pred = null, q; p != null; p = q) {
                 final E item;
                 if ((item = p.item) != null && o.equals(item))
                     return true;
+                if (c != p && tryCasSuccessor(pred, c, p))
+                    c = p;
+                q = p.next;
+                if (item != null || c != p) {
+                    pred = p;
+                    c = q;
+                }
+                else if (p == q)
+                    continue restartFromHead;
             }
+            return false;
         }
-        return false;
     }
 
     /**
@@ -435,25 +453,28 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * @return {@code true} if this queue changed as a result of the call
      */
     public boolean remove(Object o) {
-        if (o != null) {
-            Node<E> next, pred = null;
-            for (Node<E> p = first(); p != null; pred = p, p = next) {
-                boolean removed = false;
-                next = succ(p);
+        if (o == null) return false;
+        restartFromHead: for (;;) {
+            for (Node<E> p = head, c = p, pred = null, q; p != null; p = q) {
                 final E item;
-                if ((item = p.item) != null) {
-                    if (!o.equals(item))
-                        continue;
-                    removed = ITEM.compareAndSet(p, item, null);
-                }
-
-                if (pred != null && next != null) // unlink
-                    NEXT.weakCompareAndSet(pred, p, next);
+                final boolean removed =
+                    (item = p.item) != null
+                    && o.equals(item)
+                    && ITEM.compareAndSet(p, item, null);
+                if (c != p && tryCasSuccessor(pred, c, p))
+                    c = p;
                 if (removed)
                     return true;
+                q = p.next;
+                if (item != null || c != p) {
+                    pred = p;
+                    c = q;
+                }
+                else if (p == q)
+                    continue restartFromHead;
             }
+            return false;
         }
-        return false;
     }
 
     /**
@@ -896,32 +917,73 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         return bulkRemove(e -> !c.contains(e));
     }
 
+    public void clear() {
+        bulkRemove(e -> true);
+    }
+
+    /**
+     * Tolerate this many consecutive dead nodes before CAS-collapsing.
+     * Amortized cost of clear() is (1 + 1/MAX_HOPS) CASes per element.
+     */
+    private static final int MAX_HOPS = 8;
+
     /** Implementation of bulk remove methods. */
     private boolean bulkRemove(Predicate<? super E> filter) {
         boolean removed = false;
-        Node<E> next, pred = null;
-        for (Node<E> p = first(); p != null; pred = p, p = next) {
-            next = succ(p);
-            final E item;
-            if ((item = p.item) != null) {
-                if (!filter.test(item))
-                    continue;
-                if (ITEM.compareAndSet(p, item, null))
-                    removed = true;
+        restartFromHead: for (;;) {
+            int hops = MAX_HOPS;
+            // c will be CASed to collapse intervening dead nodes between
+            // pred (or head if null) and p.
+            for (Node<E> p = head, c = p, pred = null, q; p != null; p = q) {
+                final E item; boolean pAlive;
+                if (pAlive = ((item = p.item) != null)) {
+                    if (filter.test(item)) {
+                        if (ITEM.compareAndSet(p, item, null))
+                            removed = true;
+                        pAlive = false;
+                    }
+                }
+                if ((q = p.next) == null || pAlive || --hops == 0) {
+                    // p might already be self-linked here, but if so:
+                    // - CASing head will surely fail
+                    // - CASing pred's next will be useless but harmless.
+                    if (c != p && tryCasSuccessor(pred, c, p))
+                        c = p;
+                    // if c != p, CAS failed, so abandon old pred
+                    if (pAlive || c != p) {
+                        hops = MAX_HOPS;
+                        pred = p;
+                        c = q;
+                    }
+                } else if (p == q)
+                    continue restartFromHead;
             }
-
-            if (pred != null && next != null) // unlink
-                NEXT.weakCompareAndSet(pred, p, next);
+            return removed;
         }
-        return removed;
     }
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
     public void forEach(Consumer<? super E> action) {
         Objects.requireNonNull(action);
-        E item;
-        for (Node<E> p = first(); p != null; p = succ(p))
-            if ((item = p.item) != null)
-                action.accept(item);
+        restartFromHead: for (;;) {
+            for (Node<E> p = head, c = p, pred = null, q; p != null; p = q) {
+                final E item;
+                if ((item = p.item) != null)
+                    action.accept(item);
+                if (c != p && tryCasSuccessor(pred, c, p))
+                    c = p;
+                q = p.next;
+                if (item != null || c != p) {
+                    pred = p;
+                    c = q;
+                }
+                else if (p == q)
+                    continue restartFromHead;
+            }
+            return;
+        }
     }
 
     // VarHandle mechanics
