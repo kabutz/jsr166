@@ -1415,6 +1415,9 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                     Spliterator.CONCURRENT));
     }
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
     public void forEach(Consumer<? super E> action) {
         Objects.requireNonNull(action);
         final ReentrantLock lock = this.lock;

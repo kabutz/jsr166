@@ -1371,6 +1371,9 @@ public class ArrayList<E> extends AbstractList<E>
         }
     }
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
     @Override
     public void forEach(Consumer<? super E> action) {
         Objects.requireNonNull(action);
@@ -1522,6 +1525,9 @@ public class ArrayList<E> extends AbstractList<E>
         return (bits[i >> 6] & (1L << i)) == 0;
     }
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
     @Override
     public boolean removeIf(Predicate<? super E> filter) {
         return removeIf(filter, 0, size);

@@ -985,6 +985,9 @@ public class Vector<E>
         return bulkRemove(e -> !c.contains(e));
     }
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
     @Override
     public boolean removeIf(Predicate<? super E> filter) {
         Objects.requireNonNull(filter);
@@ -1353,6 +1356,9 @@ public class Vector<E>
         }
     }
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
     @Override
     public synchronized void forEach(Consumer<? super E> action) {
         Objects.requireNonNull(action);
@@ -1366,6 +1372,9 @@ public class Vector<E>
         // checkInvariants();
     }
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
     @Override
     public synchronized void replaceAll(UnaryOperator<E> operator) {
         Objects.requireNonNull(operator);

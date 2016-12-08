@@ -1572,6 +1572,9 @@ public class ConcurrentLinkedDeque<E>
         return removed;
     }
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
     public void forEach(Consumer<? super E> action) {
         Objects.requireNonNull(action);
         E item;

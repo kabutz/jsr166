@@ -888,6 +888,9 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         }
     }
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
     public void forEach(Consumer<? super E> action) {
         Objects.requireNonNull(action);
         final Object[] es = elements;
