@@ -264,6 +264,10 @@
           fork="true">
 	<jvmarg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
 	<jvmarg line="--patch-module java.base=@{classes}" if:set="modules"/>
+	<jvmarg line="--add-opens java.base/java.util=ALL-UNNAMED" if:set="modules"/>
+	<jvmarg line="--add-opens java.base/java.util.concurrent=ALL-UNNAMED" if:set="modules"/>
+	<jvmarg line="--add-opens java.base/java.util.concurrent.atomic=ALL-UNNAMED" if:set="modules"/>
+	<jvmarg line="--add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED" if:set="modules"/>
 	<jvmarg line="@{jvmflags}"/>
 	<!-- ant -Dvmoptions="-Xmx8m" -Djsr166.tckTestClass=CompletableFutureTest tck -->
 	<jvmarg line="${vmoptions}" if:set="vmoptions"/>
@@ -433,8 +437,11 @@
     <!-- the packagenames="none" hack below prevents scanning the -->
     <!-- sourcepath for packages -->
 
-<!--  TODO: sourcepath="${src.dir}:${jdk9.src.dir}" -->
-<!--  TODO: sourcepath="${src.dir}:${jdk9.src.dir}:${jdk9.src.home}/jdk/src/java.logging/share/classes" -->
+<!-- TODO: sourcepath="${src.dir}:${jdk9.src.dir}" -->
+<!-- TODO: sourcepath="${src.dir}:${jdk9.src.dir}:${jdk9.src.home}/jdk/src/java.logging/share/classes" -->
+<!-- TODO: sourcepath="${src.dir}:${jdk9.home}/src.zip" -->
+<!-- TODO: <arg line="-sourcepath ${src.dir}:${jdk9.home}/src.zip"/> -->
+<!-- TODO: <arg line="- -module-source-path ${jdk9.home}/src.zip"/> -->
     <javadoc destdir="${docs.dir}"
              packagenames="none"
              link="${java9.api.url}"
