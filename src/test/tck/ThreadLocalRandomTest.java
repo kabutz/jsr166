@@ -58,32 +58,36 @@ public class ThreadLocalRandomTest extends JSR166TestCase {
      */
     public void testNext() throws ReflectiveOperationException {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        final java.lang.reflect.Method m;
         try {
-            java.lang.reflect.Method m
-                = ThreadLocalRandom.class.getDeclaredMethod(
+            m = ThreadLocalRandom.class.getDeclaredMethod(
                     "next", new Class[] { int.class });
             m.setAccessible(true);
+        } catch (SecurityException
+                 | java.lang.reflect.InaccessibleObjectException acceptable) {
+            // Either jdk9 module system or security manager might deny access.
+            return;
+        }
 
-            int i;
-            {
-                int val = new java.util.Random().nextInt(4);
-                for (i = 0; i < NCALLS; i++) {
-                    int q = (int) m.invoke(rnd, new Object[] { 2 });
-                    if (val == q) break;
-                }
-                assertTrue(i < NCALLS);
+        int i;
+        {
+            int val = new java.util.Random().nextInt(4);
+            for (i = 0; i < NCALLS; i++) {
+                int q = (int) m.invoke(rnd, new Object[] { 2 });
+                if (val == q) break;
             }
+            assertTrue(i < NCALLS);
+        }
 
-            {
-                int r = (int) m.invoke(rnd, new Object[] { 3 });
-                for (i = 0; i < NCALLS; i++) {
-                    int q = (int) m.invoke(rnd, new Object[] { 3 });
-                    assertTrue(q < (1<<3));
-                    if (r != q) break;
-                }
-                assertTrue(i < NCALLS);
+        {
+            int r = (int) m.invoke(rnd, new Object[] { 3 });
+            for (i = 0; i < NCALLS; i++) {
+                int q = (int) m.invoke(rnd, new Object[] { 3 });
+                assertTrue(q < (1<<3));
+                if (r != q) break;
             }
-        } catch (SecurityException acceptable) {}
+            assertTrue(i < NCALLS);
+        }
     }
 
     /**
