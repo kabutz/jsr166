@@ -994,6 +994,11 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * expected element to remove, in lastItem.  Yes, we may fail to
      * remove lastItem from the queue if it moved due to an interleaved
      * interior remove while in detached mode.
+     *
+     * Method forEachRemaining, added in Java 8, is treated similarly
+     * to hasNext returning false, in that we switch to detached mode,
+     * but we regard it as an even stronger request to "close" this
+     * iteration, and don't bother supporting subsequent remove().
      */
     private class Itr implements Iterator<E> {
         /** Index to look for new nextItem; NONE at end */
