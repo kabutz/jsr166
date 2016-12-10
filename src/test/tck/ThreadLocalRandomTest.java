@@ -63,10 +63,15 @@ public class ThreadLocalRandomTest extends JSR166TestCase {
             m = ThreadLocalRandom.class.getDeclaredMethod(
                     "next", new Class[] { int.class });
             m.setAccessible(true);
-        } catch (SecurityException
-                 | java.lang.reflect.InaccessibleObjectException acceptable) {
-            // Either jdk9 module system or security manager might deny access.
+        } catch (SecurityException acceptable) {
+            // Security manager may deny access
             return;
+        } catch (Exception ex) {
+            // jdk9 module system may deny access
+            if (ex.getClass().getSimpleName()
+                .equals("InaccessibleObjectException"))
+                return;
+            throw ex;
         }
 
         int i;
