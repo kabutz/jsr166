@@ -132,14 +132,13 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * it is possible for tail to lag behind head (why not)?
      *
      * CASing a Node's item reference to null atomically removes the
-     * element from the queue.  Iterators and other traversal methods
-     * skip over Nodes with null items.  Prior implementations of this
-     * class had a race between poll() and remove(Object) where the
-     * same element would appear to be successfully removed by two
-     * concurrent operations.  Some traversal methods, including all
-     * interior removal methods other than via Iterator.remove, try to
-     * unlink any deleted Nodes encountered during traversal, but this
-     * is merely an optimization.  See comments in bulkRemove.
+     * element from the queue, leaving a "dead" node that should later
+     * be unlinked (but unlinking is merely an optimization).
+     * Interior element removal methods (other than Iterator.remove())
+     * keep track of the predecessor node during traversal so that the
+     * node can be CAS-unlinked.  Some traversal methods try to unlink
+     * any deleted nodes encountered during traversal.  See comments
+     * in bulkRemove.
      *
      * When constructing a Node (before enqueuing it) we avoid paying
      * for a volatile write to item.  This allows the cost of enqueue
