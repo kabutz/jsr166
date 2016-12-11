@@ -205,14 +205,6 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
         putLock.unlock();
     }
 
-//     /**
-//      * Tells whether both locks are held by current thread.
-//      */
-//     boolean isFullyLocked() {
-//         return (putLock.isHeldByCurrentThread() &&
-//                 takeLock.isHeldByCurrentThread());
-//     }
-
     /**
      * Creates a {@code LinkedBlockingQueue} with a capacity of
      * {@link Integer#MAX_VALUE}.
@@ -488,7 +480,8 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
      * Unlinks interior Node p with predecessor trail.
      */
     void unlink(Node<E> p, Node<E> trail) {
-        // assert isFullyLocked();
+        // assert putLock.isHeldByCurrentThread();
+        // assert takeLock.isHeldByCurrentThread();
         // p.next is not changed, to allow iterators that are
         // traversing p to maintain their weak-consistency guarantee.
         p.item = null;
@@ -738,8 +731,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
         Itr() {
             fullyLock();
             try {
-                current = head.next;
-                if (current != null)
+                if ((current = head.next) != null)
                     currentElement = current.item;
             } finally {
                 fullyUnlock();
@@ -751,10 +743,10 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
         }
 
         public E next() {
+            if (current == null)
+                throw new NoSuchElementException();
             fullyLock();
             try {
-                if (current == null)
-                    throw new NoSuchElementException();
                 lastRet = current;
                 E item = null;
                 // Unlike other traversal methods, iterators must handle both:
@@ -796,15 +788,22 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
         }
     }
 
-    /** A customized variant of Spliterators.IteratorSpliterator */
-    final class LBQSpliterator implements Spliterator<E> {
+    /**
+     * A customized variant of Spliterators.IteratorSpliterator.
+     * Keep this class in sync with (very similar) LBDSpliterator.
+     */
+    private final class LBQSpliterator implements Spliterator<E> {
         static final int MAX_BATCH = 1 << 25;  // max batch array size;
         Node<E> current;    // current node; null until initialized
         int batch;          // batch size for splits
         boolean exhausted;  // true when no more nodes
-        long est;           // size estimate
+        long est = size();  // size estimate
 
-        LBQSpliterator() { this.est = size(); }
+        LBQSpliterator() {}
+
+        private Node<E> succ(Node<E> p) {
+            return (p == (p = p.next)) ? head.next : p;
+        }
 
         public long estimateSize() { return est; }
 
@@ -813,19 +812,17 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
             int b = batch;
             int n = (b <= 0) ? 1 : (b >= MAX_BATCH) ? MAX_BATCH : b + 1;
             if (!exhausted &&
-                ((h = current) != null || (h = head.next) != null) &&
-                h.next != null) {
+                ((h = current) != null || (h = head.next) != null)
+                && h.next != null) {
                 Object[] a = new Object[n];
                 int i = 0;
                 Node<E> p = current;
                 fullyLock();
                 try {
-                    if (p != null || (p = head.next) != null) {
-                        do {
+                    if (p != null || (p = head.next) != null)
+                        for (; p != null && i < n; p = succ(p))
                             if ((a[i] = p.item) != null)
-                                ++i;
-                        } while ((p = p.next) != null && i < n);
-                    }
+                                i++;
                 } finally {
                     fullyUnlock();
                 }
@@ -851,18 +848,16 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
             if (!exhausted) {
                 exhausted = true;
                 Node<E> p = current;
+                current = null;
                 do {
                     E e = null;
                     fullyLock();
                     try {
-                        if (p == null)
-                            p = head.next;
-                        while (p != null) {
-                            e = p.item;
-                            p = p.next;
-                            if (e != null)
-                                break;
-                        }
+                        if (p != null || (p = head.next) != null)
+                            do {
+                                e = p.item;
+                                p = succ(p);
+                            } while (e == null && p != null);
                     } finally {
                         fullyUnlock();
                     }
@@ -875,22 +870,19 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
         public boolean tryAdvance(Consumer<? super E> action) {
             if (action == null) throw new NullPointerException();
             if (!exhausted) {
+                Node<E> p = current;
                 E e = null;
                 fullyLock();
                 try {
-                    if (current == null)
-                        current = head.next;
-                    while (current != null) {
-                        e = current.item;
-                        current = current.next;
-                        if (e != null)
-                            break;
-                    }
+                    if (p != null || (p = head.next) != null)
+                        do {
+                            e = p.item;
+                            p = succ(p);
+                        } while (e == null && p != null);
                 } finally {
                     fullyUnlock();
                 }
-                if (current == null)
-                    exhausted = true;
+                exhausted = ((current = p) == null);
                 if (e != null) {
                     action.accept(e);
                     return true;
@@ -900,8 +892,9 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
         }
 
         public int characteristics() {
-            return Spliterator.ORDERED | Spliterator.NONNULL |
-                Spliterator.CONCURRENT;
+            return (Spliterator.ORDERED |
+                    Spliterator.NONNULL |
+                    Spliterator.CONCURRENT);
         }
     }
 

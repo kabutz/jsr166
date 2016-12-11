@@ -342,6 +342,109 @@ public class Collection8Test extends JSR166TestCase {
     }
 
     /**
+     * All elements removed in the middle of CONCURRENT traversal.
+     */
+    public void testElementRemovalDuringTraversal() {
+        Collection c = impl.emptyCollection();
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        int n = rnd.nextInt(6);
+        ArrayList copy = new ArrayList();
+        for (int i = 0; i < n; i++) {
+            Object x = impl.makeElement(i);
+            copy.add(x);
+            c.add(x);
+        }
+        ArrayList iterated = new ArrayList();
+        ArrayList spliterated = new ArrayList();
+        Spliterator s = c.spliterator();
+        Iterator it = c.iterator();
+        for (int i = rnd.nextInt(n + 1); --i >= 0; ) {
+            assertTrue(s.tryAdvance(spliterated::add));
+            if (rnd.nextBoolean()) assertTrue(it.hasNext());
+            iterated.add(it.next());
+        }
+        Consumer alwaysThrows = e -> { throw new AssertionError(); };
+        if (s.hasCharacteristics(Spliterator.CONCURRENT)) {
+            c.clear();          // TODO: many more removal methods
+            if (testImplementationDetails
+                && !(c instanceof java.util.concurrent.ArrayBlockingQueue)) {
+                if (rnd.nextBoolean())
+                    assertFalse(s.tryAdvance(alwaysThrows));
+                else
+                    s.forEachRemaining(alwaysThrows);
+            }
+            if (it.hasNext()) iterated.add(it.next());
+            if (rnd.nextBoolean()) assertIteratorExhausted(it);
+        }
+        assertTrue(copy.containsAll(iterated));
+        assertTrue(copy.containsAll(spliterated));
+    }
+
+    /**
+     * Some elements randomly disappear in the middle of traversal.
+     */
+    public void testRandomElementRemovalDuringTraversal() {
+        Collection c = impl.emptyCollection();
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        int n = rnd.nextInt(6);
+        ArrayList copy = new ArrayList();
+        for (int i = 0; i < n; i++) {
+            Object x = impl.makeElement(i);
+            copy.add(x);
+            c.add(x);
+        }
+        ArrayList iterated = new ArrayList();
+        ArrayList spliterated = new ArrayList();
+        ArrayList removed = new ArrayList();
+        Spliterator s = c.spliterator();
+        Iterator it = c.iterator();
+        if (! (s.hasCharacteristics(Spliterator.CONCURRENT) ||
+               s.hasCharacteristics(Spliterator.IMMUTABLE)))
+            return;
+        for (int i = rnd.nextInt(n + 1); --i >= 0; ) {
+            assertTrue(s.tryAdvance(e -> {}));
+            if (rnd.nextBoolean()) assertTrue(it.hasNext());
+            it.next();
+        }
+        Consumer alwaysThrows = e -> { throw new AssertionError(); };
+        // TODO: many more removal methods
+        if (rnd.nextBoolean()) {
+            for (Iterator z = c.iterator(); z.hasNext(); ) {
+                Object e = z.next();
+                if (rnd.nextBoolean()) {
+                    try {
+                        z.remove();
+                    } catch (UnsupportedOperationException ok) { return; }
+                    removed.add(e);
+                }
+            }
+        } else {
+            Predicate randomlyRemove = e -> {
+                if (rnd.nextBoolean()) { removed.add(e); return true; }
+                else return false;
+            };
+            c.removeIf(randomlyRemove);
+        }
+        s.forEachRemaining(spliterated::add);
+        while (it.hasNext())
+            iterated.add(it.next());
+        assertTrue(copy.containsAll(iterated));
+        assertTrue(copy.containsAll(spliterated));
+        assertTrue(copy.containsAll(removed));
+        if (s.hasCharacteristics(Spliterator.CONCURRENT)) {
+            ArrayList iteratedAndRemoved = new ArrayList(iterated);
+            ArrayList spliteratedAndRemoved = new ArrayList(spliterated);
+            iteratedAndRemoved.retainAll(removed);
+            spliteratedAndRemoved.retainAll(removed);
+            assertTrue(iteratedAndRemoved.size() <= 1);
+            assertTrue(spliteratedAndRemoved.size() <= 1);
+            if (testImplementationDetails
+                && !(c instanceof java.util.concurrent.ArrayBlockingQueue))
+                assertTrue(spliteratedAndRemoved.isEmpty());
+        }
+    }
+
+    /**
      * Various ways of traversing a collection yield same elements
      */
     public void testIteratorEquivalence() {

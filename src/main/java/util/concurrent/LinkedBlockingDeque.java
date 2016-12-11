@@ -1033,13 +1033,17 @@ public class LinkedBlockingDeque<E>
         abstract Node<E> firstNode();
         abstract Node<E> nextNode(Node<E> n);
 
+        private Node<E> succ(Node<E> p) {
+            return (p == (p = nextNode(p))) ? firstNode() : p;
+        }
+
         AbstractItr() {
             // set to initial position
             final ReentrantLock lock = LinkedBlockingDeque.this.lock;
             lock.lock();
             try {
-                next = firstNode();
-                nextItem = (next == null) ? null : next.item;
+                if ((next = firstNode()) != null)
+                    nextItem = next.item;
             } finally {
                 // checkInvariants();
                 lock.unlock();
@@ -1047,35 +1051,22 @@ public class LinkedBlockingDeque<E>
         }
 
         /**
-         * Returns the successor node of the given non-null, but
-         * possibly previously deleted, node.
-         */
-        private Node<E> succ(Node<E> n) {
-            // Chains of deleted nodes ending in null or self-links
-            // are possible if multiple interior nodes are removed.
-            for (;;) {
-                Node<E> s = nextNode(n);
-                if (s == null)
-                    return null;
-                else if (s.item != null)
-                    return s;
-                else if (s == n)
-                    return firstNode();
-                else
-                    n = s;
-            }
-        }
-
-        /**
          * Advances next.
          */
         void advance() {
+            // assert next != null;
             final ReentrantLock lock = LinkedBlockingDeque.this.lock;
             lock.lock();
             try {
-                // assert next != null;
-                next = succ(next);
-                nextItem = (next == null) ? null : next.item;
+                // Chains of deleted nodes ending in null or self-links
+                // are possible if multiple interior nodes are removed.
+                for (next = nextNode(next);; next = succ(next)) {
+                    if (next == null) {
+                        nextItem = null;
+                        break;
+                    } else if ((nextItem = next.item) != null)
+                        break;
+                }
             } finally {
                 // checkInvariants();
                 lock.unlock();
@@ -1124,15 +1115,22 @@ public class LinkedBlockingDeque<E>
         Node<E> nextNode(Node<E> n) { return n.prev; }
     }
 
-    /** A customized variant of Spliterators.IteratorSpliterator */
+    /**
+     * A customized variant of Spliterators.IteratorSpliterator.
+     * Keep this class in sync with (very similar) LBQSpliterator.
+     */
     private final class LBDSpliterator implements Spliterator<E> {
         static final int MAX_BATCH = 1 << 25;  // max batch array size;
         Node<E> current;    // current node; null until initialized
         int batch;          // batch size for splits
         boolean exhausted;  // true when no more nodes
-        long est;           // size estimate
+        long est = size();  // size estimate
 
-        LBDSpliterator() { est = size(); }
+        LBDSpliterator() {}
+
+        private Node<E> succ(Node<E> p) {
+            return (p == (p = p.next)) ? first : p;
+        }
 
         public long estimateSize() { return est; }
 
@@ -1141,8 +1139,7 @@ public class LinkedBlockingDeque<E>
             int b = batch;
             int n = (b <= 0) ? 1 : (b >= MAX_BATCH) ? MAX_BATCH : b + 1;
             if (!exhausted &&
-                (((h = current) != null && h != h.next)
-                 || (h = first) != null)
+                ((h = current) != null || (h = first) != null)
                 && h.next != null) {
                 Object[] a = new Object[n];
                 final ReentrantLock lock = LinkedBlockingDeque.this.lock;
@@ -1150,10 +1147,10 @@ public class LinkedBlockingDeque<E>
                 Node<E> p = current;
                 lock.lock();
                 try {
-                    if (((p != null && p != p.next) || (p = first) != null)
-                        && p.item != null)
-                        for (; p != null && i < n; p = p.next)
-                            a[i++] = p.item;
+                    if (p != null || (p = first) != null)
+                        for (; p != null && i < n; p = succ(p))
+                            if ((a[i] = p.item) != null)
+                                i++;
                 } finally {
                     // checkInvariants();
                     lock.unlock();
@@ -1177,51 +1174,54 @@ public class LinkedBlockingDeque<E>
 
         public void forEachRemaining(Consumer<? super E> action) {
             if (action == null) throw new NullPointerException();
-            if (exhausted)
-                return;
-            exhausted = true;
-            final ReentrantLock lock = LinkedBlockingDeque.this.lock;
-            Node<E> p = current;
-            current = null;
-            do {
-                E e = null;
-                lock.lock();
-                try {
-                    if ((p != null && p != p.next) || (p = first) != null) {
-                        e = p.item;
-                        p = p.next;
+            if (!exhausted) {
+                exhausted = true;
+                final ReentrantLock lock = LinkedBlockingDeque.this.lock;
+                Node<E> p = current;
+                current = null;
+                do {
+                    E e = null;
+                    lock.lock();
+                    try {
+                        if (p != null || (p = first) != null)
+                            do {
+                                e = p.item;
+                                p = succ(p);
+                            } while (e == null && p != null);
+                    } finally {
+                        // checkInvariants();
+                        lock.unlock();
                     }
-                } finally {
-                    // checkInvariants();
-                    lock.unlock();
-                }
-                if (e != null)
-                    action.accept(e);
-            } while (p != null);
+                    if (e != null)
+                        action.accept(e);
+                } while (p != null);
+            }
         }
 
         public boolean tryAdvance(Consumer<? super E> action) {
             if (action == null) throw new NullPointerException();
-            if (exhausted)
-                return false;
-            final ReentrantLock lock = LinkedBlockingDeque.this.lock;
-            Node<E> p = current;
-            E e = null;
-            lock.lock();
-            try {
-                if ((p != null && p != p.next) || (p = first) != null) {
-                    e = p.item;
-                    p = p.next;
+            if (!exhausted) {
+                final ReentrantLock lock = LinkedBlockingDeque.this.lock;
+                Node<E> p = current;
+                E e = null;
+                lock.lock();
+                try {
+                    if (p != null || (p = first) != null)
+                        do {
+                            e = p.item;
+                            p = succ(p);
+                        } while (e == null && p != null);
+                } finally {
+                    // checkInvariants();
+                    lock.unlock();
                 }
-            } finally {
-                // checkInvariants();
-                lock.unlock();
+                exhausted = ((current = p) == null);
+                if (e != null) {
+                    action.accept(e);
+                    return true;
+                }
             }
-            exhausted = ((current = p) == null);
-            if (e == null)
-                return false;
-            action.accept(e);
-            return true;
+            return false;
         }
 
         public int characteristics() {
