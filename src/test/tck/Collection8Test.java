@@ -798,6 +798,22 @@ public class Collection8Test extends JSR166TestCase {
         }
     }
 
+    /**
+     * Spliterator.getComparator throws IllegalStateException iff the
+     * spliterator does not report SORTED.
+     */
+    public void testGetComparator_IllegalStateException() {
+        Collection c = impl.emptyCollection();
+        Spliterator s = c.spliterator();
+        boolean reportsSorted = s.hasCharacteristics(Spliterator.SORTED);
+        try {
+            s.getComparator();
+            assertTrue(reportsSorted);
+        } catch (IllegalStateException ex) {
+            assertFalse(reportsSorted);
+        }
+    }
+
 //     public void testCollection8DebugFail() {
 //         fail(impl.klazz().getSimpleName());
 //     }
