@@ -447,7 +447,7 @@ public class Collection8Test extends JSR166TestCase {
     /**
      * Various ways of traversing a collection yield same elements
      */
-    public void testIteratorEquivalence() {
+    public void testTraversalEquivalence() {
         Collection c = impl.emptyCollection();
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
         int n = rnd.nextInt(6);
