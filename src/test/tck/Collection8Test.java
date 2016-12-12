@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -512,6 +513,47 @@ public class Collection8Test extends JSR166TestCase {
             assertEquals(iterated, descending);
             assertEquals(iterated, descendingForEachRemaining);
         }
+    }
+
+    /**
+     * Iterator.forEachRemaining has same behavior as Iterator's
+     * default implementation.
+     */
+    public void testForEachRemainingConsistentWithDefaultImplementation() {
+        Collection c = impl.emptyCollection();
+        if (!testImplementationDetails
+            || c.getClass() == java.util.LinkedList.class)
+            return;
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        int n = 1 + rnd.nextInt(3);
+        for (int i = 0; i < n; i++) c.add(impl.makeElement(i));
+        ArrayList iterated = new ArrayList();
+        ArrayList iteratedForEachRemaining = new ArrayList();
+        Iterator it1 = c.iterator();
+        Iterator it2 = c.iterator();
+        assertTrue(it1.hasNext());
+        assertTrue(it2.hasNext());
+        c.clear();
+        Object r1, r2;
+        try {
+            while (it1.hasNext()) iterated.add(it1.next());
+            r1 = iterated;
+        } catch (ConcurrentModificationException ex) {
+            r1 = ConcurrentModificationException.class;
+            assertFalse(impl.isConcurrent());
+        } catch (UnsupportedOperationException ex) {
+            r1 = UnsupportedOperationException.class;
+        }
+        try {
+            it2.forEachRemaining(iteratedForEachRemaining::add);
+            r2 = iteratedForEachRemaining;
+        } catch (ConcurrentModificationException ex) {
+            r2 = ConcurrentModificationException.class;
+        } catch (UnsupportedOperationException ex) {
+            r2 = UnsupportedOperationException.class;
+        }
+        if (!r1.equals(r2)) System.err.println(impl.klazz());
+        assertEquals(r1, r2);
     }
 
     /**
