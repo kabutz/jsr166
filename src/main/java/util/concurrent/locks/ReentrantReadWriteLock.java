@@ -109,7 +109,7 @@ import jdk.internal.vm.annotation.ReservedStackAccess;
  * <pre> {@code
  * class CachedData {
  *   Object data;
- *   volatile boolean cacheValid;
+ *   boolean cacheValid;
  *   final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
  *
  *   void processCachedData() {
