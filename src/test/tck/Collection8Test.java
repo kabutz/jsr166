@@ -552,7 +552,6 @@ public class Collection8Test extends JSR166TestCase {
         } catch (UnsupportedOperationException ex) {
             r2 = UnsupportedOperationException.class;
         }
-        if (!r1.equals(r2)) System.err.println(impl.klazz());
         assertEquals(r1, r2);
     }
 
