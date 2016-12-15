@@ -390,7 +390,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         s1.awaitError();
         assertTrue(s1.nexts <= 1);
         assertEquals(1, s1.errors);
-        s1.awaitSubscribe();
+        s2.awaitSubscribe();
         s2.awaitError();
         assertTrue(s2.nexts <= 1);
         assertEquals(1, s2.errors);
