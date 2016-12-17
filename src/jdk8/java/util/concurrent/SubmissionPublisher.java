@@ -523,8 +523,9 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                 while (r != null) {
                     BufferedSubscription<T> nextRetry = r.nextRetry;
                     r.nextRetry = null;
-                    int stat = (nanos > 0L) ? r.timedOffer(item, nanos) :
-                        r.offer(item);
+                    int stat = (nanos > 0L)
+                        ? r.timedOffer(item, nanos)
+                        : r.offer(item);
                     if (stat == 0 && onDrop != null &&
                         onDrop.test(r.subscriber, item))
                         stat = r.offer(item);
@@ -1427,7 +1428,17 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
          */
         private boolean checkControl(Flow.Subscriber<? super T> s, int c) {
             boolean stat = true;
-            if ((c & ERROR) != 0) {
+            if ((c & SUBSCRIBE) != 0) {
+                if (U.compareAndSwapInt(this, CTL, c, c & ~SUBSCRIBE)) {
+                    try {
+                        if (s != null)
+                            s.onSubscribe(this);
+                    } catch (Throwable ex) {
+                        onError(ex);
+                    }
+                }
+            }
+            else if ((c & ERROR) != 0) {
                 Throwable ex = pendingError;
                 ctl = DISABLED;           // no need for CAS
                 if (ex != null) {         // null if errorless cancel
@@ -1435,16 +1446,6 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                         if (s != null)
                             s.onError(ex);
                     } catch (Throwable ignore) {
-                    }
-                }
-            }
-            else if ((c & SUBSCRIBE) != 0) {
-                if (U.compareAndSwapInt(this, CTL, c, c & ~SUBSCRIBE)) {
-                    try {
-                        if (s != null)
-                            s.onSubscribe(this);
-                    } catch (Throwable ex) {
-                        onError(ex);
                     }
                 }
             }
