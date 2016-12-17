@@ -299,8 +299,6 @@
     <patternset id="jdk8.jtreg.tests">
       <include name="**/*.java"/>
       <exclude name="**/SpliteratorCharacteristics.java"/>
-      <!-- https://bugs.openjdk.java.net/browse/JDK-6842353 -->
-      <exclude name="**/GCDuringIteration.java"/>
     </patternset>
   </fileset>
 
