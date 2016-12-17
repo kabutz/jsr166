@@ -298,7 +298,6 @@
   <fileset dir="${jtreg8.src.dir}">
     <patternset id="jdk8.jtreg.tests">
       <include name="**/*.java"/>
-      <exclude name="**/SpliteratorCharacteristics.java"/>
     </patternset>
   </fileset>
 

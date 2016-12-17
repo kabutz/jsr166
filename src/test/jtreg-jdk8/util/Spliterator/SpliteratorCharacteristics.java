@@ -59,57 +59,6 @@ import static org.testng.Assert.*;
 @Test
 public class SpliteratorCharacteristics {
 
-    public void testSpliteratorFromCharSequence() {
-        class CharSequenceImpl implements CharSequence {
-            final String s;
-
-            public CharSequenceImpl(String s) {
-                this.s = s;
-            }
-
-            @Override
-            public int length() {
-                return s.length();
-            }
-
-            @Override
-            public char charAt(int index) {
-                return s.charAt(index);
-            }
-
-            @Override
-            public CharSequence subSequence(int start, int end) {
-                return s.subSequence(start, end);
-            }
-
-            @Override
-            public String toString() {
-                return s;
-            }
-        }
-
-        CharSequence cs = "A";
-        Spliterator.OfInt s = cs.chars().spliterator();
-        assertCharacteristics(s, Spliterator.IMMUTABLE | Spliterator.ORDERED |
-                                 Spliterator.SIZED | Spliterator.SUBSIZED);
-        assertHasNotCharacteristics(s, Spliterator.CONCURRENT);
-        s = cs.codePoints().spliterator();
-        assertCharacteristics(s, Spliterator.IMMUTABLE | Spliterator.ORDERED);
-        assertHasNotCharacteristics(s, Spliterator.CONCURRENT);
-
-        for (CharSequence c : Arrays.asList(new CharSequenceImpl("A"),
-                                             new StringBuilder("A"),
-                                             new StringBuffer("A"))) {
-            s = cs.chars().spliterator();
-            assertCharacteristics(s, Spliterator.ORDERED |
-                                     Spliterator.SIZED | Spliterator.SUBSIZED);
-            assertHasNotCharacteristics(s, Spliterator.CONCURRENT);
-            s = cs.codePoints().spliterator();
-            assertCharacteristics(s, Spliterator.ORDERED);
-            assertHasNotCharacteristics(s, Spliterator.CONCURRENT);
-        }
-    }
-
     public void testSpliteratorFromCollection() {
         List<Integer> l = Arrays.asList(1, 2, 3, 4);
 
