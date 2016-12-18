@@ -541,16 +541,13 @@ public class Collection8Test extends JSR166TestCase {
         } catch (ConcurrentModificationException ex) {
             r1 = ConcurrentModificationException.class;
             assertFalse(impl.isConcurrent());
-        } catch (UnsupportedOperationException ex) {
-            r1 = UnsupportedOperationException.class;
         }
         try {
             it2.forEachRemaining(iteratedForEachRemaining::add);
             r2 = iteratedForEachRemaining;
         } catch (ConcurrentModificationException ex) {
             r2 = ConcurrentModificationException.class;
-        } catch (UnsupportedOperationException ex) {
-            r2 = UnsupportedOperationException.class;
+            assertFalse(impl.isConcurrent());
         }
         assertEquals(r1, r2);
     }
