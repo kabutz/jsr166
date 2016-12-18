@@ -631,7 +631,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * promoting x up the tree until it is greater than or equal to
      * its parent, or is the root.
      *
-     * To simplify and speed up coercions and comparisons. the
+     * To simplify and speed up coercions and comparisons, the
      * Comparable and Comparator versions are separated into different
      * methods that are otherwise identical. (Similarly for siftDown.)
      *
