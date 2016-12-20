@@ -1,5 +1,6 @@
 <project name="jsr166" default="usage"
-  xmlns:if="ant:if" xmlns:unless="ant:unless">
+  xmlns:if="ant:if" xmlns:unless="ant:unless"
+  xmlns:ivy="antlib:org.apache.ivy.ant">
 
   <description>
 ------------------------------------------------------------------------------
@@ -1507,5 +1508,69 @@
     </antcall>
   </target>
 
+<!-- ==============================================================
+  Running guava tests against jsr166 code
+=================================================================== -->
+
+<!-- <ivy:cachepath pathid="lib.path.id" inline="true" conf="*" -->
+<!--   organisation="com.google.guava" module="guava-testlib" revision="21.0-rc1"/> -->
+<!-- <property name="guava.version" value="20.0"/> -->
+
+<!-- HOWTO debug print a path id -->
+<!-- <pathconvert property="guava.testlib.classpath" refid="guava.testlib.classpath" /> -->
+<!-- <echo message="guava.testlib.classpath=${guava.testlib.classpath}"/> -->
+
+<!-- <ivy:retrieve pathid="guava.tests.classpath" type="jar" inline="true" conf="*" pattern="${lib.dir}/[type]/[artifact].[ext]" -->
+<!--   organisation="com.google.guava" module="guava-tests"/> -->
+<!-- <get src="http://repo2.maven.org/maven2/com/google/guava/guava-tests/${guava.version}/guava-tests-${guava.version}-tests.jar" -->
+<!--   dest="${lib.dir}/jar/guava-tests-tests.jar" usetimestamp="true"/> -->
+<!--     <ivy:cachepath pathid="lib.path.id" inline="true" conf="*" type="*" -->
+<!--       organisation="com.google.guava" module="guava-testlib" revision="${guava.version}"/> -->
+
+<!-- <test name="com.google.common.collect.testing.TestsForQueuesInJavaUtil"/> -->
+<!-- <test name="com.google.common.collect.testing.TestsForListsInJavaUtil"/> -->
+<!-- <test name="com.google.common.collect.testing.TestsForSetsInJavaUtil"/> -->
+<!-- <test name="com.google.common.collect.testing.TestsForMapsInJavaUtil"/> -->
+
+<!-- <ivy:retrieve pathid="guava.testlib.classpath" -->
+<!--   type="*" inline="true" conf="*(private),*(public)" -->
+<!--   pattern="${guava.dir}/[artifact].[ext]" -->
+<!--   organisation="com.google.guava" module="guava-testlib"/> -->
+
+<!-- Work around bug below by downloading guava-testlib-tests.jar "by hand": -->
+<!-- https://issues.apache.org/jira/browse/IVY-1444 -->
+<!-- maven tests artifacts cannot be downloaded because they are mapped to private configurations -->
+
+  <target name="init-ivy">
+    <get src="http://repo2.maven.org/maven2/org/apache/ivy/ivy/2.4.0/ivy-2.4.0.jar"
+         dest="${build.dir}/ivy.jar" usetimestamp="true" skipexisting="true"/>
+    <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant"
+             classpath="${build.dir}/ivy.jar"/>
+  </target>
+
+  <target name="guava-tests" depends="jar, init-ivy"
+          description="Guava tests run against jsr166 collections">
+    <property name="guava.dir" value="${build.dir}/guava-testlib"/>
+    <mkdir dir="${guava.dir}"/>
+    <ivy:retrieve pathid="guava.testlib.classpath"
+      type="jar,bundle" inline="true" conf="default,master"
+      pattern="${guava.dir}/[artifact].[ext]"
+      organisation="com.google.guava" module="guava-testlib"/>
+    <property name="guava.version" value="21.0-rc1"/>
+    <get src="http://repo2.maven.org/maven2/com/google/guava/guava-testlib/${guava.version}/guava-testlib-${guava.version}-tests.jar"
+         dest="${guava.dir}/guava-testlib-tests.jar" usetimestamp="true"/>
+    <junit printsummary="true" showoutput="true" haltonfailure="true"
+           jvm="${java9}" fork="true">
+      <jvmarg line="-ea -esa --patch-module java.base=${product.jar}"/>
+      <formatter type="brief"/>
+      <classpath>
+        <pathelement location="${guava.dir}/guava-testlib-tests.jar"/>
+        <path refid="guava.testlib.classpath"/>
+      </classpath>
+
+      <!-- "6" in "OpenJdk6Tests" misleadingly means "6+" -->
+      <test name="com.google.common.collect.testing.OpenJdk6Tests"/>
+    </junit>
+  </target>
 
 </project>
