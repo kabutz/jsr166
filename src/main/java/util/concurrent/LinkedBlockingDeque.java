@@ -1145,12 +1145,14 @@ public class LinkedBlockingDeque<E>
 
     /** Forward iterator */
     private class Itr extends AbstractItr {
+        Itr() {}                        // prevent access constructor creation
         Node<E> firstNode() { return first; }
         Node<E> nextNode(Node<E> n) { return n.next; }
     }
 
     /** Descending iterator */
     private class DescendingItr extends AbstractItr {
+        DescendingItr() {}              // prevent access constructor creation
         Node<E> firstNode() { return last; }
         Node<E> nextNode(Node<E> n) { return n.prev; }
     }
