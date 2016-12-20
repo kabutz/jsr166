@@ -319,8 +319,6 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      * To simplify and speed up coercions and comparisons, the
      * Comparable and Comparator versions are separated into different
      * methods that are otherwise identical. (Similarly for siftDown.)
-     * These methods are static, with heap state as arguments, to
-     * simplify use in light of possible comparator exceptions.
      *
      * @param k the position to fill
      * @param x the item to insert
