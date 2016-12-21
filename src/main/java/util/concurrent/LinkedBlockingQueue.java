@@ -734,50 +734,50 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
          * still have it to return even if lost race with a take etc.
          */
 
-        private Node<E> current;
+        private Node<E> next;
+        private E nextItem;
         private Node<E> lastRet;
-        private E currentElement;
 
         Itr() {
             fullyLock();
             try {
-                if ((current = head.next) != null)
-                    currentElement = current.item;
+                if ((next = head.next) != null)
+                    nextItem = next.item;
             } finally {
                 fullyUnlock();
             }
         }
 
         public boolean hasNext() {
-            return current != null;
+            return next != null;
         }
 
         public E next() {
             Node<E> p;
-            if ((p = current) == null)
+            if ((p = next) == null)
                 throw new NoSuchElementException();
-            E ret = currentElement, e = null;
             lastRet = p;
+            E x = nextItem;
             fullyLock();
             try {
-                for (p = p.next; p != null; p = succ(p))
-                    if ((e = p.item) != null)
-                        break;
+                E e = null;
+                for (p = p.next; p != null && (e = p.item) == null; )
+                    p = succ(p);
+                next = p;
+                nextItem = e;
             } finally {
                 fullyUnlock();
             }
-            current = p;
-            currentElement = e;
-            return ret;
+            return x;
         }
 
         public void forEachRemaining(Consumer<? super E> action) {
             // A variant of forEachFrom
             Objects.requireNonNull(action);
             Node<E> p;
-            if ((p = current) == null) return;
-            lastRet = current;
-            current = null;
+            if ((p = next) == null) return;
+            lastRet = p;
+            next = null;
             final int batchSize = 32;
             Object[] es = null;
             int n, len = 1;
@@ -790,8 +790,8 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
                             if (q.item != null && ++len == batchSize)
                                 break;
                         es = new Object[len];
-                        es[0] = currentElement;
-                        currentElement = null;
+                        es[0] = nextItem;
+                        nextItem = null;
                         n = 1;
                     } else
                         n = 0;
@@ -885,19 +885,19 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
         public boolean tryAdvance(Consumer<? super E> action) {
             Objects.requireNonNull(action);
             if (!exhausted) {
-                Node<E> p = current;
                 E e = null;
                 fullyLock();
                 try {
-                    if (p != null || (p = head.next) != null)
+                    Node<E> p;
+                    if ((p = current) != null || (p = head.next) != null)
                         do {
                             e = p.item;
                             p = succ(p);
                         } while (e == null && p != null);
+                    exhausted = ((current = p) == null);
                 } finally {
                     fullyUnlock();
                 }
-                exhausted = ((current = p) == null);
                 if (e != null) {
                     action.accept(e);
                     return true;

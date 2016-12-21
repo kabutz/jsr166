@@ -1090,7 +1090,7 @@ public class LinkedBlockingDeque<E>
             Objects.requireNonNull(action);
             Node<E> p;
             if ((p = next) == null) return;
-            lastRet = next;
+            lastRet = p;
             next = null;
             final ReentrantLock lock = LinkedBlockingDeque.this.lock;
             final int batchSize = 32;
@@ -1217,8 +1217,8 @@ public class LinkedBlockingDeque<E>
                 final ReentrantLock lock = LinkedBlockingDeque.this.lock;
                 lock.lock();
                 try {
-                    Node<E> p = current;
-                    if (p != null || (p = first) != null)
+                    Node<E> p;
+                    if ((p = current) != null || (p = first) != null)
                         do {
                             e = p.item;
                             p = succ(p);
