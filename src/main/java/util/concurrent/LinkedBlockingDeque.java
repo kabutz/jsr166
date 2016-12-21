@@ -1213,21 +1213,21 @@ public class LinkedBlockingDeque<E>
         public boolean tryAdvance(Consumer<? super E> action) {
             Objects.requireNonNull(action);
             if (!exhausted) {
-                final ReentrantLock lock = LinkedBlockingDeque.this.lock;
-                Node<E> p = current;
                 E e = null;
+                final ReentrantLock lock = LinkedBlockingDeque.this.lock;
                 lock.lock();
                 try {
+                    Node<E> p = current;
                     if (p != null || (p = first) != null)
                         do {
                             e = p.item;
                             p = succ(p);
                         } while (e == null && p != null);
+                    exhausted = ((current = p) == null);
                 } finally {
                     // checkInvariants();
                     lock.unlock();
                 }
-                exhausted = ((current = p) == null);
                 if (e != null) {
                     action.accept(e);
                     return true;
