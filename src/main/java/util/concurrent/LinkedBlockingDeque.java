@@ -1068,21 +1068,21 @@ public class LinkedBlockingDeque<E>
             Node<E> p;
             if ((p = next) == null)
                 throw new NoSuchElementException();
-            E ret = nextItem, e = null;
             lastRet = p;
+            E x = nextItem;
             final ReentrantLock lock = LinkedBlockingDeque.this.lock;
             lock.lock();
             try {
-                for (p = nextNode(p); p != null; p = succ(p))
-                    if ((e = p.item) != null)
-                        break;
+                E e = null;
+                for (p = nextNode(p); p != null && (e = p.item) == null; )
+                    p = succ(p);
+                next = p;
+                nextItem = e;
             } finally {
                 // checkInvariants();
                 lock.unlock();
             }
-            next = p;
-            nextItem = e;
-            return ret;
+            return x;
         }
 
         public void forEachRemaining(Consumer<? super E> action) {
