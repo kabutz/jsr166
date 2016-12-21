@@ -1425,7 +1425,7 @@ public class Vector<E>
         private int fence; // -1 until used; then one past last index
         private int expectedModCount; // initialized when fence set
 
-        /** Creates new spliterator covering the given range */
+        /** Creates new spliterator covering the given range. */
         VectorSpliterator(Object[] array, int origin, int fence,
                           int expectedModCount) {
             this.array = array;
