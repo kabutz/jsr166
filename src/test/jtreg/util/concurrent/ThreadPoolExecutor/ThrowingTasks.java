@@ -45,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 public class ThrowingTasks {
     static final Random rnd = new Random();
@@ -167,6 +168,24 @@ public class ThrowingTasks {
         } catch (Throwable t) { unexpected(t); }
     }
 
+    /**
+     * Waits for condition to become true, first spin-polling, then sleep-polling.
+     */
+    static void spinAwait(Supplier<Boolean> waitingForGodot) {
+        for (int spins = 0;;) {
+            if (waitingForGodot.get())
+                return;
+            if ((spins = (spins + 1) & 3) > 0) {
+                Thread.yield();
+            } else {
+                try { Thread.sleep(4); }
+                catch (InterruptedException unexpected) {
+                    throw new AssertionError(unexpected);
+                }
+            }
+        }
+    }
+
     static class CheckingExecutor extends ThreadPoolExecutor {
         private final ReentrantLock lock = new ReentrantLock();
         CheckingExecutor() {
@@ -238,10 +257,7 @@ public class ThrowingTasks {
         //System.out.printf("thread count = %d%n", tg.activeCount());
         uncaughtExceptionsLatch.await();
 
-        while (tg.activeCount() != tpe.getCorePoolSize() ||
-               tg.activeCount() != tpe.getCorePoolSize())
-            Thread.sleep(10);
-        equal(tg.activeCount(), tpe.getCorePoolSize());
+        spinAwait(() -> tg.activeCount() == tpe.getCorePoolSize());
 
         tpe.shutdown();
 
