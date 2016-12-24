@@ -1004,7 +1004,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                         break;
                     }
                     if (p == (p = p.next))
-                        p = firstDataNode();
+                        p = head;
                 } while (p != null && i < n);
                 exhausted = ((current = p) == null);
                 if (i > 0) {
@@ -1023,7 +1023,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             Objects.requireNonNull(action);
             Node p;
             if (!exhausted &&
-                ((p = current) != null || (p = firstDataNode()) != null)) {
+                ((p = current) != null || (p = head) != null)) {
                 current = null;
                 exhausted = true;
                 do {
@@ -1035,7 +1035,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                     else if (item == null)
                         break;
                     if (p == (p = p.next))
-                        p = firstDataNode();
+                        p = head;
                 } while (p != null);
             }
         }
@@ -1045,7 +1045,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             Objects.requireNonNull(action);
             Node p;
             if (!exhausted &&
-                ((p = current) != null || (p = firstDataNode()) != null)) {
+                ((p = current) != null || (p = head) != null)) {
                 Object item;
                 do {
                     if (p.isData)
@@ -1058,7 +1058,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                         }
                     }
                     if (p == (p = p.next))
-                        p = firstDataNode();
+                        p = head;
                 } while (item == null && p != null);
                 exhausted = ((current = p) == null);
                 if (item != null) {
