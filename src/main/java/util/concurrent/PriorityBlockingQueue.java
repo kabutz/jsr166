@@ -956,7 +956,9 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         public long estimateSize() { return getFence() - index; }
 
         public int characteristics() {
-            return Spliterator.NONNULL | Spliterator.SIZED | Spliterator.SUBSIZED;
+            return (Spliterator.NONNULL |
+                    Spliterator.SIZED |
+                    Spliterator.SUBSIZED);
         }
     }
 
