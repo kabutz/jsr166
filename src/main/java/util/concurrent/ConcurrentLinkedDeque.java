@@ -1417,8 +1417,8 @@ public class ConcurrentLinkedDeque<E>
         }
 
         public void forEachRemaining(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
             Node<E> p;
-            if (action == null) throw new NullPointerException();
             if (!exhausted &&
                 ((p = current) != null || (p = first()) != null)) {
                 current = null;
@@ -1434,8 +1434,8 @@ public class ConcurrentLinkedDeque<E>
         }
 
         public boolean tryAdvance(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
             Node<E> p;
-            if (action == null) throw new NullPointerException();
             if (!exhausted &&
                 ((p = current) != null || (p = first()) != null)) {
                 E e;

@@ -648,7 +648,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      */
     @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
-        if (a == null) throw new NullPointerException();
+        Objects.requireNonNull(a);
         return (T[]) toArrayInternal(a);
     }
 
@@ -826,8 +826,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         }
 
         public void forEachRemaining(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
             Node<E> p;
-            if (action == null) throw new NullPointerException();
             if (!exhausted &&
                 ((p = current) != null || (p = first()) != null)) {
                 current = null;
@@ -843,8 +843,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         }
 
         public boolean tryAdvance(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
             Node<E> p;
-            if (action == null) throw new NullPointerException();
             if (!exhausted &&
                 ((p = current) != null || (p = first()) != null)) {
                 E e;

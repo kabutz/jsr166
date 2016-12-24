@@ -12,6 +12,7 @@ import java.util.AbstractQueue;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -310,8 +311,7 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
      * @throws IllegalArgumentException      {@inheritDoc}
      */
     public int drainTo(Collection<? super E> c) {
-        if (c == null)
-            throw new NullPointerException();
+        Objects.requireNonNull(c);
         if (c == this)
             throw new IllegalArgumentException();
         final ReentrantLock lock = this.lock;
@@ -336,8 +336,7 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
      * @throws IllegalArgumentException      {@inheritDoc}
      */
     public int drainTo(Collection<? super E> c, int maxElements) {
-        if (c == null)
-            throw new NullPointerException();
+        Objects.requireNonNull(c);
         if (c == this)
             throw new IllegalArgumentException();
         if (maxElements <= 0)

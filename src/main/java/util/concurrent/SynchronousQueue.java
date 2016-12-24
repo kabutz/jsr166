@@ -13,6 +13,7 @@ import java.util.AbstractQueue;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.locks.LockSupport;
@@ -1083,8 +1084,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
      * @throws IllegalArgumentException      {@inheritDoc}
      */
     public int drainTo(Collection<? super E> c) {
-        if (c == null)
-            throw new NullPointerException();
+        Objects.requireNonNull(c);
         if (c == this)
             throw new IllegalArgumentException();
         int n = 0;
@@ -1102,8 +1102,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
      * @throws IllegalArgumentException      {@inheritDoc}
      */
     public int drainTo(Collection<? super E> c, int maxElements) {
-        if (c == null)
-            throw new NullPointerException();
+        Objects.requireNonNull(c);
         if (c == this)
             throw new IllegalArgumentException();
         int n = 0;

@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -877,7 +878,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      */
     @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
-        if (a == null) throw new NullPointerException();
+        Objects.requireNonNull(a);
         return (T[]) toArrayInternal(a);
     }
 
@@ -1019,8 +1020,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
 
         @SuppressWarnings("unchecked")
         public void forEachRemaining(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
             Node p;
-            if (action == null) throw new NullPointerException();
             if (!exhausted &&
                 ((p = current) != null || (p = firstDataNode()) != null)) {
                 current = null;
@@ -1041,8 +1042,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
 
         @SuppressWarnings("unchecked")
         public boolean tryAdvance(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
             Node p;
-            if (action == null) throw new NullPointerException();
             if (!exhausted &&
                 ((p = current) != null || (p = firstDataNode()) != null)) {
                 Object item;
@@ -1317,8 +1318,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public int drainTo(Collection<? super E> c) {
-        if (c == null)
-            throw new NullPointerException();
+        Objects.requireNonNull(c);
         if (c == this)
             throw new IllegalArgumentException();
         int n = 0;
@@ -1334,8 +1334,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public int drainTo(Collection<? super E> c, int maxElements) {
-        if (c == null)
-            throw new NullPointerException();
+        Objects.requireNonNull(c);
         if (c == this)
             throw new IllegalArgumentException();
         int n = 0;

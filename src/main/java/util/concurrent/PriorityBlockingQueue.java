@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.SortedSet;
@@ -701,8 +702,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      * @throws IllegalArgumentException      {@inheritDoc}
      */
     public int drainTo(Collection<? super E> c, int maxElements) {
-        if (c == null)
-            throw new NullPointerException();
+        Objects.requireNonNull(c);
         if (c == this)
             throw new IllegalArgumentException();
         if (maxElements <= 0)
@@ -931,9 +931,8 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
 
         @SuppressWarnings("unchecked")
         public void forEachRemaining(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
             Object[] a; int i, hi; // hoist accesses and checks from loop
-            if (action == null)
-                throw new NullPointerException();
             if ((a = array) == null)
                 fence = (a = toArray()).length;
             if ((hi = fence) <= a.length &&
@@ -943,8 +942,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         }
 
         public boolean tryAdvance(Consumer<? super E> action) {
-            if (action == null)
-                throw new NullPointerException();
+            Objects.requireNonNull(action);
             if (getFence() > index && index >= 0) {
                 @SuppressWarnings("unchecked") E e = (E) array[index++];
                 action.accept(e);
