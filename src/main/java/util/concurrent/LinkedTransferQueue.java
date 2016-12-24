@@ -433,7 +433,9 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         }
 
         final boolean casItem(Object cmp, Object val) {
-            // assert cmp == null || cmp.getClass() != Node.class;
+            // assert isData == (cmp != null);
+            // assert isData == (val == null);
+            // assert !(cmp instanceof Node);
             return ITEM.compareAndSet(this, cmp, val);
         }
 
@@ -455,16 +457,18 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         }
 
         /**
-         * Sets item to self and waiter to null, to avoid garbage
-         * retention after matching or cancelling. Uses relaxed writes
-         * because order is already constrained in the only calling
-         * contexts: item is forgotten only after volatile/atomic
-         * mechanics that extract items.  Similarly, clearing waiter
-         * follows either CAS or return from park (if ever parked;
-         * else we don't care).
+         * Sets item (of a request node) to self and waiter to null,
+         * to avoid garbage retention after matching or cancelling.
+         * Uses relaxed writes because order is already constrained in
+         * the only calling contexts: item is forgotten only after
+         * volatile/atomic mechanics that extract items.  Similarly,
+         * clearing waiter follows either CAS or return from park (if
+         * ever parked; else we don't care).
          */
         final void forgetContents() {
-            ITEM.set(this, this);
+            // assert isMatched();
+            if (!isData)
+                ITEM.set(this, this);
             WAITER.set(this, null);
         }
 
@@ -473,8 +477,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
          * case of artificial matches due to cancellation.
          */
         final boolean isMatched() {
-            Object x = item;
-            return (x == this) || ((x == null) == isData);
+            return isData == (item == null);
         }
 
         /**
@@ -484,8 +487,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
          */
         final boolean cannotPrecede(boolean haveData) {
             boolean d = isData;
-            Object x;
-            return d != haveData && (x = item) != this && (x != null) == d;
+            return d != haveData && d != (item == null);
         }
 
         /**
@@ -493,8 +495,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
          */
         final boolean tryMatchData() {
             // assert isData;
-            Object x = item;
-            if (x != null && x != this && casItem(x, null)) {
+            final Object x;
+            if ((x = item) != null && casItem(x, null)) {
                 LockSupport.unpark(waiter);
                 return true;
             }
@@ -570,7 +572,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             for (Node h = head, p = h; p != null;) { // find & match first node
                 boolean isData = p.isData;
                 Object item = p.item;
-                if (item != p && (item != null) == isData) { // unmatched
+                if ((item != null) == isData) { // unmatched
                     if (isData == haveData)   // can't match
                         break;
                     if (p.casItem(item, e)) { // match
@@ -669,7 +671,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             }
             else if (w.isInterrupted() || (timed && nanos <= 0L)) {
                 // try to cancel and unlink
-                if (s.casItem(e, s)) {
+                if (s.casItem(e, s.isData ? null : s)) {
                     unsplice(pred, s);
                     return e;
                 }
@@ -728,15 +730,15 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
 
     /**
      * Returns the first unmatched data node, or null if none.
-     * Callers must recheck if the returned node's item field is null
-     * or self-linked before using.
+     * Callers must recheck if the returned node is unmatched
+     * before using.
      */
     final Node firstDataNode() {
         restartFromHead: for (;;) {
             for (Node p = head; p != null;) {
                 Object item = p.item;
                 if (p.isData) {
-                    if (item != null && item != p)
+                    if (item != null)
                         return p;
                 }
                 else if (item == null)
@@ -777,7 +779,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             for (Node p = head; p != null;) {
                 Object item = p.item;
                 if (p.isData) {
-                    if (item != null && item != p) {
+                    if (item != null) {
                         if (a == null)
                             a = new String[4];
                         else if (size == a.length)
@@ -806,7 +808,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             for (Node p = head; p != null;) {
                 Object item = p.item;
                 if (p.isData) {
-                    if (item != null && item != p) {
+                    if (item != null) {
                         if (x == null)
                             x = new Object[4];
                         else if (size == x.length)
@@ -934,7 +936,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 }
                 Object item = s.item;
                 if (s.isData) {
-                    if (item != null && item != s) {
+                    if (item != null) {
                         @SuppressWarnings("unchecked") E itemE = (E) item;
                         nextItem = itemE;
                         nextNode = s;
@@ -1168,7 +1170,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             for (Node pred = null, p = head; p != null; ) {
                 Object item = p.item;
                 if (p.isData) {
-                    if (item != null && item != p && e.equals(item) &&
+                    if (item != null && e.equals(item) &&
                         p.tryMatchData()) {
                         unsplice(pred, p);
                         return true;
@@ -1382,7 +1384,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             for (Node p = head; p != null;) {
                 Object item = p.item;
                 if (p.isData) {
-                    if (item != null && item != p) {
+                    if (item != null) {
                         @SuppressWarnings("unchecked") E e = (E) item;
                         return e;
                     }
@@ -1410,7 +1412,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             for (Node p = head; p != null;) {
                 Object item = p.item;
                 if (p.isData) {
-                    if (item != null && item != p)
+                    if (item != null)
                         break;
                 }
                 else if (item == null)
@@ -1470,7 +1472,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             for (Node p = head; p != null; p = succ(p)) {
                 Object item = p.item;
                 if (p.isData) {
-                    if (item != null && item != p && o.equals(item))
+                    if (item != null && o.equals(item))
                         return true;
                 }
                 else if (item == null)
