@@ -719,16 +719,6 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     /* -------------- Traversal methods -------------- */
 
     /**
-     * Returns the successor of p, or the head node if p.next has been
-     * linked to self, which will only be true if traversing with a
-     * stale pointer that is now off the list.
-     */
-    final Node succ(Node p) {
-        Node next = p.next;
-        return (p == next) ? head : next;
-    }
-
-    /**
      * Returns the first unmatched data node, or null if none.
      * Callers must recheck if the returned node is unmatched
      * before using.
@@ -1478,7 +1468,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      */
     public boolean contains(Object o) {
         if (o != null) {
-            for (Node p = head; p != null; p = succ(p)) {
+            for (Node p = head; p != null; ) {
                 Object item = p.item;
                 if (p.isData) {
                     if (item != null && o.equals(item))
@@ -1486,6 +1476,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 }
                 else if (item == null)
                     break;
+                if (p == (p = p.next))
+                    p = head;
             }
         }
         return false;
