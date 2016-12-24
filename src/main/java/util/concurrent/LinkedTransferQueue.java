@@ -1179,32 +1179,6 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Main implementation of remove(Object)
-     */
-    private boolean findAndRemove(Object e) {
-        if (e != null) {
-            for (Node pred = null, p = head; p != null; ) {
-                Object item = p.item;
-                if (p.isData) {
-                    if (item != null && e.equals(item) &&
-                        p.tryMatchData()) {
-                        unsplice(pred, p);
-                        return true;
-                    }
-                }
-                else if (item == null)
-                    break;
-                pred = p;
-                if ((p = p.next) == pred) { // stale
-                    pred = null;
-                    p = head;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
      * Creates an initially empty {@code LinkedTransferQueue}.
      */
     public LinkedTransferQueue() {
@@ -1472,7 +1446,26 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @return {@code true} if this queue changed as a result of the call
      */
     public boolean remove(Object o) {
-        return findAndRemove(o);
+        if (o == null)
+            return false;
+        restartFromHead: for (;;) {
+            for (Node pred = null, p = head; p != null; ) {
+                Object item = p.item;
+                if (p.isData) {
+                    if (item != null
+                        && o.equals(item)
+                        && p.tryMatchData()) {
+                        unsplice(pred, p);
+                        return true;
+                    }
+                }
+                else if (item == null)
+                    break;
+                if ((pred = p) == (p = p.next))
+                    continue restartFromHead;
+            }
+            return false;
+        }
     }
 
     /**
