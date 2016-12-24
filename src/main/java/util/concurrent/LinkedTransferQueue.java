@@ -1003,8 +1003,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 Object[] a = new Object[n];
                 int i = 0;
                 do {
-                    Object e = p.item;
-                    if (e != p && (a[i] = e) != null)
+                    Object item = p.item;
+                    if (item != p && (a[i] = item) != null)
                         ++i;
                     if (p == (p = p.next))
                         p = firstDataNode();
@@ -1030,9 +1030,9 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 ((p = current) != null || (p = firstDataNode()) != null)) {
                 exhausted = true;
                 do {
-                    Object e = p.item;
-                    if (e != null && e != p)
-                        action.accept((E)e);
+                    Object item = p.item;
+                    if (item != null && item != p)
+                        action.accept((E)item);
                     if (p == (p = p.next))
                         p = firstDataNode();
                 } while (p != null && p.isData);
@@ -1045,17 +1045,17 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             if (action == null) throw new NullPointerException();
             if (!exhausted &&
                 ((p = current) != null || (p = firstDataNode()) != null)) {
-                Object e;
+                Object item;
                 do {
-                    if ((e = p.item) == p)
-                        e = null;
+                    if ((item = p.item) == p)
+                        item = null;
                     if (p == (p = p.next))
                         p = firstDataNode();
-                } while (e == null && p != null && p.isData);
+                } while (item == null && p != null && p.isData);
                 if ((current = p) == null)
                     exhausted = true;
-                if (e != null) {
-                    action.accept((E)e);
+                if (item != null) {
+                    action.accept((E)item);
                     return true;
                 }
             }
