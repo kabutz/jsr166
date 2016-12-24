@@ -441,9 +441,9 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
          * Constructs a new node.  Uses relaxed write because item can
          * only be seen after publication via casNext.
          */
-        Node(Object item, boolean isData) {
+        Node(Object item) {
             ITEM.set(this, item); // relaxed write
-            this.isData = isData;
+            isData = (item != null);
         }
 
         /**
@@ -602,7 +602,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
 
             if (how != NOW) {                 // No matches available
                 if (s == null)
-                    s = new Node(e, haveData);
+                    s = new Node(e);
                 Node pred = tryAppend(s, haveData);
                 if (pred == null)
                     continue retry;           // lost race vs opposite mode
