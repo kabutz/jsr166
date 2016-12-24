@@ -442,7 +442,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
          * only be seen after publication via casNext.
          */
         Node(Object item) {
-            ITEM.set(this, item); // relaxed write
+            ITEM.set(this, item);
             isData = (item != null);
         }
 
