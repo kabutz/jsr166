@@ -1003,14 +1003,19 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 Object[] a = new Object[n];
                 int i = 0;
                 do {
-                    Object item = p.item;
-                    if (item != p && (a[i] = item) != null)
-                        ++i;
+                    final Object item = p.item;
+                    if (p.isData) {
+                        if (item != null)
+                            a[i++] = item;
+                    }
+                    else if (item == null) {
+                        p = null;
+                        break;
+                    }
                     if (p == (p = p.next))
                         p = firstDataNode();
-                } while (p != null && i < n && p.isData);
-                if ((current = p) == null)
-                    exhausted = true;
+                } while (p != null && i < n);
+                exhausted = ((current = p) == null);
                 if (i > 0) {
                     batch = i;
                     return Spliterators.spliterator
@@ -1028,14 +1033,19 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             if (action == null) throw new NullPointerException();
             if (!exhausted &&
                 ((p = current) != null || (p = firstDataNode()) != null)) {
+                current = null;
                 exhausted = true;
                 do {
-                    Object item = p.item;
-                    if (item != null && item != p)
-                        action.accept((E)item);
+                    final Object item = p.item;
+                    if (p.isData) {
+                        if (item != null)
+                            action.accept((E)item);
+                    }
+                    else if (item == null)
+                        break;
                     if (p == (p = p.next))
                         p = firstDataNode();
-                } while (p != null && p.isData);
+                } while (p != null);
             }
         }
 
@@ -1047,13 +1057,19 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 ((p = current) != null || (p = firstDataNode()) != null)) {
                 Object item;
                 do {
-                    if ((item = p.item) == p)
+                    if (p.isData)
+                        item = p.item;
+                    else {
                         item = null;
+                        if (p.item == null) {
+                            p = null;
+                            break;
+                        }
+                    }
                     if (p == (p = p.next))
                         p = firstDataNode();
-                } while (item == null && p != null && p.isData);
-                if ((current = p) == null)
-                    exhausted = true;
+                } while (item == null && p != null);
+                exhausted = ((current = p) == null);
                 if (item != null) {
                     action.accept((E)item);
                     return true;
