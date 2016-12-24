@@ -478,13 +478,6 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         }
 
         /**
-         * Returns true if this is an unmatched request node.
-         */
-        final boolean isUnmatchedRequest() {
-            return !isData && item == null;
-        }
-
-        /**
          * Returns true if a node with the given mode cannot be
          * appended to this node because this node is unmatched and
          * has opposite data mode.
