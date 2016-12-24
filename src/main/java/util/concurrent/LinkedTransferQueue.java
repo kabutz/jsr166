@@ -986,7 +986,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /** A customized variant of Spliterators.IteratorSpliterator */
-    final class LTQSpliterator<E> implements Spliterator<E> {
+    final class LTQSpliterator implements Spliterator<E> {
         static final int MAX_BATCH = 1 << 25;  // max batch array size;
         Node current;       // current node; null until initialized
         int batch;          // batch size for splits
@@ -1104,7 +1104,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @since 1.8
      */
     public Spliterator<E> spliterator() {
-        return new LTQSpliterator<E>();
+        return new LTQSpliterator();
     }
 
     /* -------------- Removal methods -------------- */
