@@ -813,7 +813,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                     if (p == (p = p.next))
                         p = first();
                 } while (p != null && i < n);
-                exhausted = ((current = p) == null);
+                if ((current = p) == null)
+                    exhausted = true;
                 if (i > 0) {
                     batch = i;
                     return Spliterators.spliterator
@@ -853,7 +854,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                     if (p == (p = p.next))
                         p = first();
                 } while (e == null && p != null);
-                exhausted = ((current = p) == null);
+                if ((current = p) == null)
+                    exhausted = true;
                 if (e != null) {
                     action.accept(e);
                     return true;

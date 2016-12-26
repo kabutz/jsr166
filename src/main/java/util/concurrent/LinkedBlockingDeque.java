@@ -1223,7 +1223,8 @@ public class LinkedBlockingDeque<E>
                             e = p.item;
                             p = succ(p);
                         } while (e == null && p != null);
-                    exhausted = ((current = p) == null);
+                    if ((current = p) == null)
+                        exhausted = true;
                 } finally {
                     // checkInvariants();
                     lock.unlock();

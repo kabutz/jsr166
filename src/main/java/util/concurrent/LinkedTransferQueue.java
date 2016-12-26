@@ -1006,7 +1006,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                     if (p == (p = p.next))
                         p = head;
                 } while (p != null && i < n);
-                exhausted = ((current = p) == null);
+                if ((current = p) == null)
+                    exhausted = true;
                 if (i > 0) {
                     batch = i;
                     return Spliterators.spliterator
@@ -1060,7 +1061,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                     if (p == (p = p.next))
                         p = head;
                 } while (item == null && p != null);
-                exhausted = ((current = p) == null);
+                if ((current = p) == null)
+                    exhausted = true;
                 if (item != null) {
                     action.accept((E)item);
                     return true;
