@@ -799,46 +799,37 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         boolean exhausted;  // true when no more nodes
 
         public Spliterator<E> trySplit() {
-            Node<E> p;
-            int b = batch;
-            int n = (b <= 0) ? 1 : (b >= MAX_BATCH) ? MAX_BATCH : b + 1;
-            if (!exhausted &&
-                ((p = current) != null || (p = first()) != null) &&
-                p.next != null) {
-                Object[] a = new Object[n];
-                int i = 0;
-                do {
-                    if ((a[i] = p.item) != null)
-                        ++i;
-                    if (p == (p = p.next))
-                        p = first();
-                } while (p != null && i < n);
-                if ((current = p) == null)
-                    exhausted = true;
-                if (i > 0) {
-                    batch = i;
-                    return Spliterators.spliterator
-                        (a, 0, i, (Spliterator.ORDERED |
-                                   Spliterator.NONNULL |
-                                   Spliterator.CONCURRENT));
-                }
-            }
-            return null;
+            Node<E> p, q;
+            if ((p = current()) == null || (q = p.next) == null)
+                return null;
+            int i = 0, n = batch = Math.min(batch + 1, MAX_BATCH);
+            Object[] a = null;
+            do {
+                final E e;
+                if ((e = p.item) != null)
+                    ((a != null) ? a : (a = new Object[n]))[i++] = e;
+                if (p == (p = q))
+                    p = first();
+            } while (p != null && (q = p.next) != null && i < n);
+            setCurrent(p);
+            return (i == 0) ? null :
+                Spliterators.spliterator(a, 0, i, (Spliterator.ORDERED |
+                                                   Spliterator.NONNULL |
+                                                   Spliterator.CONCURRENT));
         }
 
         public void forEachRemaining(Consumer<? super E> action) {
             Objects.requireNonNull(action);
             Node<E> p;
-            if (!exhausted &&
-                ((p = current) != null || (p = first()) != null)) {
+            if ((p = current()) != null) {
                 current = null;
                 exhausted = true;
                 do {
-                    E e = p.item;
+                    final E e;
+                    if ((e = p.item) != null)
+                        action.accept(e);
                     if (p == (p = p.next))
                         p = first();
-                    if (e != null)
-                        action.accept(e);
                 } while (p != null);
             }
         }
@@ -846,22 +837,32 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         public boolean tryAdvance(Consumer<? super E> action) {
             Objects.requireNonNull(action);
             Node<E> p;
-            if (!exhausted &&
-                ((p = current) != null || (p = first()) != null)) {
+            if ((p = current()) != null) {
                 E e;
                 do {
                     e = p.item;
                     if (p == (p = p.next))
                         p = first();
                 } while (e == null && p != null);
-                if ((current = p) == null)
-                    exhausted = true;
+                setCurrent(p);
                 if (e != null) {
                     action.accept(e);
                     return true;
                 }
             }
             return false;
+        }
+
+        private void setCurrent(Node<E> p) {
+            if ((current = p) == null)
+                exhausted = true;
+        }
+
+        private Node<E> current() {
+            Node<E> p;
+            if ((p = current) == null && !exhausted)
+                setCurrent(p = first());
+            return p;
         }
 
         public long estimateSize() { return Long.MAX_VALUE; }

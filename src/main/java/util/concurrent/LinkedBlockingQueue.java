@@ -848,11 +848,10 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
 
         public Spliterator<E> trySplit() {
             Node<E> h;
-            int b = batch;
-            int n = (b <= 0) ? 1 : (b >= MAX_BATCH) ? MAX_BATCH : b + 1;
             if (!exhausted &&
                 ((h = current) != null || (h = head.next) != null)
                 && h.next != null) {
+                int n = batch = Math.min(batch + 1, MAX_BATCH);
                 Object[] a = new Object[n];
                 int i = 0;
                 Node<E> p = current;
@@ -871,13 +870,11 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
                 }
                 else if ((est -= i) < 0L)
                     est = 0L;
-                if (i > 0) {
-                    batch = i;
+                if (i > 0)
                     return Spliterators.spliterator
                         (a, 0, i, (Spliterator.ORDERED |
                                    Spliterator.NONNULL |
                                    Spliterator.CONCURRENT));
-                }
             }
             return null;
         }

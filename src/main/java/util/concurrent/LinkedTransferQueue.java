@@ -985,53 +985,41 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         LTQSpliterator() {}
 
         public Spliterator<E> trySplit() {
-            Node p;
-            int b = batch;
-            int n = (b <= 0) ? 1 : (b >= MAX_BATCH) ? MAX_BATCH : b + 1;
-            if (!exhausted &&
-                ((p = current) != null || (p = firstDataNode()) != null) &&
-                p.next != null) {
-                Object[] a = new Object[n];
-                int i = 0;
-                do {
-                    final Object item = p.item;
-                    if (p.isData) {
-                        if (item != null)
-                            a[i++] = item;
-                    }
-                    else if (item == null) {
-                        p = null;
-                        break;
-                    }
-                    if (p == (p = p.next))
-                        p = head;
-                } while (p != null && i < n);
-                if ((current = p) == null)
-                    exhausted = true;
-                if (i > 0) {
-                    batch = i;
-                    return Spliterators.spliterator
-                        (a, 0, i, (Spliterator.ORDERED |
-                                   Spliterator.NONNULL |
-                                   Spliterator.CONCURRENT));
+            Node p, q;
+            if ((p = current()) == null || (q = p.next) == null)
+                return null;
+            int i = 0, n = batch = Math.min(batch + 1, MAX_BATCH);
+            Object[] a = null;
+            do {
+                final Object item = p.item;
+                if (p.isData) {
+                    if (item != null)
+                        ((a != null) ? a : (a = new Object[n]))[i++] = item;
+                } else if (item == null) {
+                    p = null;
+                    break;
                 }
-            }
-            return null;
+                if (p == (p = q)) p = firstDataNode();
+            } while (p != null && (q = p.next) != null && i < n);
+            setCurrent(p);
+            return (i == 0) ? null :
+                Spliterators.spliterator(a, 0, i, (Spliterator.ORDERED |
+                                                   Spliterator.NONNULL |
+                                                   Spliterator.CONCURRENT));
         }
 
         @SuppressWarnings("unchecked")
         public void forEachRemaining(Consumer<? super E> action) {
             Objects.requireNonNull(action);
             Node p;
-            if (!exhausted &&
-                ((p = current) != null || (p = head) != null)) {
+            if ((p = current()) != null) {
                 current = null;
                 exhausted = true;
                 do {
                     final Object item = p.item;
                     if (p.isData) {
                         if (item != null)
-                            action.accept((E)item);
+                            action.accept((E) item);
                     }
                     else if (item == null)
                         break;
@@ -1045,30 +1033,41 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         public boolean tryAdvance(Consumer<? super E> action) {
             Objects.requireNonNull(action);
             Node p;
-            if (!exhausted &&
-                ((p = current) != null || (p = head) != null)) {
-                Object item;
+            if ((p = current()) != null) {
+                E e = null;
                 do {
-                    if (p.isData)
-                        item = p.item;
-                    else {
-                        item = null;
-                        if (p.item == null) {
-                            p = null;
+                    final Object item = p.item;
+                    final boolean isData = p.isData;
+                    if (p == (p = p.next))
+                        p = head;
+                    if (isData) {
+                        if (item != null) {
+                            e = (E) item;
                             break;
                         }
                     }
-                    if (p == (p = p.next))
-                        p = head;
-                } while (item == null && p != null);
-                if ((current = p) == null)
-                    exhausted = true;
-                if (item != null) {
-                    action.accept((E)item);
+                    else if (item == null)
+                        p = null;
+                } while (p != null);
+                setCurrent(p);
+                if (e != null) {
+                    action.accept(e);
                     return true;
                 }
             }
             return false;
+        }
+
+        private void setCurrent(Node p) {
+            if ((current = p) == null)
+                exhausted = true;
+        }
+
+        private Node current() {
+            Node p;
+            if ((p = current) == null && !exhausted)
+                setCurrent(p = firstDataNode());
+            return p;
         }
 
         public long estimateSize() { return Long.MAX_VALUE; }

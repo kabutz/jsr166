@@ -906,9 +906,11 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      * Immutable snapshot spliterator that binds to elements "late".
      */
     final class PBQSpliterator implements Spliterator<E> {
-        Object[] array;
+        Object[] array;        // null until late-bound-initialized
         int index;
         int fence;
+
+        PBQSpliterator() {}
 
         PBQSpliterator(Object[] array, int index, int fence) {
             this.array = array;
@@ -916,11 +918,10 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
             this.fence = fence;
         }
 
-        final int getFence() {
-            int hi;
-            if ((hi = fence) < 0)
-                hi = fence = (array = toArray()).length;
-            return hi;
+        private int getFence() {
+            if (array == null)
+                fence = (array = toArray()).length;
+            return fence;
         }
 
         public PBQSpliterator trySplit() {
@@ -929,23 +930,19 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
                 new PBQSpliterator(array, lo, index = mid);
         }
 
-        @SuppressWarnings("unchecked")
         public void forEachRemaining(Consumer<? super E> action) {
             Objects.requireNonNull(action);
-            Object[] a; int i, hi; // hoist accesses and checks from loop
-            if ((a = array) == null)
-                fence = (a = toArray()).length;
-            if ((hi = fence) <= a.length &&
-                (i = index) >= 0 && i < (index = hi)) {
-                do { action.accept((E)a[i]); } while (++i < hi);
-            }
+            final int hi = getFence(), lo = index;
+            final Object[] a = array;
+            index = hi;                 // ensure exhaustion
+            for (int i = lo; i < hi; i++)
+                action.accept((E) a[i]);
         }
 
         public boolean tryAdvance(Consumer<? super E> action) {
             Objects.requireNonNull(action);
             if (getFence() > index && index >= 0) {
-                @SuppressWarnings("unchecked") E e = (E) array[index++];
-                action.accept(e);
+                action.accept((E) array[index++]);
                 return true;
             }
             return false;
@@ -978,7 +975,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      * @since 1.8
      */
     public Spliterator<E> spliterator() {
-        return new PBQSpliterator(null, 0, -1);
+        return new PBQSpliterator();
     }
 
     // VarHandle mechanics
