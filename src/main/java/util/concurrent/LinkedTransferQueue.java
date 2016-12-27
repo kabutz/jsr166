@@ -19,6 +19,7 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * An unbounded {@link TransferQueue} based on linked nodes.
@@ -966,6 +967,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             return e;
         }
 
+        // Default implementation of forEachRemaining is "good enough".
+
         public final void remove() {
             final Node lastRet = this.lastRet;
             if (lastRet == null)
@@ -1011,21 +1014,11 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         @SuppressWarnings("unchecked")
         public void forEachRemaining(Consumer<? super E> action) {
             Objects.requireNonNull(action);
-            Node p;
+            final Node p;
             if ((p = current()) != null) {
                 current = null;
                 exhausted = true;
-                do {
-                    final Object item = p.item;
-                    if (p.isData) {
-                        if (item != null)
-                            action.accept((E) item);
-                    }
-                    else if (item == null)
-                        break;
-                    if (p == (p = p.next))
-                        p = head;
-                } while (p != null);
+                forEachFrom(action, p);
             }
         }
 
@@ -1526,6 +1519,83 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             else
                 offer(item);
         }
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean removeIf(Predicate<? super E> filter) {
+        Objects.requireNonNull(filter);
+        return bulkRemove(filter);
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean removeAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> c.contains(e));
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean retainAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> !c.contains(e));
+    }
+
+    /** Implementation of bulk remove methods. */
+    @SuppressWarnings("unchecked")
+    private boolean bulkRemove(Predicate<? super E> filter) {
+        boolean removed = false;
+        restartFromHead: for (;;) {
+            for (Node pred = null, p = head; p != null; ) {
+                final Object item = p.item;
+                if (p.isData) {
+                    if (item != null
+                        && filter.test((E)item)
+                        && p.tryMatchData()) {
+                        removed = true;
+                        unsplice(pred, p);
+                        p = p.next;
+                        continue;
+                    }
+                }
+                else if (item == null)
+                    break;
+                if ((pred = p) == (p = p.next))
+                    continue restartFromHead;
+            }
+            return removed;
+        }
+    }
+
+    /**
+     * Runs action on each element found during a traversal starting at p.
+     * If p is null, traversal starts at head.
+     */
+    @SuppressWarnings("unchecked")
+    void forEachFrom(Consumer<? super E> action, Node p) {
+        while (p != null) {
+            final Object item = p.item;
+            if (p.isData) {
+                if (item != null)
+                    action.accept((E) item);
+            }
+            else if (item == null)
+                break;
+            if (p == (p = p.next))
+                p = head;
+        }
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public void forEach(Consumer<? super E> action) {
+        Objects.requireNonNull(action);
+        forEachFrom(action, head);
     }
 
     // VarHandle mechanics
