@@ -342,6 +342,20 @@ public class RemoveMicroBenchmark {
                         x.addAll(al);
                         x.removeIf(n -> { sum[0] += n; return true; });
                         check.sum(sum[0]);}}},
+            new Job(description + " .removeIf-rnd-two-pass") {
+                public void work() throws Throwable {
+                    ThreadLocalRandom rnd = ThreadLocalRandom.current();
+                    Collection<Integer> x = supplier.get();
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        x.addAll(al);
+                        x.removeIf(n -> {
+                            boolean b = rnd.nextBoolean();
+                            if (b) sum[0] += n;
+                            return b; });
+                        x.removeIf(n -> { sum[0] += n; return true; });
+                        check.sum(sum[0]);}}},
             new Job(description + " .removeAll") {
                 public void work() throws Throwable {
                     Collection<Integer> x = supplier.get();
