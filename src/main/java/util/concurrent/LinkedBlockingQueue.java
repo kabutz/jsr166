@@ -478,17 +478,17 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Unlinks interior Node p with predecessor trail.
+     * Unlinks interior Node p with predecessor pred.
      */
-    void unlink(Node<E> p, Node<E> trail) {
+    void unlink(Node<E> p, Node<E> pred) {
         // assert putLock.isHeldByCurrentThread();
         // assert takeLock.isHeldByCurrentThread();
         // p.next is not changed, to allow iterators that are
         // traversing p to maintain their weak-consistency guarantee.
         p.item = null;
-        trail.next = p.next;
+        pred.next = p.next;
         if (last == p)
-            last = trail;
+            last = pred;
         if (count.getAndDecrement() == capacity)
             notFull.signal();
     }
@@ -508,11 +508,11 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
         if (o == null) return false;
         fullyLock();
         try {
-            for (Node<E> trail = head, p = trail.next;
+            for (Node<E> pred = head, p = pred.next;
                  p != null;
-                 trail = p, p = p.next) {
+                 pred = p, p = p.next) {
                 if (o.equals(p.item)) {
-                    unlink(p, trail);
+                    unlink(p, pred);
                     return true;
                 }
             }
@@ -817,11 +817,11 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
             try {
                 Node<E> node = lastRet;
                 lastRet = null;
-                for (Node<E> trail = head, p = trail.next;
+                for (Node<E> pred = head, p = pred.next;
                      p != null;
-                     trail = p, p = p.next) {
+                     pred = p, p = p.next) {
                     if (p == node) {
-                        unlink(p, trail);
+                        unlink(p, pred);
                         break;
                     }
                 }
