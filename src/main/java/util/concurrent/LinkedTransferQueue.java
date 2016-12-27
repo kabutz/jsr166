@@ -1002,7 +1002,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                     p = null;
                     break;
                 }
-                if (p == (p = q)) p = firstDataNode();
+                if (p == (p = q))
+                    p = firstDataNode();
             } while (p != null && (q = p.next) != null && i < n);
             setCurrent(p);
             return (i == 0) ? null :
