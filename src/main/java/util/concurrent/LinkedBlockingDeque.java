@@ -260,6 +260,7 @@ public class LinkedBlockingDeque<E>
      */
     void unlink(Node<E> x) {
         // assert lock.isHeldByCurrentThread();
+        // assert x.item != null;
         Node<E> p = x.prev;
         Node<E> n = x.next;
         if (p == null) {
@@ -1389,7 +1390,6 @@ public class LinkedBlockingDeque<E>
                         final Node<E> q;
                         if ((deathRow & (1L << i)) != 0L
                             && (q = nodes[i]).item != null) {
-                            q.item = null;
                             unlink(q);
                             removed = true;
                         }
