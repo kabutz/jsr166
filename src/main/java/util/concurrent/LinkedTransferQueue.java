@@ -429,7 +429,6 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         volatile Node next;
         volatile Thread waiter; // null until waiting
 
-        // CAS methods for fields
         final boolean casNext(Node cmp, Node val) {
             return NEXT.compareAndSet(this, cmp, val);
         }
@@ -532,7 +531,6 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     /** The number of apparent failures to unsplice removed nodes */
     private transient volatile int sweepVotes;
 
-    // CAS methods for fields
     private boolean casTail(Node cmp, Node val) {
         return TAIL.compareAndSet(this, cmp, val);
     }
