@@ -997,7 +997,9 @@ public class LinkedBlockingDeque<E>
      * - (possibly multiple) interior removed nodes (p.item == null)
      */
     Node<E> succ(Node<E> p) {
-        return (p == (p = p.next)) ? first : p;
+        if (p == (p = p.next))
+            p = first;
+        return p;
     }
 
     /**
@@ -1054,7 +1056,9 @@ public class LinkedBlockingDeque<E>
         abstract Node<E> nextNode(Node<E> n);
 
         private Node<E> succ(Node<E> p) {
-            return (p == (p = nextNode(p))) ? firstNode() : p;
+            if (p == (p = nextNode(p)))
+                p = firstNode();
+            return p;
         }
 
         AbstractItr() {

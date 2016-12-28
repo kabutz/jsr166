@@ -711,7 +711,9 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
      * - (possibly multiple) interior removed nodes (p.item == null)
      */
     Node<E> succ(Node<E> p) {
-        return (p == (p = p.next)) ? head.next : p;
+        if (p == (p = p.next))
+            p = head.next;
+        return p;
     }
 
     /**

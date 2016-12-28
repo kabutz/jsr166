@@ -654,8 +654,9 @@ public class ConcurrentLinkedDeque<E>
      */
     final Node<E> succ(Node<E> p) {
         // TODO: should we skip deleted nodes here?
-        Node<E> q = p.next;
-        return (p == q) ? first() : q;
+        if (p == (p = p.next))
+            p = first();
+        return p;
     }
 
     /**
