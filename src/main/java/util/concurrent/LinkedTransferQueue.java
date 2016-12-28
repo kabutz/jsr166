@@ -568,9 +568,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             throw new NullPointerException();
         Node s = null;                        // the node to append, if needed
 
-        retry:
-        for (;;) {                            // restart on append race
-
+        restartFromHead: for (;;) {
             for (Node h = head, p = h; p != null;) { // find & match first node
                 boolean isData = p.isData;
                 Object item = p.item;
@@ -602,7 +600,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                     s = new Node(e);
                 Node pred = tryAppend(s, haveData);
                 if (pred == null)
-                    continue retry;           // lost race vs opposite mode
+                    continue restartFromHead; // lost race vs opposite mode
                 if (how != ASYNC)
                     return awaitMatch(s, pred, e, (how == TIMED), nanos);
             }
