@@ -1574,7 +1574,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
 
     /**
      * Runs action on each element found during a traversal starting at p.
-     * If p is null, traversal starts at head.
+     * If p is null, the action is not run.
      */
     @SuppressWarnings("unchecked")
     void forEachFrom(Consumer<? super E> action, Node p) {
