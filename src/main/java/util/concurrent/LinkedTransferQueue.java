@@ -544,6 +544,20 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         return SWEEPVOTES.compareAndSet(this, cmp, val);
     }
 
+    /**
+     * Tries to CAS pred.next (or head, if pred is null) from c to p.
+     */
+    private boolean tryCasSuccessor(Node pred, Node c, Node p) {
+        // assert c != p;
+        if (pred != null)
+            return pred.casNext(c, p);
+        if (casHead(c, p)) {
+            c.forgetNext();
+            return true;
+        }
+        return false;
+    }
+
     /*
      * Possible values for "how" argument in xfer method.
      */
@@ -1426,19 +1440,25 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         if (o == null)
             return false;
         restartFromHead: for (;;) {
-            for (Node pred = null, p = head; p != null; ) {
-                Object item = p.item;
-                if (p.isData) {
-                    if (item != null
-                        && o.equals(item)
-                        && p.tryMatchData()) {
-                        unsplice(pred, p);
+            for (Node p = head, c = p, pred = null, q; p != null; ) {
+                final Object item; boolean pAlive;
+                if (pAlive = (((item = p.item) != null) && p.isData)) {
+                    if (o.equals(item) && p.tryMatchData()) {
+                        if ((q = p.next) == null) q = p;
+                        if (c != q) tryCasSuccessor(pred, c, q);
                         return true;
                     }
                 }
-                else if (item == null)
+                else if (!p.isData && item == null)
                     break;
-                if ((pred = p) == (p = p.next))
+                if (c != p && tryCasSuccessor(pred, c, p))
+                    c = p;
+                q = p.next;
+                if (pAlive || c != p) {
+                    pred = p;
+                    p = c = q;
+                }
+                else if (p == (p = q))
                     continue restartFromHead;
             }
             return false;
@@ -1454,20 +1474,29 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @return {@code true} if this queue contains the specified element
      */
     public boolean contains(Object o) {
-        if (o != null) {
-            for (Node p = head; p != null; ) {
-                Object item = p.item;
-                if (p.isData) {
-                    if (item != null && o.equals(item))
+        if (o == null)
+            return false;
+        restartFromHead: for (;;) {
+            for (Node p = head, c = p, pred = null, q; p != null; ) {
+                final Object item; final boolean pAlive;
+                if (pAlive = (((item = p.item) != null) && p.isData)) {
+                    if (o.equals(item))
                         return true;
                 }
-                else if (item == null)
+                else if (!p.isData && item == null)
                     break;
-                if (p == (p = p.next))
-                    p = head;
+                if (c != p && tryCasSuccessor(pred, c, p))
+                    c = p;
+                q = p.next;
+                if (pAlive || c != p) {
+                    pred = p;
+                    p = c = q;
+                }
+                else if (p == (p = q))
+                    continue restartFromHead;
             }
+            return false;
         }
-        return false;
     }
 
     /**
@@ -1575,16 +1604,23 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      */
     @SuppressWarnings("unchecked")
     void forEachFrom(Consumer<? super E> action, Node p) {
-        while (p != null) {
-            final Object item = p.item;
-            if (p.isData) {
-                if (item != null)
-                    action.accept((E) item);
-            }
-            else if (item == null)
+        for (Node c = p, pred = null, q; p != null; ) {
+            final Object item; final boolean pAlive;
+            if (pAlive = (((item = p.item) != null) && p.isData))
+                action.accept((E) item);
+            else if (!p.isData && item == null)
                 break;
-            if (p == (p = p.next))
-                p = head;
+            if (c != p && tryCasSuccessor(pred, c, p))
+                c = p;
+            q = p.next;
+            if (pAlive || c != p) {
+                pred = p;
+                p = c = q;
+            }
+            else if (p == (p = q)) {
+                pred = null;
+                c = p = head;
+            }
         }
     }
 
