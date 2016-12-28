@@ -258,8 +258,9 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * stale pointer that is now off the list.
      */
     final Node<E> succ(Node<E> p) {
-        Node<E> next = p.next;
-        return (p == next) ? head : next;
+        if (p == (p = p.next))
+            p = head;
+        return p;
     }
 
     /**
