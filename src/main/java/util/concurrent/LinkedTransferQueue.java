@@ -454,7 +454,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
          * only after CASing head field, so uses relaxed write.
          */
         final void forgetNext() {
-            NEXT.set(this, this);
+            NEXT.setRelease(this, this);
         }
 
         /**
@@ -462,9 +462,10 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
          * to avoid garbage retention after matching or cancelling.
          * Uses relaxed writes because order is already constrained in
          * the only calling contexts: item is forgotten only after
-         * volatile/atomic mechanics that extract items.  Similarly,
-         * clearing waiter follows either CAS or return from park (if
-         * ever parked; else we don't care).
+         * volatile/atomic mechanics that extract items, and visitors
+         * of request nodes only ever check whether item is null.
+         * Similarly, clearing waiter follows either CAS or return
+         * from park (if ever parked; else we don't care).
          */
         final void forgetContents() {
             // assert isMatched();
