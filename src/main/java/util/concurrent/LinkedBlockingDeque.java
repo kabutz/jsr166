@@ -35,9 +35,8 @@ import java.util.function.Predicate;
  * contains}, {@link #iterator iterator.remove()}, and the bulk
  * operations, all of which run in linear time.
  *
- * <p>This class and its iterator implement all of the
- * <em>optional</em> methods of the {@link Collection} and {@link
- * Iterator} interfaces.
+ * <p>This class and its iterator implement all of the <em>optional</em>
+ * methods of the {@link Collection} and {@link Iterator} interfaces.
  *
  * <p>This class is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
