@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * An optionally-bounded {@linkplain BlockingQueue blocking queue} based on
@@ -982,6 +983,97 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
                 action.accept(e);
             }
         } while (n > 0 && p != null);
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean removeIf(Predicate<? super E> filter) {
+        Objects.requireNonNull(filter);
+        return bulkRemove(filter);
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean removeAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> c.contains(e));
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean retainAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> !c.contains(e));
+    }
+
+    /**
+     * Returns the predecessor of live node p, given a node that was
+     * once a live ancestor of p (or head); allows unlinking of p.
+     */
+    private Node<E> findPred(Node<E> p, Node<E> ancestor) {
+        // assert p.item != null;
+        if (ancestor.item == null)
+            ancestor = head;
+        // Fails with NPE if precondition not satisfied
+        for (Node<E> q; (q = ancestor.next) != p; )
+            ancestor = q;
+        return ancestor;
+    }
+
+    /** Implementation of bulk remove methods. */
+    @SuppressWarnings("unchecked")
+    private boolean bulkRemove(Predicate<? super E> filter) {
+        boolean removed = false;
+        Node<E> p = null, ancestor = head;
+        Node<E>[] nodes = null;
+        int n, len = 0;
+        do {
+            // 1. Extract batch of up to 64 elements while holding the lock.
+            long deathRow = 0;          // "bitset" of size 64
+            fullyLock();
+            try {
+                if (nodes == null) {
+                    if (p == null) p = head.next;
+                    for (Node<E> q = p; q != null; q = succ(q))
+                        if (q.item != null && ++len == 64)
+                            break;
+                    nodes = (Node<E>[]) new Node<?>[len];
+                }
+                for (n = 0; p != null && n < len; p = succ(p))
+                    nodes[n++] = p;
+            } finally {
+                fullyUnlock();
+            }
+
+            // 2. Run the filter on the elements while lock is free.
+            for (int i = 0; i < n; i++) {
+                final E e;
+                if ((e = nodes[i].item) != null && filter.test(e))
+                    deathRow |= 1L << i;
+            }
+
+            // 3. Remove any filtered elements while holding the lock.
+            if (deathRow != 0) {
+                fullyLock();
+                try {
+                    for (int i = 0; i < n; i++) {
+                        final Node<E> q;
+                        if ((deathRow & (1L << i)) != 0L
+                            && (q = nodes[i]).item != null) {
+                            ancestor = findPred(q, ancestor);
+                            unlink(q, ancestor);
+                            removed = true;
+                        }
+                    }
+                } finally {
+                    fullyUnlock();
+                }
+            }
+        } while (n > 0 && p != null);
+        return removed;
     }
 
     /**
