@@ -1023,7 +1023,6 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                                                    Spliterator.CONCURRENT));
         }
 
-        @SuppressWarnings("unchecked")
         public void forEachRemaining(Consumer<? super E> action) {
             Objects.requireNonNull(action);
             final Node p;
