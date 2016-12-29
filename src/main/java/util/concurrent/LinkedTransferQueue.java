@@ -579,7 +579,6 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     private E xfer(E e, boolean haveData, int how, long nanos) {
         if (haveData && (e == null))
             throw new NullPointerException();
-        Node s = null;                        // the node to append, if needed
 
         restartFromHead: for (;;) {
             for (Node h = head, p = h; p != null;) { // find & match first node
@@ -609,8 +608,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             }
 
             if (how != NOW) {                 // No matches available
-                if (s == null)
-                    s = new Node(e);
+                Node s = new Node(e);
                 Node pred = tryAppend(s, haveData);
                 if (pred == null)
                     continue restartFromHead; // lost race vs opposite mode
