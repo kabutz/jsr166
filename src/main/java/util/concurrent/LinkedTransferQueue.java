@@ -971,8 +971,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         }
 
         public final E next() {
-            Node p = nextNode;
-            if (p == null) throw new NoSuchElementException();
+            final Node p;
+            if ((p = nextNode) == null) throw new NoSuchElementException();
             E e = nextItem;
             advance(p);
             return e;
