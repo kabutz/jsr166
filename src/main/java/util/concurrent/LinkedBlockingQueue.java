@@ -730,16 +730,18 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
         return new Itr();
     }
 
+    /**
+     * Weakly-consistent iterator.
+     *
+     * Lazily updated ancestor field provides expected O(1) remove(),
+     * but still O(n) in the worst case, whenever the saved ancestor
+     * is concurrently deleted.
+     */
     private class Itr implements Iterator<E> {
-        /*
-         * Basic weakly-consistent iterator.  At all times hold the next
-         * item to hand out so that if hasNext() reports true, we will
-         * still have it to return even if lost race with a take etc.
-         */
-
-        private Node<E> next;
-        private E nextItem;
+        private Node<E> next;           // Node holding nextItem
+        private E nextItem;             // next item to hand out
         private Node<E> lastRet;
+        private Node<E> ancestor;       // Helps unlink lastRet on remove()
 
         Itr() {
             fullyLock();
@@ -814,19 +816,17 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
         }
 
         public void remove() {
-            if (lastRet == null)
+            Node<E> p = lastRet;
+            if (p == null)
                 throw new IllegalStateException();
+            lastRet = null;
             fullyLock();
             try {
-                Node<E> node = lastRet;
-                lastRet = null;
-                for (Node<E> pred = head, p = pred.next;
-                     p != null;
-                     pred = p, p = p.next) {
-                    if (p == node) {
-                        unlink(p, pred);
-                        break;
-                    }
+                if (p.item != null) {
+                    if (ancestor == null)
+                        ancestor = head;
+                    ancestor = findPred(p, ancestor);
+                    unlink(p, ancestor);
                 }
             } finally {
                 fullyUnlock();
@@ -1013,7 +1013,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
      * Returns the predecessor of live node p, given a node that was
      * once a live ancestor of p (or head); allows unlinking of p.
      */
-    private Node<E> findPred(Node<E> p, Node<E> ancestor) {
+    Node<E> findPred(Node<E> p, Node<E> ancestor) {
         // assert p.item != null;
         if (ancestor.item == null)
             ancestor = head;
