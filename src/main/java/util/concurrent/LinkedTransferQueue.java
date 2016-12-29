@@ -196,7 +196,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * (Similar issues arise in non-GC environments.)  To cope with
      * this in our implementation, upon CASing to advance the head
      * pointer, we set the "next" link of the previous head to point
-     * only to itself; thus limiting the length of connected dead lists.
+     * only to itself; thus limiting the length of chains of dead nodes.
      * (We also take similar care to wipe out possibly garbage
      * retaining values held in other Node fields.)  However, doing so
      * adds some further complexity to traversal: If any "next"
