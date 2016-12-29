@@ -404,11 +404,11 @@ public class RemoveMicroBenchmark {
                                 it.remove();
                             }
                         }
+                        it = x.iterator();
                         while (it.hasNext()) {
                             sum[0] += it.next();
                             it.remove();
                         }
-                        it = x.iterator();
                         check.sum(sum[0]);}}},
             new Job(description + " clear") {
                 public void work() throws Throwable {
