@@ -729,6 +729,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             }
         }
 
+        // Default implementation of forEachRemaining is "good enough".
+
         public void remove() {
             Node<E> l = lastRet;
             if (l == null) throw new IllegalStateException();
@@ -821,17 +823,11 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
 
         public void forEachRemaining(Consumer<? super E> action) {
             Objects.requireNonNull(action);
-            Node<E> p;
+            final Node<E> p;
             if ((p = current()) != null) {
                 current = null;
                 exhausted = true;
-                do {
-                    final E e;
-                    if ((e = p.item) != null)
-                        action.accept(e);
-                    if (p == (p = p.next))
-                        p = first();
-                } while (p != null);
+                forEachFrom(action, p);
             }
         }
 
@@ -966,27 +962,35 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     }
 
     /**
+     * Runs action on each element found during a traversal starting at p.
+     * If p is null, the action is not run.
+     */
+    @SuppressWarnings("unchecked")
+    void forEachFrom(Consumer<? super E> action, Node<E> p) {
+        for (Node<E> c = p, pred = null, q; p != null; ) {
+            final Object item; final boolean pAlive;
+            if (pAlive = ((item = p.item) != null))
+                action.accept((E) item);
+            if (c != p && tryCasSuccessor(pred, c, p))
+                c = p;
+            q = p.next;
+            if (pAlive || c != p) {
+                pred = p;
+                p = c = q;
+            }
+            else if (p == (p = q)) {
+                pred = null;
+                c = p = head;
+            }
+        }
+    }
+
+    /**
      * @throws NullPointerException {@inheritDoc}
      */
     public void forEach(Consumer<? super E> action) {
         Objects.requireNonNull(action);
-        restartFromHead: for (;;) {
-            for (Node<E> p = head, c = p, pred = null, q; p != null; p = q) {
-                final E item;
-                if ((item = p.item) != null)
-                    action.accept(item);
-                if (c != p && tryCasSuccessor(pred, c, p))
-                    c = p;
-                q = p.next;
-                if (item != null || c != p) {
-                    pred = p;
-                    c = q;
-                }
-                else if (p == q)
-                    continue restartFromHead;
-            }
-            return;
-        }
+        forEachFrom(action, head);
     }
 
     // VarHandle mechanics
