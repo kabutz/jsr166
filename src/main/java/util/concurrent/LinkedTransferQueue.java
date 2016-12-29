@@ -169,15 +169,15 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * with a given probability per traversal step.
      *
      * In any strategy along these lines, because CASes updating
-     * fields may fail, the actual slack may exceed targeted
-     * slack. However, they may be retried at any time to maintain
-     * targets.  Even when using very small slack values, this
-     * approach works well for dual queues because it allows all
-     * operations up to the point of matching or appending an item
-     * (hence potentially allowing progress by another thread) to be
-     * read-only, thus not introducing any further contention. As
-     * described below, we implement this by performing slack
-     * maintenance retries only after these points.
+     * fields may fail, the actual slack may exceed targeted slack.
+     * However, they may be retried at any time to maintain targets.
+     * Even when using very small slack values, this approach works
+     * well for dual queues because it allows all operations up to the
+     * point of matching or appending an item (hence potentially
+     * allowing progress by another thread) to be read-only, thus not
+     * introducing any further contention.  As described below, we
+     * implement this by performing slack maintenance retries only
+     * after these points.
      *
      * As an accompaniment to such techniques, traversal overhead can
      * be further reduced without increasing contention of head
