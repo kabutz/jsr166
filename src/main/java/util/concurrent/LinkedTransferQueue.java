@@ -271,10 +271,10 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      *    attempt advances head by two (if applicable), we ensure that
      *    the slack does not grow without bound. Traversals also check
      *    if the initial head is now off-list, in which case they
-     *    start at the new head.
+     *    restart at the new head.
      *
      *    If no candidates are found and the call was untimed
-     *    poll/offer, (argument "how" is NOW) return.
+     *    poll/offer (argument "how" is NOW), return.
      *
      * 2. Try to append a new node (method tryAppend)
      *
