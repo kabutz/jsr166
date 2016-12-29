@@ -423,7 +423,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     public boolean contains(Object o) {
         if (o == null) return false;
         restartFromHead: for (;;) {
-            for (Node<E> p = head, c = p, pred = null, q; p != null; p = q) {
+            for (Node<E> p = head, c = p, pred = null, q; p != null; ) {
                 final E item;
                 if ((item = p.item) != null && o.equals(item))
                     return true;
@@ -432,9 +432,9 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                 q = p.next;
                 if (item != null || c != p) {
                     pred = p;
-                    c = q;
+                    p = c = q;
                 }
-                else if (p == q)
+                else if (p == (p = q))
                     continue restartFromHead;
             }
             return false;
@@ -455,7 +455,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     public boolean remove(Object o) {
         if (o == null) return false;
         restartFromHead: for (;;) {
-            for (Node<E> p = head, c = p, pred = null, q; p != null; p = q) {
+            for (Node<E> p = head, c = p, pred = null, q; p != null; ) {
                 final E item;
                 final boolean removed =
                     (item = p.item) != null
@@ -468,9 +468,9 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                 q = p.next;
                 if (item != null || c != p) {
                     pred = p;
-                    c = q;
+                    p = c = q;
                 }
-                else if (p == q)
+                else if (p == (p = q))
                     continue restartFromHead;
             }
             return false;
