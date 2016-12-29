@@ -397,15 +397,16 @@ public class RemoveMicroBenchmark {
                     for (int i = 0; i < iterations; i++) {
                         sum[0] = 0;
                         x.addAll(al);
-                        Iterator<Integer> it = x.iterator();
-                        while (it.hasNext()) {
+                        for (Iterator<Integer> it = x.iterator();
+                             it.hasNext(); ) {
+                            Integer e = it.next();
                             if (rnd.nextBoolean()) {
-                                sum[0] += it.next();
+                                sum[0] += e;
                                 it.remove();
                             }
                         }
-                        it = x.iterator();
-                        while (it.hasNext()) {
+                        for (Iterator<Integer> it = x.iterator();
+                             it.hasNext(); ) {
                             sum[0] += it.next();
                             it.remove();
                         }
