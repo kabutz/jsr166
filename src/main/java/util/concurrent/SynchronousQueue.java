@@ -47,9 +47,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * is not guaranteed. However, a queue constructed with fairness set
  * to {@code true} grants threads access in FIFO order.
  *
- * <p>This class and its iterator implement all of the
- * <em>optional</em> methods of the {@link Collection} and {@link
- * Iterator} interfaces.
+ * <p>This class and its iterator implement all of the <em>optional</em>
+ * methods of the {@link Collection} and {@link Iterator} interfaces.
  *
  * <p>This class is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">

@@ -31,11 +31,11 @@ import java.util.concurrent.locks.ReentrantLock;
  * returns the count of both expired and unexpired elements.
  * This queue does not permit null elements.
  *
- * <p>This class and its iterator implement all of the
- * <em>optional</em> methods of the {@link Collection} and {@link
- * Iterator} interfaces.  The Iterator provided in method {@link
- * #iterator()} is <em>not</em> guaranteed to traverse the elements of
- * the DelayQueue in any particular order.
+ * <p>This class and its iterator implement all of the <em>optional</em>
+ * methods of the {@link Collection} and {@link Iterator} interfaces.
+ * The Iterator provided in method {@link #iterator()} is <em>not</em>
+ * guaranteed to traverse the elements of the DelayQueue in any
+ * particular order.
  *
  * <p>This class is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">

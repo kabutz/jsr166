@@ -34,16 +34,15 @@ import java.util.function.Consumer;
  * non-comparable objects (doing so results in
  * {@code ClassCastException}).
  *
- * <p>This class and its iterator implement all of the
- * <em>optional</em> methods of the {@link Collection} and {@link
- * Iterator} interfaces.  The Iterator provided in method {@link
- * #iterator()} and the Spliterator provided in method {@link #spliterator()}
- * are <em>not</em> guaranteed to traverse the elements of
- * the PriorityBlockingQueue in any particular order. If you need
- * ordered traversal, consider using
- * {@code Arrays.sort(pq.toArray())}.  Also, method {@code drainTo}
- * can be used to <em>remove</em> some or all elements in priority
- * order and place them in another collection.
+ * <p>This class and its iterator implement all of the <em>optional</em>
+ * methods of the {@link Collection} and {@link Iterator} interfaces.
+ * The Iterator provided in method {@link #iterator()} and the
+ * Spliterator provided in method {@link #spliterator()} are <em>not</em>
+ * guaranteed to traverse the elements of the PriorityBlockingQueue in
+ * any particular order. If you need ordered traversal, consider using
+ * {@code Arrays.sort(pq.toArray())}.  Also, method {@code drainTo} can
+ * be used to <em>remove</em> some or all elements in priority order and
+ * place them in another collection.
  *
  * <p>Operations on this class make no guarantees about the ordering
  * of elements with equal priority. If you need to enforce an
