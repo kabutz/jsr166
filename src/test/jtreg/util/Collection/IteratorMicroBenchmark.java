@@ -339,8 +339,9 @@ public class IteratorMicroBenchmark {
             new Job(klazz + " .contains") {
                 public void work() throws Throwable {
                     int[] sum = new int[1];
-                    Object y = new Object() { public boolean equals(Object z) {
-                        sum[0] += (int) z; return false; }};
+                    Object y = new Object() {
+                        public boolean equals(Object z) {
+                            sum[0] += (int) z; return false; }};
                     for (int i = 0; i < iterations; i++) {
                         sum[0] = 0;
                         x.contains(y);
