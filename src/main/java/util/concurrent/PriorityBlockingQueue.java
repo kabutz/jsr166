@@ -408,15 +408,14 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      */
     private void heapify() {
         Object[] array = queue;
-        int n = size;
-        int half = (n >>> 1) - 1;
+        int n = size, i = (n >>> 1) - 1;
         Comparator<? super E> cmp = comparator;
         if (cmp == null) {
-            for (int i = half; i >= 0; i--)
+            for (; i >= 0; i--)
                 siftDownComparable(i, (E) array[i], array, n);
         }
         else {
-            for (int i = half; i >= 0; i--)
+            for (; i >= 0; i--)
                 siftDownUsingComparator(i, (E) array[i], array, n, cmp);
         }
     }
