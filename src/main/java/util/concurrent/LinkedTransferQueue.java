@@ -1571,26 +1571,48 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         return bulkRemove(e -> !c.contains(e));
     }
 
+    public void clear() {
+        bulkRemove(e -> true);
+    }
+
+    /**
+     * Tolerate this many consecutive dead nodes before CAS-collapsing.
+     * Amortized cost of clear() is (1 + 1/MAX_HOPS) CASes per element.
+     */
+    private static final int MAX_HOPS = 8;
+
     /** Implementation of bulk remove methods. */
     @SuppressWarnings("unchecked")
     private boolean bulkRemove(Predicate<? super E> filter) {
         boolean removed = false;
         restartFromHead: for (;;) {
-            for (Node pred = null, p = head; p != null; ) {
-                final Object item = p.item;
-                if (p.isData) {
-                    if (item != null
-                        && filter.test((E)item)
-                        && p.tryMatchData()) {
-                        removed = true;
-                        unsplice(pred, p);
-                        p = p.next;
-                        continue;
+            int hops = MAX_HOPS;
+            // c will be CASed to collapse intervening dead nodes between
+            // pred (or head if null) and p.
+            for (Node p = head, c = p, pred = null, q; p != null; p = q) {
+                final Object item; boolean pAlive;
+                if (pAlive = (((item = p.item) != null) && p.isData)) {
+                    if (filter.test((E) item)) {
+                        if (p.tryMatchData())
+                            removed = true;
+                        pAlive = false;
                     }
                 }
-                else if (item == null)
+                else if (!p.isData && item == null)
                     break;
-                if ((pred = p) == (p = p.next))
+                if ((q = p.next) == null || pAlive || --hops == 0) {
+                    // p might already be self-linked here, but if so:
+                    // - CASing head will surely fail
+                    // - CASing pred's next will be useless but harmless.
+                    if (c != p && tryCasSuccessor(pred, c, p))
+                        c = p;
+                    // if c != p, CAS failed, so abandon old pred
+                    if (pAlive || c != p) {
+                        hops = MAX_HOPS;
+                        pred = p;
+                        c = q;
+                    }
+                } else if (p == q)
                     continue restartFromHead;
             }
             return removed;
