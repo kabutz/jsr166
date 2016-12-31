@@ -4,9 +4,11 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.locks.*;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public final class SimpleFairReentrantLockLoops {
     static final ExecutorService pool = Executors.newCachedThreadPool();
