@@ -84,7 +84,7 @@ public final class LockOncePerThreadLoops {
                 for (int i = 0; i < locks.length; ++i) {
                     locks[i].lock();
                     try {
-                            v = x += ~(v - i);
+                        v = x += ~(v - i);
                     }
                     finally {
                         locks[i].unlock();
