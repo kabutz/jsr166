@@ -253,8 +253,8 @@ public class MultipleProducersSingleConsumerLoops {
     static final class LTQasSQ<T> extends LinkedTransferQueue<T> {
         LTQasSQ() { super(); }
         public void put(T x) {
-            try { super.transfer(x);
-            } catch (InterruptedException ex) { throw new Error(); }
+            try { super.transfer(x); }
+            catch (InterruptedException ex) { throw new Error(ex); }
         }
     }
 
@@ -265,10 +265,8 @@ public class MultipleProducersSingleConsumerLoops {
             if ((++calls & 1) == 0)
                 super.put(x);
             else {
-                try { super.transfer(x);
-                } catch (InterruptedException ex) {
-                    throw new Error();
-                }
+                try { super.transfer(x); }
+                catch (InterruptedException ex) { throw new Error(ex); }
             }
         }
     }
