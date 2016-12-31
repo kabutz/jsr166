@@ -4,7 +4,6 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CyclicBarrier;
