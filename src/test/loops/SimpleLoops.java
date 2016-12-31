@@ -3,9 +3,10 @@
  * Expert Group and released to the public domain, as explained at
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.locks.*;
+
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public final class SimpleLoops {
     static final ExecutorService pool = Executors.newCachedThreadPool();

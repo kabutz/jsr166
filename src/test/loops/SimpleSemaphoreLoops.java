@@ -4,9 +4,10 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.locks.*;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 
 public final class SimpleSemaphoreLoops {
     static final ExecutorService pool = Executors.newCachedThreadPool();
