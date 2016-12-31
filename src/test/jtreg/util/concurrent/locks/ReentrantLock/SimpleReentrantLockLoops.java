@@ -104,7 +104,7 @@ public final class SimpleReentrantLockLoops {
                 barrier.await();
                 result += sum;
             }
-            catch (Exception ie) {
+            catch (Exception ex) {
                 return;
             }
         }

@@ -42,8 +42,8 @@ public class Basic {
         try {
             equal(phase, phaser.awaitAdvanceInterruptibly(0));
             equal(phase, phaser.awaitAdvanceInterruptibly(0, 10, SECONDS));
-        } catch (Exception ie) {
-            unexpected(ie);
+        } catch (Exception ex) {
+            unexpected(ex);
         }
         equal(phaser.getUnarrivedParties(), unarriverParties);
         equal(phaser.getRegisteredParties(), registeredParties);

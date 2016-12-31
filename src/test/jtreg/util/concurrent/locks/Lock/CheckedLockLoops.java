@@ -123,7 +123,7 @@ public final class CheckedLockLoops {
                 result += loop(iters);
                 barrier.await();
             }
-            catch (Exception ie) {
+            catch (Exception ex) {
                 return;
             }
         }

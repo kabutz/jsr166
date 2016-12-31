@@ -89,8 +89,8 @@ public class ExchangeLoops {
                 barrier.await();
 
             }
-            catch (Exception ie) {
-                ie.printStackTrace();
+            catch (Exception ex) {
+                ex.printStackTrace();
                 return;
             }
         }

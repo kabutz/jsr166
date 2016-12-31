@@ -99,7 +99,7 @@ public final class LockOncePerThreadLoops {
                 barrier.await();
                 result += sum;
             }
-            catch (Exception ie) {
+            catch (Exception ex) {
                 return;
             }
         }
