@@ -21,7 +21,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 public class OfferPollLoops {
     static final int NCPUS = Runtime.getRuntime().availableProcessors();
-    static final Random rng = new Random();
     static final ExecutorService pool = Executors.newCachedThreadPool();
     static boolean print = false;
     static int producerSum;
