@@ -26,11 +26,11 @@
  * if this program is called with (any) second argument
  */
 
-import java.util.concurrent.*;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.*;
+import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 public class CASLoops {
 
