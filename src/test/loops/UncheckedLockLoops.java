@@ -8,9 +8,11 @@
  * @summary basic safety and liveness of ReentrantLocks, and other locks based on them
  */
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.locks.*;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public final class UncheckedLockLoops {
     static final LoopHelpers.SimpleRandom rng = new LoopHelpers.SimpleRandom();
