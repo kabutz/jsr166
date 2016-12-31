@@ -202,7 +202,7 @@ public class IteratorWeakConsistency {
                         it.remove();
                 }
                 break;
-            default: throw new Error();
+            default: throw new AssertionError();
             }
 
             for (int i = 0; i < capacity; i++) {

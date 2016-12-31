@@ -59,15 +59,13 @@ public class IteratorConsistency {
     }
 
     Object itrs(ArrayBlockingQueue q) {
-        try {
-            return itrsField.get(q);
-        } catch (Throwable t) { throw new Error(); }
+        try { return itrsField.get(q); }
+        catch (Throwable ex) { throw new AssertionError(ex); }
     }
 
     int takeIndex(ArrayBlockingQueue q) {
-        try {
-            return takeIndexField.getInt(q);
-        } catch (Throwable t) { throw new Error(); }
+        try { return takeIndexField.getInt(q); }
+        catch (Throwable ex) { throw new AssertionError(ex); }
     }
 
     List<Iterator> trackedIterators(Object itrs) {
@@ -78,7 +76,7 @@ public class IteratorConsistency {
                     its.add(((WeakReference<Iterator>)(p)).get());
             Collections.reverse(its);
             return its;
-        } catch (Throwable t) { throw new Error(); }
+        } catch (Throwable ex) { throw new AssertionError(ex); }
     }
 
     List<Iterator> trackedIterators(ArrayBlockingQueue q) {
@@ -96,7 +94,7 @@ public class IteratorConsistency {
                 }
             Collections.reverse(its);
             return its;
-        } catch (Throwable t) { unexpected(t); return null; }
+        } catch (Throwable ex) { unexpected(ex); return null; }
     }
 
     List<Iterator> attachedIterators(ArrayBlockingQueue q) {
@@ -104,9 +102,8 @@ public class IteratorConsistency {
     }
 
     Object[] internalArray(ArrayBlockingQueue q) {
-        try {
-            return (Object[]) itemsField.get(q);
-        } catch (Throwable t) { throw new Error(t); }
+        try { return (Object[]) itemsField.get(q); }
+        catch (Throwable ex) { throw new AssertionError(ex); }
     }
 
     void printInternalArray(ArrayBlockingQueue q) {
@@ -417,7 +414,7 @@ public class IteratorConsistency {
                 }
                 equal(attachedIterators(q), its);
                 break;
-            default: throw new Error();
+            default: throw new AssertionError();
             }
 
             for (int i = 0; i < capacity; i++) {
@@ -594,7 +591,7 @@ public class IteratorConsistency {
                     check(!q.contains(i));
                     equal(q.size(), size - 1);
                     break;
-                default: throw new Error();
+                default: throw new AssertionError();
                 }
                 checkRemoveThrowsISE(it);
                 check(isDetached(it));
