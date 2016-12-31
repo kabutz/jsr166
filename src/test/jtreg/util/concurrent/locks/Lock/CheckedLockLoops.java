@@ -13,11 +13,11 @@
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-import java.util.SplittableRandom;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -26,7 +26,6 @@ import jdk.testlibrary.Utils;
 public final class CheckedLockLoops {
     static final long LONG_DELAY_MS = Utils.adjustTimeout(10_000);
     static ExecutorService pool;
-    static final SplittableRandom rnd = new SplittableRandom();
 
     public static void main(String[] args) throws Exception {
         final int maxThreads = (args.length > 0)
@@ -46,7 +45,7 @@ public final class CheckedLockLoops {
 
     static void oneTest(int nthreads, int iters) throws Exception {
         System.out.println("Threads: " + nthreads);
-        int v = rnd.nextInt();
+        int v = ThreadLocalRandom.current().nextInt();
         System.out.print("builtin lock          ");
         new BuiltinLockLoop().test(v, nthreads, iters);
 
