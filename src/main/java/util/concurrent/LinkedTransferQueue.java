@@ -1440,7 +1440,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         restartFromHead: for (;;) {
             for (Node p = head, c = p, pred = null, q; p != null; ) {
                 final Object item; boolean pAlive;
-                if (pAlive = (((item = p.item) != null) && p.isData)) {
+                if (pAlive = ((item = p.item) != null && p.isData)) {
                     if (o.equals(item) && p.tryMatchData()) {
                         if ((q = p.next) == null) q = p;
                         if (c != q) tryCasSuccessor(pred, c, q);
@@ -1477,7 +1477,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         restartFromHead: for (;;) {
             for (Node p = head, c = p, pred = null, q; p != null; ) {
                 final Object item; final boolean pAlive;
-                if (pAlive = (((item = p.item) != null) && p.isData)) {
+                if (pAlive = ((item = p.item) != null && p.isData)) {
                     if (o.equals(item))
                         return true;
                 }
@@ -1590,7 +1590,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             // pred (or head if null) and p.
             for (Node p = head, c = p, pred = null, q; p != null; p = q) {
                 final Object item; boolean pAlive;
-                if (pAlive = (((item = p.item) != null) && p.isData)) {
+                if (pAlive = ((item = p.item) != null && p.isData)) {
                     if (filter.test((E) item)) {
                         if (p.tryMatchData())
                             removed = true;
@@ -1626,7 +1626,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     void forEachFrom(Consumer<? super E> action, Node p) {
         for (Node c = p, pred = null, q; p != null; ) {
             final Object item; final boolean pAlive;
-            if (pAlive = (((item = p.item) != null) && p.isData))
+            if (pAlive = ((item = p.item) != null && p.isData))
                 action.accept((E) item);
             else if (!p.isData && item == null)
                 break;
