@@ -1106,7 +1106,7 @@ public class LinkedBlockingDeque<E>
             lastRet = p;
             next = null;
             final ReentrantLock lock = LinkedBlockingDeque.this.lock;
-            final int batchSize = 32;
+            final int batchSize = 64;
             Object[] es = null;
             int n, len = 1;
             do {
@@ -1300,7 +1300,7 @@ public class LinkedBlockingDeque<E>
         // Extract batches of elements while holding the lock; then
         // run the action on the elements while not
         final ReentrantLock lock = this.lock;
-        final int batchSize = 32;       // max number of elements per batch
+        final int batchSize = 64;       // max number of elements per batch
         Object[] es = null;             // container for batch of elements
         int n, len = 0;
         do {
