@@ -895,72 +895,46 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         return (T[]) toArrayInternal(a);
     }
 
+    /**
+     * Weakly-consistent iterator.
+     *
+     * Lazily updated ancestor is expected to be amortized O(1) remove(),
+     * but O(n) in the worst case, when lastRet is concurrently deleted.
+     */
     final class Itr implements Iterator<E> {
         private Node nextNode;   // next node to return item for
         private E nextItem;      // the corresponding item
         private Node lastRet;    // last returned node, to support remove
-        private Node lastPred;   // predecessor to unlink lastRet
+        private Node ancestor;   // Helps unlink lastRet on remove()
 
         /**
-         * Moves to next node after prev, or first node if prev null.
+         * Moves to next node after pred, or first node if pred null.
          */
-        private void advance(Node prev) {
-            /*
-             * To track and avoid buildup of deleted nodes in the face
-             * of calls to both Queue.remove and Itr.remove, we must
-             * include variants of unsplice and sweep upon each
-             * advance: Upon Itr.remove, we may need to catch up links
-             * from lastPred, and upon other removes, we might need to
-             * skip ahead from stale nodes and unsplice deleted ones
-             * found while advancing.
-             */
-
-            Node r, b; // reset lastPred upon possible deletion of lastRet
-            if ((r = lastRet) != null && !r.isMatched())
-                lastPred = r;    // next lastPred is old lastRet
-            else if ((b = lastPred) == null || b.isMatched())
-                lastPred = null; // at start of list
-            else {
-                Node s, n;       // help with removal of lastPred.next
-                while ((s = b.next) != null &&
-                       s != b && s.isMatched() &&
-                       (n = s.next) != null && n != s)
-                    b.casNext(s, n);
-            }
-
-            this.lastRet = prev;
-
-            for (Node p = prev, s, n;;) {
-                s = (p == null) ? head : p.next;
-                if (s == null)
-                    break;
-                else if (s == p) {
-                    p = null;
-                    continue;
+        @SuppressWarnings("unchecked")
+        private void advance(Node pred) {
+            for (Node p = (pred == null) ? head : pred.next, c = p;
+                 p != null; ) {
+                final Object item;
+                if ((item = p.item) != null && p.isData) {
+                    nextNode = p;
+                    nextItem = (E) item;
+                    if (c != p)
+                        tryCasSuccessor(pred, c, p);
+                    return;
                 }
-                Object item = s.item;
-                if (s.isData) {
-                    if (item != null) {
-                        @SuppressWarnings("unchecked") E itemE = (E) item;
-                        nextItem = itemE;
-                        nextNode = s;
-                        return;
-                    }
+                else if (!p.isData && item == null)
+                    break;
+                if (c != p && !tryCasSuccessor(pred, c, c = p)) {
+                    pred = p;
+                    c = p = p.next;
                 }
-                else if (item == null)
-                    break;
-                // assert s.isMatched();
-                if (p == null)
-                    p = s;
-                else if ((n = s.next) == null)
-                    break;
-                else if (s == n)
-                    p = null;
-                else
-                    p.casNext(s, n);
+                else if (p == (p = p.next)) {
+                    pred = null;
+                    c = p = head;
+                }
             }
-            nextNode = null;
             nextItem = null;
+            nextNode = null;
         }
 
         Itr() {
@@ -975,19 +949,57 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             final Node p;
             if ((p = nextNode) == null) throw new NoSuchElementException();
             E e = nextItem;
-            advance(p);
+            advance(lastRet = p);
             return e;
         }
 
-        // Default implementation of forEachRemaining is "good enough".
+        public void forEachRemaining(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
+            Node q = null;
+            for (Node p; (p = nextNode) != null; advance(q = p))
+                action.accept(nextItem);
+            if (q != null)
+                lastRet = q;
+        }
 
         public final void remove() {
             final Node lastRet = this.lastRet;
             if (lastRet == null)
                 throw new IllegalStateException();
             this.lastRet = null;
-            if (lastRet.tryMatchData())
-                unsplice(lastPred, lastRet);
+            if (lastRet.item == null)   // already deleted?
+                return;
+            // Advance ancestor, collapsing intervening dead nodes
+            Node pred = ancestor;
+            for (Node p = (pred == null) ? head : pred.next, c = p, q;
+                 p != null; ) {
+                if (p == lastRet) {
+                    p.tryMatchData();
+                    if ((q = p.next) == null) q = p;
+                    if (c != q) tryCasSuccessor(pred, c, q);
+                    ancestor = pred;
+                    return;
+                }
+                final Object item; final boolean pAlive;
+                if (pAlive = ((item = p.item) != null && p.isData)) {
+                    // exceptionally, nothing to do
+                }
+                else if (!p.isData && item == null)
+                    break;
+                if ((c != p && !tryCasSuccessor(pred, c, c = p)) || pAlive) {
+                    pred = p;
+                    c = p = p.next;
+                }
+                else if (p == (p = p.next)) {
+                    pred = null;
+                    c = p = head;
+                }
+            }
+            // traversal failed to find lastRet; must have been deleted;
+            // leave ancestor at original location to avoid overshoot;
+            // better luck next time!
+
+            // assert lastRet.isMatched();
         }
     }
 
@@ -1451,14 +1463,11 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 }
                 else if (!p.isData && item == null)
                     break;
-                if (c != p && tryCasSuccessor(pred, c, p))
-                    c = p;
-                q = p.next;
-                if (pAlive || c != p) {
+                if ((c != p && !tryCasSuccessor(pred, c, c = p)) || pAlive) {
                     pred = p;
-                    p = c = q;
+                    c = p = p.next;
                 }
-                else if (p == (p = q))
+                else if (p == (p = p.next))
                     continue restartFromHead;
             }
             return false;
@@ -1477,7 +1486,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         if (o == null)
             return false;
         restartFromHead: for (;;) {
-            for (Node p = head, c = p, pred = null, q; p != null; ) {
+            for (Node p = head, c = p, pred = null; p != null; ) {
                 final Object item; final boolean pAlive;
                 if (pAlive = ((item = p.item) != null && p.isData)) {
                     if (o.equals(item))
@@ -1485,14 +1494,11 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 }
                 else if (!p.isData && item == null)
                     break;
-                if (c != p && tryCasSuccessor(pred, c, p))
-                    c = p;
-                q = p.next;
-                if (pAlive || c != p) {
+                if ((c != p && !tryCasSuccessor(pred, c, c = p)) || pAlive) {
                     pred = p;
-                    p = c = q;
+                    c = p = p.next;
                 }
-                else if (p == (p = q))
+                else if (p == (p = p.next))
                     continue restartFromHead;
             }
             return false;
@@ -1605,10 +1611,9 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                     // p might already be self-linked here, but if so:
                     // - CASing head will surely fail
                     // - CASing pred's next will be useless but harmless.
-                    if (c != p && tryCasSuccessor(pred, c, p))
-                        c = p;
-                    // if c != p, CAS failed, so abandon old pred
-                    if (pAlive || c != p) {
+                    if ((c != p && !tryCasSuccessor(pred, c, c = p))
+                        || pAlive) {
+                        // if CAS failed or alive, abandon old pred
                         hops = MAX_HOPS;
                         pred = p;
                         c = q;
@@ -1626,20 +1631,17 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      */
     @SuppressWarnings("unchecked")
     void forEachFrom(Consumer<? super E> action, Node p) {
-        for (Node c = p, pred = null, q; p != null; ) {
+        for (Node c = p, pred = null; p != null; ) {
             final Object item; final boolean pAlive;
             if (pAlive = ((item = p.item) != null && p.isData))
                 action.accept((E) item);
             else if (!p.isData && item == null)
                 break;
-            if (c != p && tryCasSuccessor(pred, c, p))
-                c = p;
-            q = p.next;
-            if (pAlive || c != p) {
+            if ((c != p && !tryCasSuccessor(pred, c, c = p)) || pAlive) {
                 pred = p;
-                p = c = q;
+                c = p = p.next;
             }
-            else if (p == (p = q)) {
+            else if (p == (p = p.next)) {
                 pred = null;
                 c = p = head;
             }
