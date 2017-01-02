@@ -545,8 +545,10 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
 
     /**
      * Tries to CAS pred.next (or head, if pred is null) from c to p.
+     * Caller must ensure that we're not unlinking the trailing node.
      */
     private boolean tryCasSuccessor(Node pred, Node c, Node p) {
+        // assert p != null;
         // assert c != p;
         if (pred != null)
             return pred.casNext(c, p);

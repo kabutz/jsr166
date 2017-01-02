@@ -265,8 +265,10 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
 
     /**
      * Tries to CAS pred.next (or head, if pred is null) from c to p.
+     * Caller must ensure that we're not unlinking the trailing node.
      */
     private boolean tryCasSuccessor(Node<E> pred, Node<E> c, Node<E> p) {
+        // assert p != null;
         // assert c.item == null;
         // assert c != p;
         if (pred != null)
