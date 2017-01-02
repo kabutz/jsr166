@@ -605,8 +605,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                         return itemE;
                     }
                 }
-                Node n = p.next;
-                p = (p != n) ? n : (h = head); // Use head if p offlist
+                if (p == (p = p.next))
+                    continue restartFromHead;
             }
 
             if (how != NOW) {                 // No matches available
