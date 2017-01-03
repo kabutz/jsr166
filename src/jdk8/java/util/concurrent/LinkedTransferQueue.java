@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -549,6 +550,22 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         return U.compareAndSwapInt(this, SWEEPVOTES, cmp, val);
     }
 
+    /**
+     * Tries to CAS pred.next (or head, if pred is null) from c to p.
+     * Caller must ensure that we're not unlinking the trailing node.
+     */
+    private boolean tryCasSuccessor(Node pred, Node c, Node p) {
+        // assert p != null;
+        // assert c != p;
+        if (pred != null)
+            return pred.casNext(c, p);
+        if (casHead(c, p)) {
+            c.forgetNext();
+            return true;
+        }
+        return false;
+    }
+
     /*
      * Possible values for "how" argument in xfer method.
      */
@@ -989,7 +1006,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /** A customized variant of Spliterators.IteratorSpliterator */
-    final class LTQSpliterator<E> implements Spliterator<E> {
+    final class LTQSpliterator implements Spliterator<E> {
         static final int MAX_BATCH = 1 << 25;  // max batch array size;
         Node current;       // current node; null until initialized
         int batch;          // batch size for splits
@@ -997,79 +1014,87 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         LTQSpliterator() {}
 
         public Spliterator<E> trySplit() {
-            Node p;
-            int b = batch;
-            int n = (b <= 0) ? 1 : (b >= MAX_BATCH) ? MAX_BATCH : b + 1;
-            if (!exhausted &&
-                ((p = current) != null || (p = firstDataNode()) != null) &&
-                p.next != null) {
-                Object[] a = new Object[n];
-                int i = 0;
-                do {
-                    Object e = p.item;
-                    if (e != p && (a[i] = e) != null)
-                        ++i;
-                    if (p == (p = p.next))
-                        p = firstDataNode();
-                } while (p != null && i < n && p.isData);
-                if ((current = p) == null)
-                    exhausted = true;
-                if (i > 0) {
-                    batch = i;
-                    return Spliterators.spliterator
-                        (a, 0, i, (Spliterator.ORDERED |
-                                   Spliterator.NONNULL |
-                                   Spliterator.CONCURRENT));
+            Node p, q;
+            if ((p = current()) == null || (q = p.next) == null)
+                return null;
+            int i = 0, n = batch = Math.min(batch + 1, MAX_BATCH);
+            Object[] a = null;
+            do {
+                final Object item = p.item;
+                if (p.isData) {
+                    if (item != null)
+                        ((a != null) ? a : (a = new Object[n]))[i++] = item;
+                } else if (item == null) {
+                    p = null;
+                    break;
                 }
-            }
-            return null;
+                if (p == (p = q))
+                    p = firstDataNode();
+            } while (p != null && (q = p.next) != null && i < n);
+            setCurrent(p);
+            return (i == 0) ? null :
+                Spliterators.spliterator(a, 0, i, (Spliterator.ORDERED |
+                                                   Spliterator.NONNULL |
+                                                   Spliterator.CONCURRENT));
         }
 
-        @SuppressWarnings("unchecked")
         public void forEachRemaining(Consumer<? super E> action) {
-            Node p;
-            if (action == null) throw new NullPointerException();
-            if (!exhausted &&
-                ((p = current) != null || (p = firstDataNode()) != null)) {
+            Objects.requireNonNull(action);
+            final Node p;
+            if ((p = current()) != null) {
+                current = null;
                 exhausted = true;
-                do {
-                    Object e = p.item;
-                    if (e != null && e != p)
-                        action.accept((E)e);
-                    if (p == (p = p.next))
-                        p = firstDataNode();
-                } while (p != null && p.isData);
+                forEachFrom(action, p);
             }
         }
 
         @SuppressWarnings("unchecked")
         public boolean tryAdvance(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
             Node p;
-            if (action == null) throw new NullPointerException();
-            if (!exhausted &&
-                ((p = current) != null || (p = firstDataNode()) != null)) {
-                Object e;
+            if ((p = current()) != null) {
+                E e = null;
                 do {
-                    if ((e = p.item) == p)
-                        e = null;
+                    final Object item = p.item;
+                    final boolean isData = p.isData;
                     if (p == (p = p.next))
-                        p = firstDataNode();
-                } while (e == null && p != null && p.isData);
-                if ((current = p) == null)
-                    exhausted = true;
+                        p = head;
+                    if (isData) {
+                        if (item != null) {
+                            e = (E) item;
+                            break;
+                        }
+                    }
+                    else if (item == null)
+                        p = null;
+                } while (p != null);
+                setCurrent(p);
                 if (e != null) {
-                    action.accept((E)e);
+                    action.accept(e);
                     return true;
                 }
             }
             return false;
         }
 
+        private void setCurrent(Node p) {
+            if ((current = p) == null)
+                exhausted = true;
+        }
+
+        private Node current() {
+            Node p;
+            if ((p = current) == null && !exhausted)
+                setCurrent(p = firstDataNode());
+            return p;
+        }
+
         public long estimateSize() { return Long.MAX_VALUE; }
 
         public int characteristics() {
-            return Spliterator.ORDERED | Spliterator.NONNULL |
-                Spliterator.CONCURRENT;
+            return (Spliterator.ORDERED |
+                    Spliterator.NONNULL |
+                    Spliterator.CONCURRENT);
         }
     }
 
@@ -1090,7 +1115,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @since 1.8
      */
     public Spliterator<E> spliterator() {
-        return new LTQSpliterator<E>();
+        return new LTQSpliterator();
     }
 
     /* -------------- Removal methods -------------- */
@@ -1531,6 +1556,37 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             else
                 offer(item);
         }
+    }
+
+    /**
+     * Runs action on each element found during a traversal starting at p.
+     * If p is null, the action is not run.
+     */
+    @SuppressWarnings("unchecked")
+    void forEachFrom(Consumer<? super E> action, Node p) {
+        for (Node c = p, pred = null; p != null; ) {
+            final Object item; final boolean pAlive;
+            if (pAlive = ((item = p.item) != null && p.isData))
+                action.accept((E) item);
+            else if (!p.isData && item == null)
+                break;
+            if ((c != p && !tryCasSuccessor(pred, c, c = p)) || pAlive) {
+                pred = p;
+                c = p = p.next;
+            }
+            else if (p == (p = p.next)) {
+                pred = null;
+                c = p = head;
+            }
+        }
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public void forEach(Consumer<? super E> action) {
+        Objects.requireNonNull(action);
+        forEachFrom(action, head);
     }
 
     // Unsafe mechanics
