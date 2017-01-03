@@ -52,20 +52,15 @@ public class DelayQueueTest extends JSR166TestCase {
     }
 
     /**
-     * A delayed implementation for testing.
-     * Most tests use Pseudodelays, where delays are all elapsed
+     * A fake Delayed implementation for testing.
+     * Most tests use PDelays, where delays are all elapsed
      * (so, no blocking solely for delays) but are still ordered
      */
     static class PDelay implements Delayed {
-        int pseudodelay;
-        PDelay(int i) { pseudodelay = i; }
-        public int compareTo(PDelay other) {
-            int a = this.pseudodelay;
-            int b = other.pseudodelay;
-            return (a < b) ? -1 : (a > b) ? 1 : 0;
-        }
+        final int pseudodelay;
+        PDelay(int pseudodelay) { this.pseudodelay = pseudodelay; }
         public int compareTo(Delayed y) {
-            return compareTo((PDelay)y);
+            return Integer.compare(this.pseudodelay, ((PDelay)y).pseudodelay);
         }
         public boolean equals(Object other) {
             return (other instanceof PDelay) &&
@@ -85,20 +80,13 @@ public class DelayQueueTest extends JSR166TestCase {
      * Delayed implementation that actually delays
      */
     static class NanoDelay implements Delayed {
-        long trigger;
+        final long trigger;
         NanoDelay(long i) {
             trigger = System.nanoTime() + i;
         }
-        public int compareTo(NanoDelay y) {
-            long i = trigger;
-            long j = y.trigger;
-            if (i < j) return -1;
-            if (i > j) return 1;
-            return 0;
-        }
 
         public int compareTo(Delayed y) {
-            return compareTo((NanoDelay)y);
+            return Long.compare(trigger, ((NanoDelay)y).trigger);
         }
 
         public boolean equals(Object other) {
