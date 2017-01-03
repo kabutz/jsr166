@@ -334,7 +334,8 @@ public class IteratorMicroBenchmark {
                     int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
                         sum[0] = 0;
-                        x.removeIf(n -> { sum[0] += n; return false; });
+                        if (x.removeIf(n -> { sum[0] += n; return false; }))
+                            throw new AssertionError();
                         check.sum(sum[0]);}}},
             new Job(klazz + " .contains") {
                 public void work() throws Throwable {
@@ -344,7 +345,17 @@ public class IteratorMicroBenchmark {
                             sum[0] += (int) z; return false; }};
                     for (int i = 0; i < iterations; i++) {
                         sum[0] = 0;
-                        x.contains(y);
+                        if (x.contains(y)) throw new AssertionError();
+                        check.sum(sum[0]);}}},
+            new Job(klazz + " .remove(Object)") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    Object y = new Object() {
+                        public boolean equals(Object z) {
+                            sum[0] += (int) z; return false; }};
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        if (x.remove(y)) throw new AssertionError();
                         check.sum(sum[0]);}}},
             new Job(klazz + " .forEach") {
                 public void work() throws Throwable {
