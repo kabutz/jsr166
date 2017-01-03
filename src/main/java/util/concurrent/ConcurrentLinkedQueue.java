@@ -426,17 +426,15 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         if (o == null) return false;
         restartFromHead: for (;;) {
             for (Node<E> p = head, c = p, pred = null, q; p != null; ) {
-                final E item;
-                if ((item = p.item) != null && o.equals(item))
-                    return true;
-                if (c != p && tryCasSuccessor(pred, c, p))
-                    c = p;
-                q = p.next;
-                if (item != null || c != p) {
+                final E item; final boolean pAlive;
+                if (pAlive = ((item = p.item) != null))
+                    if (o.equals(item))
+                        return true;
+                if ((c != p && !tryCasSuccessor(pred, c, c = p)) || pAlive) {
                     pred = p;
-                    c = p = q;
+                    c = p = p.next;
                 }
-                else if (p == (p = q))
+                else if (p == (p = p.next))
                     continue restartFromHead;
             }
             return false;
@@ -458,21 +456,20 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         if (o == null) return false;
         restartFromHead: for (;;) {
             for (Node<E> p = head, c = p, pred = null, q; p != null; ) {
-                final E item;
-                final boolean removed =
-                    (item = p.item) != null
-                    && o.equals(item)
-                    && ITEM.compareAndSet(p, item, null);
-                if (c != p && tryCasSuccessor(pred, c, p))
-                    c = p;
-                if (removed)
-                    return true;
-                q = p.next;
-                if (item != null || c != p) {
-                    pred = p;
-                    c = p = q;
+                final E item; final boolean pAlive;
+                if (pAlive = ((item = p.item) != null)) {
+                    if (o.equals(item)
+                        && ITEM.compareAndSet(p, item, null)) {
+                        if ((q = p.next) == null) q = p;
+                        if (c != q) tryCasSuccessor(pred, c, q);
+                        return true;
+                    }
                 }
-                else if (p == (p = q))
+                if ((c != p && !tryCasSuccessor(pred, c, c = p)) || pAlive) {
+                    pred = p;
+                    c = p = p.next;
+                }
+                else if (p == (p = p.next))
                     continue restartFromHead;
             }
             return false;
@@ -973,14 +970,11 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             final Object item; final boolean pAlive;
             if (pAlive = ((item = p.item) != null))
                 action.accept((E) item);
-            if (c != p && tryCasSuccessor(pred, c, p))
-                c = p;
-            q = p.next;
-            if (pAlive || c != p) {
+            if ((c != p && !tryCasSuccessor(pred, c, c = p)) || pAlive) {
                 pred = p;
-                c = p = q;
+                c = p = p.next;
             }
-            else if (p == (p = q)) {
+            else if (p == (p = p.next)) {
                 pred = null;
                 c = p = head;
             }
