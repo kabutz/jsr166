@@ -434,7 +434,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                 q = p.next;
                 if (item != null || c != p) {
                     pred = p;
-                    p = c = q;
+                    c = p = q;
                 }
                 else if (p == (p = q))
                     continue restartFromHead;
@@ -470,7 +470,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                 q = p.next;
                 if (item != null || c != p) {
                     pred = p;
-                    p = c = q;
+                    c = p = q;
                 }
                 else if (p == (p = q))
                     continue restartFromHead;
@@ -978,7 +978,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             q = p.next;
             if (pAlive || c != p) {
                 pred = p;
-                p = c = q;
+                c = p = q;
             }
             else if (p == (p = q)) {
                 pred = null;
