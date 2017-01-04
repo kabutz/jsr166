@@ -255,7 +255,7 @@ public class IteratorMicroBenchmark {
 //             "iterations=%d size=%d, warmup=%1g, filter=\"%s\"%n",
 //             iterations, size, warmupSeconds, filter);
 
-        final ArrayList<Integer> al = new ArrayList<Integer>(size);
+        final ArrayList<Integer> al = new ArrayList<>(size);
 
         // Populate collections with random data
         final ThreadLocalRandom rnd = ThreadLocalRandom.current();

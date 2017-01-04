@@ -100,7 +100,7 @@ public class ExchangeLoops {
         LoopHelpers.BarrierTimer timer = new LoopHelpers.BarrierTimer();
         CyclicBarrier barrier = new CyclicBarrier(nthreads + 1, timer);
         Exchanger<Int> l = null;
-        Exchanger<Int> r = new Exchanger<Int>();
+        Exchanger<Int> r = new Exchanger<>();
         for (int i = 0; i < nthreads; ++i) {
             pool.execute(new Stage(l, r, barrier, iters));
             l = r;

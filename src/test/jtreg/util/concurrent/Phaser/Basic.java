@@ -296,7 +296,7 @@ public class Basic {
         try {
             Phaser phaser = new Phaser(1);
             Iterator<Arriver> arrivers = arriverIterator(phaser);
-            LinkedList<Arriver> arriverList = new LinkedList<Arriver>();
+            LinkedList<Arriver> arriverList = new LinkedList<>();
             int phase = phaser.getPhase();
             for (int i = 1; i < 5; i++) {
                 startingGate = new Phaser(1+(3*i));

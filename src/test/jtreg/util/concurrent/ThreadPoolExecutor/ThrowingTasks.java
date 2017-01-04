@@ -140,7 +140,7 @@ public class ThrowingTasks {
         public void run() { execute.run(); }
     }
 
-    static final List<Flaky> flakes = new ArrayList<Flaky>();
+    static final List<Flaky> flakes = new ArrayList<>();
     static {
         for (Thrower x : throwers)
             for (Thrower y : throwers)
@@ -266,8 +266,7 @@ public class ThrowingTasks {
 
         //while (tg.activeCount() > 0) Thread.sleep(10);
         //System.out.println(uncaughtExceptions);
-        List<Map<Class<?>, Integer>> maps
-            = new ArrayList<Map<Class<?>, Integer>>();
+        List<Map<Class<?>, Integer>> maps = new ArrayList<>();
         maps.add(uncaughtExceptions);
         maps.add(uncaughtExceptionsTable);
         for (Map<Class<?>, Integer> map : maps) {

@@ -70,7 +70,7 @@ public class IteratorConsistency {
 
     List<Iterator> trackedIterators(Object itrs) {
         try {
-            List<Iterator> its = new ArrayList<Iterator>();
+            List<Iterator> its = new ArrayList<>();
             if (itrs != null)
                 for (Object p = headField.get(itrs); p != null; p = nextField.get(p))
                     its.add(((WeakReference<Iterator>)(p)).get());
@@ -85,7 +85,7 @@ public class IteratorConsistency {
 
     List<Iterator> attachedIterators(Object itrs) {
         try {
-            List<Iterator> its = new ArrayList<Iterator>();
+            List<Iterator> its = new ArrayList<>();
             if (itrs != null)
                 for (Object p = headField.get(itrs); p != null; p = nextField.get(p)) {
                     Iterator it = ((WeakReference<Iterator>)(p)).get();
@@ -212,7 +212,7 @@ public class IteratorConsistency {
         //----------------------------------------------------------------
         try {
             ArrayBlockingQueue q = new ArrayBlockingQueue(capacity, fair);
-            List<Iterator> its = new ArrayList<Iterator>();
+            List<Iterator> its = new ArrayList<>();
             for (int i = 0; i < capacity; i++)
                 check(q.add(i));
             check(itrs(q) == null);
@@ -238,7 +238,7 @@ public class IteratorConsistency {
         //----------------------------------------------------------------
         try {
             ArrayBlockingQueue q = new ArrayBlockingQueue(capacity, fair);
-            List<Iterator> its = new ArrayList<Iterator>();
+            List<Iterator> its = new ArrayList<>();
             for (int i = 0; i < capacity; i++)
                 q.add(i);
             check(itrs(q) == null);
@@ -265,7 +265,7 @@ public class IteratorConsistency {
         //----------------------------------------------------------------
         try {
             ArrayBlockingQueue q = new ArrayBlockingQueue(capacity, fair);
-            List<Iterator> its = new ArrayList<Iterator>();
+            List<Iterator> its = new ArrayList<>();
             for (int i = 0; i < capacity; i++)
                 q.add(i);
             check(itrs(q) == null);
@@ -336,7 +336,7 @@ public class IteratorConsistency {
         //----------------------------------------------------------------
         try {
             ArrayBlockingQueue q = new ArrayBlockingQueue(capacity, fair);
-            List<Iterator> its = new ArrayList<Iterator>();
+            List<Iterator> its = new ArrayList<>();
             for (int i = 0; i < capacity; i++)
                 q.add(i);
             for (int i = 0; i < capacity; i++) {
@@ -374,7 +374,7 @@ public class IteratorConsistency {
         //----------------------------------------------------------------
         try {
             ArrayBlockingQueue q = new ArrayBlockingQueue(capacity, fair);
-            List<Iterator> its = new ArrayList<Iterator>();
+            List<Iterator> its = new ArrayList<>();
             // Move takeIndex to middle
             for (int i = 0; i < capacity/2; i++) {
                 check(q.add(i));
@@ -448,7 +448,7 @@ public class IteratorConsistency {
         //----------------------------------------------------------------
         try {
             ArrayBlockingQueue q = new ArrayBlockingQueue(capacity, fair);
-            List<Iterator> its = new ArrayList<Iterator>();
+            List<Iterator> its = new ArrayList<>();
             for (int i = 0; i < capacity; i++)
                 q.add(i);
             for (int i = 0; i < capacity; i++) {
@@ -471,8 +471,8 @@ public class IteratorConsistency {
         //----------------------------------------------------------------
         try {
             ArrayBlockingQueue q = new ArrayBlockingQueue(capacity, fair);
-            List<Iterator> its = new ArrayList<Iterator>();
-            List<Iterator> retained = new ArrayList<Iterator>();
+            List<Iterator> its = new ArrayList<>();
+            List<Iterator> retained = new ArrayList<>();
             final int size = 1 + rnd.nextInt(capacity);
             for (int i = 0; i < size; i++)
                 q.add(i);
@@ -507,7 +507,7 @@ public class IteratorConsistency {
             // Expect around 8 sweeps per PROBE_HOP
             final int SWEEPS_PER_PROBE_HOP = 8;
             ArrayBlockingQueue q = new ArrayBlockingQueue(capacity, fair);
-            List<Iterator> its = new ArrayList<Iterator>();
+            List<Iterator> its = new ArrayList<>();
             for (int i = 0; i < capacity; i++)
                 q.add(i);
             for (int i = 0; i < PROBE_HOP_COUNT * PROBE_HOP; i++) {
@@ -538,7 +538,7 @@ public class IteratorConsistency {
         //----------------------------------------------------------------
         try {
             ArrayBlockingQueue q = new ArrayBlockingQueue(capacity, fair);
-            List<Iterator> its = new ArrayList<Iterator>();
+            List<Iterator> its = new ArrayList<>();
             for (int i = 0; i < capacity/2; i++) {
                 q.add(i);
                 q.remove();
@@ -608,11 +608,9 @@ public class IteratorConsistency {
         //----------------------------------------------------------------
         try {
             ArrayBlockingQueue q = new ArrayBlockingQueue(capacity, fair);
-            Queue<Iterator> its0
-                = new ArrayDeque<Iterator>();
-            Queue<Iterator> itsMid
-                = new ArrayDeque<Iterator>();
-            List<Iterator> its = new ArrayList<Iterator>();
+            Queue<Iterator> its0 = new ArrayDeque<>();
+            Queue<Iterator> itsMid = new ArrayDeque<>();
+            List<Iterator> its = new ArrayList<>();
             for (int i = 0; i < capacity; i++)
                 q.add(i);
             for (int i = 0; i < 2 * capacity + 1; i++) {

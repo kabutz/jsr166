@@ -259,7 +259,7 @@ public class TimedAcquireLeak {
                 = rwlock.writeLock();
             rwlock.writeLock().lock();
 
-            final BlockingQueue<Object> q = new LinkedBlockingQueue<Object>();
+            final BlockingQueue<Object> q = new LinkedBlockingQueue<>();
             final Semaphore fairSem = new Semaphore(0, true);
             final Semaphore unfairSem = new Semaphore(0, false);
             //final int threads =
