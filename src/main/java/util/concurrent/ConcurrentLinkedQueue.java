@@ -945,10 +945,9 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                     // p might already be self-linked here, but if so:
                     // - CASing head will surely fail
                     // - CASing pred's next will be useless but harmless.
-                    if (c != p && tryCasSuccessor(pred, c, p))
-                        c = p;
-                    // if c != p, CAS failed, so abandon old pred
-                    if (pAlive || c != p) {
+                    if ((c != p && !tryCasSuccessor(pred, c, c = p))
+                        || pAlive) {
+                        // if CAS failed or alive, abandon old pred
                         hops = MAX_HOPS;
                         pred = p;
                         c = q;
