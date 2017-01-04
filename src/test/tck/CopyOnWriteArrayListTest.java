@@ -45,7 +45,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
     }
 
     static CopyOnWriteArrayList<Integer> populatedArray(int n) {
-        CopyOnWriteArrayList<Integer> a = new CopyOnWriteArrayList<Integer>();
+        CopyOnWriteArrayList<Integer> a = new CopyOnWriteArrayList<>();
         assertTrue(a.isEmpty());
         for (int i = 0; i < n; i++)
             a.add(i);
@@ -55,7 +55,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
     }
 
     static CopyOnWriteArrayList<Integer> populatedArray(Integer[] elements) {
-        CopyOnWriteArrayList<Integer> a = new CopyOnWriteArrayList<Integer>();
+        CopyOnWriteArrayList<Integer> a = new CopyOnWriteArrayList<>();
         assertTrue(a.isEmpty());
         for (int i = 0; i < elements.length; i++)
             a.add(elements[i]);

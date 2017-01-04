@@ -116,7 +116,7 @@ public class DelayQueueTest extends JSR166TestCase {
      * PDelays 0 ... n - 1.
      */
     private DelayQueue<PDelay> populatedQueue(int n) {
-        DelayQueue<PDelay> q = new DelayQueue<PDelay>();
+        DelayQueue<PDelay> q = new DelayQueue<>();
         assertTrue(q.isEmpty());
         for (int i = n - 1; i >= 0; i -= 2)
             assertTrue(q.offer(new PDelay(i)));
@@ -674,7 +674,7 @@ public class DelayQueueTest extends JSR166TestCase {
      * Delayed actions do not occur until their delay elapses
      */
     public void testDelay() throws InterruptedException {
-        DelayQueue<NanoDelay> q = new DelayQueue<NanoDelay>();
+        DelayQueue<NanoDelay> q = new DelayQueue<>();
         for (int i = 0; i < SIZE; ++i)
             q.add(new NanoDelay(1000000L * (SIZE - i)));
 

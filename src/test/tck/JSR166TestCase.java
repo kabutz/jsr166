@@ -567,7 +567,7 @@ public class JSR166TestCase extends TestCase {
     /** Returns list of junit-style test method names in given class. */
     public static ArrayList<String> testMethodNames(Class<?> testClass) {
         Method[] methods = testClass.getDeclaredMethods();
-        ArrayList<String> names = new ArrayList<String>(methods.length);
+        ArrayList<String> names = new ArrayList<>(methods.length);
         for (Method method : methods) {
             if (method.getName().startsWith("test")
                 && Modifier.isPublic(method.getModifiers())
@@ -673,7 +673,7 @@ public class JSR166TestCase extends TestCase {
      * The first exception encountered if any threadAssertXXX method fails.
      */
     private final AtomicReference<Throwable> threadFailure
-        = new AtomicReference<Throwable>(null);
+        = new AtomicReference<>(null);
 
     /**
      * Records an exception so that it can be rethrown later in the test
@@ -1235,7 +1235,7 @@ public class JSR166TestCase extends TestCase {
         }
         public void refresh() {}
         public String toString() {
-            List<Permission> ps = new ArrayList<Permission>();
+            List<Permission> ps = new ArrayList<>();
             for (Enumeration<Permission> e = perms.elements(); e.hasMoreElements();)
                 ps.add(e.nextElement());
             return "AdjustablePolicy with permissions " + ps;
