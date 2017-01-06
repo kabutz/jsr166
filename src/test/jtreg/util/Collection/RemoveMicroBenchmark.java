@@ -333,7 +333,7 @@ public class RemoveMicroBenchmark {
         Supplier<Collection<Integer>> supplier,
         ArrayList<Integer> al) {
         return List.of(
-            new Job(description + " .removeIf") {
+            new Job(description + " removeIf") {
                 public void work() throws Throwable {
                     Collection<Integer> x = supplier.get();
                     int[] sum = new int[1];
@@ -342,7 +342,7 @@ public class RemoveMicroBenchmark {
                         x.addAll(al);
                         x.removeIf(n -> { sum[0] += n; return true; });
                         check.sum(sum[0]);}}},
-            new Job(description + " .removeIf-rnd-two-pass") {
+            new Job(description + " removeIf rnd-two-pass") {
                 public void work() throws Throwable {
                     ThreadLocalRandom rnd = ThreadLocalRandom.current();
                     Collection<Integer> x = supplier.get();
@@ -356,7 +356,7 @@ public class RemoveMicroBenchmark {
                             return b; });
                         x.removeIf(n -> { sum[0] += n; return true; });
                         check.sum(sum[0]);}}},
-            new Job(description + " .removeAll") {
+            new Job(description + " removeAll") {
                 public void work() throws Throwable {
                     Collection<Integer> x = supplier.get();
                     int[] sum = new int[1];
@@ -366,7 +366,7 @@ public class RemoveMicroBenchmark {
                         x.addAll(al);
                         x.removeAll(universe);
                         check.sum(sum[0]);}}},
-            new Job(description + " .retainAll") {
+            new Job(description + " retainAll") {
                 public void work() throws Throwable {
                     Collection<Integer> x = supplier.get();
                     int[] sum = new int[1];
