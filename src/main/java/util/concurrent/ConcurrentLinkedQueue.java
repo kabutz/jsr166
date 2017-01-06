@@ -425,7 +425,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     public boolean contains(Object o) {
         if (o == null) return false;
         restartFromHead: for (;;) {
-            for (Node<E> p = head, c = p, pred = null, q; p != null; ) {
+            for (Node<E> p = head, c = p, pred = null; p != null; ) {
                 final E item; final boolean pAlive;
                 if (pAlive = ((item = p.item) != null))
                     if (o.equals(item))
@@ -964,7 +964,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * If p is null, the action is not run.
      */
     void forEachFrom(Consumer<? super E> action, Node<E> p) {
-        for (Node<E> c = p, pred = null, q; p != null; ) {
+        for (Node<E> c = p, pred = null; p != null; ) {
             final E item; final boolean pAlive;
             if (pAlive = ((item = p.item) != null))
                 action.accept(item);
