@@ -963,12 +963,11 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * Runs action on each element found during a traversal starting at p.
      * If p is null, the action is not run.
      */
-    @SuppressWarnings("unchecked")
     void forEachFrom(Consumer<? super E> action, Node<E> p) {
         for (Node<E> c = p, pred = null, q; p != null; ) {
-            final Object item; final boolean pAlive;
+            final E item; final boolean pAlive;
             if (pAlive = ((item = p.item) != null))
-                action.accept((E) item);
+                action.accept(item);
             if ((c != p && !tryCasSuccessor(pred, c, c = p)) || pAlive) {
                 pred = p;
                 c = p = p.next;
