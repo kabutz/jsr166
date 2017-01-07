@@ -560,9 +560,31 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         return false;
     }
 
-    /*
-     * Possible values for "how" argument in xfer method.
+    /**
+     * Collapse dead (matched) nodes between pred and q.
+     * @param pred the last known live node, or null if none
+     * @param c the first dead node
+     * @param p the last dead node
+     * @param q p.next: the next live node, or null if at end
+     * @return either old pred or p if pred dead or CAS failed
      */
+    private Node skipDeadNodes(Node pred, Node c, Node p, Node q) {
+        // assert pred != c;
+        // assert p != q;
+        // assert c.isMatched();
+        // assert p.isMatched();
+        if (q == null) {
+            // Never unlink trailing node.
+            if (c == p) return pred;
+            q = p;
+        }
+        return (tryCasSuccessor(pred, c, q)
+                && (pred == null || !pred.isMatched()))
+            ? pred : p;
+    }
+
+    /* Possible values for "how" argument in xfer method. */
+
     private static final int NOW   = 0; // for untimed poll, tryTransfer
     private static final int ASYNC = 1; // for offer, put, add
     private static final int SYNC  = 2; // for transfer, take
@@ -1450,26 +1472,28 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @return {@code true} if this queue changed as a result of the call
      */
     public boolean remove(Object o) {
-        if (o == null)
-            return false;
+        if (o == null) return false;
         restartFromHead: for (;;) {
-            for (Node p = head, c = p, pred = null, q; p != null; ) {
-                final Object item; boolean pAlive;
-                if (pAlive = ((item = p.item) != null && p.isData)) {
-                    if (o.equals(item) && p.tryMatchData()) {
-                        if ((q = p.next) == null) q = p;
-                        if (c != q) tryCasSuccessor(pred, c, q);
-                        return true;
+            for (Node p = head, pred = null; p != null; ) {
+                Node q = p.next;
+                final Object item;
+                if ((item = p.item) != null) {
+                    if (p.isData) {
+                        if (o.equals(item) && p.tryMatchData()) {
+                            skipDeadNodes(pred, p, p, q);
+                            return true;
+                        }
+                        pred = p; p = q; continue;
                     }
                 }
-                else if (!p.isData && item == null)
+                else if (!p.isData)
                     break;
-                if ((c != p && !tryCasSuccessor(pred, c, c = p)) || pAlive) {
-                    pred = p;
-                    c = p = p.next;
+                for (Node c = p;;) {
+                    if ((q = p.next) == null || !q.isMatched()) {
+                        pred = skipDeadNodes(pred, c, p, q); p = q; break;
+                    }
+                    if (p == (p = q)) continue restartFromHead;
                 }
-                else if (p == (p = p.next))
-                    continue restartFromHead;
             }
             return false;
         }
@@ -1484,23 +1508,26 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @return {@code true} if this queue contains the specified element
      */
     public boolean contains(Object o) {
-        if (o == null)
-            return false;
+        if (o == null) return false;
         restartFromHead: for (;;) {
-            for (Node p = head, c = p, pred = null; p != null; ) {
-                final Object item; final boolean pAlive;
-                if (pAlive = ((item = p.item) != null && p.isData)) {
-                    if (o.equals(item))
-                        return true;
+            for (Node p = head, pred = null; p != null; ) {
+                Node q = p.next;
+                final Object item;
+                if ((item = p.item) != null) {
+                    if (p.isData) {
+                        if (o.equals(item))
+                            return true;
+                        pred = p; p = q; continue;
+                    }
                 }
-                else if (!p.isData && item == null)
+                else if (!p.isData)
                     break;
-                if ((c != p && !tryCasSuccessor(pred, c, c = p)) || pAlive) {
-                    pred = p;
-                    c = p = p.next;
+                for (Node c = p;;) {
+                    if ((q = p.next) == null || !q.isMatched()) {
+                        pred = skipDeadNodes(pred, c, p, q); p = q; break;
+                    }
+                    if (p == (p = q)) continue restartFromHead;
                 }
-                else if (p == (p = p.next))
-                    continue restartFromHead;
             }
             return false;
         }
@@ -1632,19 +1659,22 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      */
     @SuppressWarnings("unchecked")
     void forEachFrom(Consumer<? super E> action, Node p) {
-        for (Node c = p, pred = null; p != null; ) {
-            final Object item; final boolean pAlive;
-            if (pAlive = ((item = p.item) != null && p.isData))
-                action.accept((E) item);
-            else if (!p.isData && item == null)
-                break;
-            if ((c != p && !tryCasSuccessor(pred, c, c = p)) || pAlive) {
-                pred = p;
-                c = p = p.next;
+        for (Node pred = null; p != null; ) {
+            Node q = p.next;
+            final Object item;
+            if ((item = p.item) != null) {
+                if (p.isData) {
+                    action.accept((E) item);
+                    pred = p; p = q; continue;
+                }
             }
-            else if (p == (p = p.next)) {
-                pred = null;
-                c = p = head;
+            else if (!p.isData)
+                break;
+            for (Node c = p;;) {
+                if ((q = p.next) == null || !q.isMatched()) {
+                    pred = skipDeadNodes(pred, c, p, q); p = q; break;
+                }
+                if (p == (p = q)) { pred = null; p = head; break; }
             }
         }
     }
