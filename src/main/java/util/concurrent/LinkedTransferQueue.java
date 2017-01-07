@@ -549,6 +549,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      */
     private boolean tryCasSuccessor(Node pred, Node c, Node p) {
         // assert p != null;
+        // assert c.isData != (c.item != null);
         // assert c != p;
         if (pred != null)
             return pred.casNext(c, p);
