@@ -281,6 +281,29 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     }
 
     /**
+     * Collapse dead nodes between pred and q.
+     * @param pred the last known live node, or null if none
+     * @param c the first dead node
+     * @param p the last dead node
+     * @param q p.next: the next live node, or null if at end
+     * @return either old pred or p if pred dead or CAS failed
+     */
+    private Node<E> skipDeadNodes(Node<E> pred, Node<E> c, Node<E> p, Node<E> q) {
+        // assert pred != c;
+        // assert p != q;
+        // assert c != null;
+        // assert p != null;
+        if (q == null) {
+            // Never unlink trailing node.
+            if (c == p) return pred;
+            q = p;
+        }
+        return (tryCasSuccessor(pred, c, q)
+                && (pred == null || ITEM.get(pred) != null))
+            ? pred : p;
+    }
+
+    /**
      * Inserts the specified element at the tail of this queue.
      * As the queue is unbounded, this method will never return {@code false}.
      *
@@ -425,17 +448,20 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     public boolean contains(Object o) {
         if (o == null) return false;
         restartFromHead: for (;;) {
-            for (Node<E> p = head, c = p, pred = null; p != null; ) {
-                final E item; final boolean pAlive;
-                if (pAlive = ((item = p.item) != null))
+            for (Node<E> p = head, pred = null; p != null; ) {
+                Node<E> q = p.next;
+                final E item;
+                if ((item = p.item) != null) {
                     if (o.equals(item))
                         return true;
-                if ((c != p && !tryCasSuccessor(pred, c, c = p)) || pAlive) {
-                    pred = p;
-                    c = p = p.next;
+                    pred = p; p = q; continue;
                 }
-                else if (p == (p = p.next))
-                    continue restartFromHead;
+                for (Node<E> c = p;;) {
+                    if ((q = p.next) == null || q.item != null) {
+                        pred = skipDeadNodes(pred, c, p, q); p = q; break;
+                    }
+                    if (p == (p = q)) continue restartFromHead;
+                }
             }
             return false;
         }
@@ -455,22 +481,23 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     public boolean remove(Object o) {
         if (o == null) return false;
         restartFromHead: for (;;) {
-            for (Node<E> p = head, c = p, pred = null, q; p != null; ) {
-                final E item; final boolean pAlive;
-                if (pAlive = ((item = p.item) != null)) {
+            for (Node<E> p = head, pred = null; p != null; ) {
+                Node<E> q = p.next;
+                final E item;
+                if ((item = p.item) != null) {
                     if (o.equals(item)
                         && ITEM.compareAndSet(p, item, null)) {
-                        if ((q = p.next) == null) q = p;
-                        if (c != q) tryCasSuccessor(pred, c, q);
+                        skipDeadNodes(pred, p, p, q);
                         return true;
                     }
+                    pred = p; p = q; continue;
                 }
-                if ((c != p && !tryCasSuccessor(pred, c, c = p)) || pAlive) {
-                    pred = p;
-                    c = p = p.next;
+                for (Node<E> c = p;;) {
+                    if ((q = p.next) == null || q.item != null) {
+                        pred = skipDeadNodes(pred, c, p, q); p = q; break;
+                    }
+                    if (p == (p = q)) continue restartFromHead;
                 }
-                else if (p == (p = p.next))
-                    continue restartFromHead;
             }
             return false;
         }
@@ -964,17 +991,18 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * If p is null, the action is not run.
      */
     void forEachFrom(Consumer<? super E> action, Node<E> p) {
-        for (Node<E> c = p, pred = null; p != null; ) {
-            final E item; final boolean pAlive;
-            if (pAlive = ((item = p.item) != null))
+        for (Node<E> pred = null; p != null; ) {
+            Node<E> q = p.next;
+            final E item;
+            if ((item = p.item) != null) {
                 action.accept(item);
-            if ((c != p && !tryCasSuccessor(pred, c, c = p)) || pAlive) {
-                pred = p;
-                c = p = p.next;
+                pred = p; p = q; continue;
             }
-            else if (p == (p = p.next)) {
-                pred = null;
-                c = p = head;
+            for (Node<E> c = p;;) {
+                if ((q = p.next) == null || q.item != null) {
+                    pred = skipDeadNodes(pred, c, p, q); p = q; break;
+                }
+                if (p == (p = q)) { pred = null; p = head; break; }
             }
         }
     }
