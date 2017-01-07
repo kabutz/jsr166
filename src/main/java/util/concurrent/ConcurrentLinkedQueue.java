@@ -291,8 +291,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     private Node<E> skipDeadNodes(Node<E> pred, Node<E> c, Node<E> p, Node<E> q) {
         // assert pred != c;
         // assert p != q;
-        // assert c != null;
-        // assert p != null;
+        // assert c.item == null;
+        // assert p.item == null;
         if (q == null) {
             // Never unlink trailing node.
             if (c == p) return pred;
