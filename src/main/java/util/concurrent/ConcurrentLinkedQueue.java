@@ -456,8 +456,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                         return true;
                     pred = p; p = q; continue;
                 }
-                for (Node<E> c = p;;) {
-                    if ((q = p.next) == null || q.item != null) {
+                for (Node<E> c = p;; q = p.next) {
+                    if (q == null || q.item != null) {
                         pred = skipDeadNodes(pred, c, p, q); p = q; break;
                     }
                     if (p == (p = q)) continue restartFromHead;
@@ -492,8 +492,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                     }
                     pred = p; p = q; continue;
                 }
-                for (Node<E> c = p;;) {
-                    if ((q = p.next) == null || q.item != null) {
+                for (Node<E> c = p;; q = p.next) {
+                    if (q == null || q.item != null) {
                         pred = skipDeadNodes(pred, c, p, q); p = q; break;
                     }
                     if (p == (p = q)) continue restartFromHead;
@@ -960,6 +960,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             // c will be CASed to collapse intervening dead nodes between
             // pred (or head if null) and p.
             for (Node<E> p = head, c = p, pred = null, q; p != null; p = q) {
+                q = p.next;
                 final E item; boolean pAlive;
                 if (pAlive = ((item = p.item) != null)) {
                     if (filter.test(item)) {
@@ -968,7 +969,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                         pAlive = false;
                     }
                 }
-                if ((q = p.next) == null || pAlive || --hops == 0) {
+                if (pAlive || q == null || --hops == 0) {
                     // p might already be self-linked here, but if so:
                     // - CASing head will surely fail
                     // - CASing pred's next will be useless but harmless.
@@ -998,8 +999,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                 action.accept(item);
                 pred = p; p = q; continue;
             }
-            for (Node<E> c = p;;) {
-                if ((q = p.next) == null || q.item != null) {
+            for (Node<E> c = p;; q = p.next) {
+                if (q == null || q.item != null) {
                     pred = skipDeadNodes(pred, c, p, q); p = q; break;
                 }
                 if (p == (p = q)) { pred = null; p = head; break; }

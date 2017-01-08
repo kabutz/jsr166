@@ -1488,8 +1488,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 }
                 else if (!p.isData)
                     break;
-                for (Node c = p;;) {
-                    if ((q = p.next) == null || !q.isMatched()) {
+                for (Node c = p;; q = p.next) {
+                    if (q == null || !q.isMatched()) {
                         pred = skipDeadNodes(pred, c, p, q); p = q; break;
                     }
                     if (p == (p = q)) continue restartFromHead;
@@ -1522,8 +1522,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 }
                 else if (!p.isData)
                     break;
-                for (Node c = p;;) {
-                    if ((q = p.next) == null || !q.isMatched()) {
+                for (Node c = p;; q = p.next) {
+                    if (q == null || !q.isMatched()) {
                         pred = skipDeadNodes(pred, c, p, q); p = q; break;
                     }
                     if (p == (p = q)) continue restartFromHead;
@@ -1625,6 +1625,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             // c will be CASed to collapse intervening dead nodes between
             // pred (or head if null) and p.
             for (Node p = head, c = p, pred = null, q; p != null; p = q) {
+                q = p.next;
                 final Object item; boolean pAlive;
                 if (pAlive = ((item = p.item) != null && p.isData)) {
                     if (filter.test((E) item)) {
@@ -1635,7 +1636,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 }
                 else if (!p.isData && item == null)
                     break;
-                if ((q = p.next) == null || pAlive || --hops == 0) {
+                if (pAlive || q == null || --hops == 0) {
                     // p might already be self-linked here, but if so:
                     // - CASing head will surely fail
                     // - CASing pred's next will be useless but harmless.
@@ -1670,8 +1671,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             }
             else if (!p.isData)
                 break;
-            for (Node c = p;;) {
-                if ((q = p.next) == null || !q.isMatched()) {
+            for (Node c = p;; q = p.next) {
+                if (q == null || !q.isMatched()) {
                     pred = skipDeadNodes(pred, c, p, q); p = q; break;
                 }
                 if (p == (p = q)) { pred = null; p = head; break; }
