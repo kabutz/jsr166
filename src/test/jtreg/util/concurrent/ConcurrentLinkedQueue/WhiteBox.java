@@ -242,10 +242,10 @@ public class WhiteBox {
             boolean slack = next(tail(q)) != null;
             addAction.accept(q);
             if (slack)
-                assertTrue(next(tail(q)) == null);
+                assertNull(next(tail(q)));
             else {
-                assertTrue(next(tail(q)) != null);
-                assertTrue(next(next(tail(q))) == null);
+                assertNotNull(next(tail(q)));
+                assertNull(next(next(tail(q))));
             }
             assertInvariants(q);
         }
