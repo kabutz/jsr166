@@ -17,6 +17,7 @@ import org.testng.annotations.Test;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.LinkedTransferQueue;
@@ -189,6 +190,33 @@ public class WhiteBox {
         assertSame(next(p4), p5);
         assertNull(next(p5));
         assertEquals(nodeCount(q), c - 1);
+    }
+
+    /**
+     * Checks that traversal operations collapse a random pattern of
+     * dead nodes as could normally only occur with a race.
+     */
+    @Test(dataProvider = "traversalActions")
+    public void traversalOperationsCollapseRandomNodes(
+        Consumer<LinkedTransferQueue> traversalAction) {
+        LinkedTransferQueue q = new LinkedTransferQueue();
+        int n = rnd.nextInt(6);
+        for (int i = 0; i < n; i++) q.add(i);
+        ArrayList nulledOut = new ArrayList();
+        for (Object p = head(q); p != null; p = next(p))
+            if (rnd.nextBoolean()) {
+                nulledOut.add(item(p));
+                ITEM.setVolatile(p, null);
+            }
+        traversalAction.accept(q);
+        if (n == 0)
+            assertEquals(nodeCount(q), 0);
+        else {
+            int c = nodeCount(q);
+            assertEquals(q.size(), c - (q.contains(n - 1) ? 0 : 1));
+            for (int i = 0; i < n; i++)
+                assertTrue(nulledOut.contains(i) ^ q.contains(i));
+        }
     }
 
     /**
