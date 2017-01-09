@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import static java.util.stream.Collectors.toList;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Test
 public class WhiteBox {
@@ -164,6 +165,67 @@ public class WhiteBox {
         bulkRemovalAction.accept(q);
         assertEquals(nodeCount(q), 1);
         checkInvariants(q);
+    }
+
+    /**
+     * Actions that remove the first element, and are expected to
+     * leave at most one slack dead node at head.
+     */
+    @DataProvider
+    public Object[][] pollActions() {
+        return List.<Consumer<ConcurrentLinkedQueue>>of(
+            q -> assertNotNull(q.poll()),
+            q -> assertNotNull(q.remove()))
+            .stream().map(x -> new Object[]{ x }).toArray(Object[][]::new);
+    }
+
+    @Test(dataProvider = "pollActions")
+    public void pollActionsOneNodeSlack(
+        Consumer<ConcurrentLinkedQueue> pollAction) {
+        ConcurrentLinkedQueue q = new ConcurrentLinkedQueue();
+        Object oldHead;
+        int n = 1 + rnd.nextInt(5);
+        for (int i = 0; i < n; i++) q.add(i);
+        assertEquals(nodeCount(q), n + 1);
+        for (int i = 0; i < n; i++) {
+            int c = nodeCount(q);
+            boolean slack = item(head(q)) == null;
+            if (slack) assertNotNull(item(next(head(q))));
+            pollAction.accept(q);
+            assertEquals(nodeCount(q), q.isEmpty() ? 1 : c - (slack ? 2 : 0));
+        }
+        checkInvariants(q);
+    }
+
+    /**
+     * Actions that append an element, and are expected to
+     * leave at most one slack node at tail.
+     */
+    @DataProvider
+    public Object[][] addActions() {
+        return List.<Consumer<ConcurrentLinkedQueue>>of(
+            q -> q.add(1),
+            q -> q.offer(1))
+            .stream().map(x -> new Object[]{ x }).toArray(Object[][]::new);
+    }
+
+    @Test(dataProvider = "addActions")
+    public void addActionsOneNodeSlack(
+        Consumer<ConcurrentLinkedQueue> addAction) {
+        ConcurrentLinkedQueue q = new ConcurrentLinkedQueue();
+        Object oldHead;
+        int n = 1 + rnd.nextInt(5);
+        for (int i = 0; i < n; i++) {
+            boolean slack = next(tail(q)) != null;
+            addAction.accept(q);
+            if (slack)
+                assertTrue(next(tail(q)) == null);
+            else {
+                assertTrue(next(tail(q)) != null);
+                assertTrue(next(next(tail(q))) == null);
+            }
+            checkInvariants(q);
+        }
     }
 
     /** Checks conditions which should always be true. */
