@@ -15,9 +15,8 @@ import static org.testng.Assert.*;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-// import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
-import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -29,15 +28,12 @@ import java.util.function.Function;
 @Test
 public class WhiteBox {
     final ThreadLocalRandom rnd = ThreadLocalRandom.current();
-    final VarHandle HEAD = copyVarHandleField("HEAD");
-    final VarHandle TAIL = copyVarHandleField("TAIL");
-    final VarHandle ITEM = copyVarHandleField("ITEM");
-    final VarHandle NEXT = copyVarHandleField("NEXT");
 
+    final VarHandle HEAD, TAIL, ITEM, NEXT;
     Object head(ConcurrentLinkedQueue q) { return HEAD.getVolatile(q); }
     Object tail(ConcurrentLinkedQueue q) { return TAIL.getVolatile(q); }
-    Object item(Object node) { return ITEM.getVolatile(node); }
-    Object next(Object node) { return NEXT.getVolatile(node); }
+    Object item(Object node)             { return ITEM.getVolatile(node); }
+    Object next(Object node)             { return NEXT.getVolatile(node); }
 
     int nodeCount(ConcurrentLinkedQueue q) {
         int i = 0;
@@ -52,22 +48,33 @@ public class WhiteBox {
         assertSame(next(node), node);
         assertNull(item(node));
     }
+
     void assertIsNotSelfLinked(Object node) {
         assertNotSame(node, next(node));
     }
 
-    static VarHandle copyVarHandleField(String fieldName)
-        throws ReflectiveOperationException {
-        Field f = ConcurrentLinkedQueue.class.getDeclaredField(fieldName);
-        f.setAccessible(true);
-        return (VarHandle) f.get(null);
-    }
+    // A no longer needed workaroung
+//     static VarHandle copyVarHandleField(String fieldName)
+//         throws ReflectiveOperationException {
+//         Field f = ConcurrentLinkedQueue.class.getDeclaredField(fieldName);
+//         f.setAccessible(true);
+//         return (VarHandle) f.get(null);
+//     }
 
-    WhiteBox() throws Throwable {
+    WhiteBox() throws ReflectiveOperationException {
 //         Field f = ConcurrentLinkedQueue.class.getDeclaredField("head");
 //         f.setAccessible(true);
 //         VarHandle v = java.lang.invoke.MethodHandles.lookup()
 //             .unreflectVarHandle(f);
+
+        Class<?> qClass = ConcurrentLinkedQueue.class;
+        Class<?> nodeClass = Class.forName(qClass.getName() + "$Node");
+        MethodHandles.Lookup lookup
+            = MethodHandles.privateLookupIn(qClass, MethodHandles.lookup());
+        HEAD = lookup.findVarHandle(qClass, "head", nodeClass);
+        TAIL = lookup.findVarHandle(qClass, "tail", nodeClass);
+        NEXT = lookup.findVarHandle(nodeClass, "next", nodeClass);
+        ITEM = lookup.findVarHandle(nodeClass, "item", Object.class);
     }
 
     @Test

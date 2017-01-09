@@ -15,8 +15,8 @@ import static org.testng.Assert.*;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
-import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.LinkedTransferQueue;
@@ -28,19 +28,23 @@ import java.util.function.Function;
 @Test
 public class WhiteBox {
     final ThreadLocalRandom rnd = ThreadLocalRandom.current();
-    final VarHandle HEAD = copyVarHandleField("HEAD");
-    final VarHandle TAIL = copyVarHandleField("TAIL");
-    final Class<?> nodeClass
-        = Class.forName("java.util.concurrent.LinkedTransferQueue$Node");
-    final VarHandle ITEM = copyVarHandleField("ITEM", nodeClass);
-    final VarHandle NEXT = copyVarHandleField("NEXT", nodeClass);
 
+    final VarHandle HEAD, TAIL, ITEM, NEXT;
     Object head(LinkedTransferQueue q) { return HEAD.getVolatile(q); }
     Object tail(LinkedTransferQueue q) { return TAIL.getVolatile(q); }
     Object item(Object node)           { return ITEM.getVolatile(node); }
     Object next(Object node)           { return NEXT.getVolatile(node); }
 
-    public WhiteBox() throws ReflectiveOperationException {}
+    public WhiteBox() throws ReflectiveOperationException {
+        Class<?> qClass = LinkedTransferQueue.class;
+        Class<?> nodeClass = Class.forName(qClass.getName() + "$Node");
+        MethodHandles.Lookup lookup
+            = MethodHandles.privateLookupIn(qClass, MethodHandles.lookup());
+        HEAD = lookup.findVarHandle(qClass, "head", nodeClass);
+        TAIL = lookup.findVarHandle(qClass, "tail", nodeClass);
+        NEXT = lookup.findVarHandle(nodeClass, "next", nodeClass);
+        ITEM = lookup.findVarHandle(nodeClass, "item", Object.class);
+    }
 
     int nodeCount(LinkedTransferQueue q) {
         int i = 0;
@@ -82,18 +86,6 @@ public class WhiteBox {
     }
     void assertIsNotSelfLinked(Object node) {
         assertNotSame(node, next(node));
-    }
-
-    static VarHandle copyVarHandleField(String fieldName)
-        throws ReflectiveOperationException {
-        return copyVarHandleField(fieldName, LinkedTransferQueue.class);
-    }
-
-    static VarHandle copyVarHandleField(String fieldName, Class<?> klazz)
-        throws ReflectiveOperationException {
-        Field f = klazz.getDeclaredField(fieldName);
-        f.setAccessible(true);
-        return (VarHandle) f.get(null);
     }
 
     @Test
