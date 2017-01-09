@@ -28,12 +28,7 @@ import java.util.function.Function;
 @Test
 public class WhiteBox {
     final ThreadLocalRandom rnd = ThreadLocalRandom.current();
-
     final VarHandle HEAD, TAIL, ITEM, NEXT;
-    Object head(LinkedTransferQueue q) { return HEAD.getVolatile(q); }
-    Object tail(LinkedTransferQueue q) { return TAIL.getVolatile(q); }
-    Object item(Object node)           { return ITEM.getVolatile(node); }
-    Object next(Object node)           { return NEXT.getVolatile(node); }
 
     public WhiteBox() throws ReflectiveOperationException {
         Class<?> qClass = LinkedTransferQueue.class;
@@ -45,6 +40,11 @@ public class WhiteBox {
         NEXT = lookup.findVarHandle(nodeClass, "next", nodeClass);
         ITEM = lookup.findVarHandle(nodeClass, "item", Object.class);
     }
+
+    Object head(LinkedTransferQueue q) { return HEAD.getVolatile(q); }
+    Object tail(LinkedTransferQueue q) { return TAIL.getVolatile(q); }
+    Object item(Object node)           { return ITEM.getVolatile(node); }
+    Object next(Object node)           { return NEXT.getVolatile(node); }
 
     int nodeCount(LinkedTransferQueue q) {
         int i = 0;

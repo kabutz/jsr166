@@ -28,8 +28,19 @@ import java.util.function.Function;
 @Test
 public class WhiteBox {
     final ThreadLocalRandom rnd = ThreadLocalRandom.current();
-
     final VarHandle HEAD, TAIL, ITEM, NEXT;
+    
+    WhiteBox() throws ReflectiveOperationException {
+        Class<?> qClass = ConcurrentLinkedQueue.class;
+        Class<?> nodeClass = Class.forName(qClass.getName() + "$Node");
+        MethodHandles.Lookup lookup
+            = MethodHandles.privateLookupIn(qClass, MethodHandles.lookup());
+        HEAD = lookup.findVarHandle(qClass, "head", nodeClass);
+        TAIL = lookup.findVarHandle(qClass, "tail", nodeClass);
+        NEXT = lookup.findVarHandle(nodeClass, "next", nodeClass);
+        ITEM = lookup.findVarHandle(nodeClass, "item", Object.class);
+    }
+
     Object head(ConcurrentLinkedQueue q) { return HEAD.getVolatile(q); }
     Object tail(ConcurrentLinkedQueue q) { return TAIL.getVolatile(q); }
     Object item(Object node)             { return ITEM.getVolatile(node); }
@@ -51,30 +62,6 @@ public class WhiteBox {
 
     void assertIsNotSelfLinked(Object node) {
         assertNotSame(node, next(node));
-    }
-
-    // A no longer needed workaroung
-//     static VarHandle copyVarHandleField(String fieldName)
-//         throws ReflectiveOperationException {
-//         Field f = ConcurrentLinkedQueue.class.getDeclaredField(fieldName);
-//         f.setAccessible(true);
-//         return (VarHandle) f.get(null);
-//     }
-
-    WhiteBox() throws ReflectiveOperationException {
-//         Field f = ConcurrentLinkedQueue.class.getDeclaredField("head");
-//         f.setAccessible(true);
-//         VarHandle v = java.lang.invoke.MethodHandles.lookup()
-//             .unreflectVarHandle(f);
-
-        Class<?> qClass = ConcurrentLinkedQueue.class;
-        Class<?> nodeClass = Class.forName(qClass.getName() + "$Node");
-        MethodHandles.Lookup lookup
-            = MethodHandles.privateLookupIn(qClass, MethodHandles.lookup());
-        HEAD = lookup.findVarHandle(qClass, "head", nodeClass);
-        TAIL = lookup.findVarHandle(qClass, "tail", nodeClass);
-        NEXT = lookup.findVarHandle(nodeClass, "next", nodeClass);
-        ITEM = lookup.findVarHandle(nodeClass, "item", Object.class);
     }
 
     @Test
