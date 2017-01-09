@@ -76,15 +76,15 @@ public class WhiteBox {
     @Test
     public void addRemove() {
         ConcurrentLinkedQueue q = new ConcurrentLinkedQueue();
-        checkInvariants(q);
+        assertInvariants(q);
         assertNull(item(head(q)));
         assertEquals(nodeCount(q), 1);
         q.add(1);
         assertEquals(nodeCount(q), 2);
-        checkInvariants(q);
+        assertInvariants(q);
         q.remove(1);
         assertEquals(nodeCount(q), 1);
-        checkInvariants(q);
+        assertInvariants(q);
     }
 
     /**
@@ -111,12 +111,12 @@ public class WhiteBox {
         Object oldHead;
         int n = 1 + rnd.nextInt(5);
         for (int i = 0; i < n; i++) q.add(i);
-        checkInvariants(q);
+        assertInvariants(q);
         assertEquals(nodeCount(q), n + 1);
         oldHead = head(q);
         traversalAction.accept(q); // collapses head node
         assertIsSelfLinked(oldHead);
-        checkInvariants(q);
+        assertInvariants(q);
         assertEquals(nodeCount(q), n);
         // Iterator.remove does not currently try to collapse dead nodes
         for (Iterator it = q.iterator(); it.hasNext(); ) {
@@ -124,12 +124,12 @@ public class WhiteBox {
             it.remove();
         }
         assertEquals(nodeCount(q), n);
-        checkInvariants(q);
+        assertInvariants(q);
         oldHead = head(q);
         traversalAction.accept(q); // collapses all nodes
         if (n > 1) assertIsSelfLinked(oldHead);
         assertEquals(nodeCount(q), 1);
-        checkInvariants(q);
+        assertInvariants(q);
 
         for (int i = 0; i < n + 1; i++) q.add(i);
         assertEquals(nodeCount(q), n + 2);
@@ -140,6 +140,32 @@ public class WhiteBox {
         assertTrue(q.remove(n));
         assertEquals(nodeCount(q), n);
         traversalAction.accept(q); // trailing node is never collapsed
+    }
+
+    @Test(dataProvider = "traversalActions")
+    public void traversalOperationsDoNotSelfLinkInteriorNodes(
+        Consumer<ConcurrentLinkedQueue> traversalAction) {
+        ConcurrentLinkedQueue q = new ConcurrentLinkedQueue();
+        int c;
+        int n = 3 + rnd.nextInt(3);
+        for (int i = 0; i < n; i++) q.add(i);
+        Object oneNode;
+        for (oneNode = head(q);
+             ! (item(oneNode) != null && item(oneNode).equals(1));
+             oneNode = next(oneNode))
+            ;
+        Object next = next(oneNode);
+        c = nodeCount(q);
+        for (Iterator it = q.iterator(); it.hasNext(); )
+            if (it.next().equals(1)) it.remove();
+        assertEquals(nodeCount(q), c - 1); // iterator detached head!
+        assertNull(item(oneNode));
+        assertSame(next, next(oneNode));
+        assertInvariants(q);
+        c = nodeCount(q);
+        traversalAction.accept(q);
+        assertEquals(nodeCount(q), c - 1);
+        assertSame(next, next(oneNode)); // un-linked, but not self-linked
     }
 
     /**
@@ -159,12 +185,11 @@ public class WhiteBox {
     public void bulkRemovalOperationsCollapseNodes(
         Consumer<ConcurrentLinkedQueue> bulkRemovalAction) {
         ConcurrentLinkedQueue q = new ConcurrentLinkedQueue();
-        Object oldHead;
         int n = 1 + rnd.nextInt(5);
         for (int i = 0; i < n; i++) q.add(i);
         bulkRemovalAction.accept(q);
         assertEquals(nodeCount(q), 1);
-        checkInvariants(q);
+        assertInvariants(q);
     }
 
     /**
@@ -183,7 +208,6 @@ public class WhiteBox {
     public void pollActionsOneNodeSlack(
         Consumer<ConcurrentLinkedQueue> pollAction) {
         ConcurrentLinkedQueue q = new ConcurrentLinkedQueue();
-        Object oldHead;
         int n = 1 + rnd.nextInt(5);
         for (int i = 0; i < n; i++) q.add(i);
         assertEquals(nodeCount(q), n + 1);
@@ -194,7 +218,7 @@ public class WhiteBox {
             pollAction.accept(q);
             assertEquals(nodeCount(q), q.isEmpty() ? 1 : c - (slack ? 2 : 0));
         }
-        checkInvariants(q);
+        assertInvariants(q);
     }
 
     /**
@@ -213,7 +237,6 @@ public class WhiteBox {
     public void addActionsOneNodeSlack(
         Consumer<ConcurrentLinkedQueue> addAction) {
         ConcurrentLinkedQueue q = new ConcurrentLinkedQueue();
-        Object oldHead;
         int n = 1 + rnd.nextInt(5);
         for (int i = 0; i < n; i++) {
             boolean slack = next(tail(q)) != null;
@@ -224,12 +247,12 @@ public class WhiteBox {
                 assertTrue(next(tail(q)) != null);
                 assertTrue(next(next(tail(q))) == null);
             }
-            checkInvariants(q);
+            assertInvariants(q);
         }
     }
 
     /** Checks conditions which should always be true. */
-    void checkInvariants(ConcurrentLinkedQueue q) {
+    void assertInvariants(ConcurrentLinkedQueue q) {
         assertNotNull(head(q));
         assertNotNull(tail(q));
         // head is never self-linked (but tail may!)
