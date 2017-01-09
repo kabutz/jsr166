@@ -29,7 +29,7 @@ import java.util.function.Function;
 public class WhiteBox {
     final ThreadLocalRandom rnd = ThreadLocalRandom.current();
     final VarHandle HEAD, TAIL, ITEM, NEXT;
-    
+
     WhiteBox() throws ReflectiveOperationException {
         Class<?> qClass = ConcurrentLinkedQueue.class;
         Class<?> nodeClass = Class.forName(qClass.getName() + "$Node");
