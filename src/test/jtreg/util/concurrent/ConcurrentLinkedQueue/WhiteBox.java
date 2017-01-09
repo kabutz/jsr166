@@ -64,13 +64,10 @@ public class WhiteBox {
     }
 
     WhiteBox() throws Throwable {
-//         MethodHandles.Lookup l = MethodHandles.lookup();
 //         Field f = ConcurrentLinkedQueue.class.getDeclaredField("head");
 //         f.setAccessible(true);
-//         HEAD = l.unreflectVarHandle(f);
-//         Field f = ConcurrentLinkedQueue.class.getDeclaredField("HEAD");
-//         f.setAccessible(true);
-//         HEAD = (VarHandle) f.get(null);
+//         VarHandle v = java.lang.invoke.MethodHandles.lookup()
+//             .unreflectVarHandle(f);
     }
 
     @Test
