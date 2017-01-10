@@ -122,13 +122,13 @@ import java.util.concurrent.TimeUnit;
  *     long stamp = sl.tryOptimisticRead();
  *     double currentX = x, currentY = y;
  *     if (!sl.validate(stamp)) {
- *        stamp = sl.readLock();
- *        try {
- *          currentX = x;
- *          currentY = y;
- *        } finally {
- *           sl.unlockRead(stamp);
- *        }
+ *       stamp = sl.readLock();
+ *       try {
+ *         currentX = x;
+ *         currentY = y;
+ *       } finally {
+ *         sl.unlockRead(stamp);
+ *       }
  *     }
  *     return Math.sqrt(currentX * currentX + currentY * currentY);
  *   }
@@ -209,9 +209,7 @@ public class StampedLock implements java.io.Serializable {
      * used in the acquire methods to reduce (increasingly expensive)
      * context switching while also avoiding sustained memory
      * thrashing among many threads.  We limit spins to the head of
-     * queue. A thread spin-waits up to SPINS times (where each
-     * iteration decreases spin count with 50% probability) before
-     * blocking. If, upon wakening, it fails to obtain lock, and is
+     * queue. If, upon wakening, a thread fails to obtain lock, and is
      * still (or becomes) the first waiting thread (which indicates
      * that some other thread barged and obtained lock), it escalates
      * spins (up to MAX_HEAD_SPINS) to reduce the likelihood of
@@ -278,7 +276,7 @@ public class StampedLock implements java.io.Serializable {
      * indicating spin-locked to manipulate reader bits overflow.
      */
 
-    // Initial value for lock state; avoid failure value zero
+    /** Initial value for lock state; avoids failure value zero. */
     private static final long ORIGIN = WBIT << 1;
 
     // Special value from cancelled acquire methods so caller can throw IE
