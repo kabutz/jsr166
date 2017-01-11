@@ -538,7 +538,6 @@ public class StampedLock implements java.io.Serializable {
      * not match the current state of this lock
      */
     public void unlockWrite(long stamp) {
-        WNode h;
         if (state != stamp || (stamp & WBIT) == 0L)
             throw new IllegalMonitorStateException();
         unlockWriteInternal(stamp);
