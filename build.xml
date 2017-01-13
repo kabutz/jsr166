@@ -1513,8 +1513,8 @@
 =================================================================== -->
 
 <!-- <ivy:cachepath pathid="lib.path.id" inline="true" conf="*" -->
-<!--   organisation="com.google.guava" module="guava-testlib" revision="21.0-rc1"/> -->
-<!-- <property name="guava.version" value="20.0"/> -->
+<!--   organisation="com.google.guava" module="guava-testlib" revision="21.0"/> -->
+<!-- <property name="guava.version" value="21.0"/> -->
 
 <!-- HOWTO debug print a path id -->
 <!-- <pathconvert property="guava.testlib.classpath" refid="guava.testlib.classpath" /> -->
@@ -1556,7 +1556,7 @@
       type="jar,bundle" inline="true" conf="default,master"
       pattern="${guava.dir}/[artifact].[ext]"
       organisation="com.google.guava" module="guava-testlib"/>
-    <property name="guava.version" value="21.0-rc1"/>
+    <property name="guava.version" value="21.0"/>
     <get src="http://repo2.maven.org/maven2/com/google/guava/guava-testlib/${guava.version}/guava-testlib-${guava.version}-tests.jar"
          dest="${guava.dir}/guava-testlib-tests.jar" usetimestamp="true"/>
     <junit printsummary="true" showoutput="true" haltonfailure="true"
