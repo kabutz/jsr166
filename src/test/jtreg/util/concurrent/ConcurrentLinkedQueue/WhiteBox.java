@@ -15,6 +15,10 @@ import static org.testng.Assert.*;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
@@ -132,6 +136,21 @@ public class WhiteBox {
         assertTrue(q.remove(n));
         assertEquals(nodeCount(q), n);
         traversalAction.accept(q); // trailing node is never collapsed
+    }
+
+    @Test(dataProvider = "traversalActions")
+    public void traversalOperationsCollapseLeadingNodes(
+        Consumer<ConcurrentLinkedQueue> traversalAction) {
+        ConcurrentLinkedQueue q = new ConcurrentLinkedQueue();
+        Object oldHead;
+        int n = 1 + rnd.nextInt(5);
+        for (int i = 0; i < n; i++) q.add(i);
+        assertEquals(nodeCount(q), n + 1);
+        oldHead = head(q);
+        traversalAction.accept(q);
+        assertInvariants(q);
+        assertEquals(nodeCount(q), n);
+        assertIsSelfLinked(oldHead);
     }
 
     @Test(dataProvider = "traversalActions")
@@ -264,6 +283,38 @@ public class WhiteBox {
             }
             assertInvariants(q);
         }
+    }
+
+    byte[] serialBytes(Object o) {
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(bos);
+            oos.writeObject(o);
+            oos.flush();
+            oos.close();
+            return bos.toByteArray();
+        } catch (Exception fail) {
+            throw new AssertionError(fail);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    <T> T serialClone(T o) {
+        try {
+            ObjectInputStream ois = new ObjectInputStream
+                (new ByteArrayInputStream(serialBytes(o)));
+            T clone = (T) ois.readObject();
+            assertNotSame(o, clone);
+            assertSame(o.getClass(), clone.getClass());
+            return clone;
+        } catch (Exception fail) {
+            throw new AssertionError(fail);
+        }
+    }
+
+    public void testSerialization() {
+        ConcurrentLinkedQueue q = serialClone(new ConcurrentLinkedQueue());
+        assertInvariants(q);
     }
 
     /** Checks conditions which should always be true. */
