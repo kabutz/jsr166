@@ -809,10 +809,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             Node<E> newNode = newNode((E) item);
             if (h == null)
                 h = t = newNode;
-            else {
-                NEXT.set(t, newNode);
-                t = newNode;
-            }
+            else
+                NEXT.set(t, t = newNode);
         }
         if (h == null)
             h = t = newNode(null);
