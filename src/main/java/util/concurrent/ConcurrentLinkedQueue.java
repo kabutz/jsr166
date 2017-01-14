@@ -155,16 +155,31 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     static final class Node<E> {
         volatile E item;
         volatile Node<E> next;
-    }
 
-    /**
-     * Returns a new node holding item.  Uses relaxed write because item
-     * can only be seen after piggy-backing publication via CAS.
-     */
-    static <E> Node<E> newNode(E item) {
-        Node<E> node = new Node<E>();
-        ITEM.set(node, item);
-        return node;
+        /**
+         * Constructs a new node holding item.  Uses relaxed write
+         * because item can only be seen after piggy-backing
+         * publication via CAS.
+         */
+        Node(E item) {
+            ITEM.set(this, item);
+        }
+
+        /** Constructs a new dead node.  Suitable for initial dummy node. */
+        Node() {}
+
+        void appendRelaxed(Node<E> next) {
+            // assert next != null;
+            // assert this.next == null;
+            NEXT.set(this, next);
+        }
+
+        boolean casItem(E cmp, E val) {
+            // assert item == cmp || item == null;
+            // assert cmp != null;
+            // assert val == null;
+            return ITEM.compareAndSet(this, cmp, val);
+        }
     }
 
     /**
@@ -199,7 +214,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * Creates a {@code ConcurrentLinkedQueue} that is initially empty.
      */
     public ConcurrentLinkedQueue() {
-        head = tail = newNode(null);
+        head = tail = new Node<E>();
     }
 
     /**
@@ -214,16 +229,14 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     public ConcurrentLinkedQueue(Collection<? extends E> c) {
         Node<E> h = null, t = null;
         for (E e : c) {
-            Node<E> newNode = newNode(Objects.requireNonNull(e));
+            Node<E> newNode = new Node<E>(Objects.requireNonNull(e));
             if (h == null)
                 h = t = newNode;
-            else {
-                NEXT.set(t, newNode);
-                t = newNode;
-            }
+            else
+                t.appendRelaxed(t = newNode);
         }
         if (h == null)
-            h = t = newNode(null);
+            h = t = new Node<E>();
         head = h;
         tail = t;
     }
@@ -311,7 +324,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * @throws NullPointerException if the specified element is null
      */
     public boolean offer(E e) {
-        final Node<E> newNode = newNode(Objects.requireNonNull(e));
+        final Node<E> newNode = new Node<E>(Objects.requireNonNull(e));
 
         for (Node<E> t = tail, p = t;;) {
             Node<E> q = p.next;
@@ -343,8 +356,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         restartFromHead: for (;;) {
             for (Node<E> h = head, p = h, q;; p = q) {
                 final E item;
-                if ((item = p.item) != null
-                    && ITEM.compareAndSet(p, item, null)) {
+                if ((item = p.item) != null && p.casItem(item, null)) {
                     // Successful CAS is the linearization point
                     // for item to be removed from this queue.
                     if (p != h) // hop two nodes at a time
@@ -485,8 +497,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                 Node<E> q = p.next;
                 final E item;
                 if ((item = p.item) != null) {
-                    if (o.equals(item)
-                        && ITEM.compareAndSet(p, item, null)) {
+                    if (o.equals(item) && p.casItem(item, null)) {
                         skipDeadNodes(pred, p, p, q);
                         return true;
                     }
@@ -523,13 +534,11 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         // Copy c into a private chain of Nodes
         Node<E> beginningOfTheEnd = null, last = null;
         for (E e : c) {
-            Node<E> newNode = newNode(Objects.requireNonNull(e));
+            Node<E> newNode = new Node<E>(Objects.requireNonNull(e));
             if (beginningOfTheEnd == null)
                 beginningOfTheEnd = last = newNode;
-            else {
-                NEXT.set(last, newNode);
-                last = newNode;
-            }
+            else
+                last.appendRelaxed(last = newNode);
         }
         if (beginningOfTheEnd == null)
             return false;
@@ -806,14 +815,14 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         Node<E> h = null, t = null;
         for (Object item; (item = s.readObject()) != null; ) {
             @SuppressWarnings("unchecked")
-            Node<E> newNode = newNode((E) item);
+            Node<E> newNode = new Node<E>((E) item);
             if (h == null)
                 h = t = newNode;
             else
-                NEXT.set(t, t = newNode);
+                t.appendRelaxed(t = newNode);
         }
         if (h == null)
-            h = t = newNode(null);
+            h = t = new Node<E>();
         head = h;
         tail = t;
     }
@@ -962,7 +971,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                 final E item; boolean pAlive;
                 if (pAlive = ((item = p.item) != null)) {
                     if (filter.test(item)) {
-                        if (ITEM.compareAndSet(p, item, null))
+                        if (p.casItem(item, null))
                             removed = true;
                         pAlive = false;
                     }
@@ -1015,10 +1024,10 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     }
 
     // VarHandle mechanics
-    private static final VarHandle HEAD;
-    private static final VarHandle TAIL;
-    private static final VarHandle ITEM;
-    private static final VarHandle NEXT;
+    static final VarHandle HEAD;
+    static final VarHandle TAIL;
+    static final VarHandle ITEM;
+    static final VarHandle NEXT;
     static {
         try {
             MethodHandles.Lookup l = MethodHandles.lookup();
