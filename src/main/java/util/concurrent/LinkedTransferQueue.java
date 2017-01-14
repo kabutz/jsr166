@@ -617,9 +617,10 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
 
         restartFromHead: for (;;) {
             for (Node h = head, p = h; p != null;) { // find & match first node
-                boolean isData = p.isData;
-                Object item = p.item;
-                if ((item != null) == isData) { // unmatched
+                final boolean isData;
+                final Object item;
+                if (((item = p.item) != null) == (isData = p.isData)) {
+                    // unmatched
                     if (isData == haveData)   // can't match
                         break;
                     if (p.casItem(item, e)) { // match
@@ -709,8 +710,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         ThreadLocalRandom randomYields = null; // bound if needed
 
         for (;;) {
-            Object item = s.item;
-            if (item != e) {                  // matched
+            final Object item;
+            if ((item = s.item) != e) {       // matched
                 // assert item != s;
                 s.forgetContents();           // avoid garbage
                 @SuppressWarnings("unchecked") E itemE = (E) item;
