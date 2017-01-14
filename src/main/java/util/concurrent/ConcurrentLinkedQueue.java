@@ -157,15 +157,14 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         volatile Node<E> next;
 
         /**
-         * Constructs a new node holding item.  Uses relaxed write
-         * because item can only be seen after piggy-backing
-         * publication via CAS.
+         * Constructs a node holding item.  Uses relaxed write because
+         * item can only be seen after piggy-backing publication via CAS.
          */
         Node(E item) {
             ITEM.set(this, item);
         }
 
-        /** Constructs a new dead node.  Suitable for initial dummy node. */
+        /** Constructs a dead dummy node. */
         Node() {}
 
         void appendRelaxed(Node<E> next) {
@@ -1024,8 +1023,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     }
 
     // VarHandle mechanics
-    static final VarHandle HEAD;
-    static final VarHandle TAIL;
+    private static final VarHandle HEAD;
+    private static final VarHandle TAIL;
     static final VarHandle ITEM;
     static final VarHandle NEXT;
     static {
