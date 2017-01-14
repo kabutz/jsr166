@@ -205,7 +205,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * - tail.item may or may not be null.
      * - it is permitted for tail to lag behind head, that is, for tail
      *   to not be reachable from head!
-     * - tail.next may or may not be self-pointing to tail.
+     * - tail.next may or may not be self-linked.
      */
     private transient volatile Node<E> tail;
 
