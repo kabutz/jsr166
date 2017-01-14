@@ -130,9 +130,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * correctly perform enqueue and dequeue operations by traversing
      * from a pointer to the initial node; CASing the item of the
      * first unmatched node on match and CASing the next field of the
-     * trailing node on appends. (Plus some special-casing when
-     * initially empty).  While this would be a terrible idea in
-     * itself, it does have the benefit of not requiring ANY atomic
+     * trailing node on appends.  While this would be a terrible idea
+     * in itself, it does have the benefit of not requiring ANY atomic
      * updates on head/tail fields.
      *
      * We introduce here an approach that lies between the extremes of
@@ -238,15 +237,6 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * interior nodes) except in the case of cancellation/removal (see
      * below).
      *
-     * We allow both the head and tail fields to be null before any
-     * nodes are enqueued; initializing upon first append.  This
-     * simplifies some other logic, as well as providing more
-     * efficient explicit control paths instead of letting JVMs insert
-     * implicit NullPointerExceptions when they are null.  While not
-     * currently fully implemented, we also leave open the possibility
-     * of re-nulling these fields when empty (which is complicated to
-     * arrange, for little benefit.)
-     *
      * All enqueue/dequeue operations are handled by the single method
      * "xfer" with parameters indicating whether to act as some form
      * of offer, put, poll, take, or transfer (each possibly with
@@ -278,16 +268,15 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * 2. Try to append a new node (method tryAppend)
      *
      *    Starting at current tail pointer, find the actual last node
-     *    and try to append a new node (or if head was null, establish
-     *    the first node). Nodes can be appended only if their
-     *    predecessors are either already matched or are of the same
-     *    mode. If we detect otherwise, then a new node with opposite
-     *    mode must have been appended during traversal, so we must
-     *    restart at phase 1. The traversal and update steps are
-     *    otherwise similar to phase 1: Retrying upon CAS misses and
-     *    checking for staleness.  In particular, if a self-link is
-     *    encountered, then we can safely jump to a node on the list
-     *    by continuing the traversal at current head.
+     *    and try to append a new node. Nodes can be appended only if
+     *    their predecessors are either already matched or are of the
+     *    same mode. If we detect otherwise, then a new node with
+     *    opposite mode must have been appended during traversal, so
+     *    we must restart at phase 1. The traversal and update steps
+     *    are otherwise similar to phase 1: Retrying upon CAS misses
+     *    and checking for staleness.  In particular, if a self-link
+     *    is encountered, then we can safely jump to a node on the
+     *    list by continuing the traversal at current head.
      *
      *    On successful append, if the call was ASYNC, return.
      *
@@ -440,12 +429,18 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         }
 
         /**
-         * Constructs a new node.  Uses relaxed write because item can
-         * only be seen after publication via casNext.
+         * Constructs a data node holding item if item is non-null,
+         * else a request node.  Uses relaxed write because item can
+         * only be seen after piggy-backing publication via CAS.
          */
         Node(Object item) {
             ITEM.set(this, item);
             isData = (item != null);
+        }
+
+        /** Constructs a dead (matched data) dummy node. */
+        Node() {
+            isData = true;
         }
 
         /**
@@ -454,6 +449,12 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
          */
         final void forgetNext() {
             NEXT.setRelease(this, this);
+        }
+
+        final void appendRelaxed(Node next) {
+            // assert next != null;
+            // assert this.next == null;
+            NEXT.set(this, next);
         }
 
         /**
@@ -505,33 +506,42 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         }
 
         private static final long serialVersionUID = -3375979862319811754L;
-
-        // VarHandle mechanics
-        private static final VarHandle ITEM;
-        private static final VarHandle NEXT;
-        private static final VarHandle WAITER;
-        static {
-            try {
-                MethodHandles.Lookup l = MethodHandles.lookup();
-                ITEM = l.findVarHandle(Node.class, "item", Object.class);
-                NEXT = l.findVarHandle(Node.class, "next", Node.class);
-                WAITER = l.findVarHandle(Node.class, "waiter", Thread.class);
-            } catch (ReflectiveOperationException e) {
-                throw new Error(e);
-            }
-        }
     }
 
-    /** head of the queue; null until first enqueue */
+    /**
+     * A node from which the first live (non-matched) node (if any)
+     * can be reached in O(1) time.
+     * Invariants:
+     * - all live nodes are reachable from head via .next
+     * - head != null
+     * - (tmp = head).next != tmp || tmp != head
+     * Non-invariants:
+     * - head may or may not be live
+     * - it is permitted for tail to lag behind head, that is, for tail
+     *   to not be reachable from head!
+     */
     transient volatile Node head;
 
-    /** tail of the queue; null until first append */
+    /**
+     * A node from which the last node on list (that is, the unique
+     * node with node.next == null) can be reached in O(1) time.
+     * Invariants:
+     * - the last node is always reachable from tail via .next
+     * - tail != null
+     * Non-invariants:
+     * - tail may or may not be live
+     * - it is permitted for tail to lag behind head, that is, for tail
+     *   to not be reachable from head!
+     * - tail.next may or may not be self-linked.
+     */
     private transient volatile Node tail;
 
     /** The number of apparent failures to unsplice removed nodes */
     private transient volatile int sweepVotes;
 
     private boolean casTail(Node cmp, Node val) {
+        // assert cmp != null;
+        // assert val != null;
         return TAIL.compareAndSet(this, cmp, val);
     }
 
@@ -655,12 +665,12 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * predecessor
      */
     private Node tryAppend(Node s, boolean haveData) {
+        // assert head != null;
+        // assert tail != null;
         for (Node t = tail, p = t;;) {        // move p to last node and append
             Node n, u;                        // temps for reads of next & tail
-            if (p == null && (p = head) == null) {
-                if (casHead(null, s))
-                    return s;                 // initialize
-            }
+            if (p == null)
+                p = head;
             else if (p.cannotPrecede(haveData))
                 return null;                  // lost race vs opposite mode
             else if ((n = p.next) != null)    // not last; keep traversing
@@ -1223,6 +1233,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * Creates an initially empty {@code LinkedTransferQueue}.
      */
     public LinkedTransferQueue() {
+        head = tail = new Node();
     }
 
     /**
@@ -1235,8 +1246,18 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      *         of its elements are null
      */
     public LinkedTransferQueue(Collection<? extends E> c) {
-        this();
-        addAll(c);
+        Node h = null, t = null;
+        for (E e : c) {
+            Node newNode = new Node(Objects.requireNonNull(e));
+            if (h == null)
+                h = t = newNode;
+            else
+                t.appendRelaxed(t = newNode);
+        }
+        if (h == null)
+            h = t = new Node();
+        head = h;
+        tail = t;
     }
 
     /**
@@ -1580,15 +1601,21 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      */
     private void readObject(java.io.ObjectInputStream s)
         throws java.io.IOException, ClassNotFoundException {
-        s.defaultReadObject();
-        for (;;) {
+
+        // Read in elements until trailing null sentinel found
+        Node h = null, t = null;
+        for (Object item; (item = s.readObject()) != null; ) {
             @SuppressWarnings("unchecked")
-            E item = (E) s.readObject();
-            if (item == null)
-                break;
+            Node newNode = new Node((E) item);
+            if (h == null)
+                h = t = newNode;
             else
-                offer(item);
+                t.appendRelaxed(t = newNode);
         }
+        if (h == null)
+            h = t = new Node();
+        head = h;
+        tail = t;
     }
 
     /**
@@ -1701,6 +1728,9 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     private static final VarHandle HEAD;
     private static final VarHandle TAIL;
     private static final VarHandle SWEEPVOTES;
+    static final VarHandle ITEM;
+    static final VarHandle NEXT;
+    static final VarHandle WAITER;
     static {
         try {
             MethodHandles.Lookup l = MethodHandles.lookup();
@@ -1710,6 +1740,9 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                                    Node.class);
             SWEEPVOTES = l.findVarHandle(LinkedTransferQueue.class, "sweepVotes",
                                          int.class);
+            ITEM = l.findVarHandle(Node.class, "item", Object.class);
+            NEXT = l.findVarHandle(Node.class, "next", Node.class);
+            WAITER = l.findVarHandle(Node.class, "waiter", Thread.class);
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }

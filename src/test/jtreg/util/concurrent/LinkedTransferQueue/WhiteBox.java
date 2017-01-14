@@ -15,6 +15,10 @@ import static org.testng.Assert.*;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
@@ -93,10 +97,10 @@ public class WhiteBox {
     public void addRemove() {
         LinkedTransferQueue q = new LinkedTransferQueue();
         assertInvariants(q);
-        assertNull(head(q));
-        assertEquals(nodeCount(q), 0);
+        assertNull(next(head(q)));
+        assertNull(item(head(q)));
         q.add(1);
-        assertEquals(nodeCount(q), 1);
+        assertEquals(nodeCount(q), 2);
         assertInvariants(q);
         q.remove(1);
         assertEquals(nodeCount(q), 1);
@@ -125,16 +129,13 @@ public class WhiteBox {
         Consumer<LinkedTransferQueue> traversalAction) {
         LinkedTransferQueue q = new LinkedTransferQueue();
         Object oldHead;
-        int n = 2 + rnd.nextInt(5);
+        int n = 1 + rnd.nextInt(5);
         for (int i = 0; i < n; i++) q.add(i);
-        assertEquals(nodeCount(q), n);
+        assertEquals(nodeCount(q), n + 1);
         oldHead = head(q);
-        assertEquals(q.poll(), 0);
-        assertEquals(nodeCount(q), n);
-        assertSame(head(q), oldHead);
         traversalAction.accept(q);
         assertInvariants(q);
-        assertEquals(nodeCount(q), n - 1);
+        assertEquals(nodeCount(q), n);
         assertIsSelfLinked(oldHead);
     }
 
@@ -209,14 +210,10 @@ public class WhiteBox {
                 ITEM.setVolatile(p, null);
             }
         traversalAction.accept(q);
-        if (n == 0)
-            assertEquals(nodeCount(q), 0);
-        else {
-            int c = nodeCount(q);
-            assertEquals(q.size(), c - (q.contains(n - 1) ? 0 : 1));
-            for (int i = 0; i < n; i++)
-                assertTrue(nulledOut.contains(i) ^ q.contains(i));
-        }
+        int c = nodeCount(q);
+        assertEquals(q.size(), c - (q.contains(n - 1) ? 0 : 1));
+        for (int i = 0; i < n; i++)
+            assertTrue(nulledOut.contains(i) ^ q.contains(i));
     }
 
     /**
@@ -261,7 +258,7 @@ public class WhiteBox {
         LinkedTransferQueue q = new LinkedTransferQueue();
         int n = 1 + rnd.nextInt(5);
         for (int i = 0; i < n; i++) q.add(i);
-        assertEquals(nodeCount(q), n);
+        assertEquals(nodeCount(q), n + 1);
         for (int i = 0; i < n; i++) {
             int c = nodeCount(q);
             boolean slack = item(head(q)) == null;
@@ -290,25 +287,56 @@ public class WhiteBox {
         LinkedTransferQueue q = new LinkedTransferQueue();
         int n = 1 + rnd.nextInt(9);
         for (int i = 0; i < n; i++) {
-            int c = tailCount(q);
-            assertTrue(c <= 2); // tail slack at most 1
-            if (i < 2) assertEquals(c, 0);
+            boolean slack = next(tail(q)) != null;
             addAction.accept(q);
-            // tail slack toggles between 0 and 1
-            if (i > 0) assertEquals(Math.abs(tailCount(q) - c), 1);
+            if (slack)
+                assertNull(next(tail(q)));
+            else {
+                assertNotNull(next(tail(q)));
+                assertNull(next(next(tail(q))));
+            }
+            assertInvariants(q);
         }
+    }
+
+    byte[] serialBytes(Object o) {
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(bos);
+            oos.writeObject(o);
+            oos.flush();
+            oos.close();
+            return bos.toByteArray();
+        } catch (Exception fail) {
+            throw new AssertionError(fail);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    <T> T serialClone(T o) {
+        try {
+            ObjectInputStream ois = new ObjectInputStream
+                (new ByteArrayInputStream(serialBytes(o)));
+            T clone = (T) ois.readObject();
+            assertNotSame(o, clone);
+            assertSame(o.getClass(), clone.getClass());
+            return clone;
+        } catch (Exception fail) {
+            throw new AssertionError(fail);
+        }
+    }
+
+    public void testSerialization() {
+        LinkedTransferQueue q = serialClone(new LinkedTransferQueue());
         assertInvariants(q);
     }
 
     /** Checks conditions which should always be true. */
     void assertInvariants(LinkedTransferQueue q) {
-        // Unlike CLQ, head and tail are initially null
-        if (head(q) != null) {
-            // tail is only initialized when second element added!
-            //assertNotNull(tail(q));
-            // head is never self-linked (but tail may!)
-            for (Object h; next(h = head(q)) == h; )
-                assertNotSame(h, head(q)); // must be update race
-        }
+        assertNotNull(head(q));
+        assertNotNull(tail(q));
+        // head is never self-linked (but tail may!)
+        for (Object h; next(h = head(q)) == h; )
+            assertNotSame(h, head(q)); // must be update race
     }
 }
