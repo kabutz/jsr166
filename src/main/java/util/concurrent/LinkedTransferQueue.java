@@ -407,26 +407,14 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
 
     /**
      * Queue nodes. Uses Object, not E, for items to allow forgetting
-     * them after use.  Relies heavily on VarHandles to minimize
-     * unnecessary ordering constraints: Writes that are intrinsically
-     * ordered wrt other accesses or CASes use simple relaxed forms.
+     * them after use.  Writes that are intrinsically ordered wrt
+     * other accesses or CASes use simple relaxed forms.
      */
     static final class Node {
         final boolean isData;   // false if this is a request node
         volatile Object item;   // initially non-null if isData; CASed to match
         volatile Node next;
-        volatile Thread waiter; // null until waiting
-
-        final boolean casNext(Node cmp, Node val) {
-            return NEXT.compareAndSet(this, cmp, val);
-        }
-
-        final boolean casItem(Object cmp, Object val) {
-            // assert isData == (cmp != null);
-            // assert isData == (val == null);
-            // assert !(cmp instanceof Node);
-            return ITEM.compareAndSet(this, cmp, val);
-        }
+        volatile Thread waiter; // null when not waiting for a match
 
         /**
          * Constructs a data node holding item if item is non-null,
@@ -438,16 +426,29 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             isData = (item != null);
         }
 
-        /** Constructs a dead (matched data) dummy node. */
+        /** Constructs a (matched data) dummy node. */
         Node() {
             isData = true;
+        }
+
+        final boolean casNext(Node cmp, Node val) {
+            // assert val != null;
+            return NEXT.compareAndSet(this, cmp, val);
+        }
+
+        final boolean casItem(Object cmp, Object val) {
+            // assert isData == (cmp != null);
+            // assert isData == (val == null);
+            // assert !(cmp instanceof Node);
+            return ITEM.compareAndSet(this, cmp, val);
         }
 
         /**
          * Links node to itself to avoid garbage retention.  Called
          * only after CASing head field, so uses relaxed write.
          */
-        final void forgetNext() {
+        final void selfLink() {
+            // assert isMatched();
             NEXT.setRelease(this, this);
         }
 
@@ -482,6 +483,15 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             return isData == (item == null);
         }
 
+        /** Tries to CAS-match this node; if successful, wakes waiter. */
+        final boolean tryMatch(Object cmp, Object val) {
+            if (casItem(cmp, val)) {
+                LockSupport.unpark(waiter);
+                return true;
+            }
+            return false;
+        }
+
         /**
          * Returns true if a node with the given mode cannot be
          * appended to this node because this node is unmatched and
@@ -490,19 +500,6 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         final boolean cannotPrecede(boolean haveData) {
             boolean d = isData;
             return d != haveData && d != (item == null);
-        }
-
-        /**
-         * Tries to artificially match a data node -- used by remove.
-         */
-        final boolean tryMatchData() {
-            // assert isData;
-            final Object x;
-            if ((x = item) != null && casItem(x, null)) {
-                LockSupport.unpark(waiter);
-                return true;
-            }
-            return false;
         }
 
         private static final long serialVersionUID = -3375979862319811754L;
@@ -564,7 +561,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         if (pred != null)
             return pred.casNext(c, p);
         if (casHead(c, p)) {
-            c.forgetNext();
+            c.selfLink();
             return true;
         }
         return false;
@@ -623,18 +620,17 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                     // unmatched
                     if (isData == haveData)   // can't match
                         break;
-                    if (p.casItem(item, e)) { // match
+                    if (p.tryMatch(item, e)) {
                         for (Node q = p; q != h;) {
                             Node n = q.next;  // update by 2 unless singleton
                             if (head == h && casHead(h, n == null ? q : n)) {
-                                h.forgetNext();
+                                h.selfLink();
                                 break;
                             }                 // advance and retry
                             if ((h = head)   == null ||
                                 (q = h.next) == null || !q.isMatched())
                                 break;        // unless slack < 2
                         }
-                        LockSupport.unpark(p.waiter);
                         @SuppressWarnings("unchecked") E itemE = (E) item;
                         return itemE;
                     }
@@ -792,7 +788,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                     continue restartFromHead;
             }
             if (p != h && casHead(h, p))
-                h.forgetNext();
+                h.selfLink();
             return first;
         }
     }
@@ -1017,7 +1013,9 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             for (Node p = (pred == null) ? head : pred.next, c = p, q;
                  p != null; ) {
                 if (p == lastRet) {
-                    p.tryMatchData();
+                    final Object item;
+                    if ((item = p.item) != null)
+                        p.tryMatch(item, null);
                     if ((q = p.next) == null) q = p;
                     if (c != q) tryCasSuccessor(pred, c, q);
                     ancestor = pred;
@@ -1192,7 +1190,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                     if (hn == null)
                         return;          // now empty
                     if (hn != h && casHead(h, hn))
-                        h.forgetNext();  // advance head
+                        h.selfLink();  // advance head
                 }
                 if (pred.next != pred && s.next != s) { // recheck if offlist
                     for (;;) {           // sweep now if enough votes
@@ -1510,7 +1508,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 final Object item;
                 if ((item = p.item) != null) {
                     if (p.isData) {
-                        if (o.equals(item) && p.tryMatchData()) {
+                        if (o.equals(item) && p.tryMatch(item, null)) {
                             skipDeadNodes(pred, p, p, q);
                             return true;
                         }
@@ -1666,7 +1664,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 final Object item; boolean pAlive;
                 if (pAlive = ((item = p.item) != null && p.isData)) {
                     if (filter.test((E) item)) {
-                        if (p.tryMatchData())
+                        if (p.tryMatch(item, null))
                             removed = true;
                         pAlive = false;
                     }
