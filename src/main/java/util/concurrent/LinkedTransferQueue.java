@@ -621,15 +621,19 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                     if (isData == haveData)   // can't match
                         break;
                     if (p.tryMatch(item, e)) {
-                        for (Node q = p; q != h;) {
-                            Node n = q.next;  // update by 2 unless singleton
-                            if (head == h && casHead(h, n == null ? q : n)) {
+                        // collapse at least 2
+                        if (h != p) tryCollapseHead: {
+                            // find live or trailing node
+                            for (Node q; (q = p.next) != null; ) {
+                                if (!q.isMatched()) {
+                                    p = q;
+                                    break;
+                                }
+                                if (p == (p = q))
+                                    break tryCollapseHead;
+                            }
+                            if (h == head && casHead(h, p))
                                 h.selfLink();
-                                break;
-                            }                 // advance and retry
-                            if ((h = head)   == null ||
-                                (q = h.next) == null || !q.isMatched())
-                                break;        // unless slack < 2
                         }
                         @SuppressWarnings("unchecked") E itemE = (E) item;
                         return itemE;
