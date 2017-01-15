@@ -568,7 +568,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Collapse dead (matched) nodes between pred and q.
+     * Collapses dead (matched) nodes between pred and q.
      * @param pred the last known live node, or null if none
      * @param c the first dead node
      * @param p the last dead node
@@ -588,6 +588,26 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         return (tryCasSuccessor(pred, c, q)
                 && (pred == null || !pred.isMatched()))
             ? pred : p;
+    }
+
+    /**
+     * Collapses dead (matched) nodes between h and p.
+     * h was once head, and all nodes between h and p are dead.
+     */
+    private void skipDeadNodesNearHead(Node h, Node p) {
+        // assert h != p;
+        // assert p.isMatched();
+        // find live or trailing node, starting at p
+        for (Node q; (q = p.next) != null; ) {
+            if (!q.isMatched()) {
+                p = q;
+                break;
+            }
+            if (p == (p = q))
+                return;
+        }
+        if (h == HEAD.getAcquire(this) && casHead(h, p))
+            h.selfLink();
     }
 
     /* Possible values for "how" argument in xfer method. */
@@ -622,19 +642,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                         break;
                     if (p.tryMatch(item, e)) {
                         // collapse at least 2
-                        if (h != p) tryCollapseHead: {
-                            // find live or trailing node
-                            for (Node q; (q = p.next) != null; ) {
-                                if (!q.isMatched()) {
-                                    p = q;
-                                    break;
-                                }
-                                if (p == (p = q))
-                                    break tryCollapseHead;
-                            }
-                            if (h == head && casHead(h, p))
-                                h.selfLink();
-                        }
+                        if (h != p) skipDeadNodesNearHead(h, p);
                         @SuppressWarnings("unchecked") E itemE = (E) item;
                         return itemE;
                     }
@@ -668,6 +676,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     private Node tryAppend(Node s, boolean haveData) {
         // assert head != null;
         // assert tail != null;
+        // assert s.isData == haveData;
         for (Node t = tail, p = t;;) {        // move p to last node and append
             Node n, u;                        // temps for reads of next & tail
             if (p == null)
