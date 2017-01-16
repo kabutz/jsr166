@@ -1174,10 +1174,13 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * the given predecessor.
      *
      * @param pred a node that was at one time known to be the
-     * predecessor of s, or null or s itself if s is/was at head
+     * predecessor of s
      * @param s the node to be unspliced
      */
     final void unsplice(Node pred, Node s) {
+        // assert pred != null;
+        // assert s != null;
+        // assert s.isMatched();
         s.waiter = null; // disable signals
         /*
          * See above for rationale. Briefly: if pred still points to
