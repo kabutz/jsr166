@@ -670,8 +670,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @param s the node to append
      * @param haveData true if appending in data mode
      * @return null on failure due to losing race with append in
-     * different mode, else s's predecessor, or s itself if no
-     * predecessor
+     * different mode, else s's predecessor
      */
     private Node tryAppend(Node s, boolean haveData) {
         // assert head != null;
