@@ -701,9 +701,9 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * Spins/yields/blocks until node s is matched or caller gives up.
      *
      * @param s the waiting node
-     * @param pred the predecessor of s, or s itself if it has no
-     * predecessor, or null if unknown (the null case does not occur
-     * in any current calls but may in possible future extensions)
+     * @param pred the predecessor of s, or null if unknown (the null
+     * case does not occur in any current calls but may in possible
+     * future extensions)
      * @param e the comparison value for checking match
      * @param timed if true, wait only until timeout elapses
      * @param nanos timeout in nanosecs, used only if timed is true
