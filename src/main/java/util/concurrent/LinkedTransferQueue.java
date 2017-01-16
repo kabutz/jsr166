@@ -1179,6 +1179,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      */
     final void unsplice(Node pred, Node s) {
         // assert pred != null;
+        // assert pred != s;
         // assert s != null;
         // assert s.isMatched();
         s.waiter = null; // disable signals
@@ -1189,7 +1190,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
          * nor s are head or offlist, add to sweepVotes, and if enough
          * votes have accumulated, sweep.
          */
-        if (pred != null && pred != s && pred.next == s) {
+        if (pred != null && pred.next == s) {
             Node n = s.next;
             if (n == null ||
                 (n != s && pred.casNext(s, n) && pred.isMatched())) {
