@@ -678,11 +678,11 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         // assert tail != null;
         // assert s.isData == haveData;
         for (Node t = tail, p = t;;) {        // move p to last node and append
-            Node n, u;                        // temps for reads of next & tail
+            Node n;
             if (p.cannotPrecede(haveData))
                 return null;                  // lost race vs opposite mode
             else if ((n = p.next) != null)    // not last; keep traversing
-                p = p != t && t != (u = tail) ? (t = u) : // stale tail
+                p = (p != t && t != (t = tail)) ? t : // stale tail
                     (p != n) ? n : head;      // restart if off list
             else if (!p.casNext(null, s))
                 p = p.next;                   // re-read on CAS failure
