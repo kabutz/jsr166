@@ -334,12 +334,11 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * from, the head of list.
      *
      * Without taking these into account, it would be possible for an
-     * unbounded number of supposedly removed nodes to remain
-     * reachable.  Situations leading to such buildup are uncommon but
-     * can occur in practice; for example when a series of short timed
-     * calls to poll repeatedly time out but never otherwise fall off
-     * the list because of an untimed call to take at the front of the
-     * queue.
+     * unbounded number of supposedly removed nodes to remain reachable.
+     * Situations leading to such buildup are uncommon but can occur in
+     * practice; for example when a series of short timed calls to poll
+     * repeatedly time out but never otherwise fall off the list because
+     * of an untimed call to take() at the front of the queue.
      *
      * When these cases arise, rather than always retraversing the
      * entire list to find an actual predecessor to unlink (which
@@ -352,10 +351,9 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * We perform sweeps by the thread hitting threshold (rather than
      * background threads or by spreading work to other threads)
      * because in the main contexts in which removal occurs, the
-     * caller is already timed-out, cancelled, or performing a
-     * potentially O(n) operation (e.g. remove(x)), none of which are
-     * time-critical enough to warrant the overhead that alternatives
-     * would impose on other threads.
+     * caller is timed-out or cancelled, which are not time-critical
+     * enough to warrant the overhead that alternatives would impose
+     * on other threads.
      *
      * Because the sweepVotes estimate is conservative, and because
      * nodes become unlinked "naturally" as they fall off the head of
@@ -366,6 +364,13 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * providing a worst-case bound on retention of interior nodes in
      * quiescent queues. The value defined below was chosen
      * empirically to balance these under various timeout scenarios.
+     *
+     * Because traversal operations on the linked list of nodes are a
+     * natural opportunity to sweep dead nodes, we generally do so,
+     * including all the operations that might remove elements as they
+     * traverse, such as removeIf and Iterator.remove.  This largely
+     * eliminates long chains of dead interior nodes, except from
+     * cancelled or timed out blocking operations.
      *
      * Note that we cannot self-link unlinked interior nodes during
      * sweeps. However, the associated garbage chains terminate when
@@ -533,7 +538,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      */
     private transient volatile Node tail;
 
-    /** The number of apparent failures to unsplice removed nodes */
+    /** The number of apparent failures to unsplice cancelled nodes */
     private transient volatile int sweepVotes;
 
     private boolean casTail(Node cmp, Node val) {
@@ -546,8 +551,9 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         return HEAD.compareAndSet(this, cmp, val);
     }
 
-    private boolean casSweepVotes(int cmp, int val) {
-        return SWEEPVOTES.compareAndSet(this, cmp, val);
+    /** Atomic version of ++sweepVotes. */
+    private int incSweepVotes() {
+        return (int) SWEEPVOTES.getAndAdd(this, 1) + 1;
     }
 
     /**
@@ -1182,6 +1188,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         // assert pred != s;
         // assert s != null;
         // assert s.isMatched();
+        // assert (SWEEP_THRESHOLD & (SWEEP_THRESHOLD - 1)) == 0;
         s.waiter = null; // disable signals
         /*
          * See above for rationale. Briefly: if pred still points to
@@ -1206,19 +1213,10 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                     if (hn != h && casHead(h, hn))
                         h.selfLink();  // advance head
                 }
-                if (pred.next != pred && s.next != s) { // recheck if offlist
-                    for (;;) {           // sweep now if enough votes
-                        int v = sweepVotes;
-                        if (v < SWEEP_THRESHOLD) {
-                            if (casSweepVotes(v, v + 1))
-                                break;
-                        }
-                        else if (casSweepVotes(v, 0)) {
-                            sweep();
-                            break;
-                        }
-                    }
-                }
+                // sweep every SWEEP_THRESHOLD votes
+                if (pred.next != pred && s.next != s // recheck if offlist
+                    && (incSweepVotes() & (SWEEP_THRESHOLD - 1)) == 0)
+                    sweep();
             }
         }
     }
