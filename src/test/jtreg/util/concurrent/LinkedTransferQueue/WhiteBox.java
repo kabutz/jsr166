@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import static java.util.stream.Collectors.toList;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -34,6 +35,7 @@ import java.util.function.Function;
 public class WhiteBox {
     final ThreadLocalRandom rnd = ThreadLocalRandom.current();
     final VarHandle HEAD, TAIL, ITEM, NEXT;
+    final int SWEEP_THRESHOLD;
 
     public WhiteBox() throws ReflectiveOperationException {
         Class<?> qClass = LinkedTransferQueue.class;
@@ -44,6 +46,9 @@ public class WhiteBox {
         TAIL = lookup.findVarHandle(qClass, "tail", nodeClass);
         NEXT = lookup.findVarHandle(nodeClass, "next", nodeClass);
         ITEM = lookup.findVarHandle(nodeClass, "item", Object.class);
+        SWEEP_THRESHOLD = (int)
+            lookup.findStaticVarHandle(qClass, "SWEEP_THRESHOLD", int.class)
+            .get();
     }
 
     Object head(LinkedTransferQueue q) { return HEAD.getVolatile(q); }
@@ -329,6 +334,24 @@ public class WhiteBox {
     public void testSerialization() {
         LinkedTransferQueue q = serialClone(new LinkedTransferQueue());
         assertInvariants(q);
+    }
+
+    public void cancelledNodeSweeping() throws Throwable {
+        LinkedTransferQueue q = new LinkedTransferQueue();
+        Thread blockHead = null;
+        if (rnd.nextBoolean()) {
+            blockHead = new Thread(
+                () -> { try { q.take(); } catch (InterruptedException ok) {}});
+            blockHead.start();
+            while (nodeCount(q) != 2) { Thread.yield(); }
+            assertTrue(q.hasWaitingConsumer());
+            assertEquals(q.getWaitingConsumerCount(), 1);
+        }
+        int initialNodeCount = nodeCount(q);
+        for (int i = rnd.nextInt(SWEEP_THRESHOLD * 10); i-->0; )
+            q.poll(1L, TimeUnit.MICROSECONDS);
+        assertTrue(nodeCount(q) <= initialNodeCount + SWEEP_THRESHOLD);
+        if (blockHead != null) blockHead.interrupt();
     }
 
     /** Checks conditions which should always be true. */
