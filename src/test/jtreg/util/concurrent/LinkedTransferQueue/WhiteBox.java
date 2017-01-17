@@ -337,6 +337,7 @@ public class WhiteBox {
     }
 
     public void cancelledNodeSweeping() throws Throwable {
+        assertEquals(SWEEP_THRESHOLD & (SWEEP_THRESHOLD - 1), 0);
         LinkedTransferQueue q = new LinkedTransferQueue();
         Thread blockHead = null;
         if (rnd.nextBoolean()) {
