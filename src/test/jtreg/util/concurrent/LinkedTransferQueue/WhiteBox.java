@@ -348,10 +348,21 @@ public class WhiteBox {
             assertEquals(q.getWaitingConsumerCount(), 1);
         }
         int initialNodeCount = nodeCount(q);
+
+        // Some dead nodes do in fact accumulate ...
+        if (blockHead != null)
+            while (nodeCount(q) < initialNodeCount + SWEEP_THRESHOLD / 2)
+                q.poll(1L, TimeUnit.MICROSECONDS);
+
+        // ... but no more than SWEEP_THRESHOLD nodes accumulate
         for (int i = rnd.nextInt(SWEEP_THRESHOLD * 10); i-->0; )
             q.poll(1L, TimeUnit.MICROSECONDS);
         assertTrue(nodeCount(q) <= initialNodeCount + SWEEP_THRESHOLD);
-        if (blockHead != null) blockHead.interrupt();
+
+        if (blockHead != null) {
+            blockHead.interrupt();
+            blockHead.join();
+        }
     }
 
     /** Checks conditions which should always be true. */
