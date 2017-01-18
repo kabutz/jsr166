@@ -244,43 +244,40 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * method outweighs the code bulk and maintenance problems of
      * using separate methods for each case.
      *
-     * Operation consists of up to three phases. The first is
-     * implemented within method xfer, the second in tryAppend, and
-     * the third in method awaitMatch.
+     * Operation consists of up to two phases. The first is implemented
+     * in method xfer, the second in method awaitMatch.
      *
-     * 1. Try to match an existing node
+     * 1. Traverse until matching or appending (method xfer)
      *
-     *    Starting at head, skip already-matched nodes until finding
-     *    an unmatched node of opposite mode, if one exists, in which
-     *    case matching it and returning, also if necessary updating
-     *    head to one past the matched node (or the node itself if the
-     *    list has no other unmatched nodes). If the CAS misses, then
-     *    a loop retries advancing head by two steps until either
-     *    success or the slack is at most two. By requiring that each
-     *    attempt advances head by two (if applicable), we ensure that
-     *    the slack does not grow without bound. Traversals also check
-     *    if the initial head is now off-list, in which case they
-     *    restart at the new head.
+     *    Conceptually, we simply traverse all nodes starting from head.
+     *    If we encounter an unmatched node of opposite mode, we match
+     *    it and return, also updating head (by at least 2 hops) to
+     *    one past the matched node (or the node itself if it's the
+     *    pinned trailing node).  Traversals also check for the
+     *    possibility of falling off-list, in which case they restart.
      *
-     *    If no candidates are found and the call was untimed
-     *    poll/offer (argument "how" is NOW), return.
+     *    If the trailing node of the list is reached, a match is not
+     *    possible.  If this call was untimed poll or tryTransfer
+     *    (argument "how" is NOW), return empty-handed immediately.
+     *    Else a new node is CAS-appended.  On successful append, if
+     *    this call was ASYNC (e.g. offer), an element was
+     *    successfully added to the end of the queue and we return.
      *
-     * 2. Try to append a new node (method tryAppend)
+     *    Of course, this naive traversal is O(n) when no match is
+     *    possible.  We optimize the traversal by maintaining a tail
+     *    pointer, which is expected to be "near" the end of the list.
+     *    It is only safe to fast-forward to tail (in the presence of
+     *    arbitrary concurrent changes) if it is pointing to a node of
+     *    the same mode, even if it is dead (in this case no preceding
+     *    node could still be matchable by this traversal).  If we
+     *    need to restart due to falling off-list, we can again
+     *    fast-forward to tail, but only if it has changed since the
+     *    last traversal (else we might loop forever).  If tail cannot
+     *    be used, traversal starts at head (but in this case we
+     *    expect to be able to match near head).  As with head, we
+     *    CAS-advance the tail pointer by at least two hops.
      *
-     *    Starting at current tail pointer, find the actual last node
-     *    and try to append a new node. Nodes can be appended only if
-     *    their predecessors are either already matched or are of the
-     *    same mode. If we detect otherwise, then a new node with
-     *    opposite mode must have been appended during traversal, so
-     *    we must restart at phase 1. The traversal and update steps
-     *    are otherwise similar to phase 1: Retrying upon CAS misses
-     *    and checking for staleness.  In particular, if a self-link
-     *    is encountered, then we can safely jump to a node on the
-     *    list by continuing the traversal at current head.
-     *
-     *    On successful append, if the call was ASYNC, return.
-     *
-     * 3. Await match or cancellation (method awaitMatch)
+     * 2. Await match or cancellation (method awaitMatch)
      *
      *    Wait for another thread to match node; instead cancelling if
      *    the current thread was interrupted or the wait timed out. On
@@ -579,7 +576,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @param c the first dead node
      * @param p the last dead node
      * @param q p.next: the next live node, or null if at end
-     * @return either old pred or p if pred dead or CAS failed
+     * @return pred if pred still alive and CAS succeeded; else p
      */
     private Node skipDeadNodes(Node pred, Node c, Node p, Node q) {
         // assert pred != c;
@@ -597,22 +594,20 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Collapses dead (matched) nodes between h and p.
-     * h was once head, and all nodes between h and p are dead.
+     * Collapses dead (matched) nodes from h (which was once head) to p.
+     * Caller ensures all nodes from h up to and including p are dead.
      */
     private void skipDeadNodesNearHead(Node h, Node p) {
+        // assert h != null;
         // assert h != p;
         // assert p.isMatched();
-        // find live or trailing node, starting at p
-        for (Node q; (q = p.next) != null; ) {
-            if (!q.isMatched()) {
-                p = q;
-                break;
-            }
-            if (p == (p = q))
-                return;
+        for (;;) {
+            final Node q;
+            if ((q = p.next) == null) break;
+            else if (!q.isMatched()) { p = q; break; }
+            else if (p == (p = q)) return;
         }
-        if (h == HEAD.getAcquire(this) && casHead(h, p))
+        if (casHead(h, p))
             h.selfLink();
     }
 
@@ -633,72 +628,32 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @return an item if matched, else e
      * @throws NullPointerException if haveData mode but e is null
      */
+    @SuppressWarnings("unchecked")
     private E xfer(E e, boolean haveData, int how, long nanos) {
         if (haveData && (e == null))
             throw new NullPointerException();
-        Node s = null;                        // the node to append, if needed
 
-        restartFromHead: for (;;) {
-            for (Node h = head, p = h; p != null;) { // find & match first node
-                final boolean isData;
-                final Object item;
-                if (((item = p.item) != null) == (isData = p.isData)) {
-                    // unmatched
-                    if (isData == haveData)   // can't match
-                        break;
+        restart: for (Node s = null, t = null, h = null;;) {
+            for (Node p = (t != (t = tail) && t.isData == haveData) ? t
+                     : (h = head);; ) {
+                final Node q; final Object item;
+                if (p.isData != haveData
+                    && haveData == ((item = p.item) == null)) {
+                    if (h == null) h = head;
                     if (p.tryMatch(item, e)) {
-                        // collapse at least 2
                         if (h != p) skipDeadNodesNearHead(h, p);
-                        @SuppressWarnings("unchecked") E itemE = (E) item;
-                        return itemE;
+                        return (E) item;
                     }
                 }
-                if (p == (p = p.next))
-                    continue restartFromHead;
-            }
-
-            if (how != NOW) {                 // No matches available
-                if (s == null)
-                    s = new Node(e);
-                Node pred = tryAppend(s, haveData);
-                if (pred == null)
-                    continue restartFromHead; // lost race vs opposite mode
-                if (how != ASYNC)
-                    return awaitMatch(s, pred, e, (how == TIMED), nanos);
-            }
-            return e; // not waiting
-        }
-    }
-
-    /**
-     * Tries to append node s as tail.
-     *
-     * @param s the node to append
-     * @param haveData true if appending in data mode
-     * @return null on failure due to losing race with append in
-     * different mode, else s's predecessor
-     */
-    private Node tryAppend(Node s, boolean haveData) {
-        // assert head != null;
-        // assert tail != null;
-        // assert s.isData == haveData;
-        for (Node t = tail, p = t;;) {        // move p to last node and append
-            Node n;
-            if (p.cannotPrecede(haveData))
-                return null;                  // lost race vs opposite mode
-            else if ((n = p.next) != null)    // not last; keep traversing
-                p = (p != t && t != (t = tail)) ? t : // stale tail
-                    (p != n) ? n : head;      // restart if off list
-            else if (!p.casNext(null, s))
-                p = p.next;                   // re-read on CAS failure
-            else {
-                if (p != t) {                 // update if slack now >= 2
-                    while ((tail != t || !casTail(t, s)) &&
-                           (t = tail)   != null &&
-                           (s = t.next) != null && // advance and retry
-                           (s = s.next) != null && s != t);
+                if ((q = p.next) == null) {
+                    if (how == NOW) return e;
+                    if (s == null) s = new Node(e);
+                    if (!p.casNext(null, s)) continue;
+                    if (p != t) casTail(t, s);
+                    if (how == ASYNC) return e;
+                    return awaitMatch(s, p, e, (how == TIMED), nanos);
                 }
-                return p;
+                if (p == (p = q)) continue restart;
             }
         }
     }
