@@ -253,6 +253,10 @@ public class WhiteBox {
     public Object[][] pollActions() {
         return List.<Consumer<LinkedTransferQueue>>of(
             q -> assertNotNull(q.poll()),
+            q -> { try { assertNotNull(q.poll(1L, TimeUnit.DAYS)); }
+                catch (Throwable x) { throw new AssertionError(x); }},
+            q -> { try { assertNotNull(q.take()); }
+                catch (Throwable x) { throw new AssertionError(x); }},
             q -> assertNotNull(q.remove()))
             .stream().map(x -> new Object[]{ x }).toArray(Object[][]::new);
     }
