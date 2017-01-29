@@ -265,6 +265,7 @@
           fork="true">
 	<jvmarg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
 	<jvmarg line="--patch-module java.base=@{classes}" if:set="modules"/>
+	<jvmarg line="--add-opens java.base/java.lang=ALL-UNNAMED" if:set="modules"/>
 	<jvmarg line="--add-opens java.base/java.util=ALL-UNNAMED" if:set="modules"/>
 	<jvmarg line="--add-opens java.base/java.util.concurrent=ALL-UNNAMED" if:set="modules"/>
 	<jvmarg line="--add-opens java.base/java.util.concurrent.atomic=ALL-UNNAMED" if:set="modules"/>

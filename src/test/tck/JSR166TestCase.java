@@ -19,6 +19,7 @@
  * @summary JSR-166 tck tests (whitebox tests allowed)
  * @build *
  * @modules java.base/java.util.concurrent:open
+ *          java.base/java.lang:open
  *          java.management
  * @run junit/othervm/timeout=1000
  *      -Djsr166.testImplementationDetails=true
@@ -560,6 +561,7 @@ public class JSR166TestCase extends TestCase {
                 "AtomicReference9Test",
                 "AtomicReferenceArray9Test",
                 "ExecutorCompletionService9Test",
+                "ForkJoinPool9Test",
             };
             addNamedTestClasses(suite, java9TestClassNames);
         }
