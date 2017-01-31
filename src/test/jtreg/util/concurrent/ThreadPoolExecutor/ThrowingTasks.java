@@ -172,9 +172,7 @@ public class ThrowingTasks {
      * Waits for condition to become true, first spin-polling, then sleep-polling.
      */
     static void spinAwait(Supplier<Boolean> waitingForGodot) {
-        for (int spins = 0;;) {
-            if (waitingForGodot.get())
-                return;
+        for (int spins = 0; !waitingForGodot.get(); ) {
             if ((spins = (spins + 1) & 3) > 0) {
                 Thread.yield();
             } else {
