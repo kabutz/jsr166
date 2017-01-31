@@ -3243,6 +3243,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             modifyThreadPermission,
             new RuntimePermission("enableContextClassLoaderOverride"),
             new RuntimePermission("modifyThreadGroup"),
+            new RuntimePermission("getClassLoader"),
             new RuntimePermission("setContextClassLoader"));
 
         public final ForkJoinWorkerThread newThread(ForkJoinPool pool) {
