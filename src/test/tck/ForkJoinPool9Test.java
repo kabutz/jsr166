@@ -30,13 +30,24 @@ public class ForkJoinPool9Test extends JSR166TestCase {
             MethodHandles.privateLookupIn(Thread.class, MethodHandles.lookup())
             .findVarHandle(Thread.class, "contextClassLoader", ClassLoader.class);
         ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
-        //if (System.getSecurityManager() == null) return;
+        boolean haveSecurityManager = (System.getSecurityManager() != null);
         CompletableFuture.runAsync(
             () -> {
                 assertSame(systemClassLoader,
                            Thread.currentThread().getContextClassLoader());
                 assertSame(systemClassLoader,
                            CCL.get(Thread.currentThread()));
+                if (haveSecurityManager)
+                    assertThrows(
+                        SecurityException.class,
+                        () -> System.getProperty("foo"),
+                        () -> Thread.currentThread().setContextClassLoader(null));
+
+                // TODO ?
+//                 if (haveSecurityManager
+//                     && Thread.currentThread().getClass().getSimpleName()
+//                     .equals("InnocuousForkJoinWorkerThread"))
+//                     assertThrows(SecurityException.class, /* ?? */);
             }).join();
     }
 
