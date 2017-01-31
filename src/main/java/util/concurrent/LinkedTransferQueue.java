@@ -1032,8 +1032,11 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             do {
                 final Object item = p.item;
                 if (p.isData) {
-                    if (item != null)
-                        ((a != null) ? a : (a = new Object[n]))[i++] = item;
+                    if (item != null) {
+                        if (a == null)
+                            a = new Object[n];
+                        a[i++] = item;
+                    }
                 } else if (item == null) {
                     p = null;
                     break;

@@ -841,8 +841,11 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             Object[] a = null;
             do {
                 final E e;
-                if ((e = p.item) != null)
-                    ((a != null) ? a : (a = new Object[n]))[i++] = e;
+                if ((e = p.item) != null) {
+                    if (a == null)
+                        a = new Object[n];
+                    a[i++] = e;
+                }
                 if (p == (p = q))
                     p = first();
             } while (p != null && (q = p.next) != null && i < n);
