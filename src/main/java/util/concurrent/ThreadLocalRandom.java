@@ -1066,7 +1066,7 @@ public class ThreadLocalRandom extends Random {
     // at end of <clinit> to survive static initialization circularity
     static {
         if (java.security.AccessController.doPrivileged(
-            new java.security.PrivilegedAction<Boolean>() {
+            new java.security.PrivilegedAction<>() {
                 public Boolean run() {
                     return Boolean.getBoolean("java.util.secureRandomSeed");
                 }})) {
