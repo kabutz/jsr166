@@ -46,6 +46,11 @@ public class VectorTest extends JSR166TestCase {
             assertEquals(n, v.size());
             assertNull(v.get(0));
             assertNull(v.get(n - 1));
+            assertThrows(ArrayIndexOutOfBoundsException.class,
+                         () -> v.setSize(-1));
+            assertEquals(n, v.size());
+            assertNull(v.get(0));
+            assertNull(v.get(n - 1));
         }
     }
 

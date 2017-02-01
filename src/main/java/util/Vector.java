@@ -307,8 +307,9 @@ public class Vector<E>
         if (newSize > elementData.length)
             grow(newSize);
         final Object[] es = elementData;
-        for (int to = elementCount, i = elementCount = newSize; i < to; i++)
+        for (int to = elementCount, i = newSize; i < to; i++)
             es[i] = null;
+        elementCount = newSize;
     }
 
     /**
