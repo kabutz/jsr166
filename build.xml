@@ -18,24 +18,23 @@
   itself.  Because the JDK version matters and because different
   targets require different JDKs, we assume that users have created a
   hierarchy containing:
-  $HOME/jdk/jdk6
   $HOME/jdk/jdk7
   $HOME/jdk/jdk8
   $HOME/jdk/jdk9
+  $HOME/jdk/jdk10
   where each of the above is a JDK or a symlink to same, and
-  $HOME/jdk/src/jdk6
   $HOME/jdk/src/jdk7
   $HOME/jdk/src/jdk8
   $HOME/jdk/src/jdk9
+  $HOME/jdk/src/jdk10
   where each of the above is a complete JDK source tree
   (e.g. mercurial forest) or a symlink to same.
 
   Alternatively, define ant variables thus:
   ant -Djdk$N.home=... -Djdk$N.src.home=...
-  for $N in 6 7 8 9 ...
+  for $N in 7 8 9 10 ...
 
-  As of 2016-03, the sources in src/main are for jdk9+ only.  The "docs"
-  target is currently broken.
+  As of 2016-03, the sources in src/main are for jdk9+ only.
 ------------------------------------------------------------------------------
   </description>
 
@@ -134,6 +133,7 @@
   <defjdklocations v="7"/>
   <defjdklocations v="8"/>
   <defjdklocations v="9"/>
+  <defjdklocations v="10"/>
 
   <!-- Source locations -->
   <property name="src.dir"              location="${basedir}/src/main"/>
@@ -143,6 +143,7 @@
   <property name="jtreg7.src.dir"       location="${test.src.dir}/jtreg-jdk7"/>
   <property name="jtreg8.src.dir"       location="${test.src.dir}/jtreg-jdk8"/>
   <property name="jtreg9.src.dir"       location="${test.src.dir}/jtreg"/>
+  <property name="jtreg10.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg.src.dir"        location="${jtreg9.src.dir}"/>
   <property name="lib.dir"              location="${basedir}/lib"/>
   <property name="dist.dir"             location="${basedir}/dist"/>
