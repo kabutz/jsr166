@@ -332,10 +332,11 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      *
      * Without taking these into account, it would be possible for an
      * unbounded number of supposedly removed nodes to remain reachable.
-     * Situations leading to such buildup are uncommon but can occur in
-     * practice; for example when a series of short timed calls to poll
-     * repeatedly time out but never otherwise fall off the list because
-     * of an untimed call to take() at the front of the queue.
+     * Situations leading to such buildup are uncommon but can occur
+     * in practice; for example when a series of short timed calls to
+     * poll repeatedly time out at the trailing node but otherwise
+     * never fall off the list because of an untimed call to take() at
+     * the front of the queue.
      *
      * When these cases arise, rather than always retraversing the
      * entire list to find an actual predecessor to unlink (which
