@@ -707,4 +707,26 @@ public class WhiteBox {
         }
         checkIterationSanity(q);
     }
+
+    public void iteratorsDetachedWhenExhaustedAndLastRetRemoved() {
+        boolean fair = rnd.nextBoolean();
+        int capacity = rnd.nextInt(2, 10);
+        ArrayBlockingQueue q = new ArrayBlockingQueue(capacity, fair);
+        randomizePutIndex(q);
+        int size = rnd.nextInt(1, capacity + 1);
+        for (int i = 0; i < size; i++) q.add(i);
+        Iterator it = q.iterator();
+        for (int i = 0; i < size - 1; i++) assertEquals(i, it.next());
+        assertEquals(trackedIterators(q), Collections.singletonList(it));
+        assertFalse(isDetached(it));
+        switch (rnd.nextInt(2)) {
+        case 0: assertTrue(q.remove(size - 1)); break;
+        case 1: assertTrue(q.removeIf(e -> e.equals(size - 1))); break;
+        default: throw new AssertionError();
+        }
+        assertEquals(size - 1, it.next()); // should trigger detach
+        assertNull(itrs(q));
+        assertTrue(isDetached(it));
+        assertRemoveHasNoEffect(it, q);
+    }
 }

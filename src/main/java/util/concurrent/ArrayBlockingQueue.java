@@ -1207,6 +1207,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 } else {
                     nextIndex = NONE;
                     nextItem = null;
+                    if (lastRet == REMOVED) detach();
                 }
             } finally {
                 lock.unlock();
