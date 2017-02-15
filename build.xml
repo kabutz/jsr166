@@ -254,7 +254,7 @@
       <compilerarg value="-XDignore.symbol.file=true"/>
       <compilerarg value="-Xlint:all,-unchecked,-rawtypes,-serial,-deprecation,-try"/>
       <compilerarg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
-      <compilerarg line="--patch-module java.base=@{classes}" if:set="modules"/>
+      <compilerarg value="--patch-module=java.base=@{classes}" if:set="modules"/>
       <compilerarg line="${build.args}"/>
       <javac-elements/>
 
@@ -265,12 +265,12 @@
           jvm="${java@{target}}"
           fork="true">
 	<jvmarg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
-	<jvmarg line="--patch-module java.base=@{classes}" if:set="modules"/>
-	<jvmarg line="--add-opens java.base/java.lang=ALL-UNNAMED" if:set="modules"/>
-	<jvmarg line="--add-opens java.base/java.util=ALL-UNNAMED" if:set="modules"/>
-	<jvmarg line="--add-opens java.base/java.util.concurrent=ALL-UNNAMED" if:set="modules"/>
-	<jvmarg line="--add-opens java.base/java.util.concurrent.atomic=ALL-UNNAMED" if:set="modules"/>
-	<jvmarg line="--add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED" if:set="modules"/>
+	<jvmarg value="--patch-module=java.base=@{classes}" if:set="modules"/>
+	<jvmarg value="--add-opens=java.base/java.lang=ALL-UNNAMED" if:set="modules"/>
+	<jvmarg value="--add-opens=java.base/java.util=ALL-UNNAMED" if:set="modules"/>
+	<jvmarg value="--add-opens=java.base/java.util.concurrent=ALL-UNNAMED" if:set="modules"/>
+	<jvmarg value="--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED" if:set="modules"/>
+	<jvmarg value="--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED" if:set="modules"/>
 	<jvmarg line="@{jvmflags}"/>
 	<!-- ant -Dvmoptions="-Xmx8m" -Djsr166.tckTestClass=CompletableFutureTest tck -->
 	<jvmarg line="${vmoptions}" if:set="vmoptions"/>
