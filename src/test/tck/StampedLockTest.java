@@ -735,18 +735,18 @@ public class StampedLockTest extends JSR166TestCase {
      */
     public void testValidateOptimisticWriteLocked2()
             throws InterruptedException {
-        final CountDownLatch running = new CountDownLatch(1);
+        final CountDownLatch locked = new CountDownLatch(1);
         final StampedLock lock = new StampedLock();
         final long p = assertValid(lock, lock.tryOptimisticRead());
 
         Thread t = newStartedThread(new CheckedInterruptedRunnable() {
             public void realRun() throws InterruptedException {
                 lock.writeLockInterruptibly();
-                running.countDown();
+                locked.countDown();
                 lock.writeLockInterruptibly();
             }});
 
-        running.await();
+        locked.await();
         assertFalse(lock.validate(p));
         assertEquals(0L, lock.tryOptimisticRead());
         t.interrupt();
