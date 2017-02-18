@@ -272,7 +272,6 @@ public class StampedLockTest extends JSR166TestCase {
      * interruptible operations throw InterruptedException when pre-interrupted
      */
     public void testInterruptibleOperationsThrowInterruptedExceptionWhenPreInterrupted() {
-        final CountDownLatch running = new CountDownLatch(1);
         final StampedLock lock = new StampedLock();
 
         Action[] interruptibleLockActions = {
@@ -337,7 +336,6 @@ public class StampedLockTest extends JSR166TestCase {
      * interruptible operations throw InterruptedException when write locked and interrupted
      */
     public void testInterruptibleOperationsThrowInterruptedExceptionWriteLockedInterrupted() {
-        final CountDownLatch running = new CountDownLatch(1);
         final StampedLock lock = new StampedLock();
         long s = lock.writeLock();
 
@@ -360,7 +358,6 @@ public class StampedLockTest extends JSR166TestCase {
      * interruptible operations throw InterruptedException when read locked and interrupted
      */
     public void testInterruptibleOperationsThrowInterruptedExceptionReadLockedInterrupted() {
-        final CountDownLatch running = new CountDownLatch(1);
         final StampedLock lock = new StampedLock();
         long s = lock.readLock();
 
