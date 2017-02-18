@@ -400,7 +400,7 @@
            fork="true">
 
       <include name="**/*.java"/>
-      <compilerarg value="-Xmodule:java.base" if:set="modules"/>
+      <compilerarg value="--patch-module=java.base=${src.dir}" if:set="modules"/>
       <compilerarg value="-Xprefer:source"/>
       <compilerarg value="-XDignore.symbol.file=true"/>
       <compilerarg value="-Xlint:all"/>
@@ -456,7 +456,7 @@
       <arg line="-Xdocrootparent ${java9.docroot.url}"/>
       <arg line="-Xmaxerrs 1000 -Xmaxwarns 1000"/>
       <arg value="-XDignore.symbol.file=true"/>
-      <arg value="-Xmodule:java.base"/>
+      <arg value="--patch-module=java.base=${src.dir}"/>
       <arg value="-tag"/>
       <arg value="${javadoc.jls.option}"/>
 <!-- @apiNote currently unused -->
