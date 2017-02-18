@@ -476,29 +476,32 @@ public class StampedLockTest extends JSR166TestCase {
     }
 
     /**
-     * A writelock succeeds only after a reading thread unlocks
+     * writeLock() succeeds only after a reading thread unlocks
      */
     public void testWriteAfterReadLock() throws InterruptedException {
-        final CountDownLatch threadStarted = new CountDownLatch(1);
+        final CountDownLatch aboutToLock = new CountDownLatch(1);
         final StampedLock lock = new StampedLock();
         long rs = lock.readLock();
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
-                threadStarted.countDown();
+                aboutToLock.countDown();
                 long s = lock.writeLock();
+                assertTrue(lock.isWriteLocked());
+                assertFalse(lock.isReadLocked());
                 lock.unlockWrite(s);
             }});
 
-        threadStarted.await();
-        waitForThreadToEnterWaitState(t, MEDIUM_DELAY_MS);
+        aboutToLock.await();
+        waitForThreadToEnterWaitState(t);
         assertFalse(lock.isWriteLocked());
+        assertTrue(lock.isReadLocked());
         lock.unlockRead(rs);
         awaitTermination(t);
-        assertFalse(lock.isWriteLocked());
+        assertUnlocked(lock);
     }
 
     /**
-     * A writelock succeeds only after reading threads unlock
+     * writeLock() succeeds only after reading threads unlock
      */
     public void testWriteAfterMultipleReadLocks() {
         final StampedLock lock = new StampedLock();
@@ -521,35 +524,36 @@ public class StampedLockTest extends JSR166TestCase {
         assertFalse(lock.isWriteLocked());
         lock.unlockRead(s);
         awaitTermination(t2);
-        assertFalse(lock.isWriteLocked());
+        assertUnlocked(lock);
     }
 
     /**
-     * Readlocks succeed only after a writing thread unlocks
+     * readLock() succeed only after a writing thread unlocks
      */
     public void testReadAfterWriteLock() {
         final StampedLock lock = new StampedLock();
         final CountDownLatch threadsStarted = new CountDownLatch(2);
         final long s = lock.writeLock();
-        Thread t1 = newStartedThread(new CheckedRunnable() {
+        final Runnable acquireReleaseReadLock = new CheckedRunnable() {
             public void realRun() {
                 threadsStarted.countDown();
                 long rs = lock.readLock();
+                assertTrue(lock.isReadLocked());
+                assertFalse(lock.isWriteLocked());
                 lock.unlockRead(rs);
-            }});
-        Thread t2 = newStartedThread(new CheckedRunnable() {
-            public void realRun() {
-                threadsStarted.countDown();
-                long rs = lock.readLock();
-                lock.unlockRead(rs);
-            }});
+            }};
+        Thread t1 = newStartedThread(acquireReleaseReadLock);
+        Thread t2 = newStartedThread(acquireReleaseReadLock);
 
         await(threadsStarted);
-        waitForThreadToEnterWaitState(t1, MEDIUM_DELAY_MS);
-        waitForThreadToEnterWaitState(t2, MEDIUM_DELAY_MS);
+        waitForThreadToEnterWaitState(t1);
+        waitForThreadToEnterWaitState(t2);
+        assertTrue(lock.isWriteLocked());
+        assertFalse(lock.isReadLocked());
         releaseWriteLock(lock, s);
         awaitTermination(t1);
         awaitTermination(t2);
+        assertUnlocked(lock);
     }
 
     /**
@@ -749,8 +753,10 @@ public class StampedLockTest extends JSR166TestCase {
         locked.await();
         assertFalse(lock.validate(p));
         assertEquals(0L, lock.tryOptimisticRead());
+        waitForThreadToEnterWaitState(t);
         t.interrupt();
         awaitTermination(t);
+        assertTrue(lock.isWriteLocked());
     }
 
     /**
