@@ -479,17 +479,17 @@ public class StampedLockTest extends JSR166TestCase {
      * A writelock succeeds only after a reading thread unlocks
      */
     public void testWriteAfterReadLock() throws InterruptedException {
-        final CountDownLatch running = new CountDownLatch(1);
+        final CountDownLatch threadStarted = new CountDownLatch(1);
         final StampedLock lock = new StampedLock();
         long rs = lock.readLock();
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
-                running.countDown();
+                threadStarted.countDown();
                 long s = lock.writeLock();
                 lock.unlockWrite(s);
             }});
 
-        running.await();
+        threadStarted.await();
         waitForThreadToEnterWaitState(t, MEDIUM_DELAY_MS);
         assertFalse(lock.isWriteLocked());
         lock.unlockRead(rs);
