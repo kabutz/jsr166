@@ -523,7 +523,7 @@ public class PhaserTest extends JSR166TestCase {
             }});
 
         await(pleaseArrive);
-        waitForThreadToEnterWaitState(t, SHORT_DELAY_MS);
+        waitForThreadToEnterWaitState(t);
         assertEquals(0, phaser.arrive());
         awaitTermination(t);
 
@@ -551,7 +551,7 @@ public class PhaserTest extends JSR166TestCase {
             }});
 
         await(pleaseArrive);
-        waitForThreadToEnterWaitState(t, SHORT_DELAY_MS);
+        waitForThreadToEnterWaitState(t);
         t.interrupt();
         assertEquals(0, phaser.arrive());
         awaitTermination(t);
@@ -567,20 +567,20 @@ public class PhaserTest extends JSR166TestCase {
     public void testArriveAndAwaitAdvanceAfterInterrupt() {
         final Phaser phaser = new Phaser();
         assertEquals(0, phaser.register());
-        final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
+        final CountDownLatch pleaseArrive = new CountDownLatch(1);
 
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
                 Thread.currentThread().interrupt();
                 assertEquals(0, phaser.register());
-                pleaseInterrupt.countDown();
+                pleaseArrive.countDown();
                 assertTrue(Thread.currentThread().isInterrupted());
                 assertEquals(1, phaser.arriveAndAwaitAdvance());
-                assertTrue(Thread.currentThread().isInterrupted());
+                assertTrue(Thread.interrupted());
             }});
 
-        await(pleaseInterrupt);
-        waitForThreadToEnterWaitState(t, SHORT_DELAY_MS);
+        await(pleaseArrive);
+        waitForThreadToEnterWaitState(t);
         Thread.currentThread().interrupt();
         assertEquals(1, phaser.arriveAndAwaitAdvance());
         assertTrue(Thread.interrupted());
@@ -601,11 +601,11 @@ public class PhaserTest extends JSR166TestCase {
                 assertFalse(Thread.currentThread().isInterrupted());
                 pleaseInterrupt.countDown();
                 assertEquals(1, phaser.arriveAndAwaitAdvance());
-                assertTrue(Thread.currentThread().isInterrupted());
+                assertTrue(Thread.interrupted());
             }});
 
         await(pleaseInterrupt);
-        waitForThreadToEnterWaitState(t, SHORT_DELAY_MS);
+        waitForThreadToEnterWaitState(t);
         t.interrupt();
         Thread.currentThread().interrupt();
         assertEquals(1, phaser.arriveAndAwaitAdvance());
@@ -780,7 +780,7 @@ public class PhaserTest extends JSR166TestCase {
         assertEquals(THREADS, phaser.getArrivedParties());
         assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
         for (Thread thread : threads)
-            waitForThreadToEnterWaitState(thread, SHORT_DELAY_MS);
+            waitForThreadToEnterWaitState(thread);
         for (Thread thread : threads)
             assertTrue(thread.isAlive());
         assertState(phaser, 0, THREADS + 1, 1);
