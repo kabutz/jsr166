@@ -45,8 +45,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Core and maximum pool sizes</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * A {@code ThreadPoolExecutor} will automatically adjust the
+ * <dd>A {@code ThreadPoolExecutor} will automatically adjust the
  * pool size (see {@link #getPoolSize})
  * according to the bounds set by
  * corePoolSize (see {@link #getCorePoolSize}) and
@@ -68,8 +67,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>On-demand construction</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * By default, even core threads are initially created and
+ * <dd>By default, even core threads are initially created and
  * started only when new tasks arrive, but this can be overridden
  * dynamically using method {@link #prestartCoreThread} or {@link
  * #prestartAllCoreThreads}.  You probably want to prestart threads if
@@ -77,8 +75,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Creating new threads</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * New threads are created using a {@link ThreadFactory}.  If not
+ * <dd>New threads are created using a {@link ThreadFactory}.  If not
  * otherwise specified, a {@link Executors#defaultThreadFactory} is
  * used, that creates threads to all be in the same {@link
  * ThreadGroup} and with the same {@code NORM_PRIORITY} priority and
@@ -95,8 +92,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Keep-alive times</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * If the pool currently has more than corePoolSize threads,
+ * <dd>If the pool currently has more than corePoolSize threads,
  * excess threads will be terminated if they have been idle for more
  * than the keepAliveTime (see {@link #getKeepAliveTime(TimeUnit)}).
  * This provides a means of reducing resource consumption when the
@@ -113,8 +109,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Queuing</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * Any {@link BlockingQueue} may be used to transfer and hold
+ * <dd>Any {@link BlockingQueue} may be used to transfer and hold
  * submitted tasks.  The use of this queue interacts with pool sizing:
  *
  * <ul>
@@ -179,8 +174,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Rejected tasks</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * New tasks submitted in method {@link #execute(Runnable)} will be
+ * <dd>New tasks submitted in method {@link #execute(Runnable)} will be
  * <em>rejected</em> when the Executor has been shut down, and also when
  * the Executor uses finite bounds for both maximum threads and work queue
  * capacity, and is saturated.  In either case, the {@code execute} method
@@ -217,8 +211,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Hook methods</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * This class provides {@code protected} overridable
+ * <dd>This class provides {@code protected} overridable
  * {@link #beforeExecute(Thread, Runnable)} and
  * {@link #afterExecute(Runnable, Throwable)} methods that are called
  * before and after execution of each task.  These can be used to
@@ -234,8 +227,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Queue maintenance</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * Method {@link #getQueue()} allows access to the work queue
+ * <dd>Method {@link #getQueue()} allows access to the work queue
  * for purposes of monitoring and debugging.  Use of this method for
  * any other purpose is strongly discouraged.  Two supplied methods,
  * {@link #remove(Runnable)} and {@link #purge} are available to
@@ -244,8 +236,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Finalization</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * A pool that is no longer referenced in a program <em>AND</em>
+ * <dd>A pool that is no longer referenced in a program <em>AND</em>
  * has no remaining threads will be {@code shutdown} automatically. If
  * you would like to ensure that unreferenced pools are reclaimed even
  * if users forget to call {@link #shutdown}, then you must arrange
