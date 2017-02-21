@@ -9,7 +9,10 @@
  * @summary Ensure that waiting pool threads don't retain refs to tasks.
  */
 
+import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -48,57 +51,48 @@ public class GCRetention {
         }
     }
 
-    int countRefsCleared(WeakReference<?>[] refs) {
-        int count = 0;
-        for (WeakReference<?> ref : refs)
-            if (ref.get() == null)
-                count++;
-        return count;
+    void removeAll(ReferenceQueue<?> q, int n) throws InterruptedException {
+        for (int j = n; j--> 0; ) {
+            if (q.poll() == null) {
+                for (;;) {
+                    System.gc();
+                    if (q.remove(1000) != null)
+                        break;
+                    System.out.printf(
+                        "%d/%d unqueued references remaining%n", j, n);
+                }
+            }
+        }
+        check(q.poll() == null);
     }
 
     void test(String[] args) throws Throwable {
         final CustomPool pool = new CustomPool(10);
         final int size = 100;
-        final WeakReference<?>[] refs = new WeakReference<?>[size];
-        final Future<?>[] futures = new Future<?>[size];
-        class UseX implements Runnable {
+        final ReferenceQueue<Object> q = new ReferenceQueue<>();
+        final List<WeakReference<?>> refs = new ArrayList<>(size);
+        final List<Future<?>> futures = new ArrayList<>(size);
+
+        // Schedule custom tasks with strong references.
+        class Task implements Runnable {
             final Object x;
-            UseX(Object x) { this.x = x; }
+            Task() { refs.add(new WeakReference<>(x = new Object(), q)); }
             public void run() { System.out.println(x); }
         }
-        for (int i = 0; i < size; i++) {
-            Object x = new Object();
-            refs[i] = new WeakReference<>(x);
+        // Give tasks added later earlier expiration, to ensure
+        // multiple residents of queue head.
+        for (int i = size; i--> 0; )
+            futures.add(pool.schedule(new Task(), i + 1, TimeUnit.MINUTES));
+        futures.forEach(future -> future.cancel(false));
+        futures.clear();
 
-            // Schedule a custom task with a strong reference to r.
-            // Later tasks have earlier expiration, to ensure multiple
-            // residents of queue head.
-            futures[i] = pool.schedule(new UseX(x),
-                                       size*2-i, TimeUnit.MINUTES);
-            x = null;           // inhibit strong ref on the stack
-        }
-        Thread.sleep(10);
-        for (int i = 0; i < size; i++) {
-            if (futures[i] != null) {
-                futures[i].cancel(false);
-                futures[i] = null;
-            }
-        }
         pool.purge();
-        int cleared = 0;
-        for (int i = 0;
-             i < 10 && (cleared = countRefsCleared(refs)) < size;
-             i++) {
-            System.gc();
-            System.runFinalization();
-            Thread.sleep(10);
-        }
+        removeAll(q, size);
+        for (WeakReference<?> ref : refs) check(ref.get() == null);
+
         pool.shutdown();
+        // rely on test harness to handle timeout
         pool.awaitTermination(1L, TimeUnit.DAYS);
-        if (cleared < size)
-            throw new Error(String.format
-                            ("references to %d/%d tasks retained (\"leaked\")",
-                             size - cleared, size));
     }
 
     //--------------------- Infrastructure ---------------------------
