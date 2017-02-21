@@ -57,10 +57,10 @@ public class GCRetention {
     }
 
     void test(String[] args) throws Throwable {
-        CustomPool pool = new CustomPool(10);
+        final CustomPool pool = new CustomPool(10);
         final int size = 100;
-        WeakReference<?>[] refs = new WeakReference<?>[size];
-        Future<?>[] futures = new Future<?>[size];
+        final WeakReference<?>[] refs = new WeakReference<?>[size];
+        final Future<?>[] futures = new Future<?>[size];
         class UseX implements Runnable {
             final Object x;
             UseX(Object x) { this.x = x; }
@@ -68,7 +68,7 @@ public class GCRetention {
         }
         for (int i = 0; i < size; i++) {
             Object x = new Object();
-            refs[i] = new WeakReference<Object>(x);
+            refs[i] = new WeakReference<>(x);
 
             // Schedule a custom task with a strong reference to r.
             // Later tasks have earlier expiration, to ensure multiple
