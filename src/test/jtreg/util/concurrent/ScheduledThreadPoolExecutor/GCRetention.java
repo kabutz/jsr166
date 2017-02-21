@@ -61,19 +61,21 @@ public class GCRetention {
         final int size = 100;
         WeakReference<?>[] refs = new WeakReference<?>[size];
         Future<?>[] futures = new Future<?>[size];
+        class UseX implements Runnable {
+            final Object x;
+            UseX(Object x) { this.x = x; }
+            public void run() { System.out.println(x); }
+        }
         for (int i = 0; i < size; i++) {
-            final Object x = new Object();
+            Object x = new Object();
             refs[i] = new WeakReference<Object>(x);
-            // Create a Runnable with a strong ref to x.
-            Runnable r = new Runnable() {
-                    public void run() { System.out.println(x); }
-                };
-            x = null;           // decrease chance of strong ref on the stack
 
             // Schedule a custom task with a strong reference to r.
             // Later tasks have earlier expiration, to ensure multiple
             // residents of queue head.
-            futures[i] = pool.schedule(r, size*2-i, TimeUnit.MINUTES);
+            futures[i] = pool.schedule(new UseX(x),
+                                       size*2-i, TimeUnit.MINUTES);
+            x = null;           // inhibit strong ref on the stack
         }
         Thread.sleep(10);
         for (int i = 0; i < size; i++) {
