@@ -68,6 +68,8 @@ public class GCRetention {
             Runnable r = new Runnable() {
                     public void run() { System.out.println(x); }
                 };
+            x = null;           // decrease chance of strong ref on the stack
+
             // Schedule a custom task with a strong reference to r.
             // Later tasks have earlier expiration, to ensure multiple
             // residents of queue head.
