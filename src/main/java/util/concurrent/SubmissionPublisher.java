@@ -559,6 +559,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         if (!closed) {
             BufferedSubscription<T> b;
             synchronized (this) {
+                // no need to re-check closed here
                 b = clients;
                 clients = null;
                 closed = true;
@@ -590,10 +591,11 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
             BufferedSubscription<T> b;
             synchronized (this) {
                 b = clients;
-                clients = null;
-                if (!closed) // don't override plain close
+                if (!closed) {  // don't clobber racing close
+                    clients = null;
                     closedException = error;
-                closed = true;
+                    closed = true;
+                }
             }
             while (b != null) {
                 BufferedSubscription<T> next = b.next;
