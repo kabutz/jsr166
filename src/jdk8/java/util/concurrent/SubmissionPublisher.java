@@ -556,6 +556,7 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
         if (!closed) {
             BufferedSubscription<T> b;
             synchronized (this) {
+                // no need to re-check closed here
                 b = clients;
                 clients = null;
                 closed = true;
@@ -587,9 +588,11 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
             BufferedSubscription<T> b;
             synchronized (this) {
                 b = clients;
-                clients = null;
-                closed = true;
-                closedException = error;
+                if (!closed) {  // don't clobber racing close
+                    clients = null;
+                    closedException = error;
+                    closed = true;
+                }
             }
             while (b != null) {
                 BufferedSubscription<T> next = b.next;
@@ -1333,9 +1336,9 @@ public class SubmissionPublisher<T> implements Flow.Publisher<T>,
                     }
                 }
             }
-            else if (n < 0L)
+            else
                 onError(new IllegalArgumentException(
-                            "negative subscription request"));
+                            "non-positive subscription request"));
         }
 
         public final boolean isReleasable() { // for ManagedBlocker

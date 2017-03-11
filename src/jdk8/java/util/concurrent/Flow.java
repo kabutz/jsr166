@@ -39,7 +39,7 @@ package java.util.concurrent;
  *   private boolean subscribed; // true after first subscribe
  *   public synchronized void subscribe(Subscriber<? super Boolean> subscriber) {
  *     if (subscribed)
- *        subscriber.onError(new IllegalStateException()); // only one allowed
+ *       subscriber.onError(new IllegalStateException()); // only one allowed
  *     else {
  *       subscribed = true;
  *       subscriber.onSubscribe(new OneShotSubscription(subscriber, executor));
@@ -242,11 +242,11 @@ public final class Flow {
         /**
          * Adds the given number {@code n} of items to the current
          * unfulfilled demand for this subscription.  If {@code n} is
-         * negative, the Subscriber will receive an {@code onError}
-         * signal with an {@link IllegalArgumentException} argument.
-         * Otherwise, the Subscriber will receive up to {@code n}
-         * additional {@code onNext} invocations (or fewer if
-         * terminated).
+         * less than or equal to zero, the Subscriber will receive an
+         * {@code onError} signal with an {@link
+         * IllegalArgumentException} argument.  Otherwise, the
+         * Subscriber will receive up to {@code n} additional {@code
+         * onNext} invocations (or fewer if terminated).
          *
          * @param n the increment of demand; a value of {@code
          * Long.MAX_VALUE} may be considered as effectively unbounded
