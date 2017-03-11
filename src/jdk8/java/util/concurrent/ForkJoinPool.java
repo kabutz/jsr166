@@ -2337,7 +2337,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         checkPermission();
     }
 
-    private Object newInstanceFromSystemProperty(String property)
+    private static Object newInstanceFromSystemProperty(String property)
         throws ReflectiveOperationException {
         String className = System.getProperty(property);
         return (className == null)

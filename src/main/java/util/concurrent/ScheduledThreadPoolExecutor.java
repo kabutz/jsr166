@@ -875,7 +875,7 @@ public class ScheduledThreadPoolExecutor
         /**
          * Sets f's heapIndex if it is a ScheduledFutureTask.
          */
-        private void setIndex(RunnableScheduledFuture<?> f, int idx) {
+        private static void setIndex(RunnableScheduledFuture<?> f, int idx) {
             if (f instanceof ScheduledFutureTask)
                 ((ScheduledFutureTask)f).heapIndex = idx;
         }
