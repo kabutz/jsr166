@@ -115,7 +115,7 @@ public class DelayQueueTest extends JSR166TestCase {
      * Returns a new queue of given size containing consecutive
      * PDelays 0 ... n - 1.
      */
-    private DelayQueue<PDelay> populatedQueue(int n) {
+    private static DelayQueue<PDelay> populatedQueue(int n) {
         DelayQueue<PDelay> q = new DelayQueue<>();
         assertTrue(q.isEmpty());
         for (int i = n - 1; i >= 0; i -= 2)

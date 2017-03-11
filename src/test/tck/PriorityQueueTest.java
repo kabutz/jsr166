@@ -42,7 +42,7 @@ public class PriorityQueueTest extends JSR166TestCase {
      * Returns a new queue of given size containing consecutive
      * Integers 0 ... n - 1.
      */
-    private PriorityQueue<Integer> populatedQueue(int n) {
+    private static PriorityQueue<Integer> populatedQueue(int n) {
         PriorityQueue<Integer> q = new PriorityQueue<>(n);
         assertTrue(q.isEmpty());
         for (int i = n - 1; i >= 0; i -= 2)

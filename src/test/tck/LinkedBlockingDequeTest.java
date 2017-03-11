@@ -58,7 +58,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
      * Returns a new deque of given size containing consecutive
      * Integers 0 ... n - 1.
      */
-    private LinkedBlockingDeque<Integer> populatedDeque(int n) {
+    private static LinkedBlockingDeque<Integer> populatedDeque(int n) {
         LinkedBlockingDeque<Integer> q =
             new LinkedBlockingDeque<Integer>(n);
         assertTrue(q.isEmpty());

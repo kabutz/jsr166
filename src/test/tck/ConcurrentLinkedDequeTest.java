@@ -39,7 +39,7 @@ public class ConcurrentLinkedDequeTest extends JSR166TestCase {
      * Returns a new deque of given size containing consecutive
      * Integers 0 ... n - 1.
      */
-    private ConcurrentLinkedDeque<Integer> populatedDeque(int n) {
+    private static ConcurrentLinkedDeque<Integer> populatedDeque(int n) {
         ConcurrentLinkedDeque<Integer> q = new ConcurrentLinkedDeque<>();
         assertTrue(q.isEmpty());
         for (int i = 0; i < n; ++i)
