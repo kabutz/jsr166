@@ -52,8 +52,6 @@ import java.lang.management.ThreadMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.security.Permission;
 import java.security.PermissionCollection;
@@ -91,7 +89,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import junit.framework.AssertionFailedError;
@@ -301,9 +298,11 @@ public class JSR166TestCase extends TestCase {
 
 //     public static String cpuModel() {
 //         try {
-//             Matcher matcher = Pattern.compile("model name\\s*: (.*)")
+//             java.util.regex.Matcher matcher
+//               = Pattern.compile("model name\\s*: (.*)")
 //                 .matcher(new String(
-//                      Files.readAllBytes(Paths.get("/proc/cpuinfo")), "UTF-8"));
+//                     java.nio.file.Files.readAllBytes(
+//                         java.nio.file.Paths.get("/proc/cpuinfo")), "UTF-8"));
 //             matcher.find();
 //             return matcher.group(1);
 //         } catch (Exception ex) { return null; }

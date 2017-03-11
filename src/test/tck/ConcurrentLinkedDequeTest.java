@@ -16,7 +16,6 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import junit.framework.Test;
-import junit.framework.TestSuite;
 
 public class ConcurrentLinkedDequeTest extends JSR166TestCase {
 

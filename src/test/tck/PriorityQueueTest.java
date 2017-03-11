@@ -15,7 +15,6 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 
 import junit.framework.Test;
-import junit.framework.TestSuite;
 
 public class PriorityQueueTest extends JSR166TestCase {
     public static void main(String[] args) {
