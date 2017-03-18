@@ -799,7 +799,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
         Thread first = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
                 q.transfer(four);
-                assertTrue(!q.contains(four));
+                assertFalse(q.contains(four));
                 assertEquals(1, q.size());
             }});
 

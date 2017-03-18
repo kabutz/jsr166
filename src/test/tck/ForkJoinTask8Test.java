@@ -100,7 +100,8 @@ public class ForkJoinTask8Test extends JSR166TestCase {
         assertNull(a.getException());
         assertNull(a.getRawResult());
         if (a instanceof BinaryAsyncAction)
-            assertTrue(((BinaryAsyncAction)a).getForkJoinTaskTag() == INITIAL_STATE);
+            assertEquals(INITIAL_STATE,
+                         ((BinaryAsyncAction)a).getForkJoinTaskTag());
 
         try {
             a.get(0L, SECONDS);
@@ -121,7 +122,8 @@ public class ForkJoinTask8Test extends JSR166TestCase {
         assertNull(a.getException());
         assertSame(expected, a.getRawResult());
         if (a instanceof BinaryAsyncAction)
-            assertTrue(((BinaryAsyncAction)a).getForkJoinTaskTag() == COMPLETE_STATE);
+            assertEquals(COMPLETE_STATE,
+                         ((BinaryAsyncAction)a).getForkJoinTaskTag());
 
         {
             Thread.currentThread().interrupt();

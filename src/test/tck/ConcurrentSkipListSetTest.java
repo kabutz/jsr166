@@ -202,7 +202,7 @@ public class ConcurrentSkipListSetTest extends JSR166TestCase {
         } catch (ClassCastException success) {
             assertTrue(q.size() < 2);
             for (int i = 0, size = q.size(); i < size; i++)
-                assertTrue(q.pollFirst().getClass() == Object.class);
+                assertSame(Object.class, q.pollFirst().getClass());
             assertNull(q.pollFirst());
             assertTrue(q.isEmpty());
             assertEquals(0, q.size());
