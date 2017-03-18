@@ -1003,9 +1003,10 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
             }
             else if ((fh = f.hash) == MOVED)
                 tab = helpTransfer(tab, f);
-            else if (onlyIfAbsent && fh == hash &&  // check first node
-                     ((fk = f.key) == key || fk != null && key.equals(fk)) &&
-                     (fv = f.val) != null)
+            else if (onlyIfAbsent // check first node without acquiring lock
+                     && fh == hash
+                     && ((fk = f.key) == key || (fk != null && key.equals(fk)))
+                     && (fv = f.val) != null)
                 return fv;
             else {
                 V oldVal = null;
@@ -1699,9 +1700,9 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
             }
             else if ((fh = f.hash) == MOVED)
                 tab = helpTransfer(tab, f);
-            else if (fh == h &&                  // check first node
-                     ((fk = f.key) == key || fk != null && key.equals(fk)) &&
-                     (fv = f.val) != null)
+            else if (fh == h    // check first node without acquiring lock
+                     && ((fk = f.key) == key || (fk != null && key.equals(fk)))
+                     && (fv = f.val) != null)
                 return fv;
             else {
                 boolean added = false;
