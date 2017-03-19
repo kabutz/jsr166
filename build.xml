@@ -253,6 +253,7 @@
       <include name="*.java"/>
       <compilerarg value="-XDignore.symbol.file=true"/>
       <compilerarg value="-Xlint:all,-unchecked,-rawtypes,-serial,-deprecation,-try"/>
+      <compilerarg value="-Xdoclint:reference/private"/>
       <compilerarg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
       <compilerarg value="--patch-module=java.base=@{classes}" if:set="modules"/>
       <compilerarg line="${build.args}"/>
@@ -405,7 +406,7 @@
       <compilerarg value="-XDignore.symbol.file=true"/>
       <compilerarg value="-Xlint:all"/>
       <compilerarg value="-Werror"/>
-      <compilerarg value="-Xdoclint:all/protected"/>
+      <compilerarg value="-Xdoclint:all/protected,reference/private"/>
       <compilerarg line="-Xmaxerrs 1000 -Xmaxwarns 1000"/>
       <compilerarg line="${build.args}"/>
 
@@ -741,7 +742,7 @@
       <compilerarg value="-Xprefer:source"/>
       <compilerarg value="-XDignore.symbol.file=true"/>
       <compilerarg value="-Xlint:all"/>
-      <compilerarg value="-Xdoclint:all/protected"/>
+      <compilerarg value="-Xdoclint:all/protected,reference/private"/>
       <compilerarg line="${build.args}"/>
 
     </javac>
