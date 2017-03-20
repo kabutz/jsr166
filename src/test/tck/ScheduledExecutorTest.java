@@ -814,6 +814,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                 assertTrue(periodic.isDone());
             }
         }
+        for (Future<?> blocker : blockers) assertNull(blocker.get());
         assertTrue(p.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
         assertTrue(p.isTerminated());
         assertEquals(2 + (effectiveDelayedPolicy ? 1 : 0), ran.get());
