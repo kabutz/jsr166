@@ -537,7 +537,11 @@
     <run-tck-tests
       target="${build.main.java.version}"
       workdir="${build.dir}"
-      classes="${product.jar}"/>
+      classes="${product.jar}">
+      <javac-elements>
+        <compilerarg value="-Werror"/>
+      </javac-elements>
+    </run-tck-tests>
   </target>
 
   <target name="tck-parallelism-1"
@@ -776,6 +780,7 @@
         <!-- JDK9+ test classes -->
         <exclude name="*9Test.java"/>
         <exclude name="*10Test.java"/>
+        <compilerarg value="-Werror"/>
       </javac-elements>
     </run-tck-tests>
   </target>
@@ -957,6 +962,7 @@
         <exclude name="SplittableRandomTest.java"/>
         <exclude name="StampedLockTest.java"/>
         <exclude name="SubmissionPublisherTest.java"/>
+        <compilerarg value="-Werror"/>
       </javac-elements>
     </run-tck-tests>
   </target>
@@ -1510,6 +1516,91 @@
       <param name="build.javadoc.access" value="private"/>
     </antcall>
   </target>
+
+
+<!-- ==============================================================
+  Experimental errorprone support - http://errorprone.info
+  You may need to bring your own errorprone jar.
+=================================================================== -->
+  <target name="errorprone"
+          depends="clean, configure-compiler"
+          description="Run errorprone over jsr166 source code">
+
+    <local name="destdir"/>
+    <property name="destdir" value="${build.classes.dir}/java.base"/>
+    <mkdir dir="${destdir}"/>
+
+    <javac srcdir="${src.dir}"
+           destdir="${destdir}"
+           debug="${build.debug}"
+           debuglevel="${build.debuglevel}"
+           deprecation="${build.deprecation}"
+           classpath=""
+           includeAntRuntime="false"
+           includeJavaRuntime="false"
+           encoding="ASCII"
+           executable="${build.main.javac}"
+           fork="true">
+
+      <include name="**/*.java"/>
+      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"/>
+      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"/>
+      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"/>
+      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED"/>
+      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED"/>
+      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED"/>
+      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED"/>
+      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"/>
+      <compilerarg value="-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"/>
+      <compilerarg line="-processorpath ${lib.dir}/error_prone_ant-2.0.20-SNAPSHOT.jar"/>
+      <compilerarg value="-Xplugin:ErrorProne
+                          -Xep:IdentityBinaryExpression:WARN 
+                          -Xep:MissingOverride:OFF
+                          -Xep:MixedArrayDimensions:WARN 
+                          -Xep:RemoveUnusedImports:ERROR 
+                          -Xep:MethodCanBeStatic:WARN"/>
+      <compilerarg value="--patch-module=java.base=${src.dir}"/>
+      <compilerarg value="-Xprefer:source"/>
+      <compilerarg value="-XDignore.symbol.file=true"/>
+      <compilerarg value="-Xlint:all"/>
+      <compilerarg value="-Xdoclint:all/protected,reference/private"/>
+      <compilerarg line="-Xmaxerrs 3000 -Xmaxwarns 3000"/>
+      <compilerarg line="${build.args}"/>
+    </javac>
+
+    <jar destfile="${product.jar}">
+      <fileset dir="${destdir}"/>
+    </jar>
+
+    <run-tck-tests
+      target="${build.main.java.version}"
+      workdir="${build.dir}"
+      classes="${product.jar}">
+      <javac-elements>
+        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"/>
+        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"/>
+        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"/>
+        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED"/>
+        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED"/>
+        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED"/>
+        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED"/>
+        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"/>
+        <compilerarg value="-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"/>
+        <compilerarg line="-processorpath ${lib.dir}/error_prone_ant-2.0.20-SNAPSHOT.jar"/>
+        <compilerarg value="-Xplugin:ErrorProne 
+                            -Xep:IdentityBinaryExpression:WARN 
+                            -Xep:BoxedPrimitiveConstructor:OFF 
+                            -Xep:HashtableContains:OFF 
+                            -Xep:ModifyingCollectionWithItself:OFF 
+                            -Xep:MissingOverride:OFF 
+                            -Xep:MixedArrayDimensions:WARN 
+                            -Xep:RemoveUnusedImports:ERROR 
+                            -Xep:MethodCanBeStatic:WARN"/>
+        <compilerarg line="-Xmaxerrs 3000 -Xmaxwarns 3000"/>
+      </javac-elements>
+    </run-tck-tests>
+  </target>
+
 
 <!-- ==============================================================
   Running guava tests against jsr166 code
