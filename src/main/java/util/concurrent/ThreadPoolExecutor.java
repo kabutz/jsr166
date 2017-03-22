@@ -1179,8 +1179,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 
     /**
      * Creates a new {@code ThreadPoolExecutor} with the given initial
-     * parameters and
-     * {@linkplain ThreadPoolExecutor.AbortPolicy
+     * parameters and {@linkplain ThreadPoolExecutor.AbortPolicy
      * default rejected execution handler}.
      *
      * @param corePoolSize the number of threads to keep in the pool, even
