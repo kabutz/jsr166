@@ -507,6 +507,17 @@ public class ScheduledExecutorTest extends JSR166TestCase {
     }
 
     /**
+     * The default rejected execution handler is AbortPolicy.
+     */
+    public void testDefaultRejectedExecutionHandler() {
+        final ScheduledThreadPoolExecutor p = new ScheduledThreadPoolExecutor(1);
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertTrue(p.getRejectedExecutionHandler()
+                       instanceof ThreadPoolExecutor.AbortPolicy);
+        }
+    }
+
+    /**
      * isShutdown is false before shutdown, true after
      */
     public void testIsShutdown() {

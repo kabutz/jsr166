@@ -274,6 +274,20 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
     }
 
     /**
+     * The default rejected execution handler is AbortPolicy.
+     */
+    public void testDefaultRejectedExecutionHandler() {
+        final ThreadPoolExecutor p =
+            new ThreadPoolExecutor(1, 2,
+                                   LONG_DELAY_MS, MILLISECONDS,
+                                   new ArrayBlockingQueue<Runnable>(10));
+        try (PoolCleaner cleaner = cleaner(p)) {
+            assertTrue(p.getRejectedExecutionHandler()
+                       instanceof ThreadPoolExecutor.AbortPolicy);
+        }
+    }
+
+    /**
      * getRejectedExecutionHandler returns handler in constructor if not set
      */
     public void testGetRejectedExecutionHandler() {

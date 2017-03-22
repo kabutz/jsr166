@@ -58,6 +58,11 @@ import java.util.concurrent.locks.ReentrantLock;
  * use {@code allowCoreThreadTimeOut} because this may leave the pool
  * without threads to handle tasks once they become eligible to run.
  *
+ * <p>As with {@code ThreadPoolExecutor}, if not otherwise specified,
+ * this class uses {@link Executors#defaultThreadFactory} as the
+ * default thread factory, and {@link ThreadPoolExecutor.AbortPolicy}
+ * as the default rejected execution handler.
+ *
  * <p><b>Extension notes:</b> This class overrides the
  * {@link ThreadPoolExecutor#execute(Runnable) execute} and
  * {@link AbstractExecutorService#submit(Runnable) submit}
