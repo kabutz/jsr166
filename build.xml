@@ -234,6 +234,11 @@
       <available file="${jdk@{compile-target}.home}/jmods" type="dir"/>
     </condition>
 
+    <local name="use-doclint"/>
+    <condition property="use-doclint">
+      <not> <equals arg1="@{target}" arg2="7"/> </not>
+    </condition>
+
     <mkdir dir="@{workdir}/tck-classes"/>
 
     <javac srcdir="@{tck.src.dir}"
@@ -253,7 +258,7 @@
       <include name="*.java"/>
       <compilerarg value="-XDignore.symbol.file=true"/>
       <compilerarg value="-Xlint:all,-unchecked,-rawtypes,-serial,-deprecation,-try"/>
-      <compilerarg value="-Xdoclint:reference/private"/>
+      <compilerarg value="-Xdoclint:reference/private" if:set="use-doclint"/>
       <compilerarg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
       <compilerarg value="--patch-module=java.base=@{classes}" if:set="modules"/>
       <compilerarg line="${build.args}"/>
