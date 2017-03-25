@@ -744,19 +744,19 @@ public class ScheduledExecutorTest extends JSR166TestCase {
      * - setContinueExistingPeriodicTasksAfterShutdownPolicy
      */
     public void testShutdown_cancellation() throws Exception {
-        Boolean[] allBooleans = { null, Boolean.FALSE, Boolean.TRUE };
-        for (Boolean policy : allBooleans)
+        final int UNSPECIFIED = 0, YES = 1, NO = 2;
+        for (int maybe : new int[] { UNSPECIFIED, YES, NO })
     {
         final int poolSize = 2;
         final ScheduledThreadPoolExecutor p
             = new ScheduledThreadPoolExecutor(poolSize);
-        final boolean effectiveDelayedPolicy = (policy != Boolean.FALSE);
-        final boolean effectivePeriodicPolicy = (policy == Boolean.TRUE);
-        final boolean effectiveRemovePolicy = (policy == Boolean.TRUE);
-        if (policy != null) {
-            p.setExecuteExistingDelayedTasksAfterShutdownPolicy(policy);
-            p.setContinueExistingPeriodicTasksAfterShutdownPolicy(policy);
-            p.setRemoveOnCancelPolicy(policy);
+        final boolean effectiveDelayedPolicy  = (maybe != NO);
+        final boolean effectivePeriodicPolicy = (maybe == YES);
+        final boolean effectiveRemovePolicy   = (maybe == YES);
+        if (maybe != UNSPECIFIED) {
+            p.setExecuteExistingDelayedTasksAfterShutdownPolicy(maybe == YES);
+            p.setContinueExistingPeriodicTasksAfterShutdownPolicy(maybe == YES);
+            p.setRemoveOnCancelPolicy(maybe == YES);
         }
         assertEquals(effectiveDelayedPolicy,
                      p.getExecuteExistingDelayedTasksAfterShutdownPolicy());
@@ -783,10 +783,10 @@ public class ScheduledExecutorTest extends JSR166TestCase {
             blockers.add(p.submit(task));
         await(poolBlocked);
 
-        periodics.add(p.scheduleAtFixedRate(countDowner(periodicLatch1),
-                                            1, 1, MILLISECONDS));
-        periodics.add(p.scheduleWithFixedDelay(countDowner(periodicLatch2),
-                                               1, 1, MILLISECONDS));
+        periodics.add(p.scheduleAtFixedRate(
+                          countDowner(periodicLatch1), 1, 1, MILLISECONDS));
+        periodics.add(p.scheduleWithFixedDelay(
+                          countDowner(periodicLatch2), 1, 1, MILLISECONDS));
         delayeds.add(p.schedule(task, 1, MILLISECONDS));
 
         assertTrue(p.getQueue().containsAll(periodics));
@@ -808,14 +808,10 @@ public class ScheduledExecutorTest extends JSR166TestCase {
             assertEquals(effectiveDelayedPolicy,
                          p.getQueue().containsAll(delayeds));
         }
-        // Release all pool threads
-        unblock.countDown();
+        unblock.countDown();    // Release all pool threads
 
-        for (Future<?> delayed : delayeds) {
-            if (effectiveDelayedPolicy) {
-                assertNull(delayed.get());
-            }
-        }
+        if (effectiveDelayedPolicy)
+            for (Future<?> delayed : delayeds) assertNull(delayed.get());
         if (effectivePeriodicPolicy) {
             await(periodicLatch1);
             await(periodicLatch2);
@@ -828,6 +824,15 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         for (Future<?> blocker : blockers) assertNull(blocker.get());
         assertTrue(p.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
         assertTrue(p.isTerminated());
+
+        for (Future<?> future : delayeds) {
+            assertTrue(effectiveDelayedPolicy ^ future.isCancelled());
+            assertTrue(future.isDone());
+        }
+        for (Future<?> future : periodics)
+            assertTrue(future.isCancelled());
+        for (Future<?> future : blockers)
+            assertNull(future.get());
         assertEquals(2 + (effectiveDelayedPolicy ? 1 : 0), ran.get());
     }}
 
