@@ -66,7 +66,7 @@ public class ForkJoinPool9Test extends JSR166TestCase {
         Future<?> f = ForkJoinPool.commonPool().submit(runInCommonPool);
         // Ensure runInCommonPool is truly running in the common pool,
         // by giving this thread no opportunity to "help" on get().
-        assertTrue(taskStarted.await(LONG_DELAY_MS, MILLISECONDS));
+        await(taskStarted);
         assertNull(f.get());
     }
 

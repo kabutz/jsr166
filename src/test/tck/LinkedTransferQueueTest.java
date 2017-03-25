@@ -294,7 +294,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
                 assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
-        aboutToWait.await();
+        await(aboutToWait);
         waitForThreadToEnterWaitState(t);
         t.interrupt();
         awaitTermination(t);

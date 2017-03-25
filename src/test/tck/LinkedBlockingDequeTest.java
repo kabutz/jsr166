@@ -774,7 +774,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
                 }
             }});
 
-        aboutToWait.await();
+        await(aboutToWait);
         waitForThreadToEnterWaitState(t);
         t.interrupt();
         awaitTermination(t);

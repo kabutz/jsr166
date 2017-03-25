@@ -418,13 +418,13 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
                 public void realRun() throws InterruptedException {
                     threadStarted.countDown();
                     assertEquals(0, p.getCompletedTaskCount());
-                    threadProceed.await();
+                    await(threadProceed);
                     threadDone.countDown();
                 }});
             await(threadStarted);
             assertEquals(0, p.getCompletedTaskCount());
             threadProceed.countDown();
-            threadDone.await();
+            await(threadDone);
             long startTime = System.nanoTime();
             while (p.getCompletedTaskCount() != 1) {
                 if (millisElapsedSince(startTime) > LONG_DELAY_MS)
@@ -814,7 +814,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
         Runnable task = new CheckedRunnable() { public void realRun()
                                                     throws InterruptedException {
             poolBlocked.countDown();
-            assertTrue(unblock.await(LONG_DELAY_MS, MILLISECONDS));
+            await(unblock);
             ran.getAndIncrement();
         }};
         List<Future<?>> blockers = new ArrayList<>();
@@ -822,7 +822,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
         List<Future<?>> delayeds = new ArrayList<>();
         for (int i = 0; i < poolSize; i++)
             blockers.add(p.submit(task));
-        assertTrue(poolBlocked.await(LONG_DELAY_MS, MILLISECONDS));
+        await(poolBlocked);
 
         periodics.add(p.scheduleAtFixedRate(countDowner(periodicLatch1),
                                             1, 1, MILLISECONDS));
@@ -858,8 +858,8 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             }
         }
         if (effectivePeriodicPolicy) {
-            assertTrue(periodicLatch1.await(LONG_DELAY_MS, MILLISECONDS));
-            assertTrue(periodicLatch2.await(LONG_DELAY_MS, MILLISECONDS));
+            await(periodicLatch1);
+            await(periodicLatch2);
             for (Future<?> periodic : periodics) {
                 assertTrue(periodic.cancel(false));
                 assertTrue(periodic.isCancelled());
