@@ -24,6 +24,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -744,26 +745,38 @@ public class ScheduledExecutorTest extends JSR166TestCase {
      * - setContinueExistingPeriodicTasksAfterShutdownPolicy
      */
     public void testShutdown_cancellation() throws Exception {
-        final int UNSPECIFIED = 0, YES = 1, NO = 2;
-        for (int maybe : new int[] { UNSPECIFIED, YES, NO })
-    {
         final int poolSize = 2;
         final ScheduledThreadPoolExecutor p
             = new ScheduledThreadPoolExecutor(poolSize);
-        final boolean effectiveDelayedPolicy  = (maybe != NO);
-        final boolean effectivePeriodicPolicy = (maybe == YES);
-        final boolean effectiveRemovePolicy   = (maybe == YES);
-        if (maybe != UNSPECIFIED) {
-            p.setExecuteExistingDelayedTasksAfterShutdownPolicy(maybe == YES);
-            p.setContinueExistingPeriodicTasksAfterShutdownPolicy(maybe == YES);
-            p.setRemoveOnCancelPolicy(maybe == YES);
-        }
+        final ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        final boolean effectiveDelayedPolicy;
+        final boolean effectivePeriodicPolicy;
+        final boolean effectiveRemovePolicy;
+
+        if (rnd.nextBoolean())
+            p.setExecuteExistingDelayedTasksAfterShutdownPolicy(
+                effectiveDelayedPolicy = rnd.nextBoolean());
+        else
+            effectiveDelayedPolicy = true;
         assertEquals(effectiveDelayedPolicy,
                      p.getExecuteExistingDelayedTasksAfterShutdownPolicy());
+
+        if (rnd.nextBoolean())
+            p.setContinueExistingPeriodicTasksAfterShutdownPolicy(
+                effectivePeriodicPolicy = rnd.nextBoolean());
+        else
+            effectivePeriodicPolicy = false;
         assertEquals(effectivePeriodicPolicy,
                      p.getContinueExistingPeriodicTasksAfterShutdownPolicy());
+
+        if (rnd.nextBoolean())
+            p.setRemoveOnCancelPolicy(
+                effectiveRemovePolicy = rnd.nextBoolean());
+        else
+            effectiveRemovePolicy = false;
         assertEquals(effectiveRemovePolicy,
                      p.getRemoveOnCancelPolicy());
+
         // Strategy: Wedge the pool with poolSize "blocker" threads
         final AtomicInteger ran = new AtomicInteger(0);
         final CountDownLatch poolBlocked = new CountDownLatch(poolSize);
@@ -834,7 +847,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         for (Future<?> future : blockers)
             assertNull(future.get());
         assertEquals(2 + (effectiveDelayedPolicy ? 1 : 0), ran.get());
-    }}
+    }
 
     /**
      * completed submit of callable returns result
