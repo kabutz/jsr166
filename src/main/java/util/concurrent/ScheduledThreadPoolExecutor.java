@@ -1178,36 +1178,8 @@ public class ScheduledThreadPoolExecutor
             }
         }
 
-        /**
-         * Returns first element only if it is expired.
-         * Used only by drainTo.  Call only when holding lock.
-         */
-        private RunnableScheduledFuture<?> peekExpired() {
-            // assert lock.isHeldByCurrentThread();
-            RunnableScheduledFuture<?> first = queue[0];
-            return (first == null || first.getDelay(NANOSECONDS) > 0) ?
-                null : first;
-        }
-
         public int drainTo(Collection<? super Runnable> c) {
-            if (c == null)
-                throw new NullPointerException();
-            if (c == this)
-                throw new IllegalArgumentException();
-            final ReentrantLock lock = this.lock;
-            lock.lock();
-            try {
-                RunnableScheduledFuture<?> first;
-                int n = 0;
-                while ((first = peekExpired()) != null) {
-                    c.add(first);   // In this order, in case add() throws.
-                    finishPoll(first);
-                    ++n;
-                }
-                return n;
-            } finally {
-                lock.unlock();
-            }
+            return drainTo(c, Integer.MAX_VALUE);
         }
 
         public int drainTo(Collection<? super Runnable> c, int maxElements) {
@@ -1222,7 +1194,9 @@ public class ScheduledThreadPoolExecutor
             try {
                 RunnableScheduledFuture<?> first;
                 int n = 0;
-                while (n < maxElements && (first = peekExpired()) != null) {
+                while (n < maxElements
+                       && (first = queue[0]) != null
+                       && first.getDelay(NANOSECONDS) <= 0) {
                     c.add(first);   // In this order, in case add() throws.
                     finishPoll(first);
                     ++n;
