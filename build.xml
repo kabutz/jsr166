@@ -18,12 +18,10 @@
   itself.  Because the JDK version matters and because different
   targets require different JDKs, we assume that users have created a
   hierarchy containing:
-  $HOME/jdk/jdk7
   $HOME/jdk/jdk8
   $HOME/jdk/jdk9
   $HOME/jdk/jdk10
   where each of the above is a JDK or a symlink to same, and
-  $HOME/jdk/src/jdk7
   $HOME/jdk/src/jdk8
   $HOME/jdk/src/jdk9
   $HOME/jdk/src/jdk10
@@ -32,7 +30,7 @@
 
   Alternatively, define ant variables thus:
   ant -Djdk$N.home=... -Djdk$N.src.home=...
-  for $N in 7 8 9 10 ...
+  for $N in 8 9 10 ...
 
   As of 2016-03, the sources in src/main are for jdk9+ only.
 ------------------------------------------------------------------------------
@@ -513,18 +511,14 @@
 
   <target name="clean"
           description="Removes all build products">
-
     <delete dir="${build.dir}"/>
-
   </target>
 
 
   <target name="dist-clean"
           description="Removes all build and distribution products">
-
     <delete dir="${build.dir}"/>
     <delete dir="${dist.dir}"/>
-
   </target>
 
 
@@ -584,8 +578,7 @@
 
   <target name="test"
           depends="tck, tck-parallelism-1, tck-parallelism-0, jtreg"
-          description="Runs tck and jtreg tests for src/main">
-  </target>
+          description="Runs tck and jtreg tests for src/main"/>
 
 <!--   <target name="jtreg8" description="Runs jtreg tests with jdk8"> -->
 
@@ -663,12 +656,11 @@
     <java classname="ALoops" fork="true">
       <classpath refid="loops.classpath"/>
     </java>
-
   </target>
 
 
   <target name="compile-test-loops" depends="jar"
-          description="compile all the perf tests in src/test/loops">
+          description="Compiles all the perf tests in src/test/loops">
 
     <mkdir dir="${build.dir}/test/loops"/>
 
@@ -688,9 +680,7 @@
       <compilerarg value="-Xlint:all,-unchecked,-rawtypes,-serial"/>
       <compilerarg value="-Xbootclasspath/p:${product.jar}"/>
       <compilerarg line="${build.args}"/>
-
     </javac>
-
   </target>
 
 
@@ -716,14 +706,12 @@
            encoding="ASCII"
            executable="${javac8}"
            fork="true">
-
       <include name="**/*.java"/>
       <compilerarg value="-Xprefer:source"/>
       <compilerarg value="-XDignore.symbol.file=true"/>
       <compilerarg value="-Xlint:all"/>
       <compilerarg value="-Werror"/>
       <compilerarg line="${build.args}"/>
-
     </javac>
   </target>
 
@@ -747,14 +735,12 @@
            encoding="ASCII"
            executable="${javac8}"
            fork="true">
-
       <include name="**/*.java"/>
       <compilerarg value="-Xprefer:source"/>
       <compilerarg value="-XDignore.symbol.file=true"/>
       <compilerarg value="-Xlint:all"/>
       <compilerarg value="-Xdoclint:all/protected,reference/private"/>
       <compilerarg line="${build.args}"/>
-
     </javac>
   </target>
 
@@ -770,7 +756,6 @@
         <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
       </manifest>
     </jar>
-
   </target>
 
 
@@ -804,8 +789,7 @@
 
   <target name="4jdk8-test"
 	  depends="4jdk8-tck, 4jdk8-jtreg"
-          description="Runs tck and jtreg tests for jsr166-4jdk8">
-  </target>
+          description="Runs tck and jtreg tests for jsr166-4jdk8"/>
 
 
   <target name="4jdk8docs"
@@ -848,9 +832,7 @@
 
   <target name="4jdk8clean"
           description="Removes all 4jdk8 build products">
-
     <delete dir="${build.4jdk8.dir}"/>
-
   </target>
 
 
@@ -866,13 +848,9 @@
   </target>
 
 
+  <!-- jsr166 4jdk7 (no longer maintained) -->
 
-  <!-- jsr166 4jdk7 -->
-
-  <target name="4jdk7compile"
-          depends="configure-compiler"
-          description="Compiles src/jdk7 sources, targeting jdk7">
-
+  <target name="4jdk7compile" depends="configure-compiler">
     <mkdir dir="${build.4jdk7.classes.dir}"/>
 
     <javac srcdir="${4jdk7src.dir}"
@@ -896,14 +874,10 @@
       <compilerarg value="-Xlint:all"/>
       <compilerarg value="-Werror"/>
       <compilerarg line="${build.args}"/>
-
     </javac>
   </target>
 
-  <target name="4jdk7doclint"
-          depends="configure-compiler"
-          description="Finds doclint warnings">
-
+  <target name="4jdk7doclint" depends="configure-compiler">
     <mkdir dir="${build.4jdk7.classes.dir}"/>
 
     <javac srcdir="${4jdk7src.dir}"
@@ -927,15 +901,10 @@
       <compilerarg value="-Xlint:all"/>
       <compilerarg value="-Xdoclint:all/protected"/>
       <compilerarg line="${build.args}"/>
-
     </javac>
   </target>
 
-
-  <target name="4jdk7jar"
-          depends="4jdk7compile"
-          description="Builds library jar from compiled sources">
-
+  <target name="4jdk7jar" depends="4jdk7compile">
     <jar destfile="${4jdk7product.jar}">
       <fileset dir="${build.4jdk7.classes.dir}"/>
       <manifest>
@@ -943,14 +912,9 @@
         <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
       </manifest>
     </jar>
-
   </target>
 
-
-  <target name="4jdk7-tck"
-	  depends="4jdk7jar"
-          description="Runs tck tests for jsr166-4jdk7 directly">
-
+  <target name="4jdk7-tck" depends="4jdk7jar">
     <run-tck-tests
       target="7"
       workdir="${build.4jdk7.dir}"
@@ -973,10 +937,8 @@
     </run-tck-tests>
   </target>
 
-
   <!-- Runs tck tests for jsr166-4jdk7 via junit task (dead experiment) -->
-  <target name="4jdk7-tck-junit"
-          depends="4jdk7compile">
+  <target name="4jdk7-tck-junit" depends="4jdk7compile">
 
     <junit printsummary="true"
            showoutput="true"
@@ -998,29 +960,19 @@
 
       <test name="${jsr166.tckTestClass}" haltonfailure="no">
       </test>
-
     </junit>
   </target>
 
-  <target name="4jdk7-jtreg"
-	  depends="4jdk7jar"
-          description="Runs jtreg tests for jsr166-4jdk7 using the jtreg ant task">
+  <target name="4jdk7-jtreg" depends="4jdk7jar">
     <run-jtreg-tests
        target="7"
        workdir="${build.4jdk7.dir}"
        classes="${4jdk7product.jar}"/>
   </target>
 
+  <target name="4jdk7-test" depends="4jdk7-tck, 4jdk7-jtreg"/>
 
-  <target name="4jdk7-test"
-	  depends="4jdk7-tck, 4jdk7-jtreg"
-          description="Runs tck and jtreg tests for jsr166-4jdk7">
-  </target>
-
-
-  <target name="4jdk7docs"
-          description="Builds javadocs for src/jdk7 to dist dir">
-
+  <target name="4jdk7docs">
     <delete dir="${4jdk7docs.dir}"/>
     <mkdir dir="${4jdk7docs.dir}"/>
 
@@ -1041,38 +993,24 @@
     </javadoc>
   </target>
 
+  <target name="4jdk7dist" depends="4jdk7dist-jar, 4jdk7dist-docs"/>
 
-  <target name="4jdk7dist"
-          depends="4jdk7dist-jar, 4jdk7dist-docs"
-          description="Puts all distributable products in single hierarchy"/>
-
-
-  <target name="4jdk7clean"
-          description="Removes all 4jdk7 build products">
-
+  <target name="4jdk7clean">
     <delete dir="${build.4jdk7.dir}"/>
-
   </target>
 
-
-  <target name="4jdk7dist-jar"
-          depends="4jdk7clean, 4jdk7jar">
+  <target name="4jdk7dist-jar" depends="4jdk7clean, 4jdk7jar">
     <copy file="${4jdk7product.jar}" todir="${dist.dir}"/>
   </target>
 
-
-  <target name="4jdk7dist-docs"
-          depends="4jdk7clean, 4jdk7docs">
+  <target name="4jdk7dist-docs" depends="4jdk7clean, 4jdk7docs">
     <mirror-dir src="${4jdk7docs.dir}" dst="${dist.4jdk7docs.dir}"/>
   </target>
 
 
-  <!-- jsr166x -->
+  <!-- jsr166x (no longer maintained) -->
 
-  <target name="jsr166xcompile"
-          depends="configure-compiler"
-          description="Compiles jsr166x sources to build dir">
-
+  <target name="jsr166xcompile" depends="configure-compiler">
     <mkdir dir="${build.jsr166x.classes.dir}"/>
 
     <javac srcdir="${topsrc.dir}"
@@ -1089,21 +1027,15 @@
            encoding="ASCII"
            executable="${javac7}"
            fork="true">
-
       <include name="jsr166x/**/*.java"/>
       <compilerarg value="-XDignore.symbol.file=true"/>
       <compilerarg value="-Xlint:all,-unchecked,-rawtypes"/>
       <compilerarg value="-Werror"/>
       <compilerarg line="${build.args}"/>
-
     </javac>
   </target>
 
-
-  <target name="jsr166xjar"
-          depends="jsr166xcompile"
-          description="Builds library jar from compiled sources">
-
+  <target name="jsr166xjar" depends="jsr166xcompile">
     <jar destfile="${jsr166x.jar}">
       <fileset dir="${build.jsr166x.classes.dir}"/>
       <manifest>
@@ -1111,13 +1043,9 @@
         <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
       </manifest>
     </jar>
-
   </target>
 
-
-  <target name="jsr166xdocs"
-          description="Builds javadocs to dist dir">
-
+  <target name="jsr166xdocs">
     <delete dir="${jsr166xdocs.dir}"/>
     <mkdir dir="${jsr166xdocs.dir}"/>
 
@@ -1132,41 +1060,27 @@
              failonerror = "true">
       <arg line="-Xdocrootparent ${java.docroot.url}"/>
       <arg value="-XDignore.symbol.file=true"/>
-
     </javadoc>
   </target>
 
+  <target name="jsr166xdist" depends="jsr166xdist-jar, jsr166xdist-docs"/>
 
-  <target name="jsr166xdist"
-          depends="jsr166xdist-jar, jsr166xdist-docs"
-          description="Puts all distributable products in single hierarchy"/>
-
-
-  <target name="jsr166xclean"
-          description="Removes all jsr166x build products">
-
+  <target name="jsr166xclean">
     <delete dir="${build.jsr166x.dir}"/>
-
   </target>
 
-
-  <target name="jsr166xdist-jar"
-          depends="jsr166xclean, jsr166xjar">
+  <target name="jsr166xdist-jar" depends="jsr166xclean, jsr166xjar">
     <copy file="${jsr166x.jar}" todir="${dist.dir}"/>
   </target>
 
-  <target name="jsr166xdist-docs"
-          depends="jsr166xclean, jsr166xdocs">
+  <target name="jsr166xdist-docs" depends="jsr166xclean, jsr166xdocs">
     <mirror-dir src="${jsr166xdocs.dir}" dst="${dist.jsr166xdocs.dir}"/>
   </target>
 
-  <!-- jsr166y -->
 
+  <!-- jsr166y (no longer maintained) -->
 
-  <target name="jsr166ycompile"
-          depends="configure-compiler"
-          description="Compiles jsr166y sources">
-
+  <target name="jsr166ycompile" depends="configure-compiler">
     <mkdir dir="${build.jsr166y.classes.dir}"/>
 
     <javac srcdir="${topsrc.dir}"
@@ -1189,15 +1103,10 @@
       <compilerarg value="-Xlint:all"/>
       <compilerarg value="-Werror"/>
       <compilerarg line="${build.args}"/>
-
     </javac>
   </target>
 
-
-  <target name="jsr166yjar"
-          depends="jsr166ycompile"
-          description="Builds library jar from compiled sources">
-
+  <target name="jsr166yjar" depends="jsr166ycompile">
     <jar destfile="${jsr166y.jar}" index="true">
       <fileset dir="${build.jsr166y.classes.dir}"/>
       <manifest>
@@ -1205,13 +1114,9 @@
         <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
       </manifest>
     </jar>
-
   </target>
 
-
-  <target name="jsr166ydocs"
-          description="Builds javadocs to dist dir">
-
+  <target name="jsr166ydocs">
     <delete dir="${jsr166ydocs.dir}"/>
     <mkdir dir="${jsr166ydocs.dir}"/>
 
@@ -1226,42 +1131,27 @@
              failonerror = "true">
       <arg line="-Xdocrootparent ${java.docroot.url}"/>
       <arg value="-XDignore.symbol.file=true"/>
-
     </javadoc>
   </target>
 
+  <target name="jsr166ydist" depends="jsr166ydist-jar, jsr166ydist-docs"/>
 
-  <target name="jsr166ydist"
-          depends="jsr166ydist-jar, jsr166ydist-docs"
-          description="Puts all distributable products in single hierarchy"/>
-
-
-  <target name="jsr166yclean"
-          description="Removes all jsr166y build products">
-
+  <target name="jsr166yclean">
     <delete dir="${build.jsr166y.dir}"/>
-
   </target>
 
-
-  <target name="jsr166ydist-jar"
-          depends="jsr166yclean, jsr166yjar">
+  <target name="jsr166ydist-jar" depends="jsr166yclean, jsr166yjar">
     <copy file="${jsr166y.jar}" todir="${dist.dir}"/>
   </target>
 
-  <target name="jsr166ydist-docs"
-          depends="jsr166yclean, jsr166ydocs">
+  <target name="jsr166ydist-docs" depends="jsr166yclean, jsr166ydocs">
     <mirror-dir src="${jsr166ydocs.dir}" dst="${dist.jsr166ydocs.dir}"/>
   </target>
 
 
-  <!-- extra166y -->
+  <!-- extra166y (no longer maintained) -->
 
-
-  <target name="extra166ycompile"
-          depends="configure-compiler, jsr166yjar"
-          description="Compiles extra166y sources">
-
+  <target name="extra166ycompile" depends="configure-compiler, jsr166yjar">
     <mkdir dir="${build.extra166y.classes.dir}"/>
 
     <javac srcdir="${topsrc.dir}"
@@ -1284,15 +1174,10 @@
       <compilerarg value="-Xlint:all,-unchecked,-rawtypes,-serial"/>
       <compilerarg value="-Werror"/>
       <compilerarg line="${build.args}"/>
-
     </javac>
   </target>
 
-
-  <target name="extra166yjar"
-          depends="extra166ycompile"
-          description="Builds library jar from compiled sources">
-
+  <target name="extra166yjar" depends="extra166ycompile">
     <jar destfile="${extra166y.jar}" index="true">
       <fileset dir="${build.extra166y.classes.dir}"/>
       <manifest>
@@ -1300,13 +1185,9 @@
         <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
       </manifest>
     </jar>
-
   </target>
 
-
-  <target name="extra166ydocs"
-          description="Builds javadocs to build dir">
-
+  <target name="extra166ydocs">
     <delete dir="${extra166ydocs.dir}"/>
     <mkdir dir="${extra166ydocs.dir}"/>
 
@@ -1320,43 +1201,30 @@
              executable="${javadoc7}">
       <arg line="-Xdocrootparent ${java.docroot.url}"/>
       <arg value="-XDignore.symbol.file=true"/>
-
     </javadoc>
   </target>
 
+  <target name="extra166ydist" depends="extra166ydist-jar, extra166ydist-docs"/>
 
-  <target name="extra166ydist"
-          depends="extra166ydist-jar, extra166ydist-docs"
-          description="Puts all distributable products in single hierarchy"/>
-
-
-  <target name="extra166yclean"
-          description="Removes all extra166y build products">
-
+  <target name="extra166yclean">
     <delete dir="${build.extra166y.dir}"/>
-
   </target>
 
-
-  <target name="extra166ydist-jar"
-          depends="extra166yclean, extra166yjar">
+  <target name="extra166ydist-jar" depends="extra166yclean, extra166yjar">
     <copy file="${extra166y.jar}" todir="${dist.dir}"/>
   </target>
 
-  <target name="extra166ydist-docs"
-          depends="extra166yclean, extra166ydocs">
+  <target name="extra166ydist-docs" depends="extra166yclean, extra166ydocs">
     <mirror-dir src="${extra166ydocs.dir}" dst="${dist.extra166ydocs.dir}"/>
   </target>
 
-  <!-- jsr166e -->
+
+  <!-- jsr166e (no longer maintained) -->
 
   <property name="build.jsr166e.java.version" value="6"/>
   <property name="build.jsr166e.javac" value="${javac6}"/>
 
-  <target name="jsr166ecompile"
-          depends="configure-compiler"
-          description="Compiles jsr166e sources">
-
+  <target name="jsr166ecompile" depends="configure-compiler">
     <mkdir dir="${build.jsr166e.classes.dir}"/>
 
     <javac srcdir="${topsrc.dir}"
@@ -1377,13 +1245,10 @@
       <compilerarg value="-Xlint:all"/>
       <compilerarg value="-Werror"/>
       <compilerarg line="${build.args}"/>
-
     </javac>
   </target>
 
-  <!-- jsr166e: find doclint errors -->
   <target name="jsr166edoclint">
-
     <mkdir dir="${build.jsr166e.classes.dir}"/>
 
     <javac srcdir="${topsrc.dir}"
@@ -1405,15 +1270,10 @@
       <compilerarg value="-Xlint:all"/>
       <compilerarg value="-Werror"/>
       <compilerarg value="-Xdoclint:all/protected"/>
-
     </javac>
   </target>
 
-
-  <target name="jsr166ejar"
-          depends="jsr166ecompile"
-          description="Builds library jar from compiled sources">
-
+  <target name="jsr166ejar" depends="jsr166ecompile">
     <jar destfile="${jsr166e.jar}" index="true">
       <fileset dir="${build.jsr166e.classes.dir}"/>
       <manifest>
@@ -1421,13 +1281,9 @@
         <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
       </manifest>
     </jar>
-
   </target>
 
-
-  <target name="jsr166edocs"
-          description="Builds javadocs to build dir">
-
+  <target name="jsr166edocs">
     <delete dir="${jsr166edocs.dir}"/>
     <mkdir dir="${jsr166edocs.dir}"/>
 
@@ -1441,16 +1297,11 @@
              failonerror = "true">
       <arg line="-Xdocrootparent ${java.docroot.url}"/>
       <arg value="-XDignore.symbol.file=true"/>
-
     </javadoc>
   </target>
 
-
-  <target name="jsr166e-tck-one-java-version"
-	  depends="jsr166ejar">
-
+  <target name="jsr166e-tck-one-java-version" depends="jsr166ejar">
     <echo message="Testing with jdk${build.jsr166e.java.version} ..."/>
-
     <run-tck-tests
       tck.src.dir="${test.src.dir}/tck-jsr166e"
       target="${build.jsr166e.java.version}"
@@ -1458,8 +1309,7 @@
       classes="${jsr166e.jar}"/>
   </target>
 
-  <target name="jsr166e-tck"
-          description="Runs tck tests for jsr166e for multiple java versions">
+  <target name="jsr166e-tck">
 
 <!--     <antcall target="clean"/> -->
 <!--     <antcall target="jsr166e-tck-one-java-version"> -->
@@ -1480,30 +1330,20 @@
     </antcall>
   </target>
 
+  <target name="jsr166e-test" depends="jsr166e-tck"/>
 
-  <target name="jsr166e-test"
-	  depends="jsr166e-tck"
-          description="Runs all tests for jsr166e">
-  </target>
+  <target name="jsr166edist" depends="jsr166edist-jar, jsr166edist-docs"/>
 
-  <target name="jsr166edist"
-          depends="jsr166edist-jar, jsr166edist-docs"
-          description="Puts all distributable products in single hierarchy"/>
-
-
-  <target name="jsr166eclean"
-          description="Removes all jsr166e build products">
+  <target name="jsr166eclean">
     <delete dir="${build.jsr166e.dir}"/>
   </target>
-
 
   <target name="jsr166edist-jar"
           depends="jsr166eclean, jsr166ejar">
     <copy file="${jsr166e.jar}" todir="${dist.dir}"/>
   </target>
 
-  <target name="jsr166edist-docs"
-          depends="jsr166eclean, jsr166edocs">
+  <target name="jsr166edist-docs" depends="jsr166eclean, jsr166edocs">
     <mirror-dir src="${jsr166edocs.dir}" dst="${dist.jsr166edocs.dir}"/>
   </target>
 
@@ -1530,7 +1370,7 @@
 =================================================================== -->
   <target name="errorprone"
           depends="clean, configure-compiler"
-          description="Run errorprone over jsr166 source code">
+          description="Run errorprone over jsr166 source code (experimental)">
 
     <local name="destdir"/>
     <property name="destdir" value="${build.classes.dir}/java.base"/>
@@ -1560,10 +1400,10 @@
       <compilerarg value="-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"/>
       <compilerarg line="-processorpath ${lib.dir}/error_prone_ant-2.0.20-SNAPSHOT.jar"/>
       <compilerarg value="-Xplugin:ErrorProne
-                          -Xep:IdentityBinaryExpression:WARN 
+                          -Xep:IdentityBinaryExpression:WARN
                           -Xep:MissingOverride:OFF
-                          -Xep:MixedArrayDimensions:WARN 
-                          -Xep:RemoveUnusedImports:ERROR 
+                          -Xep:MixedArrayDimensions:WARN
+                          -Xep:RemoveUnusedImports:ERROR
                           -Xep:MethodCanBeStatic:WARN"/>
       <compilerarg value="--patch-module=java.base=${src.dir}"/>
       <compilerarg value="-Xprefer:source"/>
@@ -1593,14 +1433,14 @@
         <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"/>
         <compilerarg value="-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"/>
         <compilerarg line="-processorpath ${lib.dir}/error_prone_ant-2.0.20-SNAPSHOT.jar"/>
-        <compilerarg value="-Xplugin:ErrorProne 
-                            -Xep:IdentityBinaryExpression:WARN 
-                            -Xep:BoxedPrimitiveConstructor:OFF 
-                            -Xep:HashtableContains:OFF 
-                            -Xep:ModifyingCollectionWithItself:OFF 
-                            -Xep:MissingOverride:OFF 
-                            -Xep:MixedArrayDimensions:WARN 
-                            -Xep:RemoveUnusedImports:ERROR 
+        <compilerarg value="-Xplugin:ErrorProne
+                            -Xep:IdentityBinaryExpression:WARN
+                            -Xep:BoxedPrimitiveConstructor:OFF
+                            -Xep:HashtableContains:OFF
+                            -Xep:ModifyingCollectionWithItself:OFF
+                            -Xep:MissingOverride:OFF
+                            -Xep:MixedArrayDimensions:WARN
+                            -Xep:RemoveUnusedImports:ERROR
                             -Xep:MethodCanBeStatic:WARN"/>
         <compilerarg line="-Xmaxerrs 3000 -Xmaxwarns 3000"/>
       </javac-elements>
