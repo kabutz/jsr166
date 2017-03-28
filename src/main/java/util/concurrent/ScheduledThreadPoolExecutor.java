@@ -50,6 +50,18 @@ import java.util.concurrent.locks.ReentrantLock;
  * <a href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>
  * those of subsequent ones.
  *
+ * <p>Calling {@link Future#get} on a periodic task's future will
+ * never return normally.  If an execution of a periodic task
+ * throws an exception, further executions are suppressed and
+ * {@code get()} will throw an {@link ExecutionException} holding the
+ * exception as its cause.  Otherwise, {@code get()} will block and
+ * executions continue indefinitely until the task is cancelled, when
+ * it will throw {@link CancellationException}.  Such cancellations
+ * occur when the future is cancelled, on {@link #shutdownNow}, or on
+ * {@link #shutdown} unless the {@linkplain
+ * #getContinueExistingPeriodicTasksAfterShutdownPolicy policy on
+ * whether to continue after shutdown} is set true.
+ *
  * <p>While this class inherits from {@link ThreadPoolExecutor}, a few
  * of the inherited tuning methods are not useful for it. In
  * particular, because it acts as a fixed-sized pool using
@@ -654,10 +666,17 @@ public class ScheduledThreadPoolExecutor
     /**
      * Sets the policy on whether to continue executing existing
      * periodic tasks even when this executor has been {@code shutdown}.
-     * In this case, these tasks will only terminate upon
-     * {@code shutdownNow} or after setting the policy to
-     * {@code false} when already shutdown.
      * This value is by default {@code false}.
+     *
+     * <p>If the policy is set to {@code true}, periodic tasks will
+     * continue executing until one of the following happens:
+     *
+     * <ul>
+     * <li>{@link #shutdownNow} is called
+     * <li>the policy is set to {@code false} when already shutdown
+     * <li>the task is {@linkplain Future#cancel cancelled}
+     * <li>an execution of the task terminates with an exception
+     * </ul>
      *
      * @param value if {@code true}, continue after shutdown, else don't
      * @see #getContinueExistingPeriodicTasksAfterShutdownPolicy
@@ -671,10 +690,17 @@ public class ScheduledThreadPoolExecutor
     /**
      * Gets the policy on whether to continue executing existing
      * periodic tasks even when this executor has been {@code shutdown}.
-     * In this case, these tasks will only terminate upon
-     * {@code shutdownNow} or after setting the policy to
-     * {@code false} when already shutdown.
      * This value is by default {@code false}.
+     *
+     * <p>If the policy is set to {@code true}, periodic tasks will
+     * continue executing until one of the following happens:
+     *
+     * <ul>
+     * <li>{@link #shutdownNow} is called
+     * <li>the policy is set to {@code false} when already shutdown
+     * <li>the task is {@linkplain Future#cancel cancelled}
+     * <li>an execution of the task terminates with an exception
+     * </ul>
      *
      * @return {@code true} if will continue after shutdown
      * @see #setContinueExistingPeriodicTasksAfterShutdownPolicy
