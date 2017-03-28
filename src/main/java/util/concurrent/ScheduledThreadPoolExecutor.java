@@ -1234,7 +1234,13 @@ public class ScheduledThreadPoolExecutor
         }
 
         public Iterator<Runnable> iterator() {
-            return new Itr(Arrays.copyOf(queue, size));
+            final ReentrantLock lock = this.lock;
+            lock.lock();
+            try {
+                return new Itr(Arrays.copyOf(queue, size));
+            } finally {
+                lock.unlock();
+            }
         }
 
         /**
