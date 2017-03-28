@@ -779,29 +779,33 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         assertEquals(effectiveRemovePolicy,
                      p.getRemoveOnCancelPolicy());
 
-        // System.err.println("effectiveDelayedPolicy="+effectiveDelayedPolicy);
-        // System.err.println("effectivePeriodicPolicy="+effectivePeriodicPolicy);
-        // System.err.println("effectiveRemovePolicy="+effectiveRemovePolicy);
+        final boolean periodicTasksContinue = effectivePeriodicPolicy && rnd.nextBoolean();
 
         // Strategy: Wedge the pool with one wave of "blocker" tasks,
-        // then add a second wave that waits in the queue.
+        // then add a second wave that waits in the queue until unblocked.
         final AtomicInteger ran = new AtomicInteger(0);
         final CountDownLatch poolBlocked = new CountDownLatch(poolSize);
         final CountDownLatch unblock = new CountDownLatch(1);
+        final RuntimeException exception = new RuntimeException();
 
-        class Task extends CheckedRunnable {
-            public void realRun() throws InterruptedException {
-                ran.getAndIncrement();
-                poolBlocked.countDown();
-                await(unblock);
+        class Task implements Runnable {
+            public void run() {
+                try {
+                    ran.getAndIncrement();
+                    poolBlocked.countDown();
+                    await(unblock);
+                } catch (Throwable fail) { threadUnexpectedException(fail); }
             }
         }
 
         class PeriodicTask extends Task {
             PeriodicTask(int rounds) { this.rounds = rounds; }
             int rounds;
-            public void realRun() throws InterruptedException {
-                if (--rounds == 0) super.realRun();
+            public void run() {
+                if (--rounds == 0) super.run();
+                // throw exception to surely terminate this periodic task,
+                // but in a separate execution and in a detectable way.
+                if (rounds == -1) throw exception;
             }
         }
 
@@ -876,11 +880,11 @@ public class ScheduledExecutorTest extends JSR166TestCase {
 
         if (testImplementationDetails) {
             if (effectivePeriodicPolicy)
-                // TODO: ensure periodic tasks continue executing
                 periodics.forEach(
                     f -> {
                         assertFalse(f.isDone());
-                        assertTrue(f.cancel(false));
+                        if (!periodicTasksContinue)
+                            assertTrue(f.cancel(false));
                     });
             else {
                 periodics.subList(0, 4).forEach(f -> assertFalse(f.isDone()));
@@ -896,6 +900,9 @@ public class ScheduledExecutorTest extends JSR166TestCase {
 
         assertTrue(q.isEmpty());
 
+        Stream.of(immediates, delayeds, periodics).flatMap(c -> c.stream())
+            .forEach(f -> assertTrue(f.isDone()));
+
         for (Future<?> f : immediates) assertNull(f.get());
 
         assertNull(delayeds.get(0).get());
@@ -904,10 +911,22 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         else
             assertTrue(delayeds.get(1).isCancelled());
 
-        periodics.forEach(f -> assertTrue(f.isDone()));
-        periodics.forEach(f -> assertTrue(f.isCancelled()));
+        if (periodicTasksContinue)
+            periodics.forEach(
+                f -> {
+                    try { f.get(); }
+                    catch (ExecutionException success) {
+                        assertSame(exception, success.getCause());
+                    }
+                    catch (Throwable fail) { threadUnexpectedException(fail); }
+                });
+        else
+            periodics.forEach(f -> assertTrue(f.isCancelled()));
 
-        assertEquals(poolSize + 1 + (effectiveDelayedPolicy ? 1 : 0), ran.get());
+        assertEquals(poolSize + 1
+                     + (effectiveDelayedPolicy ? 1 : 0)
+                     + (periodicTasksContinue ? 4 : 0),
+                     ran.get());
     }
 
     /**
