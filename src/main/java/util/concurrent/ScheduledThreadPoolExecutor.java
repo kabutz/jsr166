@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -1183,8 +1184,7 @@ public class ScheduledThreadPoolExecutor
         }
 
         public int drainTo(Collection<? super Runnable> c, int maxElements) {
-            if (c == null)
-                throw new NullPointerException();
+            Objects.requireNonNull(c);
             if (c == this)
                 throw new IllegalArgumentException();
             if (maxElements <= 0)
@@ -1192,11 +1192,11 @@ public class ScheduledThreadPoolExecutor
             final ReentrantLock lock = this.lock;
             lock.lock();
             try {
-                RunnableScheduledFuture<?> first;
                 int n = 0;
-                while (n < maxElements
-                       && (first = queue[0]) != null
-                       && first.getDelay(NANOSECONDS) <= 0) {
+                for (RunnableScheduledFuture<?> first;
+                     n < maxElements
+                         && (first = queue[0]) != null
+                         && first.getDelay(NANOSECONDS) <= 0;) {
                     c.add(first);   // In this order, in case add() throws.
                     finishPoll(first);
                     ++n;
