@@ -811,17 +811,6 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     }
 
     /**
-     * State check needed by ScheduledThreadPoolExecutor to
-     * enable running tasks during shutdown.
-     *
-     * @param shutdownOK true if should return true if SHUTDOWN
-     */
-    final boolean isRunningOrShutdown(boolean shutdownOK) {
-        int rs = runStateOf(ctl.get());
-        return rs == RUNNING || (rs == SHUTDOWN && shutdownOK);
-    }
-
-    /**
      * Drains the task queue into a new list, normally using
      * drainTo. But if the queue is a DelayQueue or any other kind of
      * queue for which poll or drainTo may fail to remove some
@@ -1412,6 +1401,11 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 
     public boolean isShutdown() {
         return ! isRunning(ctl.get());
+    }
+
+    /** Used by ScheduledThreadPoolExecutor. */
+    boolean isStopped() {
+        return runStateAtLeast(ctl.get(), STOP);
     }
 
     /**

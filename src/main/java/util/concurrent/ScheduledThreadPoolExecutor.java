@@ -269,10 +269,9 @@ public class ScheduledThreadPoolExecutor
          * Overrides FutureTask version so as to reset/requeue if periodic.
          */
         public void run() {
-            boolean periodic = isPeriodic();
-            if (!canRunInCurrentRunState(periodic))
+            if (!canRunInCurrentRunState(this))
                 cancel(false);
-            else if (!periodic)
+            else if (!isPeriodic())
                 super.run();
             else if (super.runAndReset()) {
                 setNextRunTime();
@@ -282,15 +281,18 @@ public class ScheduledThreadPoolExecutor
     }
 
     /**
-     * Returns true if can run a task given current run state
-     * and run-after-shutdown parameters.
-     *
-     * @param periodic true if this task periodic, false if delayed
+     * Returns true if can run a task given current run state and
+     * run-after-shutdown parameters.
      */
-    boolean canRunInCurrentRunState(boolean periodic) {
-        return isRunningOrShutdown(periodic ?
-                                   continueExistingPeriodicTasksAfterShutdown :
-                                   executeExistingDelayedTasksAfterShutdown);
+    boolean canRunInCurrentRunState(RunnableScheduledFuture<?> task) {
+        if (!isShutdown())
+            return true;
+        if (isStopped())
+            return false;
+        return task.isPeriodic()
+            ? continueExistingPeriodicTasksAfterShutdown
+            : (executeExistingDelayedTasksAfterShutdown
+               || task.getDelay(NANOSECONDS) <= 0);
     }
 
     /**
@@ -309,9 +311,7 @@ public class ScheduledThreadPoolExecutor
             reject(task);
         else {
             super.getQueue().add(task);
-            if (isShutdown() &&
-                !canRunInCurrentRunState(task.isPeriodic()) &&
-                remove(task))
+            if (!canRunInCurrentRunState(task) && remove(task))
                 task.cancel(false);
             else
                 ensurePrestart();
@@ -325,13 +325,14 @@ public class ScheduledThreadPoolExecutor
      * @param task the task
      */
     void reExecutePeriodic(RunnableScheduledFuture<?> task) {
-        if (canRunInCurrentRunState(true)) {
+        if (canRunInCurrentRunState(task)) {
             super.getQueue().add(task);
-            if (!canRunInCurrentRunState(true) && remove(task))
-                task.cancel(false);
-            else
+            if (canRunInCurrentRunState(task) || !remove(task)) {
                 ensurePrestart();
+                return;
+            }
         }
+        task.cancel(false);
     }
 
     /**
@@ -344,23 +345,18 @@ public class ScheduledThreadPoolExecutor
             getExecuteExistingDelayedTasksAfterShutdownPolicy();
         boolean keepPeriodic =
             getContinueExistingPeriodicTasksAfterShutdownPolicy();
-        if (!keepDelayed && !keepPeriodic) {
-            for (Object e : q.toArray())
-                if (e instanceof RunnableScheduledFuture<?>)
-                    ((RunnableScheduledFuture<?>) e).cancel(false);
-            q.clear();
-        }
-        else {
-            // Traverse snapshot to avoid iterator exceptions
-            for (Object e : q.toArray()) {
-                if (e instanceof RunnableScheduledFuture) {
-                    RunnableScheduledFuture<?> t =
-                        (RunnableScheduledFuture<?>)e;
-                    if ((t.isPeriodic() ? !keepPeriodic : !keepDelayed) ||
-                        t.isCancelled()) { // also remove if already cancelled
-                        if (q.remove(t))
-                            t.cancel(false);
-                    }
+        // Traverse snapshot to avoid iterator exceptions
+        // TODO: implement and use efficient removeIf
+        // super.getQueue().removeIf(...);
+        for (Object e : q.toArray()) {
+            if (e instanceof RunnableScheduledFuture) {
+                RunnableScheduledFuture<?> t = (RunnableScheduledFuture<?>)e;
+                if ((t.isPeriodic()
+                     ? !keepPeriodic
+                     : (!keepDelayed && t.getDelay(NANOSECONDS) > 0))
+                    || t.isCancelled()) { // also remove if already cancelled
+                    if (q.remove(t))
+                        t.cancel(false);
                 }
             }
         }
