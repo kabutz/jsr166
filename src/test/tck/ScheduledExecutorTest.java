@@ -827,6 +827,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         await(poolBlocked);
 
         assertEquals(poolSize, ran.get());
+        assertEquals(poolSize, p.getActiveCount());
         assertTrue(q.isEmpty());
 
         // Add second wave of tasks.
@@ -878,18 +879,18 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         else
             assertTrue(delayeds.get(1).isCancelled());
 
-        if (testImplementationDetails) {
-            if (effectivePeriodicPolicy)
-                periodics.forEach(
-                    f -> {
-                        assertFalse(f.isDone());
-                        if (!periodicTasksContinue)
-                            assertTrue(f.cancel(false));
-                    });
-            else {
-                periodics.subList(0, 4).forEach(f -> assertFalse(f.isDone()));
-                periodics.subList(4, 8).forEach(f -> assertTrue(f.isCancelled()));
-            }
+        if (effectivePeriodicPolicy)
+            periodics.forEach(
+                f -> {
+                    assertFalse(f.isDone());
+                    if (!periodicTasksContinue) {
+                        assertTrue(f.cancel(false));
+                        assertTrue(f.isCancelled());
+                    }
+                });
+        else {
+            periodics.subList(0, 4).forEach(f -> assertFalse(f.isDone()));
+            periodics.subList(4, 8).forEach(f -> assertTrue(f.isCancelled()));
         }
 
         unblock.countDown();    // Release all pool threads
