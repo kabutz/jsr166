@@ -746,11 +746,13 @@ public class ScheduledExecutorTest extends JSR166TestCase {
      * - setContinueExistingPeriodicTasksAfterShutdownPolicy
      */
     public void testShutdown_cancellation() throws Exception {
-        final int poolSize = 6;
+        final int poolSize = 4;
         final ScheduledThreadPoolExecutor p
             = new ScheduledThreadPoolExecutor(poolSize);
         final BlockingQueue<Runnable> q = p.getQueue();
         final ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        final long delay = rnd.nextInt(2);
+        final int rounds = rnd.nextInt(1, 3);
         final boolean effectiveDelayedPolicy;
         final boolean effectivePeriodicPolicy;
         final boolean effectiveRemovePolicy;
@@ -816,13 +818,11 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         List<Future<?>> periodics  = new ArrayList<>();
 
         immediates.add(p.submit(task));
-        delayeds.add(p.schedule(task, 1, MILLISECONDS));
-        for (int rounds : new int[] { 1, 2 }) {
-            periodics.add(p.scheduleAtFixedRate(
-                              new PeriodicTask(rounds), 1, 1, MILLISECONDS));
-            periodics.add(p.scheduleWithFixedDelay(
-                              new PeriodicTask(rounds), 1, 1, MILLISECONDS));
-        }
+        delayeds.add(p.schedule(task, delay, MILLISECONDS));
+        periodics.add(p.scheduleAtFixedRate(
+                          new PeriodicTask(rounds), delay, 1, MILLISECONDS));
+        periodics.add(p.scheduleWithFixedDelay(
+                          new PeriodicTask(rounds), delay, 1, MILLISECONDS));
 
         await(poolBlocked);
 
@@ -832,14 +832,11 @@ public class ScheduledExecutorTest extends JSR166TestCase {
 
         // Add second wave of tasks.
         immediates.add(p.submit(task));
-        long delay_ms = effectiveDelayedPolicy ? 1 : LONG_DELAY_MS;
-        delayeds.add(p.schedule(task, delay_ms, MILLISECONDS));
-        for (int rounds : new int[] { 1, 2 }) {
-            periodics.add(p.scheduleAtFixedRate(
-                              new PeriodicTask(rounds), 1, 1, MILLISECONDS));
-            periodics.add(p.scheduleWithFixedDelay(
-                              new PeriodicTask(rounds), 1, 1, MILLISECONDS));
-        }
+        delayeds.add(p.schedule(task, effectiveDelayedPolicy ? delay : LONG_DELAY_MS, MILLISECONDS));
+        periodics.add(p.scheduleAtFixedRate(
+                          new PeriodicTask(rounds), delay, 1, MILLISECONDS));
+        periodics.add(p.scheduleWithFixedDelay(
+                          new PeriodicTask(rounds), delay, 1, MILLISECONDS));
 
         assertEquals(poolSize, q.size());
         assertEquals(poolSize, ran.get());
@@ -869,7 +866,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         assertTrue(!effectiveDelayedPolicy
                    ^ q.contains(delayeds.get(1)));
         assertTrue(!effectivePeriodicPolicy
-                   ^ q.containsAll(periodics.subList(4, 8)));
+                   ^ q.containsAll(periodics.subList(2, 4)));
 
         immediates.forEach(f -> assertFalse(f.isDone()));
 
@@ -889,8 +886,8 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     }
                 });
         else {
-            periodics.subList(0, 4).forEach(f -> assertFalse(f.isDone()));
-            periodics.subList(4, 8).forEach(f -> assertTrue(f.isCancelled()));
+            periodics.subList(0, 2).forEach(f -> assertFalse(f.isDone()));
+            periodics.subList(2, 4).forEach(f -> assertTrue(f.isCancelled()));
         }
 
         unblock.countDown();    // Release all pool threads
@@ -926,7 +923,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
 
         assertEquals(poolSize + 1
                      + (effectiveDelayedPolicy ? 1 : 0)
-                     + (periodicTasksContinue ? 4 : 0),
+                     + (periodicTasksContinue ? 2 : 0),
                      ran.get());
     }
 
