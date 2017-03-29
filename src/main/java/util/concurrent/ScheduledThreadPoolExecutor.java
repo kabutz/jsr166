@@ -50,17 +50,21 @@ import java.util.concurrent.locks.ReentrantLock;
  * <a href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>
  * those of subsequent ones.
  *
- * <p>Calling {@link Future#get} on a periodic task's future will
- * never return normally.  If an execution of a periodic task
- * throws an exception, further executions are suppressed and
- * {@code get()} will throw an {@link ExecutionException} holding the
- * exception as its cause.  Otherwise, {@code get()} will block and
- * executions continue indefinitely until the task is cancelled, when
- * it will throw {@link CancellationException}.  Such cancellations
- * occur when the future is cancelled, on {@link #shutdownNow}, or on
- * {@link #shutdown} unless the {@linkplain
+ * <p>Executions of a periodic task continue until one of the
+ * following happens, when further executions are suppressed and the
+ * task's future is completed:
+ * <ul>
+ * <li>{@link #shutdown} is called and the {@linkplain
  * #getContinueExistingPeriodicTasksAfterShutdownPolicy policy on
- * whether to continue after shutdown} is set true.
+ * whether to continue after shutdown} is not set true)
+ * <li>{@link #shutdownNow} is called
+ * <li>the task's future is {@linkplain Future#cancel cancelled}
+ * <li>an execution of the task terminates abruptly with an exception;
+ * in this case calling {@link Future#get()} will throw an {@link
+ * ExecutionException} holding the exception as its cause.  In all
+ * other cases {@code get()} will throw {@link CancellationException};
+ * a periodic task's future never completes normally.
+ * </ul>
  *
  * <p>While this class inherits from {@link ThreadPoolExecutor}, a few
  * of the inherited tuning methods are not useful for it. In
@@ -674,7 +678,7 @@ public class ScheduledThreadPoolExecutor
      * <ul>
      * <li>{@link #shutdownNow} is called
      * <li>the policy is set to {@code false} when already shutdown
-     * <li>the task is {@linkplain Future#cancel cancelled}
+     * <li>the task's future is {@linkplain Future#cancel cancelled}
      * <li>an execution of the task terminates with an exception
      * </ul>
      *
@@ -698,7 +702,7 @@ public class ScheduledThreadPoolExecutor
      * <ul>
      * <li>{@link #shutdownNow} is called
      * <li>the policy is set to {@code false} when already shutdown
-     * <li>the task is {@linkplain Future#cancel cancelled}
+     * <li>the task's future is {@linkplain Future#cancel cancelled}
      * <li>an execution of the task terminates with an exception
      * </ul>
      *
