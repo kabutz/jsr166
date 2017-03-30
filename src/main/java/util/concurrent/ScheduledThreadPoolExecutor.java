@@ -50,22 +50,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * <a href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>
  * those of subsequent ones.
  *
- * <p>Executions of a periodic task continue until one of the
- * following happens, when further executions are suppressed and the
- * task's future is completed:
- * <ul>
- * <li>{@link #shutdown} is called and the {@linkplain
- * #getContinueExistingPeriodicTasksAfterShutdownPolicy policy on
- * whether to continue after shutdown} is not set true)
- * <li>{@link #shutdownNow} is called
- * <li>the task's future is {@linkplain Future#cancel cancelled}
- * <li>an execution of the task terminates abruptly with an exception;
- * in this case calling {@link Future#get()} will throw an {@link
- * ExecutionException} holding the exception as its cause.  In all
- * other cases {@code get()} will throw {@link CancellationException};
- * a periodic task's future never completes normally.
- * </ul>
- *
  * <p>While this class inherits from {@link ThreadPoolExecutor}, a few
  * of the inherited tuning methods are not useful for it. In
  * particular, because it acts as a fixed-sized pool using
@@ -568,6 +552,34 @@ public class ScheduledThreadPoolExecutor
     }
 
     /**
+     * Submits a periodic action that becomes enabled first after the
+     * given initial delay, and subsequently with the given period;
+     * that is, executions will commence after
+     * {@code initialDelay}, then {@code initialDelay + period}, then
+     * {@code initialDelay + 2 * period}, and so on.
+     *
+     * <p>The sequence of task executions continues indefinitely until
+     * one of the following exceptional completions occur:
+     * <ul>
+     * <li>The task is {@linkplain Future#cancel explicitly cancelled}
+     * via the returned future.
+     * <li>Method {@link #shutdown} is called and the {@linkplain
+     * #getContinueExistingPeriodicTasksAfterShutdownPolicy policy on
+     * whether to continue after shutdown} is not set true, or method
+     * {@link #shutdownNow} is called; also resulting in task
+     * cancellation.
+     * <li>An execution of the task throws an exception.  In this case
+     * calling {@link Future#get() get} on the returned future will throw
+     * {@link ExecutionException}, holding the exception as its cause.
+     * </ul>
+     * Subsequent executions are suppressed.  Subsequent calls to
+     * {@link Future#isDone isDone()} on the returned future will
+     * return {@code true}.
+     *
+     * <p>If any execution of this task takes longer than its period, then
+     * subsequent executions may start late, but will not concurrently
+     * execute.
+     *
      * @throws RejectedExecutionException {@inheritDoc}
      * @throws NullPointerException       {@inheritDoc}
      * @throws IllegalArgumentException   {@inheritDoc}
@@ -593,6 +605,29 @@ public class ScheduledThreadPoolExecutor
     }
 
     /**
+     * Submits a periodic action that becomes enabled first after the
+     * given initial delay, and subsequently with the given delay
+     * between the termination of one execution and the commencement of
+     * the next.
+     *
+     * <p>The sequence of task executions continues indefinitely until
+     * one of the following exceptional completions occur:
+     * <ul>
+     * <li>The task is {@linkplain Future#cancel explicitly cancelled}
+     * via the returned future.
+     * <li>Method {@link #shutdown} is called and the {@linkplain
+     * #getContinueExistingPeriodicTasksAfterShutdownPolicy policy on
+     * whether to continue after shutdown} is not set true, or method
+     * {@link #shutdownNow} is called; also resulting in task
+     * cancellation.
+     * <li>An execution of the task throws an exception.  In this case
+     * calling {@link Future#get() get} on the returned future will throw
+     * {@link ExecutionException}, holding the exception as its cause.
+     * </ul>
+     * Subsequent executions are suppressed.  Subsequent calls to
+     * {@link Future#isDone isDone()} on the returned future will
+     * return {@code true}.
+     *
      * @throws RejectedExecutionException {@inheritDoc}
      * @throws NullPointerException       {@inheritDoc}
      * @throws IllegalArgumentException   {@inheritDoc}
@@ -670,17 +705,9 @@ public class ScheduledThreadPoolExecutor
     /**
      * Sets the policy on whether to continue executing existing
      * periodic tasks even when this executor has been {@code shutdown}.
+     * In this case, executions will continue until {@code shutdownNow}
+     * or the policy is set to {@code false} when already shutdown.
      * This value is by default {@code false}.
-     *
-     * <p>If the policy is set to {@code true}, periodic tasks will
-     * continue executing until one of the following happens:
-     *
-     * <ul>
-     * <li>{@link #shutdownNow} is called
-     * <li>the policy is set to {@code false} when already shutdown
-     * <li>the task's future is {@linkplain Future#cancel cancelled}
-     * <li>an execution of the task terminates with an exception
-     * </ul>
      *
      * @param value if {@code true}, continue after shutdown, else don't
      * @see #getContinueExistingPeriodicTasksAfterShutdownPolicy
@@ -694,17 +721,9 @@ public class ScheduledThreadPoolExecutor
     /**
      * Gets the policy on whether to continue executing existing
      * periodic tasks even when this executor has been {@code shutdown}.
+     * In this case, executions will continue until {@code shutdownNow}
+     * or the policy is set to {@code false} when already shutdown.
      * This value is by default {@code false}.
-     *
-     * <p>If the policy is set to {@code true}, periodic tasks will
-     * continue executing until one of the following happens:
-     *
-     * <ul>
-     * <li>{@link #shutdownNow} is called
-     * <li>the policy is set to {@code false} when already shutdown
-     * <li>the task's future is {@linkplain Future#cancel cancelled}
-     * <li>an execution of the task terminates with an exception
-     * </ul>
      *
      * @return {@code true} if will continue after shutdown
      * @see #setContinueExistingPeriodicTasksAfterShutdownPolicy
