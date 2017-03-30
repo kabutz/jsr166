@@ -154,7 +154,7 @@ public class ScheduledThreadPoolExecutor
     private volatile boolean continueExistingPeriodicTasksAfterShutdown;
 
     /**
-     * False if should cancel non-periodic tasks on shutdown.
+     * False if should cancel non-periodic not-yet-expired tasks on shutdown.
      */
     private volatile boolean executeExistingDelayedTasksAfterShutdown = true;
 
