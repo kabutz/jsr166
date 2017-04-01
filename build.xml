@@ -1404,6 +1404,12 @@
                           -Xep:MissingOverride:OFF
                           -Xep:MixedArrayDimensions:WARN
                           -Xep:RemoveUnusedImports:ERROR
+                          -Xep:ClassName:ERROR
+                          -Xep:MultipleTopLevelClasses:ERROR
+                          -Xep:EmptyIf:ERROR
+                          -Xep:LongLiteralLowerCaseSuffix:ERROR
+                          -Xep:ArgumentParameterSwap:ERROR
+                          -Xep:RedundantThrows:ERROR
                           -Xep:MethodCanBeStatic:WARN"/>
       <compilerarg value="--patch-module=java.base=${src.dir}"/>
       <compilerarg value="-Xprefer:source"/>
@@ -1441,6 +1447,12 @@
                             -Xep:MissingOverride:OFF
                             -Xep:MixedArrayDimensions:WARN
                             -Xep:RemoveUnusedImports:ERROR
+                            -Xep:ClassName:ERROR
+                            -Xep:MultipleTopLevelClasses:ERROR
+                            -Xep:EmptyIf:ERROR
+                            -Xep:LongLiteralLowerCaseSuffix:ERROR
+                            -Xep:ArgumentParameterSwap:ERROR
+                            -Xep:RedundantThrows:ERROR
                             -Xep:MethodCanBeStatic:WARN"/>
         <compilerarg line="-Xmaxerrs 3000 -Xmaxwarns 3000"/>
       </javac-elements>
