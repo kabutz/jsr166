@@ -5,8 +5,6 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.util.concurrent.CountDownLatch;
