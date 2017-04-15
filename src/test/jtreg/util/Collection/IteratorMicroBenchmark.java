@@ -408,7 +408,7 @@ public class IteratorMicroBenchmark {
                     for (int i = 0; i < iterations; i++) {
                         check.sum(x.stream()
                                   .collect(summingInt(e -> e)));}}},
-            new Job(klazz + " stream().iterator()") {
+            new Job(klazz + " stream()::iterator") {
                 public void work() throws Throwable {
                     int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
@@ -431,7 +431,7 @@ public class IteratorMicroBenchmark {
                     for (int i = 0; i < iterations; i++) {
                         check.sum(x.parallelStream()
                                   .collect(summingInt(e -> e)));}}},
-            new Job(klazz + " stream().iterator()") {
+            new Job(klazz + " parallelStream()::iterator") {
                 public void work() throws Throwable {
                     int[] sum = new int[1];
                     for (int i = 0; i < iterations; i++) {
