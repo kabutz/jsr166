@@ -408,6 +408,14 @@ public class IteratorMicroBenchmark {
                     for (int i = 0; i < iterations; i++) {
                         check.sum(x.stream()
                                   .collect(summingInt(e -> e)));}}},
+            new Job(klazz + " stream().iterator()") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        for (Integer o : (Iterable<Integer>) x.stream()::iterator)
+                            sum[0] += o;
+                        check.sum(sum[0]);}}},
             new Job(klazz + " parallelStream().forEach") {
                 public void work() throws Throwable {
                     for (int i = 0; i < iterations; i++) {
@@ -422,7 +430,15 @@ public class IteratorMicroBenchmark {
                 public void work() throws Throwable {
                     for (int i = 0; i < iterations; i++) {
                         check.sum(x.parallelStream()
-                                  .collect(summingInt(e -> e)));}}});
+                                  .collect(summingInt(e -> e)));}}},
+            new Job(klazz + " stream().iterator()") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        for (Integer o : (Iterable<Integer>) x.parallelStream()::iterator)
+                            sum[0] += o;
+                        check.sum(sum[0]);}}});
     }
 
     List<Job> dequeJobs(Deque<Integer> x) {
