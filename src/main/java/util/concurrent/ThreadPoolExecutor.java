@@ -1449,6 +1449,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * Invokes {@code shutdown} when this executor is no longer
      * referenced and it has no threads.
      */
+    @SuppressWarnings("deprecation")
     protected void finalize() {
         shutdown();
     }
