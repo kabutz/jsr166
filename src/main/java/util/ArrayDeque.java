@@ -520,8 +520,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     /**
      * Retrieves and removes the head of the queue represented by this deque.
      *
-     * This method differs from {@link #poll poll} only in that it throws an
-     * exception if this deque is empty.
+     * This method differs from {@link #poll() poll()} only in that it
+     * throws an exception if this deque is empty.
      *
      * <p>This method is equivalent to {@link #removeFirst}.
      *

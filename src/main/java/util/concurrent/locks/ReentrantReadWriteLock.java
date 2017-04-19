@@ -768,7 +768,7 @@ public class ReentrantReadWriteLock
          * can be useful in certain circumstances, even though it
          * breaks fairness. If you want to honor the fairness setting
          * for this lock, then use {@link #tryLock(long, TimeUnit)
-         * tryLock(0, TimeUnit.SECONDS) } which is almost equivalent
+         * tryLock(0, TimeUnit.SECONDS)} which is almost equivalent
          * (it also detects interruption).
          *
          * <p>If the write lock is held by another thread then
@@ -1000,7 +1000,7 @@ public class ReentrantReadWriteLock
          * behavior can be useful in certain circumstances, even
          * though it breaks fairness. If you want to honor the
          * fairness setting for this lock, then use {@link
-         * #tryLock(long, TimeUnit) tryLock(0, TimeUnit.SECONDS) }
+         * #tryLock(long, TimeUnit) tryLock(0, TimeUnit.SECONDS)}
          * which is almost equivalent (it also detects interruption).
          *
          * <p>If the current thread already holds this lock then the
