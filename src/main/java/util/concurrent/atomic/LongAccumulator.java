@@ -31,8 +31,8 @@ import java.util.function.LongBinaryOperator;
  * not matter. The supplied accumulator function should be
  * side-effect-free, since it may be re-applied when attempted updates
  * fail due to contention among threads. The function is applied with
- * the current value as its first argument, and the given update as
- * the second argument.  For example, to maintain a running maximum
+ * an existing value (or identity) as one argument, and a given update
+ * as the other argument.  For example, to maintain a running maximum
  * value, you could supply {@code Long::max} along with {@code
  * Long.MIN_VALUE} as the identity.
  *
