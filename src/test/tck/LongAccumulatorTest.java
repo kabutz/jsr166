@@ -7,6 +7,7 @@
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.LongAccumulator;
 
 import junit.framework.Test;
@@ -118,39 +119,27 @@ public class LongAccumulatorTest extends JSR166TestCase {
      * accumulates by multiple threads produce correct result
      */
     public void testAccumulateAndGetMT() {
-        final int incs = 1000000;
-        final int nthreads = 4;
-        final ExecutorService pool = Executors.newCachedThreadPool();
-        LongAccumulator a = new LongAccumulator(Long::max, 0L);
-        Phaser phaser = new Phaser(nthreads + 1);
-        for (int i = 0; i < nthreads; ++i)
-            pool.execute(new AccTask(a, phaser, incs));
-        phaser.arriveAndAwaitAdvance();
-        phaser.arriveAndAwaitAdvance();
-        long expected = incs - 1;
-        long result = a.get();
-        assertEquals(expected, result);
-        pool.shutdown();
-    }
-
-    static final class AccTask implements Runnable {
-        final LongAccumulator acc;
-        final Phaser phaser;
-        final int incs;
-        volatile long result;
-        AccTask(LongAccumulator acc, Phaser phaser, int incs) {
-            this.acc = acc;
-            this.phaser = phaser;
-            this.incs = incs;
-        }
-
-        public void run() {
+        final LongAccumulator acc
+            = new LongAccumulator((x, y) -> x + y, 0L);
+        final int nThreads = ThreadLocalRandom.current().nextInt(1, 5);
+        final Phaser phaser = new Phaser(nThreads + 1);
+        final int incs = 1_000_000;
+        final long total = nThreads * incs/2L * (incs - 1); // Gauss
+        final Runnable task = () -> {
             phaser.arriveAndAwaitAdvance();
-            LongAccumulator a = acc;
-            for (int i = 0; i < incs; ++i)
-                a.accumulate(i);
-            result = a.get();
+            for (int i = 0; i < incs; i++) {
+                acc.accumulate((long) i);
+                assertTrue(acc.get() <= total);
+            }
             phaser.arrive();
+        };
+        final ExecutorService p = Executors.newCachedThreadPool();
+        try (PoolCleaner cleaner = cleaner(p)) {
+            for (int i = nThreads; i-->0; )
+                p.execute(task);
+            phaser.arriveAndAwaitAdvance();
+            phaser.arriveAndAwaitAdvance();
+            assertEquals(total, acc.get());
         }
     }
 
