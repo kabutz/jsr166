@@ -21,11 +21,12 @@ public class LongAccumulatorTest extends JSR166TestCase {
     }
 
     /**
-     * default constructed initializes to zero
+     * new instance initialized to supplied identity
      */
     public void testConstructor() {
-        LongAccumulator ai = new LongAccumulator(Long::max, 0L);
-        assertEquals(0, ai.get());
+        for (long identity : new long[] { Long.MIN_VALUE, 0, Long.MAX_VALUE })
+            assertEquals(identity,
+                         new LongAccumulator(Long::max, identity).get());
     }
 
     /**

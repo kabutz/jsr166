@@ -21,11 +21,18 @@ public class DoubleAccumulatorTest extends JSR166TestCase {
     }
 
     /**
-     * default constructed initializes to zero
+     * new instance initialized to supplied identity
      */
     public void testConstructor() {
-        DoubleAccumulator ai = new DoubleAccumulator(Double::max, 0.0);
-        assertEquals(0.0, ai.get());
+        for (double identity : new double[] {
+                 Double.NEGATIVE_INFINITY,
+                 Double.POSITIVE_INFINITY,
+                 Double.MIN_VALUE,
+                 Double.MAX_VALUE,
+                 0.0,
+             })
+            assertEquals(identity,
+                         new DoubleAccumulator(Double::max, identity).get());
     }
 
     /**
