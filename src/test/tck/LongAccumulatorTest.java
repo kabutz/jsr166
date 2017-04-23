@@ -33,85 +33,85 @@ public class LongAccumulatorTest extends JSR166TestCase {
      * accumulate accumulates given value to current, and get returns current value
      */
     public void testAccumulateAndGet() {
-        LongAccumulator ai = new LongAccumulator(Long::max, 0L);
-        ai.accumulate(2);
-        assertEquals(2, ai.get());
-        ai.accumulate(-4);
-        assertEquals(2, ai.get());
-        ai.accumulate(4);
-        assertEquals(4, ai.get());
+        LongAccumulator acc = new LongAccumulator(Long::max, 0L);
+        acc.accumulate(2);
+        assertEquals(2, acc.get());
+        acc.accumulate(-4);
+        assertEquals(2, acc.get());
+        acc.accumulate(4);
+        assertEquals(4, acc.get());
     }
 
     /**
      * reset() causes subsequent get() to return zero
      */
     public void testReset() {
-        LongAccumulator ai = new LongAccumulator(Long::max, 0L);
-        ai.accumulate(2);
-        assertEquals(2, ai.get());
-        ai.reset();
-        assertEquals(0, ai.get());
+        LongAccumulator acc = new LongAccumulator(Long::max, 0L);
+        acc.accumulate(2);
+        assertEquals(2, acc.get());
+        acc.reset();
+        assertEquals(0, acc.get());
     }
 
     /**
      * getThenReset() returns current value; subsequent get() returns zero
      */
     public void testGetThenReset() {
-        LongAccumulator ai = new LongAccumulator(Long::max, 0L);
-        ai.accumulate(2);
-        assertEquals(2, ai.get());
-        assertEquals(2, ai.getThenReset());
-        assertEquals(0, ai.get());
+        LongAccumulator acc = new LongAccumulator(Long::max, 0L);
+        acc.accumulate(2);
+        assertEquals(2, acc.get());
+        assertEquals(2, acc.getThenReset());
+        assertEquals(0, acc.get());
     }
 
     /**
      * toString returns current value.
      */
     public void testToString() {
-        LongAccumulator ai = new LongAccumulator(Long::max, 0L);
-        assertEquals("0", ai.toString());
-        ai.accumulate(1);
-        assertEquals(Long.toString(1), ai.toString());
+        LongAccumulator acc = new LongAccumulator(Long::max, 0L);
+        assertEquals("0", acc.toString());
+        acc.accumulate(1);
+        assertEquals(Long.toString(1), acc.toString());
     }
 
     /**
      * intValue returns current value.
      */
     public void testIntValue() {
-        LongAccumulator ai = new LongAccumulator(Long::max, 0L);
-        assertEquals(0, ai.intValue());
-        ai.accumulate(1);
-        assertEquals(1, ai.intValue());
+        LongAccumulator acc = new LongAccumulator(Long::max, 0L);
+        assertEquals(0, acc.intValue());
+        acc.accumulate(1);
+        assertEquals(1, acc.intValue());
     }
 
     /**
      * longValue returns current value.
      */
     public void testLongValue() {
-        LongAccumulator ai = new LongAccumulator(Long::max, 0L);
-        assertEquals(0, ai.longValue());
-        ai.accumulate(1);
-        assertEquals(1, ai.longValue());
+        LongAccumulator acc = new LongAccumulator(Long::max, 0L);
+        assertEquals(0, acc.longValue());
+        acc.accumulate(1);
+        assertEquals(1, acc.longValue());
     }
 
     /**
      * floatValue returns current value.
      */
     public void testFloatValue() {
-        LongAccumulator ai = new LongAccumulator(Long::max, 0L);
-        assertEquals(0.0f, ai.floatValue());
-        ai.accumulate(1);
-        assertEquals(1.0f, ai.floatValue());
+        LongAccumulator acc = new LongAccumulator(Long::max, 0L);
+        assertEquals(0.0f, acc.floatValue());
+        acc.accumulate(1);
+        assertEquals(1.0f, acc.floatValue());
     }
 
     /**
      * doubleValue returns current value.
      */
     public void testDoubleValue() {
-        LongAccumulator ai = new LongAccumulator(Long::max, 0L);
-        assertEquals(0.0, ai.doubleValue());
-        ai.accumulate(1);
-        assertEquals(1.0, ai.doubleValue());
+        LongAccumulator acc = new LongAccumulator(Long::max, 0L);
+        assertEquals(0.0, acc.doubleValue());
+        acc.accumulate(1);
+        assertEquals(1.0, acc.doubleValue());
     }
 
     /**
