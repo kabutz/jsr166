@@ -125,7 +125,7 @@ public class EmptyNavigableMap {
             navigableMap.containsKey(new Object());
         },
             ClassCastException.class,
-            description + ": Compareable should be required");
+            description + ": Comparable should be required");
     }
 
     /**

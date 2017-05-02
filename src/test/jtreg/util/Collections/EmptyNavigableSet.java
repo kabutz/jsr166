@@ -127,7 +127,7 @@ public class EmptyNavigableSet {
             navigableSet.contains(new Object());
         },
             ClassCastException.class,
-            description + ": Compareable should be required");
+            description + ": Comparable should be required");
     }
 
     /**
