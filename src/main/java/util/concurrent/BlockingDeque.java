@@ -27,14 +27,14 @@ import java.util.NoSuchElementException;
  * <table BORDER CELLPADDING=3 CELLSPACING=1>
  * <caption>Summary of BlockingDeque methods</caption>
  *  <tr>
- *    <td ALIGN=CENTER COLSPAN = 5> <b>First Element (Head)</b></td>
+ *    <td style="text-align:center" COLSPAN = 5> <b>First Element (Head)</b></td>
  *  </tr>
  *  <tr>
  *    <td></td>
- *    <td ALIGN=CENTER><em>Throws exception</em></td>
- *    <td ALIGN=CENTER><em>Special value</em></td>
- *    <td ALIGN=CENTER><em>Blocks</em></td>
- *    <td ALIGN=CENTER><em>Times out</em></td>
+ *    <td style="text-align:center"><em>Throws exception</em></td>
+ *    <td style="text-align:center"><em>Special value</em></td>
+ *    <td style="text-align:center"><em>Blocks</em></td>
+ *    <td style="text-align:center"><em>Times out</em></td>
  *  </tr>
  *  <tr>
  *    <td><b>Insert</b></td>
@@ -58,14 +58,14 @@ import java.util.NoSuchElementException;
  *    <td><em>not applicable</em></td>
  *  </tr>
  *  <tr>
- *    <td ALIGN=CENTER COLSPAN = 5> <b>Last Element (Tail)</b></td>
+ *    <td style="text-align:center" COLSPAN = 5> <b>Last Element (Tail)</b></td>
  *  </tr>
  *  <tr>
  *    <td></td>
- *    <td ALIGN=CENTER><em>Throws exception</em></td>
- *    <td ALIGN=CENTER><em>Special value</em></td>
- *    <td ALIGN=CENTER><em>Blocks</em></td>
- *    <td ALIGN=CENTER><em>Times out</em></td>
+ *    <td style="text-align:center"><em>Throws exception</em></td>
+ *    <td style="text-align:center"><em>Special value</em></td>
+ *    <td style="text-align:center"><em>Blocks</em></td>
+ *    <td style="text-align:center"><em>Times out</em></td>
  *  </tr>
  *  <tr>
  *    <td><b>Insert</b></td>
@@ -102,11 +102,11 @@ import java.util.NoSuchElementException;
  * <table BORDER CELLPADDING=3 CELLSPACING=1>
  * <caption>Comparison of BlockingQueue and BlockingDeque methods</caption>
  *  <tr>
- *    <td ALIGN=CENTER> <b>{@code BlockingQueue} Method</b></td>
- *    <td ALIGN=CENTER> <b>Equivalent {@code BlockingDeque} Method</b></td>
+ *    <td style="text-align:center"> <b>{@code BlockingQueue} Method</b></td>
+ *    <td style="text-align:center"> <b>Equivalent {@code BlockingDeque} Method</b></td>
  *  </tr>
  *  <tr>
- *    <td ALIGN=CENTER COLSPAN = 2> <b>Insert</b></td>
+ *    <td style="text-align:center" COLSPAN = 2> <b>Insert</b></td>
  *  </tr>
  *  <tr>
  *    <td>{@link #add(Object) add(e)}</td>
@@ -125,7 +125,7 @@ import java.util.NoSuchElementException;
  *    <td>{@link #offerLast(Object, long, TimeUnit) offerLast(e, time, unit)}</td>
  *  </tr>
  *  <tr>
- *    <td ALIGN=CENTER COLSPAN = 2> <b>Remove</b></td>
+ *    <td style="text-align:center" COLSPAN = 2> <b>Remove</b></td>
  *  </tr>
  *  <tr>
  *    <td>{@link #remove() remove()}</td>
@@ -144,7 +144,7 @@ import java.util.NoSuchElementException;
  *    <td>{@link #pollFirst(long, TimeUnit) pollFirst(time, unit)}</td>
  *  </tr>
  *  <tr>
- *    <td ALIGN=CENTER COLSPAN = 2> <b>Examine</b></td>
+ *    <td style="text-align:center" COLSPAN = 2> <b>Examine</b></td>
  *  </tr>
  *  <tr>
  *    <td>{@link #element() element()}</td>
