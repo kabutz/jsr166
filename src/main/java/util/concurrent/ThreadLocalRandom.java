@@ -20,6 +20,7 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.StreamSupport;
 import jdk.internal.misc.Unsafe;
+import jdk.internal.misc.VM;
 
 /**
  * A random number generator isolated to the current thread.  Like the
@@ -1064,11 +1065,8 @@ public class ThreadLocalRandom extends Random {
 
     // at end of <clinit> to survive static initialization circularity
     static {
-        if (java.security.AccessController.doPrivileged(
-            new java.security.PrivilegedAction<>() {
-                public Boolean run() {
-                    return Boolean.getBoolean("java.util.secureRandomSeed");
-                }})) {
+        String sec = VM.getSavedProperty("java.util.secureRandomSeed");
+        if (sec != null && Boolean.parseBoolean(sec)) {
             byte[] seedBytes = java.security.SecureRandom.getSeed(8);
             long s = (long)seedBytes[0] & 0xffL;
             for (int i = 1; i < 8; ++i)
