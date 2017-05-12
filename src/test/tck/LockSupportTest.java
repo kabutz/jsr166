@@ -256,13 +256,14 @@ public class LockSupportTest extends JSR166TestCase {
     public void testParkTimesOut(final ParkMethod parkMethod) {
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
-                for (;;) {
+                for (int tries = MAX_SPURIOUS_WAKEUPS; tries-->0; ) {
                     long startTime = System.nanoTime();
                     parkMethod.park(timeoutMillis());
                     // park may return spuriously
                     if (millisElapsedSince(startTime) >= timeoutMillis())
                         return;
                 }
+                fail("too many consecutive spurious wakeups?");
             }});
 
         awaitTermination(t);
