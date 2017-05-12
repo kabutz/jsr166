@@ -189,7 +189,7 @@ public class LockSupportTest extends JSR166TestCase {
                 do {
                     parkMethod.park();
                     // park may return spuriously
-                } while (! Thread.currentThread().isInterrupted());
+                } while (! Thread.interrupted());
             }});
 
         await(pleaseInterrupt);
@@ -302,7 +302,7 @@ public class LockSupportTest extends JSR166TestCase {
                     parkMethod.park();
                     assertNull(LockSupport.getBlocker(t));
                     // park may return spuriously
-                } while (! Thread.currentThread().isInterrupted());
+                } while (! Thread.interrupted());
             }});
 
         long startTime = System.nanoTime();
