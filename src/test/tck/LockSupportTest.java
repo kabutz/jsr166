@@ -223,20 +223,17 @@ public class LockSupportTest extends JSR166TestCase {
     }
     public void testParkAfterInterrupt(final ParkMethod parkMethod) {
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
-        final AtomicBoolean pleasePark = new AtomicBoolean(false);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws Exception {
                 pleaseInterrupt.countDown();
-                while (!pleasePark.get())
+                while (!Thread.currentThread().isInterrupted())
                     Thread.yield();
-                assertTrue(Thread.currentThread().isInterrupted());
                 parkMethod.park();
-                assertTrue(Thread.currentThread().isInterrupted());
+                assertTrue(Thread.interrupted());
             }});
 
         await(pleaseInterrupt);
         t.interrupt();
-        pleasePark.set(true);
         awaitTermination(t);
     }
 
