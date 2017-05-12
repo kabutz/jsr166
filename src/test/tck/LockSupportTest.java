@@ -186,10 +186,12 @@ public class LockSupportTest extends JSR166TestCase {
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
                 pleaseInterrupt.countDown();
-                do {
+                for (int tries = MAX_SPURIOUS_WAKEUPS; tries-->0; ) {
                     parkMethod.park();
-                    // park may return spuriously
-                } while (! Thread.interrupted());
+                    if (Thread.interrupted())
+                        return;
+                }
+                fail("too many consecutive spurious wakeups?");
             }});
 
         await(pleaseInterrupt);
@@ -259,7 +261,6 @@ public class LockSupportTest extends JSR166TestCase {
                 for (int tries = MAX_SPURIOUS_WAKEUPS; tries-->0; ) {
                     long startTime = System.nanoTime();
                     parkMethod.park(timeoutMillis());
-                    // park may return spuriously
                     if (millisElapsedSince(startTime) >= timeoutMillis())
                         return;
                 }
@@ -297,12 +298,14 @@ public class LockSupportTest extends JSR166TestCase {
             public void realRun() {
                 Thread t = Thread.currentThread();
                 started.countDown();
-                do {
+                for (int tries = MAX_SPURIOUS_WAKEUPS; tries-->0; ) {
                     assertNull(LockSupport.getBlocker(t));
                     parkMethod.park();
                     assertNull(LockSupport.getBlocker(t));
-                    // park may return spuriously
-                } while (! Thread.interrupted());
+                    if (Thread.interrupted())
+                        return;
+                }
+                fail("too many consecutive spurious wakeups?");
             }});
 
         long startTime = System.nanoTime();
@@ -318,6 +321,8 @@ public class LockSupportTest extends JSR166TestCase {
                 assertNull(x);  // ok
                 if (millisElapsedSince(startTime) > LONG_DELAY_MS)
                     fail("timed out");
+                if (t.getState() == Thread.State.TERMINATED)
+                    break;
                 Thread.yield();
             }
         }
