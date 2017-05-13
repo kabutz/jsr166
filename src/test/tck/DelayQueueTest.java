@@ -713,7 +713,9 @@ public class DelayQueueTest extends JSR166TestCase {
     public void testTimedPollDelayed() throws InterruptedException {
         DelayQueue q = new DelayQueue();
         q.add(new NanoDelay(LONG_DELAY_MS * 1000000L));
+        long startTime = System.nanoTime();
         assertNull(q.poll(timeoutMillis(), MILLISECONDS));
+        assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
     }
 
     /**
