@@ -301,8 +301,8 @@ public class SemaphoreTest extends JSR166TestCase {
         waitForQueuedThread(s, t2);
         t2.interrupt();
 
-        assertThreadStaysAlive(t1);
-        assertTrue(t2.isAlive());
+        assertThreadBlocks(t1, Thread.State.WAITING);
+        assertThreadBlocks(t2, Thread.State.WAITING);
 
         s.release(2);
 

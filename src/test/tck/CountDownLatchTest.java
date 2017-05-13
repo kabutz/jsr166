@@ -72,7 +72,7 @@ public class CountDownLatchTest extends JSR166TestCase {
         assertEquals(2, l.getCount());
         l.countDown();
         assertEquals(1, l.getCount());
-        assertThreadStaysAlive(t);
+        assertThreadBlocks(t, Thread.State.WAITING);
         l.countDown();
         assertEquals(0, l.getCount());
         awaitTermination(t);
@@ -97,7 +97,7 @@ public class CountDownLatchTest extends JSR166TestCase {
         assertEquals(2, l.getCount());
         l.countDown();
         assertEquals(1, l.getCount());
-        assertThreadStaysAlive(t);
+        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         l.countDown();
         assertEquals(0, l.getCount());
         awaitTermination(t);
@@ -129,7 +129,7 @@ public class CountDownLatchTest extends JSR166TestCase {
             }});
 
         await(pleaseInterrupt);
-        assertThreadStaysAlive(t);
+        assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         awaitTermination(t);
     }
@@ -160,7 +160,7 @@ public class CountDownLatchTest extends JSR166TestCase {
             }});
 
         await(pleaseInterrupt);
-        assertThreadStaysAlive(t);
+        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
     }

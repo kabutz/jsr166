@@ -44,9 +44,7 @@ public class LockSupportTest extends JSR166TestCase {
             void park() {
                 LockSupport.park();
             }
-            void park(long millis) {
-                throw new UnsupportedOperationException();
-            }
+            Thread.State parkedState() { return Thread.State.WAITING; }
         },
         parkUntil() {
             void park(long millis) {
@@ -62,9 +60,7 @@ public class LockSupportTest extends JSR166TestCase {
             void park() {
                 LockSupport.park(theBlocker());
             }
-            void park(long millis) {
-                throw new UnsupportedOperationException();
-            }
+            Thread.State parkedState() { return Thread.State.WAITING; }
         },
         parkUntilBlocker() {
             void park(long millis) {
@@ -79,7 +75,10 @@ public class LockSupportTest extends JSR166TestCase {
         };
 
         void park() { park(2 * LONG_DELAY_MS); }
-        abstract void park(long millis);
+        void park(long millis) {
+            throw new UnsupportedOperationException();
+        }
+        Thread.State parkedState() { return Thread.State.TIMED_WAITING; }
 
         /** Returns a deadline to use with parkUntil. */
         long deadline(long millis) {
@@ -195,7 +194,7 @@ public class LockSupportTest extends JSR166TestCase {
             }});
 
         await(pleaseInterrupt);
-        assertThreadStaysAlive(t);
+        assertThreadBlocks(t, parkMethod.parkedState());
         t.interrupt();
         awaitTermination(t);
     }

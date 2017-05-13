@@ -1121,7 +1121,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
         assertTrue(q.offerFirst(zero, LONG_DELAY_MS, MILLISECONDS));
         assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
         barrier.await();
-        assertThreadStaysAlive(t);
+        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
     }
