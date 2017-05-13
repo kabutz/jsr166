@@ -172,7 +172,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
         catch (InterruptedException e) { threadUnexpectedException(e); }
 
         await(pleaseInterrupt);
-        assertThreadStaysAlive(t);
+        assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         awaitTermination(t);
         assertEquals(0, q.remainingCapacity());
