@@ -1068,7 +1068,7 @@ public class JSR166TestCase extends TestCase {
     void assertThreadBlocks(Thread thread, Thread.State expected) {
         // always sleep at least 1 ms, avoiding transitional states
         // with high probability
-        for (long retries = LONG_DELAY_MS; retries-->0; ) {
+        for (long retries = LONG_DELAY_MS * 3 / 4; retries-->0; ) {
             try { delay(1); }
             catch (InterruptedException fail) {
                 fail("Unexpected InterruptedException");
