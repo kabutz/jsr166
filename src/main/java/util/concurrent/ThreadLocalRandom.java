@@ -1066,7 +1066,7 @@ public class ThreadLocalRandom extends Random {
     // at end of <clinit> to survive static initialization circularity
     static {
         String sec = VM.getSavedProperty("java.util.secureRandomSeed");
-        if (sec != null && Boolean.parseBoolean(sec)) {
+        if (Boolean.parseBoolean(sec)) {
             byte[] seedBytes = java.security.SecureRandom.getSeed(8);
             long s = (long)seedBytes[0] & 0xffL;
             for (int i = 1; i < 8; ++i)
