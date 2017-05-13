@@ -926,7 +926,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
             }});
 
         await(threadStarted);
-        assertThreadBlocks(t, Thread.State.WAITING);
+        assertThreadStaysAlive(t);
         t.interrupt();
         awaitTermination(t);
     }
@@ -967,7 +967,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
             }});
 
         await(threadStarted);
-        assertThreadBlocks(t, Thread.State.WAITING);
+        assertThreadStaysAlive(t);
         t.interrupt();
         awaitTermination(t);
     }
