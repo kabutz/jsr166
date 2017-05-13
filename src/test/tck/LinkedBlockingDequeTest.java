@@ -689,9 +689,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
-                for (int i = 0; i < SIZE; ++i) {
-                    assertEquals(i, q.take());
-                }
+                for (int i = 0; i < SIZE; i++) assertEquals(i, q.take());
 
                 Thread.currentThread().interrupt();
                 try {
@@ -709,7 +707,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
             }});
 
         await(pleaseInterrupt);
-        assertThreadStaysAlive(t);
+        assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         awaitTermination(t);
     }
@@ -928,7 +926,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
             }});
 
         await(threadStarted);
-        assertThreadStaysAlive(t);
+        assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         awaitTermination(t);
     }
@@ -969,7 +967,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
             }});
 
         await(threadStarted);
-        assertThreadStaysAlive(t);
+        assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         awaitTermination(t);
     }
@@ -1001,9 +999,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
-                for (int i = 0; i < SIZE; ++i) {
-                    assertEquals(i, q.takeFirst());
-                }
+                for (int i = 0; i < SIZE; i++) assertEquals(i, q.takeFirst());
 
                 Thread.currentThread().interrupt();
                 try {
@@ -1021,7 +1017,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
             }});
 
         await(pleaseInterrupt);
-        assertThreadStaysAlive(t);
+        assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         awaitTermination(t);
     }
@@ -1268,9 +1264,8 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
-                for (int i = 0; i < SIZE; ++i) {
+                for (int i = 0; i < SIZE; i++)
                     assertEquals(SIZE - i - 1, q.takeLast());
-                }
 
                 Thread.currentThread().interrupt();
                 try {
@@ -1288,7 +1283,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
             }});
 
         await(pleaseInterrupt);
-        assertThreadStaysAlive(t);
+        assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         awaitTermination(t);
     }

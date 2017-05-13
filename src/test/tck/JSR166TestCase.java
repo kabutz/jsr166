@@ -1063,6 +1063,26 @@ public class JSR166TestCase extends TestCase {
     }
 
     /**
+     * Checks that thread eventually enters the expected blocked thread state.
+     */
+    void assertThreadBlocks(Thread thread, Thread.State expected) {
+        // always sleep at least 1 ms, avoiding transitional states
+        // with high probability
+        for (long retries = LONG_DELAY_MS; retries-->0; ) {
+            try { delay(1); }
+            catch (InterruptedException fail) {
+                fail("Unexpected InterruptedException");
+            }
+            Thread.State s = thread.getState();
+            if (s == expected)
+                return;
+            else if (s == Thread.State.TERMINATED)
+                fail("Unexpected thread termination");
+        }
+        fail("timed out waiting for thread to enter thread state " + expected);
+    }
+
+    /**
      * Checks that thread does not terminate within the default
      * millisecond delay of {@code timeoutMillis()}.
      */

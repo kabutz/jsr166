@@ -267,7 +267,7 @@ public abstract class BlockingQueueTest extends JSR166TestCase {
             }});
 
         await(threadStarted);
-        assertThreadStaysAlive(t);
+        assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         awaitTermination(t);
     }
@@ -308,7 +308,7 @@ public abstract class BlockingQueueTest extends JSR166TestCase {
             }});
 
         await(threadStarted);
-        assertThreadStaysAlive(t);
+        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
     }
