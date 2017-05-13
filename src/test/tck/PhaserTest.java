@@ -523,7 +523,7 @@ public class PhaserTest extends JSR166TestCase {
             }});
 
         await(pleaseArrive);
-        waitForThreadToEnterWaitState(t);
+        assertThreadBlocks(t, Thread.State.WAITING);
         assertEquals(0, phaser.arrive());
         awaitTermination(t);
 
@@ -551,7 +551,7 @@ public class PhaserTest extends JSR166TestCase {
             }});
 
         await(pleaseArrive);
-        waitForThreadToEnterWaitState(t);
+        assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         assertEquals(0, phaser.arrive());
         awaitTermination(t);
@@ -580,7 +580,7 @@ public class PhaserTest extends JSR166TestCase {
             }});
 
         await(pleaseArrive);
-        waitForThreadToEnterWaitState(t);
+        assertThreadBlocks(t, Thread.State.WAITING);
         Thread.currentThread().interrupt();
         assertEquals(1, phaser.arriveAndAwaitAdvance());
         assertTrue(Thread.interrupted());
@@ -605,7 +605,7 @@ public class PhaserTest extends JSR166TestCase {
             }});
 
         await(pleaseInterrupt);
-        waitForThreadToEnterWaitState(t);
+        assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         Thread.currentThread().interrupt();
         assertEquals(1, phaser.arriveAndAwaitAdvance());
@@ -780,7 +780,7 @@ public class PhaserTest extends JSR166TestCase {
         assertEquals(THREADS, phaser.getArrivedParties());
         assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
         for (Thread thread : threads)
-            waitForThreadToEnterWaitState(thread);
+            assertThreadBlocks(thread, Thread.State.WAITING);
         for (Thread thread : threads)
             assertTrue(thread.isAlive());
         assertState(phaser, 0, THREADS + 1, 1);
