@@ -510,7 +510,7 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
             }});
 
         await(aboutToWait);
-        waitForThreadToEnterWaitState(t);
+        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
         checkEmpty(q);
