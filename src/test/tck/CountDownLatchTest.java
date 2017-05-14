@@ -104,7 +104,7 @@ public class CountDownLatchTest extends JSR166TestCase {
     }
 
     /**
-     * await throws IE if interrupted before counted down
+     * await throws InterruptedException if interrupted before counted down
      */
     public void testAwait_Interruptible() {
         final CountDownLatch l = new CountDownLatch(1);
@@ -135,7 +135,7 @@ public class CountDownLatchTest extends JSR166TestCase {
     }
 
     /**
-     * timed await throws IE if interrupted before counted down
+     * timed await throws InterruptedException if interrupted before counted down
      */
     public void testTimedAwait_Interruptible() {
         final CountDownLatch l = new CountDownLatch(1);

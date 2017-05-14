@@ -65,7 +65,7 @@ public class ExchangerTest extends JSR166TestCase {
     }
 
     /**
-     * interrupt during wait for exchange throws IE
+     * interrupt during wait for exchange throws InterruptedException
      */
     public void testExchange_InterruptedException() {
         final Exchanger e = new Exchanger();
@@ -82,7 +82,7 @@ public class ExchangerTest extends JSR166TestCase {
     }
 
     /**
-     * interrupt during wait for timed exchange throws IE
+     * interrupt during wait for timed exchange throws InterruptedException
      */
     public void testTimedExchange_InterruptedException() {
         final Exchanger e = new Exchanger();
