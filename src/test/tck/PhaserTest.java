@@ -493,7 +493,8 @@ public class PhaserTest extends JSR166TestCase {
 
         await(pleaseInterrupt);
         assertState(phaser, 0, 1, 1);
-        assertThreadsStayAlive(t1, t2);
+        assertThreadBlocks(t1, Thread.State.WAITING);
+        assertThreadBlocks(t2, Thread.State.TIMED_WAITING);
         t1.interrupt();
         t2.interrupt();
         awaitTermination(t1);
