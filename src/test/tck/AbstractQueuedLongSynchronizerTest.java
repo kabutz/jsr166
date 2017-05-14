@@ -965,30 +965,30 @@ public class AbstractQueuedLongSynchronizerTest extends JSR166TestCase {
      */
     public void testAwaitUninterruptibly() {
         final Mutex sync = new Mutex();
-        final ConditionObject c = sync.newCondition();
+        final ConditionObject condition = sync.newCondition();
         final BooleanLatch pleaseInterrupt = new BooleanLatch();
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
                 sync.acquire();
                 assertTrue(pleaseInterrupt.releaseShared(0));
-                c.awaitUninterruptibly();
+                condition.awaitUninterruptibly();
                 assertTrue(Thread.interrupted());
-                assertHasWaitersLocked(sync, c, NO_THREADS);
+                assertHasWaitersLocked(sync, condition, NO_THREADS);
                 sync.release();
             }});
 
         pleaseInterrupt.acquireShared(0);
         sync.acquire();
-        assertHasWaitersLocked(sync, c, t);
+        assertHasWaitersLocked(sync, condition, t);
         sync.release();
         t.interrupt();
-        assertHasWaitersUnlocked(sync, c, t);
-        assertThreadStaysAlive(t);
+        assertHasWaitersUnlocked(sync, condition, t);
+        assertThreadBlocks(t, Thread.State.WAITING);
         sync.acquire();
-        assertHasWaitersLocked(sync, c, t);
+        assertHasWaitersLocked(sync, condition, t);
         assertHasExclusiveQueuedThreads(sync, NO_THREADS);
-        c.signal();
-        assertHasWaitersLocked(sync, c, NO_THREADS);
+        condition.signal();
+        assertHasWaitersLocked(sync, condition, NO_THREADS);
         assertHasExclusiveQueuedThreads(sync, t);
         sync.release();
         awaitTermination(t);
