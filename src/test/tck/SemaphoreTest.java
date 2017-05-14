@@ -127,11 +127,13 @@ public class SemaphoreTest extends JSR166TestCase {
             void acquire(Semaphore s) throws InterruptedException {
                 assertTrue(s.tryAcquire(2 * LONG_DELAY_MS, MILLISECONDS));
             }
+            Thread.State parkedState() { return Thread.State.TIMED_WAITING; }
         },
         tryAcquireTimedN {
             void acquire(Semaphore s, int permits) throws InterruptedException {
                 assertTrue(s.tryAcquire(permits, 2 * LONG_DELAY_MS, MILLISECONDS));
             }
+            Thread.State parkedState() { return Thread.State.TIMED_WAITING; }
         };
 
         // Intentionally meta-circular
@@ -145,6 +147,7 @@ public class SemaphoreTest extends JSR166TestCase {
             for (int i = 0; i < permits; i++)
                 acquire(s);
         }
+        Thread.State parkedState() { return Thread.State.WAITING; }
     }
 
     /**
@@ -227,7 +230,8 @@ public class SemaphoreTest extends JSR166TestCase {
     public void testInterruptible_tryAcquireTimedN_fair() { testInterruptible(true,  AcquireMethod.tryAcquireTimedN); }
     public void testInterruptible(boolean fair, final AcquireMethod acquirer) {
         final PublicSemaphore s = new PublicSemaphore(0, fair);
-        final Semaphore pleaseInterrupt = new Semaphore(0, fair);
+        final java.util.concurrent.CyclicBarrier pleaseInterrupt
+            = new java.util.concurrent.CyclicBarrier(2);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
                 // Interrupt before acquire
@@ -236,12 +240,7 @@ public class SemaphoreTest extends JSR166TestCase {
                     acquirer.acquire(s);
                     shouldThrow();
                 } catch (InterruptedException success) {}
-
-                // Interrupt during acquire
-                try {
-                    acquirer.acquire(s);
-                    shouldThrow();
-                } catch (InterruptedException success) {}
+                assertFalse(Thread.interrupted());
 
                 // Interrupt before acquire(N)
                 Thread.currentThread().interrupt();
@@ -249,21 +248,31 @@ public class SemaphoreTest extends JSR166TestCase {
                     acquirer.acquire(s, 3);
                     shouldThrow();
                 } catch (InterruptedException success) {}
+                assertFalse(Thread.interrupted());
 
-                pleaseInterrupt.release();
+                // Interrupt during acquire
+                await(pleaseInterrupt);
+                try {
+                    acquirer.acquire(s);
+                    shouldThrow();
+                } catch (InterruptedException success) {}
+                assertFalse(Thread.interrupted());
 
                 // Interrupt during acquire(N)
+                await(pleaseInterrupt);
                 try {
                     acquirer.acquire(s, 3);
                     shouldThrow();
                 } catch (InterruptedException success) {}
+                assertFalse(Thread.interrupted());
             }});
 
-        waitForQueuedThread(s, t);
-        t.interrupt();
-        await(pleaseInterrupt);
-        waitForQueuedThread(s, t);
-        t.interrupt();
+        for (int n = 2; n-->0; ) {
+            await(pleaseInterrupt);
+            assertThreadBlocks(t, acquirer.parkedState());
+            t.interrupt();
+        }
+        
         awaitTermination(t);
     }
 
