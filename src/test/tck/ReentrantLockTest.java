@@ -885,7 +885,7 @@ public class ReentrantLockTest extends JSR166TestCase {
     public void testAwaitUninterruptibly_fair() { testAwaitUninterruptibly(true); }
     public void testAwaitUninterruptibly(boolean fair) {
         final ReentrantLock lock = new ReentrantLock(fair);
-        final Condition c = lock.newCondition();
+        final Condition condition = lock.newCondition();
         final CountDownLatch pleaseInterrupt = new CountDownLatch(2);
 
         Thread t1 = newStartedThread(new CheckedRunnable() {
@@ -894,7 +894,7 @@ public class ReentrantLockTest extends JSR166TestCase {
                 lock.lock();
                 pleaseInterrupt.countDown();
                 Thread.currentThread().interrupt();
-                c.awaitUninterruptibly();
+                condition.awaitUninterruptibly();
                 assertTrue(Thread.interrupted());
                 lock.unlock();
             }});
@@ -904,21 +904,20 @@ public class ReentrantLockTest extends JSR166TestCase {
                 // Interrupt during awaitUninterruptibly
                 lock.lock();
                 pleaseInterrupt.countDown();
-                c.awaitUninterruptibly();
+                condition.awaitUninterruptibly();
                 assertTrue(Thread.interrupted());
                 lock.unlock();
             }});
 
         await(pleaseInterrupt);
+        t2.interrupt();
         lock.lock();
         lock.unlock();
-        t2.interrupt();
-
-        assertThreadStaysAlive(t1);
-        assertTrue(t2.isAlive());
+        assertThreadBlocks(t1, Thread.State.WAITING);
+        assertThreadBlocks(t2, Thread.State.WAITING);
 
         lock.lock();
-        c.signalAll();
+        condition.signalAll();
         lock.unlock();
 
         awaitTermination(t1);
