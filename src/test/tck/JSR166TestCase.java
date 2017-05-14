@@ -1066,8 +1066,8 @@ public class JSR166TestCase extends TestCase {
      * Checks that thread eventually enters the expected blocked thread state.
      */
     void assertThreadBlocks(Thread thread, Thread.State expected) {
-        // always sleep at least 1 ms, avoiding transitional states
-        // with high probability
+        // always sleep at least 1 ms, with high probability avoiding
+        // transitory states
         for (long retries = LONG_DELAY_MS * 3 / 4; retries-->0; ) {
             try { delay(1); }
             catch (InterruptedException fail) {
