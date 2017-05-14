@@ -278,21 +278,24 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      */
     public void testInterruptedTimedPoll() throws InterruptedException {
         final BlockingQueue<Integer> q = populatedQueue(SIZE);
-        final CountDownLatch aboutToWait = new CountDownLatch(1);
+        final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
                 long startTime = System.nanoTime();
                 for (int i = 0; i < SIZE; ++i)
                     assertEquals(i, (int) q.poll(LONG_DELAY_MS, MILLISECONDS));
-                aboutToWait.countDown();
+
+                pleaseInterrupt.countDown();
                 try {
                     q.poll(LONG_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
+                assertFalse(Thread.interrupted());
+
                 assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
-        await(aboutToWait);
+        await(pleaseInterrupt);
         assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
