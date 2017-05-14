@@ -1159,7 +1159,7 @@ public class AbstractQueuedSynchronizerTest extends JSR166TestCase {
 
         waitForQueuedThread(l, t);
         assertFalse(l.isSignalled());
-        assertThreadStaysAlive(t);
+        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         assertTrue(l.releaseShared(0));
         assertTrue(l.isSignalled());
         awaitTermination(t);
