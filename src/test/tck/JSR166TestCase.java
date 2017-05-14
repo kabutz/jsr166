@@ -1637,6 +1637,14 @@ public class JSR166TestCase extends TestCase {
         }
     }
 
+    public void await(CyclicBarrier barrier) {
+        try {
+            barrier.await(LONG_DELAY_MS, MILLISECONDS);
+        } catch (Throwable fail) {
+            threadUnexpectedException(fail);
+        }
+    }
+
 //     /**
 //      * Spin-waits up to LONG_DELAY_MS until flag becomes true.
 //      */
