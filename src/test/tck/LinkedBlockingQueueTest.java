@@ -350,9 +350,18 @@ public class LinkedBlockingQueueTest extends JSR166TestCase {
             public void realRun() throws InterruptedException {
                 q.put(new Object());
                 q.put(new Object());
+
                 long startTime = System.nanoTime();
                 assertFalse(q.offer(new Object(), timeoutMillis(), MILLISECONDS));
                 assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
+
+                Thread.currentThread().interrupt();
+                try {
+                    q.offer(new Object(), 2 * LONG_DELAY_MS, MILLISECONDS);
+                    shouldThrow();
+                } catch (InterruptedException success) {}
+                assertFalse(Thread.interrupted());
+
                 pleaseInterrupt.countDown();
                 try {
                     q.offer(new Object(), 2 * LONG_DELAY_MS, MILLISECONDS);

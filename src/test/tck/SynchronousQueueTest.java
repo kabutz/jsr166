@@ -198,6 +198,14 @@ public class SynchronousQueueTest extends JSR166TestCase {
                 long startTime = System.nanoTime();
                 assertFalse(q.offer(new Object(), timeoutMillis(), MILLISECONDS));
                 assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
+
+                Thread.currentThread().interrupt();
+                try {
+                    q.offer(new Object(), 2 * LONG_DELAY_MS, MILLISECONDS);
+                    shouldThrow();
+                } catch (InterruptedException success) {}
+                assertFalse(Thread.interrupted());
+
                 pleaseInterrupt.countDown();
                 try {
                     q.offer(new Object(), 2 * LONG_DELAY_MS, MILLISECONDS);

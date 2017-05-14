@@ -655,7 +655,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
     /**
      * timed offer times out if full and elements not taken
      */
-    public void testTimedOffer() throws InterruptedException {
+    public void testTimedOffer() {
         final LinkedBlockingDeque q = new LinkedBlockingDeque(2);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
@@ -665,6 +665,14 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
                 long startTime = System.nanoTime();
                 assertFalse(q.offer(new Object(), timeoutMillis(), MILLISECONDS));
                 assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
+
+                Thread.currentThread().interrupt();
+                try {
+                    q.offer(new Object(), 2 * LONG_DELAY_MS, MILLISECONDS);
+                    shouldThrow();
+                } catch (InterruptedException success) {}
+                assertFalse(Thread.interrupted());
+
                 pleaseInterrupt.countDown();
                 try {
                     q.offer(new Object(), 2 * LONG_DELAY_MS, MILLISECONDS);
@@ -892,7 +900,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
     /**
      * timed offerFirst times out if full and elements not taken
      */
-    public void testTimedOfferFirst() throws InterruptedException {
+    public void testTimedOfferFirst() {
         final LinkedBlockingDeque q = new LinkedBlockingDeque(2);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
@@ -902,6 +910,14 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
                 long startTime = System.nanoTime();
                 assertFalse(q.offerFirst(new Object(), timeoutMillis(), MILLISECONDS));
                 assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
+
+                Thread.currentThread().interrupt();
+                try {
+                    q.offerFirst(new Object(), 2 * LONG_DELAY_MS, MILLISECONDS);
+                    shouldThrow();
+                } catch (InterruptedException success) {}
+                assertFalse(Thread.interrupted());
+
                 pleaseInterrupt.countDown();
                 try {
                     q.offerFirst(new Object(), 2 * LONG_DELAY_MS, MILLISECONDS);
@@ -1219,6 +1235,13 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
                 pleaseTake.countDown();
                 q.putLast(86);
 
+                Thread.currentThread().interrupt();
+                try {
+                    q.putLast(99);
+                    shouldThrow();
+                } catch (InterruptedException success) {}
+                assertFalse(Thread.interrupted());
+
                 pleaseInterrupt.countDown();
                 try {
                     q.putLast(99);
@@ -1241,7 +1264,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
     /**
      * timed offerLast times out if full and elements not taken
      */
-    public void testTimedOfferLast() throws InterruptedException {
+    public void testTimedOfferLast() {
         final LinkedBlockingDeque q = new LinkedBlockingDeque(2);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
@@ -1251,6 +1274,13 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
                 long startTime = System.nanoTime();
                 assertFalse(q.offerLast(new Object(), timeoutMillis(), MILLISECONDS));
                 assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
+
+                Thread.currentThread().interrupt();
+                try {
+                    q.offerLast(new Object(), 2 * LONG_DELAY_MS, MILLISECONDS);
+                    shouldThrow();
+                } catch (InterruptedException success) {}
+
                 pleaseInterrupt.countDown();
                 try {
                     q.offerLast(new Object(), 2 * LONG_DELAY_MS, MILLISECONDS);

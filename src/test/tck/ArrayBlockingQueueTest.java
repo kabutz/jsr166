@@ -391,7 +391,7 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
     /**
      * timed offer times out if full and elements not taken
      */
-    public void testTimedOffer() throws InterruptedException {
+    public void testTimedOffer() {
         final ArrayBlockingQueue q = new ArrayBlockingQueue(2);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
@@ -401,6 +401,14 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
                 long startTime = System.nanoTime();
                 assertFalse(q.offer(new Object(), timeoutMillis(), MILLISECONDS));
                 assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
+
+                Thread.currentThread().interrupt();
+                try {
+                    q.offer(new Object(), 2 * LONG_DELAY_MS, MILLISECONDS);
+                    shouldThrow();
+                } catch (InterruptedException success) {}
+                assertFalse(Thread.interrupted());
+
                 pleaseInterrupt.countDown();
                 try {
                     q.offer(new Object(), 2 * LONG_DELAY_MS, MILLISECONDS);

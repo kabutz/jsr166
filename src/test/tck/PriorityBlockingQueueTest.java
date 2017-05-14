@@ -302,7 +302,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
     /**
      * timed offer does not time out
      */
-    public void testTimedOffer() throws InterruptedException {
+    public void testTimedOffer() {
         final PriorityBlockingQueue q = new PriorityBlockingQueue(2);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
