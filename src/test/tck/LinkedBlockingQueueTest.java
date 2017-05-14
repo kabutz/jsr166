@@ -351,6 +351,7 @@ public class LinkedBlockingQueueTest extends JSR166TestCase {
                     q.offer(new Object(), 2 * LONG_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
+                assertFalse(Thread.interrupted());
             }});
 
         await(pleaseInterrupt);

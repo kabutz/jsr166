@@ -318,6 +318,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
                     q.poll(LONG_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
+                assertFalse(Thread.interrupted());
                 assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 

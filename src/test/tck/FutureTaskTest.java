@@ -417,6 +417,7 @@ public class FutureTaskTest extends JSR166TestCase {
                         delay(LONG_DELAY_MS);
                         shouldThrow();
                     } catch (InterruptedException success) {}
+                    assertFalse(Thread.interrupted());
                 }});
 
         Thread t = newStartedThread(task);
