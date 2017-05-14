@@ -18,6 +18,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadLocalRandom;
 
 import junit.framework.Test;
 
@@ -181,9 +182,8 @@ public class SynchronousQueueTest extends JSR166TestCase {
     /**
      * timed offer times out if elements not taken
      */
-    public void testTimedOffer()      { testTimedOffer(false); }
-    public void testTimedOffer_fair() { testTimedOffer(true); }
-    public void testTimedOffer(boolean fair) {
+    public void testTimedOffer() {
+        final boolean fair = ThreadLocalRandom.current().nextBoolean();
         final SynchronousQueue q = new SynchronousQueue(fair);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
@@ -229,11 +229,10 @@ public class SynchronousQueueTest extends JSR166TestCase {
     /**
      * timed poll with nonzero timeout times out if no active putter
      */
-    public void testTimedPoll()      { testTimedPoll(false); }
-    public void testTimedPoll_fair() { testTimedPoll(true); }
-    public void testTimedPoll(boolean fair) {
+    public void testTimedPoll() {
+        final boolean fair = ThreadLocalRandom.current().nextBoolean();
         final SynchronousQueue q = new SynchronousQueue(fair);
-        long startTime = System.nanoTime();
+        final long startTime = System.nanoTime();
         try { assertNull(q.poll(timeoutMillis(), MILLISECONDS)); }
         catch (InterruptedException e) { threadUnexpectedException(e); }
         assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
@@ -243,9 +242,8 @@ public class SynchronousQueueTest extends JSR166TestCase {
      * timed poll before a delayed offer times out, returning null;
      * after offer succeeds; on interruption throws
      */
-    public void testTimedPollWithOffer()      { testTimedPollWithOffer(false); }
-    public void testTimedPollWithOffer_fair() { testTimedPollWithOffer(true); }
-    public void testTimedPollWithOffer(boolean fair) {
+    public void testTimedPollWithOffer() {
+        final boolean fair = ThreadLocalRandom.current().nextBoolean();
         final SynchronousQueue q = new SynchronousQueue(fair);
         final CountDownLatch pleaseOffer = new CountDownLatch(1);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);

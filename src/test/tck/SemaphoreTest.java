@@ -195,8 +195,7 @@ public class SemaphoreTest extends JSR166TestCase {
      * timed tryAcquire times out
      */
     public void testTryAcquire_timeout() {
-        final ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        final boolean fair = rnd.nextBoolean();
+        final boolean fair = ThreadLocalRandom.current().nextBoolean();
         final Semaphore s = new Semaphore(0, fair);
         final long startTime = System.nanoTime();
         try { assertFalse(s.tryAcquire(timeoutMillis(), MILLISECONDS)); }
@@ -208,8 +207,7 @@ public class SemaphoreTest extends JSR166TestCase {
      * timed tryAcquire(N) times out
      */
     public void testTryAcquireN_timeout() {
-        final ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        final boolean fair = rnd.nextBoolean();
+        final boolean fair = ThreadLocalRandom.current().nextBoolean();
         final Semaphore s = new Semaphore(2, fair);
         final long startTime = System.nanoTime();
         try { assertFalse(s.tryAcquire(3, timeoutMillis(), MILLISECONDS)); }
