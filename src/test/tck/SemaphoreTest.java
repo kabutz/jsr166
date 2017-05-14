@@ -271,7 +271,7 @@ public class SemaphoreTest extends JSR166TestCase {
             assertThreadBlocks(t, acquirer.parkedState());
             t.interrupt();
         }
-        
+
         awaitTermination(t);
     }
 
