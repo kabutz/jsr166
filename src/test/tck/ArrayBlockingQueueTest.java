@@ -362,6 +362,13 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
                 pleaseTake.countDown();
                 q.put(86);
 
+                Thread.currentThread().interrupt();
+                try {
+                    q.put(99);
+                    shouldThrow();
+                } catch (InterruptedException success) {}
+                assertFalse(Thread.interrupted());
+
                 pleaseInterrupt.countDown();
                 try {
                     q.put(99);

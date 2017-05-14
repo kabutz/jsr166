@@ -159,6 +159,13 @@ public class SynchronousQueueTest extends JSR166TestCase {
                 pleaseTake.countDown();
                 q.put(one);
 
+                Thread.currentThread().interrupt();
+                try {
+                    q.put(99);
+                    shouldThrow();
+                } catch (InterruptedException success) {}
+                assertFalse(Thread.interrupted());
+
                 pleaseInterrupt.countDown();
                 try {
                     q.put(99);
