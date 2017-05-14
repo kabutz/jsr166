@@ -11,6 +11,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadLocalRandom;
 
 import junit.framework.AssertionFailedError;
 import junit.framework.Test;
@@ -193,11 +194,11 @@ public class SemaphoreTest extends JSR166TestCase {
     /**
      * timed tryAcquire times out
      */
-    public void testTryAcquire_timeout()      { testTryAcquire_timeout(false); }
-    public void testTryAcquire_timeout_fair() { testTryAcquire_timeout(true); }
-    public void testTryAcquire_timeout(boolean fair) {
-        Semaphore s = new Semaphore(0, fair);
-        long startTime = System.nanoTime();
+    public void testTryAcquire_timeout() {
+        final ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        final boolean fair = rnd.nextBoolean();
+        final Semaphore s = new Semaphore(0, fair);
+        final long startTime = System.nanoTime();
         try { assertFalse(s.tryAcquire(timeoutMillis(), MILLISECONDS)); }
         catch (InterruptedException e) { threadUnexpectedException(e); }
         assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
@@ -206,11 +207,11 @@ public class SemaphoreTest extends JSR166TestCase {
     /**
      * timed tryAcquire(N) times out
      */
-    public void testTryAcquireN_timeout()      { testTryAcquireN_timeout(false); }
-    public void testTryAcquireN_timeout_fair() { testTryAcquireN_timeout(true); }
-    public void testTryAcquireN_timeout(boolean fair) {
-        Semaphore s = new Semaphore(2, fair);
-        long startTime = System.nanoTime();
+    public void testTryAcquireN_timeout() {
+        final ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        final boolean fair = rnd.nextBoolean();
+        final Semaphore s = new Semaphore(2, fair);
+        final long startTime = System.nanoTime();
         try { assertFalse(s.tryAcquire(3, timeoutMillis(), MILLISECONDS)); }
         catch (InterruptedException e) { threadUnexpectedException(e); }
         assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
