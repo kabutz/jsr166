@@ -410,10 +410,9 @@ public class DelayQueueTest extends JSR166TestCase {
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
                 long startTime = System.nanoTime();
-                for (int i = 0; i < SIZE; ++i) {
+                for (int i = 0; i < SIZE; i++)
                     assertEquals(new PDelay(i),
                                  ((PDelay)q.poll(LONG_DELAY_MS, MILLISECONDS)));
-                }
 
                 Thread.currentThread().interrupt();
                 try {
