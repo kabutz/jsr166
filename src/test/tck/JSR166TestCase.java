@@ -1083,6 +1083,29 @@ public class JSR166TestCase extends TestCase {
     }
 
     /**
+     * Checks that thread does not terminate within the default
+     * millisecond delay of {@code timeoutMillis()}.
+     * TODO: REMOVEME
+     */
+    void assertThreadStaysAlive(Thread thread) {
+        assertThreadStaysAlive(thread, timeoutMillis());
+    }
+
+    /**
+     * Checks that thread does not terminate within the given millisecond delay.
+     * TODO: REMOVEME
+     */
+    void assertThreadStaysAlive(Thread thread, long millis) {
+        try {
+            // No need to optimize the failing case via Thread.join.
+            delay(millis);
+            assertTrue(thread.isAlive());
+        } catch (InterruptedException fail) {
+            threadFail("Unexpected InterruptedException");
+        }
+    }
+
+    /**
      * Checks that future.get times out, with the default timeout of
      * {@code timeoutMillis()}.
      */
