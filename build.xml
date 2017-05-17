@@ -457,6 +457,7 @@
              access="${build.javadoc.access}"
              sourcepath="${src.dir}"
              classpath=""
+             source="9"
              executable="${javadoc9}">
       <fileset dir="${src.dir}" defaultexcludes="yes">
         <include name="**/*.java"/>
@@ -807,6 +808,7 @@
              access="${build.javadoc.access}"
              sourcepath="${4jdk8src.dir}:${jdk8.src.dir}"
              classpath=""
+             source="8"
              executable="${javadoc8}"
              failonerror = "true">
       <fileset dir="${4jdk8src.dir}" defaultexcludes="yes">
