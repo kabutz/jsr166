@@ -89,8 +89,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @param newValue the new value
      */
     public final void set(long newValue) {
-        // Use putLongVolatile instead of ordinary volatile store when
-        // using compareAndSwapLong, for sake of some 32bit systems.
+        // See JDK-8180620: Clarify VarHandle mixed-access subtleties
         U.putLongVolatile(this, VALUE, newValue);
     }
 
