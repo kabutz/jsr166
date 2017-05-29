@@ -11,6 +11,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
@@ -249,13 +250,15 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
     }
 
     /**
-     * invokeAny(empty collection) throws IAE
+     * invokeAny(empty collection) throws IllegalArgumentException
      */
     public void testInvokeAny2() throws Exception {
         final ExecutorService e = new DirectExecutorService();
+        final Collection<Callable<String>> emptyCollection
+            = Collections.emptyList();
         try (PoolCleaner cleaner = cleaner(e)) {
             try {
-                e.invokeAny(new ArrayList<Callable<String>>());
+                e.invokeAny(emptyCollection);
                 shouldThrow();
             } catch (IllegalArgumentException success) {}
         }
@@ -323,12 +326,14 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
     }
 
     /**
-     * invokeAll(empty collection) returns empty collection
+     * invokeAll(empty collection) returns empty list
      */
     public void testInvokeAll2() throws InterruptedException {
         final ExecutorService e = new DirectExecutorService();
+        final Collection<Callable<String>> emptyCollection
+            = Collections.emptyList();
         try (PoolCleaner cleaner = cleaner(e)) {
-            List<Future<String>> r = e.invokeAll(new ArrayList<Callable<String>>());
+            List<Future<String>> r = e.invokeAll(emptyCollection);
             assertTrue(r.isEmpty());
         }
     }
@@ -391,14 +396,14 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
         final ExecutorService e = new DirectExecutorService();
         try (PoolCleaner cleaner = cleaner(e)) {
             try {
-                e.invokeAny(null, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAny(null, randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
     }
 
     /**
-     * timed invokeAny(null time unit) throws NPE
+     * timed invokeAny(null time unit) throws NullPointerException
      */
     public void testTimedInvokeAnyNullTimeUnit() throws Exception {
         final ExecutorService e = new DirectExecutorService();
@@ -406,21 +411,22 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
             List<Callable<String>> l = new ArrayList<>();
             l.add(new StringTask());
             try {
-                e.invokeAny(l, MEDIUM_DELAY_MS, null);
+                e.invokeAny(l, randomTimeout(), null);
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
     }
 
     /**
-     * timed invokeAny(empty collection) throws IAE
+     * timed invokeAny(empty collection) throws IllegalArgumentException
      */
     public void testTimedInvokeAny2() throws Exception {
         final ExecutorService e = new DirectExecutorService();
+        final Collection<Callable<String>> emptyCollection
+            = Collections.emptyList();
         try (PoolCleaner cleaner = cleaner(e)) {
             try {
-                e.invokeAny(new ArrayList<Callable<String>>(),
-                            MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAny(emptyCollection, randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (IllegalArgumentException success) {}
         }
@@ -437,7 +443,7 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
                       public Long call() { throw new ArithmeticException(); }});
             l.add(null);
             try {
-                e.invokeAny(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAny(l, randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
@@ -479,13 +485,13 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
     }
 
     /**
-     * timed invokeAll(null) throws NPE
+     * timed invokeAll(null) throws NullPointerException
      */
     public void testTimedInvokeAll1() throws InterruptedException {
         final ExecutorService e = new DirectExecutorService();
         try (PoolCleaner cleaner = cleaner(e)) {
             try {
-                e.invokeAll(null, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAll(null, randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
@@ -500,25 +506,28 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
             List<Callable<String>> l = new ArrayList<>();
             l.add(new StringTask());
             try {
-                e.invokeAll(l, MEDIUM_DELAY_MS, null);
+                e.invokeAll(l, randomTimeout(), null);
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
     }
 
     /**
-     * timed invokeAll(empty collection) returns empty collection
+     * timed invokeAll(empty collection) returns empty list
      */
     public void testTimedInvokeAll2() throws InterruptedException {
         final ExecutorService e = new DirectExecutorService();
+        final Collection<Callable<String>> emptyCollection
+            = Collections.emptyList();
         try (PoolCleaner cleaner = cleaner(e)) {
-            List<Future<String>> r = e.invokeAll(new ArrayList<Callable<String>>(), MEDIUM_DELAY_MS, MILLISECONDS);
+            List<Future<String>> r =
+                e.invokeAll(emptyCollection, randomTimeout(), randomTimeUnit());
             assertTrue(r.isEmpty());
         }
     }
 
     /**
-     * timed invokeAll(c) throws NPE if c has null elements
+     * timed invokeAll(c) throws NullPointerException if c has null elements
      */
     public void testTimedInvokeAll3() throws InterruptedException {
         final ExecutorService e = new DirectExecutorService();
@@ -527,7 +536,7 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
             l.add(new StringTask());
             l.add(null);
             try {
-                e.invokeAll(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAll(l, randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (NullPointerException success) {}
         }

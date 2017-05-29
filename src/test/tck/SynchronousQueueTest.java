@@ -97,7 +97,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     }
 
     /**
-     * addAll throws ISE if no active taker
+     * addAll throws IllegalStateException if no active taker
      */
     public void testAddAll_ISE()      { testAddAll_ISE(false); }
     public void testAddAll_ISE_fair() { testAddAll_ISE(true); }
@@ -452,7 +452,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     }
 
     /**
-     * iterator remove throws ISE
+     * iterator remove throws IllegalStateException
      */
     public void testIteratorRemove()      { testIteratorRemove(false); }
     public void testIteratorRemove_fair() { testIteratorRemove(true); }

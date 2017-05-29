@@ -234,7 +234,7 @@ public class DelayQueueTest extends JSR166TestCase {
     }
 
     /**
-     * addAll(this) throws IAE
+     * addAll(this) throws IllegalArgumentException
      */
     public void testAddAllSelf() {
         DelayQueue q = populatedQueue(SIZE);

@@ -63,7 +63,7 @@ public class PriorityQueueTest extends JSR166TestCase {
     }
 
     /**
-     * Constructor throws IAE if capacity argument nonpositive
+     * Constructor throws IllegalArgumentException if capacity argument nonpositive
      */
     public void testConstructor2() {
         try {

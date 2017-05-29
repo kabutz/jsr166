@@ -11,6 +11,7 @@ import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -703,13 +704,14 @@ public class ForkJoinPoolTest extends JSR166TestCase {
     }
 
     /**
-     * invokeAll(empty collection) returns empty collection
+     * invokeAll(empty collection) returns empty list
      */
     public void testInvokeAll2() throws InterruptedException {
         ExecutorService e = new ForkJoinPool(1);
+        final Collection<Callable<String>> emptyCollection
+            = Collections.emptyList();
         try (PoolCleaner cleaner = cleaner(e)) {
-            List<Future<String>> r
-                = e.invokeAll(new ArrayList<Callable<String>>());
+            List<Future<String>> r = e.invokeAll(emptyCollection);
             assertTrue(r.isEmpty());
         }
     }
@@ -819,7 +821,7 @@ public class ForkJoinPoolTest extends JSR166TestCase {
             l.add(latchAwaitingStringTask(latch));
             l.add(null);
             try {
-                e.invokeAny(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAny(l, randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (NullPointerException success) {}
             latch.countDown();
@@ -868,7 +870,7 @@ public class ForkJoinPoolTest extends JSR166TestCase {
         ExecutorService e = new ForkJoinPool(1);
         try (PoolCleaner cleaner = cleaner(e)) {
             try {
-                e.invokeAll(null, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAll(null, randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
@@ -883,21 +885,23 @@ public class ForkJoinPoolTest extends JSR166TestCase {
             List<Callable<String>> l = new ArrayList<>();
             l.add(new StringTask());
             try {
-                e.invokeAll(l, MEDIUM_DELAY_MS, null);
+                e.invokeAll(l, randomTimeout(), null);
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
     }
 
     /**
-     * timed invokeAll(empty collection) returns empty collection
+     * timed invokeAll(empty collection) returns empty list
      */
     public void testTimedInvokeAll2() throws InterruptedException {
         ExecutorService e = new ForkJoinPool(1);
+        final Collection<Callable<String>> emptyCollection
+            = Collections.emptyList();
         try (PoolCleaner cleaner = cleaner(e)) {
             List<Future<String>> r
-                = e.invokeAll(new ArrayList<Callable<String>>(),
-                              MEDIUM_DELAY_MS, MILLISECONDS);
+                = e.invokeAll(emptyCollection,
+                              randomTimeout(), randomTimeUnit());
             assertTrue(r.isEmpty());
         }
     }
@@ -912,7 +916,7 @@ public class ForkJoinPoolTest extends JSR166TestCase {
             l.add(new StringTask());
             l.add(null);
             try {
-                e.invokeAll(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAll(l, randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (NullPointerException success) {}
         }

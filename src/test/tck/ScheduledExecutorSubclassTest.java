@@ -9,6 +9,8 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -313,7 +315,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             try {
                 p.shutdown();
                 p.schedule(new NoOpRunnable(),
-                           MEDIUM_DELAY_MS, MILLISECONDS);
+                           randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (RejectedExecutionException success) {
             } catch (SecurityException ok) {}
@@ -329,7 +331,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             try {
                 p.shutdown();
                 p.schedule(new NoOpCallable(),
-                           MEDIUM_DELAY_MS, MILLISECONDS);
+                           randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (RejectedExecutionException success) {
             } catch (SecurityException ok) {}
@@ -345,7 +347,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             try {
                 p.shutdown();
                 p.schedule(new NoOpCallable(),
-                           MEDIUM_DELAY_MS, MILLISECONDS);
+                           randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (RejectedExecutionException success) {
             } catch (SecurityException ok) {}
@@ -1018,7 +1020,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
     }
 
     /**
-     * invokeAny(empty collection) throws IAE
+     * invokeAny(empty collection) throws IllegalArgumentException
      */
     public void testInvokeAny2() throws Exception {
         final ExecutorService e = new CustomExecutor(2);
@@ -1093,12 +1095,14 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
     }
 
     /**
-     * invokeAll(empty collection) returns empty collection
+     * invokeAll(empty collection) returns empty list
      */
     public void testInvokeAll2() throws Exception {
         final ExecutorService e = new CustomExecutor(2);
+        final Collection<Callable<String>> emptyCollection
+            = Collections.emptyList();
         try (PoolCleaner cleaner = cleaner(e)) {
-            List<Future<String>> r = e.invokeAll(new ArrayList<Callable<String>>());
+            List<Future<String>> r = e.invokeAll(emptyCollection);
             assertTrue(r.isEmpty());
         }
     }
@@ -1161,7 +1165,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
         final ExecutorService e = new CustomExecutor(2);
         try (PoolCleaner cleaner = cleaner(e)) {
             try {
-                e.invokeAny(null, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAny(null, randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
@@ -1176,20 +1180,22 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             List<Callable<String>> l = new ArrayList<>();
             l.add(new StringTask());
             try {
-                e.invokeAny(l, MEDIUM_DELAY_MS, null);
+                e.invokeAny(l, randomTimeout(), null);
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
     }
 
     /**
-     * timed invokeAny(empty collection) throws IAE
+     * timed invokeAny(empty collection) throws IllegalArgumentException
      */
     public void testTimedInvokeAny2() throws Exception {
         final ExecutorService e = new CustomExecutor(2);
+        final Collection<Callable<String>> emptyCollection
+            = Collections.emptyList();
         try (PoolCleaner cleaner = cleaner(e)) {
             try {
-                e.invokeAny(new ArrayList<Callable<String>>(), MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAny(emptyCollection, randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (IllegalArgumentException success) {}
         }
@@ -1206,7 +1212,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             l.add(latchAwaitingStringTask(latch));
             l.add(null);
             try {
-                e.invokeAny(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAny(l, randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (NullPointerException success) {}
             latch.countDown();
@@ -1249,20 +1255,20 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
     }
 
     /**
-     * timed invokeAll(null) throws NPE
+     * timed invokeAll(null) throws NullPointerException
      */
     public void testTimedInvokeAll1() throws Exception {
         final ExecutorService e = new CustomExecutor(2);
         try (PoolCleaner cleaner = cleaner(e)) {
             try {
-                e.invokeAll(null, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAll(null, randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
     }
 
     /**
-     * timed invokeAll(,,null) throws NPE
+     * timed invokeAll(,,null) throws NullPointerException
      */
     public void testTimedInvokeAllNullTimeUnit() throws Exception {
         final ExecutorService e = new CustomExecutor(2);
@@ -1270,19 +1276,22 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             List<Callable<String>> l = new ArrayList<>();
             l.add(new StringTask());
             try {
-                e.invokeAll(l, MEDIUM_DELAY_MS, null);
+                e.invokeAll(l, randomTimeout(), null);
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
     }
 
     /**
-     * timed invokeAll(empty collection) returns empty collection
+     * timed invokeAll(empty collection) returns empty list
      */
     public void testTimedInvokeAll2() throws Exception {
         final ExecutorService e = new CustomExecutor(2);
+        final Collection<Callable<String>> emptyCollection
+            = Collections.emptyList();
         try (PoolCleaner cleaner = cleaner(e)) {
-            List<Future<String>> r = e.invokeAll(new ArrayList<Callable<String>>(), MEDIUM_DELAY_MS, MILLISECONDS);
+            List<Future<String>> r =
+                e.invokeAll(emptyCollection, randomTimeout(), randomTimeUnit());
             assertTrue(r.isEmpty());
         }
     }
@@ -1297,7 +1306,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
             l.add(new StringTask());
             l.add(null);
             try {
-                e.invokeAll(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAll(l, randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
@@ -1308,11 +1317,11 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      */
     public void testTimedInvokeAll4() throws Exception {
         final ExecutorService e = new CustomExecutor(2);
+        final Collection<Callable<String>> c = new ArrayList<>();
+        c.add(new NPETask());
         try (PoolCleaner cleaner = cleaner(e)) {
-            List<Callable<String>> l = new ArrayList<>();
-            l.add(new NPETask());
             List<Future<String>> futures =
-                e.invokeAll(l, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAll(c, LONG_DELAY_MS, MILLISECONDS);
             assertEquals(1, futures.size());
             try {
                 futures.get(0).get();

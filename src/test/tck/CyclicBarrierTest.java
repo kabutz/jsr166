@@ -39,7 +39,7 @@ public class CyclicBarrierTest extends JSR166TestCase {
     }
 
     /**
-     * Creating with negative parties throws IAE
+     * Creating with negative parties throws IllegalArgumentException
      */
     public void testConstructor1() {
         try {
@@ -49,7 +49,8 @@ public class CyclicBarrierTest extends JSR166TestCase {
     }
 
     /**
-     * Creating with negative parties and no action throws IAE
+     * Creating with negative parties and no action throws
+     * IllegalArgumentException
      */
     public void testConstructor2() {
         try {

@@ -22,7 +22,7 @@ public class CountDownLatchTest extends JSR166TestCase {
     }
 
     /**
-     * negative constructor argument throws IAE
+     * negative constructor argument throws IllegalArgumentException
      */
     public void testConstructor() {
         try {

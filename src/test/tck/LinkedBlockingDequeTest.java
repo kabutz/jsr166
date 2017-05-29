@@ -442,7 +442,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
     }
 
     /**
-     * push succeeds if not full; throws ISE if full
+     * push succeeds if not full; throws IllegalStateException if full
      */
     public void testPush() {
         LinkedBlockingDeque q = new LinkedBlockingDeque(SIZE);
@@ -492,7 +492,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
     }
 
     /**
-     * add succeeds if not full; throws ISE if full
+     * add succeeds if not full; throws IllegalStateException if full
      */
     public void testAdd() {
         LinkedBlockingDeque q = new LinkedBlockingDeque(SIZE);
@@ -506,7 +506,7 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
     }
 
     /**
-     * addAll(this) throws IAE
+     * addAll(this) throws IllegalArgumentException
      */
     public void testAddAllSelf() {
         LinkedBlockingDeque q = populatedDeque(SIZE);

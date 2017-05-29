@@ -53,7 +53,7 @@ public class AbstractQueueTest extends JSR166TestCase {
     }
 
     /**
-     * add throws ISE true if offer fails
+     * add throws IllegalStateException true if offer fails
      */
     public void testAddF() {
         Fail q = new Fail();
@@ -64,7 +64,7 @@ public class AbstractQueueTest extends JSR166TestCase {
     }
 
     /**
-     * add throws NPE if offer does
+     * add throws NullPointerException if offer does
      */
     public void testAddNPE() {
         Succeed q = new Succeed();
@@ -113,7 +113,7 @@ public class AbstractQueueTest extends JSR166TestCase {
     }
 
     /**
-     * addAll(null) throws NPE
+     * addAll(null) throws NullPointerException
      */
     public void testAddAll1() {
         Succeed q = new Succeed();
@@ -124,7 +124,7 @@ public class AbstractQueueTest extends JSR166TestCase {
     }
 
     /**
-     * addAll(this) throws IAE
+     * addAll(this) throws IllegalArgumentException
      */
     public void testAddAllSelf() {
         Succeed q = new Succeed();
@@ -135,7 +135,7 @@ public class AbstractQueueTest extends JSR166TestCase {
     }
 
     /**
-     * addAll of a collection with null elements throws NPE
+     * addAll of a collection with null elements throws NullPointerException
      */
     public void testAddAll2() {
         Succeed q = new Succeed();
@@ -162,7 +162,7 @@ public class AbstractQueueTest extends JSR166TestCase {
     }
 
     /**
-     * addAll throws ISE if an add fails
+     * addAll throws IllegalStateException if an add fails
      */
     public void testAddAll4() {
         Fail q = new Fail();

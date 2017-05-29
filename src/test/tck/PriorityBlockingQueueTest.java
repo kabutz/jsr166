@@ -90,7 +90,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
     }
 
     /**
-     * Constructor throws IAE if capacity argument nonpositive
+     * Constructor throws IllegalArgumentException if capacity argument nonpositive
      */
     public void testConstructor2() {
         try {
@@ -229,7 +229,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
     }
 
     /**
-     * addAll(this) throws IAE
+     * addAll(this) throws IllegalArgumentException
      */
     public void testAddAllSelf() {
         PriorityBlockingQueue q = populatedQueue(SIZE);

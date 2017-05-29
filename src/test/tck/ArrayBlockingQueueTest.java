@@ -103,7 +103,7 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
     }
 
     /**
-     * Constructor throws IAE if capacity argument nonpositive
+     * Constructor throws IllegalArgumentException if capacity argument nonpositive
      */
     public void testConstructor_nonPositiveCapacity() {
         for (int i : new int[] { 0, -1, Integer.MIN_VALUE }) {
@@ -156,7 +156,7 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
     }
 
     /**
-     * Initializing from too large collection throws IAE
+     * Initializing from too large collection throws IllegalArgumentException
      */
     public void testConstructor_collectionTooLarge() {
         // just barely fits - succeeds
@@ -227,7 +227,7 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
     }
 
     /**
-     * add succeeds if not full; throws ISE if full
+     * add succeeds if not full; throws IllegalStateException if full
      */
     public void testAdd() {
         ArrayBlockingQueue q = new ArrayBlockingQueue(SIZE);
@@ -240,7 +240,7 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
     }
 
     /**
-     * addAll(this) throws IAE
+     * addAll(this) throws IllegalArgumentException
      */
     public void testAddAllSelf() {
         ArrayBlockingQueue q = populatedQueue(SIZE);
@@ -266,7 +266,7 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
     }
 
     /**
-     * addAll throws ISE if not enough room
+     * addAll throws IllegalStateException if not enough room
      */
     public void testAddAll_insufficientSpace() {
         int size = ThreadLocalRandom.current().nextInt(1, SIZE);
