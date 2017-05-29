@@ -5,7 +5,6 @@
  */
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -77,7 +76,7 @@ public class ForkJoinTaskTest extends JSR166TestCase {
         assertNull(a.getRawResult());
 
         try {
-            a.get(0L, SECONDS);
+            a.get(randomExpiredTimeout(), randomTimeUnit());
             shouldThrow();
         } catch (TimeoutException success) {
         } catch (Throwable fail) { threadUnexpectedException(fail); }
@@ -99,7 +98,7 @@ public class ForkJoinTaskTest extends JSR166TestCase {
             Thread.currentThread().interrupt();
             long startTime = System.nanoTime();
             assertSame(expected, a.join());
-            assertTrue(millisElapsedSince(startTime) < SMALL_DELAY_MS);
+            assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             Thread.interrupted();
         }
 
@@ -107,7 +106,7 @@ public class ForkJoinTaskTest extends JSR166TestCase {
             Thread.currentThread().interrupt();
             long startTime = System.nanoTime();
             a.quietlyJoin();        // should be no-op
-            assertTrue(millisElapsedSince(startTime) < SMALL_DELAY_MS);
+            assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             Thread.interrupted();
         }
 
@@ -115,9 +114,7 @@ public class ForkJoinTaskTest extends JSR166TestCase {
         assertFalse(a.cancel(true));
         try {
             assertSame(expected, a.get());
-        } catch (Throwable fail) { threadUnexpectedException(fail); }
-        try {
-            assertSame(expected, a.get(5L, SECONDS));
+            assertSame(expected, a.get(randomTimeout(), randomTimeUnit()));
         } catch (Throwable fail) { threadUnexpectedException(fail); }
     }
 
@@ -142,7 +139,7 @@ public class ForkJoinTaskTest extends JSR166TestCase {
         {
             long startTime = System.nanoTime();
             a.quietlyJoin();        // should be no-op
-            assertTrue(millisElapsedSince(startTime) < SMALL_DELAY_MS);
+            assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
         }
 
         try {
@@ -152,7 +149,7 @@ public class ForkJoinTaskTest extends JSR166TestCase {
         } catch (Throwable fail) { threadUnexpectedException(fail); }
 
         try {
-            a.get(5L, SECONDS);
+            a.get(randomTimeout(), randomTimeUnit());
             shouldThrow();
         } catch (CancellationException success) {
         } catch (Throwable fail) { threadUnexpectedException(fail); }
@@ -180,7 +177,7 @@ public class ForkJoinTaskTest extends JSR166TestCase {
         {
             long startTime = System.nanoTime();
             a.quietlyJoin();        // should be no-op
-            assertTrue(millisElapsedSince(startTime) < SMALL_DELAY_MS);
+            assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
         }
 
         try {
@@ -191,7 +188,7 @@ public class ForkJoinTaskTest extends JSR166TestCase {
         } catch (Throwable fail) { threadUnexpectedException(fail); }
 
         try {
-            a.get(5L, SECONDS);
+            a.get(randomTimeout(), randomTimeUnit());
             shouldThrow();
         } catch (ExecutionException success) {
             assertSame(t.getClass(), success.getCause().getClass());
@@ -465,7 +462,7 @@ public class ForkJoinTaskTest extends JSR166TestCase {
                 AsyncFib f = new AsyncFib(8);
                 assertSame(f, f.fork());
                 try {
-                    f.get(5L, null);
+                    f.get(randomTimeout(), null);
                     shouldThrow();
                 } catch (NullPointerException success) {}
             }};
@@ -1212,7 +1209,7 @@ public class ForkJoinTaskTest extends JSR166TestCase {
                 AsyncFib f = new AsyncFib(8);
                 assertSame(f, f.fork());
                 try {
-                    f.get(5L, null);
+                    f.get(randomTimeout(), null);
                     shouldThrow();
                 } catch (NullPointerException success) {}
             }};

@@ -4,7 +4,7 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.HashSet;
 import java.util.concurrent.CancellationException;
@@ -69,14 +69,14 @@ public class RecursiveTaskTest extends JSR166TestCase {
 
             Thread.currentThread().interrupt();
             try {
-                a.get(5L, SECONDS);
+                a.get(randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (InterruptedException success) {
             } catch (Throwable fail) { threadUnexpectedException(fail); }
         }
 
         try {
-            a.get(0L, SECONDS);
+            a.get(randomExpiredTimeout(), randomTimeUnit());
             shouldThrow();
         } catch (TimeoutException success) {
         } catch (Throwable fail) { threadUnexpectedException(fail); }
@@ -94,9 +94,7 @@ public class RecursiveTaskTest extends JSR166TestCase {
         assertFalse(a.cancel(true));
         try {
             assertSame(expected, a.get());
-        } catch (Throwable fail) { threadUnexpectedException(fail); }
-        try {
-            assertSame(expected, a.get(5L, SECONDS));
+            assertSame(expected, a.get(randomTimeout(), randomTimeUnit()));
         } catch (Throwable fail) { threadUnexpectedException(fail); }
     }
 
@@ -141,7 +139,7 @@ public class RecursiveTaskTest extends JSR166TestCase {
         } catch (Throwable fail) { threadUnexpectedException(fail); }
 
         try {
-            a.get(5L, SECONDS);
+            a.get(randomTimeout(), randomTimeUnit());
             shouldThrow();
         } catch (CancellationException success) {
         } catch (Throwable fail) { threadUnexpectedException(fail); }
@@ -172,7 +170,7 @@ public class RecursiveTaskTest extends JSR166TestCase {
         } catch (Throwable fail) { threadUnexpectedException(fail); }
 
         try {
-            a.get(5L, SECONDS);
+            a.get(randomTimeout(), randomTimeUnit());
             shouldThrow();
         } catch (ExecutionException success) {
             assertSame(t.getClass(), success.getCause().getClass());
@@ -293,7 +291,7 @@ public class RecursiveTaskTest extends JSR166TestCase {
             public Integer realCompute() throws Exception {
                 FibTask f = new FibTask(8);
                 assertSame(f, f.fork());
-                Integer r = f.get(5L, SECONDS);
+                Integer r = f.get(LONG_DELAY_MS, MILLISECONDS);
                 assertEquals(21, (int) r);
                 checkCompletedNormally(f, r);
                 return r;
@@ -419,7 +417,7 @@ public class RecursiveTaskTest extends JSR166TestCase {
                 FailingFibTask f = new FailingFibTask(8);
                 assertSame(f, f.fork());
                 try {
-                    Integer r = f.get(5L, SECONDS);
+                    Integer r = f.get(LONG_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (ExecutionException success) {
                     Throwable cause = success.getCause();
@@ -516,7 +514,7 @@ public class RecursiveTaskTest extends JSR166TestCase {
                 assertTrue(f.cancel(true));
                 assertSame(f, f.fork());
                 try {
-                    Integer r = f.get(5L, SECONDS);
+                    Integer r = f.get(LONG_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (CancellationException success) {
                     checkCancelled(f);

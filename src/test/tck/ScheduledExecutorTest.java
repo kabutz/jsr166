@@ -73,7 +73,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
             Future f = p.schedule(task, timeoutMillis(), MILLISECONDS);
             assertSame(Boolean.TRUE, f.get());
             assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
-            assertTrue(done.await(0L, MILLISECONDS));
+            assertEquals(0L, done.getCount());
         }
     }
 
@@ -241,8 +241,8 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         final ScheduledThreadPoolExecutor p = new ScheduledThreadPoolExecutor(1);
         try (PoolCleaner cleaner = cleaner(p)) {
             try {
-                TrackedCallable callable = null;
-                Future f = p.schedule(callable, SHORT_DELAY_MS, MILLISECONDS);
+                Future f = p.schedule((Callable)null,
+                                      randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (NullPointerException success) {}
         }

@@ -240,8 +240,8 @@ public class ForkJoinPoolTest extends JSR166TestCase {
             assertFalse(p.awaitTermination(Long.MIN_VALUE, MILLISECONDS));
             assertFalse(p.awaitTermination(-1L, NANOSECONDS));
             assertFalse(p.awaitTermination(-1L, MILLISECONDS));
-            assertFalse(p.awaitTermination(0L, NANOSECONDS));
-            assertFalse(p.awaitTermination(0L, MILLISECONDS));
+            assertFalse(p.awaitTermination(randomExpiredTimeout(),
+                                           randomTimeUnit()));
             long timeoutNanos = 999999L;
             long startTime = System.nanoTime();
             assertFalse(p.awaitTermination(timeoutNanos, NANOSECONDS));
@@ -422,7 +422,7 @@ public class ForkJoinPoolTest extends JSR166TestCase {
                     done.set(true);
                 }});
             assertNull(future.get());
-            assertNull(future.get(0, MILLISECONDS));
+            assertNull(future.get(randomExpiredTimeout(), randomTimeUnit()));
             assertTrue(done.get());
             assertTrue(future.isDone());
             assertFalse(future.isCancelled());
@@ -773,7 +773,7 @@ public class ForkJoinPoolTest extends JSR166TestCase {
         ExecutorService e = new ForkJoinPool(1);
         try (PoolCleaner cleaner = cleaner(e)) {
             try {
-                e.invokeAny(null, MEDIUM_DELAY_MS, MILLISECONDS);
+                e.invokeAny(null, randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
@@ -788,7 +788,7 @@ public class ForkJoinPoolTest extends JSR166TestCase {
             List<Callable<String>> l = new ArrayList<>();
             l.add(new StringTask());
             try {
-                e.invokeAny(l, MEDIUM_DELAY_MS, null);
+                e.invokeAny(l, randomTimeout(), null);
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
@@ -802,7 +802,7 @@ public class ForkJoinPoolTest extends JSR166TestCase {
         try (PoolCleaner cleaner = cleaner(e)) {
             try {
                 e.invokeAny(new ArrayList<Callable<String>>(),
-                            MEDIUM_DELAY_MS, MILLISECONDS);
+                            randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (IllegalArgumentException success) {}
         }

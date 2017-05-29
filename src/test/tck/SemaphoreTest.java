@@ -608,8 +608,10 @@ public class SemaphoreTest extends JSR166TestCase {
         Thread t2 = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
                 // Will fail, even though 1 permit is available
-                assertFalse(s.tryAcquire(0L, MILLISECONDS));
-                assertFalse(s.tryAcquire(1, 0L, MILLISECONDS));
+                assertFalse(
+                    s.tryAcquire(randomExpiredTimeout(), randomTimeUnit()));
+                assertFalse(
+                    s.tryAcquire(1, randomExpiredTimeout(), randomTimeUnit()));
 
                 // untimed tryAcquire will barge and succeed
                 assertTrue(s.tryAcquire());

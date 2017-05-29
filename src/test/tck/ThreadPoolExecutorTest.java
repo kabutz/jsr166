@@ -470,8 +470,8 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             assertFalse(p.awaitTermination(Long.MIN_VALUE, MILLISECONDS));
             assertFalse(p.awaitTermination(-1L, NANOSECONDS));
             assertFalse(p.awaitTermination(-1L, MILLISECONDS));
-            assertFalse(p.awaitTermination(0L, NANOSECONDS));
-            assertFalse(p.awaitTermination(0L, MILLISECONDS));
+            assertFalse(p.awaitTermination(randomExpiredTimeout(),
+                                           randomTimeUnit()));
             long timeoutNanos = 999999L;
             long startTime = System.nanoTime();
             assertFalse(p.awaitTermination(timeoutNanos, NANOSECONDS));

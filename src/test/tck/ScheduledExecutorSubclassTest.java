@@ -297,8 +297,8 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
         final CustomExecutor p = new CustomExecutor(1);
         try (PoolCleaner cleaner = cleaner(p)) {
             try {
-                TrackedCallable callable = null;
-                Future f = p.schedule(callable, SHORT_DELAY_MS, MILLISECONDS);
+                Future f = p.schedule((Callable)null,
+                                      randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (NullPointerException success) {}
         }

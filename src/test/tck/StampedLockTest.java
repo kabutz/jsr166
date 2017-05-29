@@ -248,9 +248,11 @@ public class StampedLockTest extends JSR166TestCase {
         long s = assertNonZero(lock.writeLock());
         assertTrue(lock.validate(s));
         assertFalse(lock.validate(lock.tryWriteLock()));
-        assertFalse(lock.validate(lock.tryWriteLock(0L, SECONDS)));
+        assertFalse(lock.validate(lock.tryWriteLock(randomExpiredTimeout(),
+                                                    randomTimeUnit())));
         assertFalse(lock.validate(lock.tryReadLock()));
-        assertFalse(lock.validate(lock.tryReadLock(0L, SECONDS)));
+        assertFalse(lock.validate(lock.tryWriteLock(randomExpiredTimeout(),
+                                                    randomTimeUnit())));
         assertFalse(lock.validate(lock.tryOptimisticRead()));
         lock.unlockWrite(s);
     }

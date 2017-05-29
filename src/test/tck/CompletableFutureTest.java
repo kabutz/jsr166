@@ -64,7 +64,7 @@ public class CompletableFutureTest extends JSR166TestCase {
             assertNull(f.getNow(null));
         } catch (Throwable fail) { threadUnexpectedException(fail); }
         try {
-            f.get(0L, SECONDS);
+            f.get(randomExpiredTimeout(), randomTimeUnit());
             shouldThrow();
         }
         catch (TimeoutException success) {}
@@ -76,11 +76,7 @@ public class CompletableFutureTest extends JSR166TestCase {
 
         try {
             assertEquals(value, f.join());
-        } catch (Throwable fail) { threadUnexpectedException(fail); }
-        try {
             assertEquals(value, f.getNow(null));
-        } catch (Throwable fail) { threadUnexpectedException(fail); }
-        try {
             assertEquals(value, f.get());
         } catch (Throwable fail) { threadUnexpectedException(fail); }
         assertTrue(f.isDone());
