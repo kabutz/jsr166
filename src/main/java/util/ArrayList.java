@@ -787,7 +787,7 @@ public class ArrayList<E> extends AbstractList<E>
         int expectedModCount = modCount;
         s.defaultWriteObject();
 
-        // Write out size as capacity for behavioural compatibility with clone()
+        // Write out size as capacity for behavioral compatibility with clone()
         s.writeInt(size);
 
         // Write out all elements in the proper order.
