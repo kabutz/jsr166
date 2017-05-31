@@ -313,8 +313,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     /**
      * Adds all of the elements in the specified collection at the end
      * of this deque, as if by calling {@link #addLast} on each one,
-     * in the order that they are returned by the collection's
-     * iterator.
+     * in the order that they are returned by the collection's iterator.
      *
      * @param c the elements to be inserted into this deque
      * @return {@code true} if this deque changed as a result of the call
