@@ -253,6 +253,8 @@ public abstract class AtomicLongFieldUpdater<T> {
      * with the results of applying the given function, returning the previous
      * value. The function should be side-effect-free, since it may be
      * re-applied when attempted updates fail due to contention among threads.
+     * This method has memory consistency effects of at least one
+     * volatile read and write.
      *
      * @param obj An object whose field to get and set
      * @param updateFunction a side-effect-free function
@@ -273,6 +275,8 @@ public abstract class AtomicLongFieldUpdater<T> {
      * with the results of applying the given function, returning the updated
      * value. The function should be side-effect-free, since it may be
      * re-applied when attempted updates fail due to contention among threads.
+     * This method has memory consistency effects of at least one
+     * volatile read and write.
      *
      * @param obj An object whose field to get and set
      * @param updateFunction a side-effect-free function
@@ -296,6 +300,8 @@ public abstract class AtomicLongFieldUpdater<T> {
      * when attempted updates fail due to contention among threads.  The
      * function is applied with the current value as its first argument,
      * and the given update as the second argument.
+     * This method has memory consistency effects of at least one
+     * volatile read and write.
      *
      * @param obj An object whose field to get and set
      * @param x the update value
@@ -321,6 +327,8 @@ public abstract class AtomicLongFieldUpdater<T> {
      * when attempted updates fail due to contention among threads.  The
      * function is applied with the current value as its first argument,
      * and the given update as the second argument.
+     * This method has memory consistency effects of at least one
+     * volatile read and write.
      *
      * @param obj An object whose field to get and set
      * @param x the update value

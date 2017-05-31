@@ -239,6 +239,8 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * applying the given function, returning the previous value. The
      * function should be side-effect-free, since it may be re-applied
      * when attempted updates fail due to contention among threads.
+     * This method has memory consistency effects of at least one
+     * volatile read and write.
      *
      * @param updateFunction a side-effect-free function
      * @return the previous value
@@ -260,6 +262,8 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * applying the given function, returning the updated value. The
      * function should be side-effect-free, since it may be re-applied
      * when attempted updates fail due to contention among threads.
+     * This method has memory consistency effects of at least one
+     * volatile read and write.
      *
      * @param updateFunction a side-effect-free function
      * @return the updated value
@@ -284,6 +288,8 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * updates fail due to contention among threads.  The function
      * is applied with the current value as its first argument,
      * and the given update as the second argument.
+     * This method has memory consistency effects of at least one
+     * volatile read and write.
      *
      * @param x the update value
      * @param accumulatorFunction a side-effect-free function of two arguments
@@ -310,6 +316,8 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * updates fail due to contention among threads.  The function
      * is applied with the current value as its first argument,
      * and the given update as the second argument.
+     * This method has memory consistency effects of at least one
+     * volatile read and write.
      *
      * @param x the update value
      * @param accumulatorFunction a side-effect-free function of two arguments
