@@ -244,7 +244,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * Index i must be logically ahead of index j.
      * Precondition: 0 <= i < modulus, 0 <= j < modulus.
      * @return the "circular distance" from j to i; corner case i == j
-     * is diambiguated to "empty", returning 0.
+     * is disambiguated to "empty", returning 0.
      */
     static final int sub(int i, int j, int modulus) {
         if ((i -= j) < 0) i += modulus;
