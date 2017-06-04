@@ -45,31 +45,28 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Core and maximum pool sizes</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * A {@code ThreadPoolExecutor} will automatically adjust the
+ * <dd>A {@code ThreadPoolExecutor} will automatically adjust the
  * pool size (see {@link #getPoolSize})
  * according to the bounds set by
  * corePoolSize (see {@link #getCorePoolSize}) and
  * maximumPoolSize (see {@link #getMaximumPoolSize}).
  *
  * When a new task is submitted in method {@link #execute(Runnable)},
- * and fewer than corePoolSize threads are running, a new thread is
+ * if fewer than corePoolSize threads are running, a new thread is
  * created to handle the request, even if other worker threads are
- * idle.  If there are more than corePoolSize but less than
- * maximumPoolSize threads running, a new thread will be created only
- * if the queue is full.  By setting corePoolSize and maximumPoolSize
- * the same, you create a fixed-size thread pool. By setting
- * maximumPoolSize to an essentially unbounded value such as {@code
- * Integer.MAX_VALUE}, you allow the pool to accommodate an arbitrary
- * number of concurrent tasks. Most typically, core and maximum pool
- * sizes are set only upon construction, but they may also be changed
- * dynamically using {@link #setCorePoolSize} and {@link
- * #setMaximumPoolSize}. </dd>
+ * idle.  Else if fewer than maximumPoolSize threads are running, a
+ * new thread will be created to handle the request only if the queue
+ * is full.  By setting corePoolSize and maximumPoolSize the same, you
+ * create a fixed-size thread pool. By setting maximumPoolSize to an
+ * essentially unbounded value such as {@code Integer.MAX_VALUE}, you
+ * allow the pool to accommodate an arbitrary number of concurrent
+ * tasks. Most typically, core and maximum pool sizes are set only
+ * upon construction, but they may also be changed dynamically using
+ * {@link #setCorePoolSize} and {@link #setMaximumPoolSize}. </dd>
  *
  * <dt>On-demand construction</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * By default, even core threads are initially created and
+ * <dd>By default, even core threads are initially created and
  * started only when new tasks arrive, but this can be overridden
  * dynamically using method {@link #prestartCoreThread} or {@link
  * #prestartAllCoreThreads}.  You probably want to prestart threads if
@@ -77,8 +74,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Creating new threads</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * New threads are created using a {@link ThreadFactory}.  If not
+ * <dd>New threads are created using a {@link ThreadFactory}.  If not
  * otherwise specified, a {@link Executors#defaultThreadFactory} is
  * used, that creates threads to all be in the same {@link
  * ThreadGroup} and with the same {@code NORM_PRIORITY} priority and
@@ -95,8 +91,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Keep-alive times</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * If the pool currently has more than corePoolSize threads,
+ * <dd>If the pool currently has more than corePoolSize threads,
  * excess threads will be terminated if they have been idle for more
  * than the keepAliveTime (see {@link #getKeepAliveTime(TimeUnit)}).
  * This provides a means of reducing resource consumption when the
@@ -113,8 +108,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Queuing</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * Any {@link BlockingQueue} may be used to transfer and hold
+ * <dd>Any {@link BlockingQueue} may be used to transfer and hold
  * submitted tasks.  The use of this queue interacts with pool sizing:
  *
  * <ul>
@@ -179,8 +173,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Rejected tasks</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * New tasks submitted in method {@link #execute(Runnable)} will be
+ * <dd>New tasks submitted in method {@link #execute(Runnable)} will be
  * <em>rejected</em> when the Executor has been shut down, and also when
  * the Executor uses finite bounds for both maximum threads and work queue
  * capacity, and is saturated.  In either case, the {@code execute} method
@@ -191,9 +184,8 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <ol>
  *
- * <li>In the default {@link ThreadPoolExecutor.AbortPolicy}, the
- * handler throws a runtime {@link RejectedExecutionException} upon
- * rejection.
+ * <li>In the default {@link ThreadPoolExecutor.AbortPolicy}, the handler
+ * throws a runtime {@link RejectedExecutionException} upon rejection.
  *
  * <li>In {@link ThreadPoolExecutor.CallerRunsPolicy}, the thread
  * that invokes {@code execute} itself runs the task. This provides a
@@ -217,8 +209,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Hook methods</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * This class provides {@code protected} overridable
+ * <dd>This class provides {@code protected} overridable
  * {@link #beforeExecute(Thread, Runnable)} and
  * {@link #afterExecute(Runnable, Throwable)} methods that are called
  * before and after execution of each task.  These can be used to
@@ -234,8 +225,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Queue maintenance</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * Method {@link #getQueue()} allows access to the work queue
+ * <dd>Method {@link #getQueue()} allows access to the work queue
  * for purposes of monitoring and debugging.  Use of this method for
  * any other purpose is strongly discouraged.  Two supplied methods,
  * {@link #remove(Runnable)} and {@link #purge} are available to
@@ -244,8 +234,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dt>Finalization</dt>
  *
- * <dd style="font-family:'DejaVu Sans', Arial, Helvetica, sans-serif">
- * A pool that is no longer referenced in a program <em>AND</em>
+ * <dd>A pool that is no longer referenced in a program <em>AND</em>
  * has no remaining threads will be {@code shutdown} automatically. If
  * you would like to ensure that unreferenced pools are reclaimed even
  * if users forget to call {@link #shutdown}, then you must arrange
@@ -588,6 +577,9 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         /** Per-thread task counter */
         volatile long completedTasks;
 
+        // TODO: switch to AbstractQueuedLongSynchronizer and move
+        // completedTasks into the lock word.
+
         /**
          * Creates with given first task and thread from ThreadFactory.
          * @param firstTask the first task (null if none)
@@ -816,17 +808,6 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * ScheduledThreadPoolExecutor to cancel delayed tasks.
      */
     void onShutdown() {
-    }
-
-    /**
-     * State check needed by ScheduledThreadPoolExecutor to
-     * enable running tasks during shutdown.
-     *
-     * @param shutdownOK true if should return true if SHUTDOWN
-     */
-    final boolean isRunningOrShutdown(boolean shutdownOK) {
-        int rs = runStateOf(ctl.get());
-        return rs == RUNNING || (rs == SHUTDOWN && shutdownOK);
     }
 
     /**
@@ -1152,9 +1133,11 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 
     /**
      * Creates a new {@code ThreadPoolExecutor} with the given initial
-     * parameters and default thread factory and rejected execution handler.
-     * It may be more convenient to use one of the {@link Executors} factory
-     * methods instead of this general purpose constructor.
+     * parameters, the default thread factory and the default rejected
+     * execution handler.
+     *
+     * <p>It may be more convenient to use one of the {@link Executors}
+     * factory methods instead of this general purpose constructor.
      *
      * @param corePoolSize the number of threads to keep in the pool, even
      *        if they are idle, unless {@code allowCoreThreadTimeOut} is set
@@ -1185,7 +1168,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 
     /**
      * Creates a new {@code ThreadPoolExecutor} with the given initial
-     * parameters and default rejected execution handler.
+     * parameters and {@linkplain ThreadPoolExecutor.AbortPolicy
+     * default rejected execution handler}.
      *
      * @param corePoolSize the number of threads to keep in the pool, even
      *        if they are idle, unless {@code allowCoreThreadTimeOut} is set
@@ -1220,7 +1204,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 
     /**
      * Creates a new {@code ThreadPoolExecutor} with the given initial
-     * parameters and default thread factory.
+     * parameters and
+     * {@linkplain Executors#defaultThreadFactory default thread factory}.
      *
      * @param corePoolSize the number of threads to keep in the pool, even
      *        if they are idle, unless {@code allowCoreThreadTimeOut} is set
@@ -1416,6 +1401,11 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 
     public boolean isShutdown() {
         return ! isRunning(ctl.get());
+    }
+
+    /** Used by ScheduledThreadPoolExecutor. */
+    boolean isStopped() {
+        return runStateAtLeast(ctl.get(), STOP);
     }
 
     /**
@@ -2023,7 +2013,10 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 
     /**
      * A handler for rejected tasks that throws a
-     * {@code RejectedExecutionException}.
+     * {@link RejectedExecutionException}.
+     *
+     * This is the default handler for {@link ThreadPoolExecutor} and
+     * {@link ScheduledThreadPoolExecutor}.
      */
     public static class AbortPolicy implements RejectedExecutionHandler {
         /**
