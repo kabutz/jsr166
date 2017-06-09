@@ -146,8 +146,6 @@ public class AtomicReference<V> implements java.io.Serializable {
      * applying the given function, returning the previous value. The
      * function should be side-effect-free, since it may be re-applied
      * when attempted updates fail due to contention among threads.
-     * This method has memory consistency effects of at least one
-     * volatile read and write.
      *
      * @param updateFunction a side-effect-free function
      * @return the previous value
