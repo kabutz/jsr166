@@ -17,6 +17,7 @@ import java.util.function.UnaryOperator;
 import jdk.internal.misc.Unsafe;
 import jdk.internal.reflect.CallerSensitive;
 import jdk.internal.reflect.Reflection;
+import java.lang.invoke.VarHandle;
 
 /**
  * A reflection-based utility that enables atomic updates to
@@ -170,12 +171,12 @@ public abstract class AtomicReferenceFieldUpdater<T,V> {
     }
 
     /**
-     * Atomically updates the field of the given object managed by this updater
-     * with the results of applying the given function, returning the previous
-     * value. The function should be side-effect-free, since it may be
-     * re-applied when attempted updates fail due to contention among threads.
-     * This method has memory consistency effects of at least one
-     * volatile read and write.
+     * Atomically updates (with memory effects as specified by {@link
+     * VarHandle#compareAndSet}) the field of the given object managed
+     * by this updater with the results of applying the given
+     * function, returning the previous value. The function should be
+     * side-effect-free, since it may be re-applied when attempted
+     * updates fail due to contention among threads.
      *
      * @param obj An object whose field to get and set
      * @param updateFunction a side-effect-free function
@@ -192,12 +193,12 @@ public abstract class AtomicReferenceFieldUpdater<T,V> {
     }
 
     /**
-     * Atomically updates the field of the given object managed by this updater
-     * with the results of applying the given function, returning the updated
-     * value. The function should be side-effect-free, since it may be
-     * re-applied when attempted updates fail due to contention among threads.
-     * This method has memory consistency effects of at least one
-     * volatile read and write.
+     * Atomically updates (with memory effects as specified by {@link
+     * VarHandle#compareAndSet}) the field of the given object managed
+     * by this updater with the results of applying the given
+     * function, returning the updated value. The function should be
+     * side-effect-free, since it may be re-applied when attempted
+     * updates fail due to contention among threads.
      *
      * @param obj An object whose field to get and set
      * @param updateFunction a side-effect-free function
@@ -214,15 +215,14 @@ public abstract class AtomicReferenceFieldUpdater<T,V> {
     }
 
     /**
-     * Atomically updates the field of the given object managed by this
-     * updater with the results of applying the given function to the
-     * current and given values, returning the previous value. The
-     * function should be side-effect-free, since it may be re-applied
-     * when attempted updates fail due to contention among threads.  The
-     * function is applied with the current value as its first argument,
-     * and the given update as the second argument.
-     * This method has memory consistency effects of at least one
-     * volatile read and write.
+     * Atomically updates (with memory effects as specified by {@link
+     * VarHandle#compareAndSet}) the field of the given object managed
+     * by this updater with the results of applying the given function
+     * to the current and given values, returning the previous
+     * value. The function should be side-effect-free, since it may be
+     * re-applied when attempted updates fail due to contention among
+     * threads.  The function is applied with the current value as its
+     * first argument, and the given update as the second argument.
      *
      * @param obj An object whose field to get and set
      * @param x the update value
@@ -241,15 +241,14 @@ public abstract class AtomicReferenceFieldUpdater<T,V> {
     }
 
     /**
-     * Atomically updates the field of the given object managed by this
-     * updater with the results of applying the given function to the
-     * current and given values, returning the updated value. The
-     * function should be side-effect-free, since it may be re-applied
-     * when attempted updates fail due to contention among threads.  The
-     * function is applied with the current value as its first argument,
-     * and the given update as the second argument.
-     * This method has memory consistency effects of at least one
-     * volatile read and write.
+     * Atomically updates (with memory effects as specified by {@link
+     * VarHandle#compareAndSet}) the field of the given object managed
+     * by this updater with the results of applying the given function
+     * to the current and given values, returning the updated
+     * value. The function should be side-effect-free, since it may be
+     * re-applied when attempted updates fail due to contention among
+     * threads.  The function is applied with the current value as its
+     * first argument, and the given update as the second argument.
      *
      * @param obj An object whose field to get and set
      * @param x the update value
