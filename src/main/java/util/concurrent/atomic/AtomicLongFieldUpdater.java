@@ -250,7 +250,7 @@ public abstract class AtomicLongFieldUpdater<T> {
     }
 
     /**
-     * Atomically updates(with memory effects as specified by {@link
+     * Atomically updates (with memory effects as specified by {@link
      * VarHandle#compareAndSet}) the field of the given object managed
      * by this updater with the results of applying the given
      * function, returning the previous value. The function should be
