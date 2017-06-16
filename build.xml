@@ -372,7 +372,16 @@
   <!-- Main targets -->
 
   <property name="build.main.java.version" value="9"/>
-  <property name="build.main.javac" value="${javac9}"/>
+  <!-- Workaround "no nested properties in ant" -->
+  <macrodef name="define-build-main-properties">
+    <attribute name="v"/>
+    <sequential>
+      <property name="build.main.java"    value="${java@{v}}"/>
+      <property name="build.main.javac"   value="${javac@{v}}"/>
+      <property name="build.main.javadoc" value="${javadoc@{v}}"/>
+    </sequential>
+  </macrodef>
+  <define-build-main-properties v="${build.main.java.version}"/>
 
   <target name="dists"
           depends="dist, 4jdk8dist"
@@ -385,17 +394,8 @@
           depends="configure-compiler"
           description="Compiles src/main sources to build dir">
 
-    <local name="modules"/>
-    <condition property="modules">
-      <and>
-        <available file="${jdk9.home}/jmods" type="dir"/>
-        <equals arg1="9" arg2="${build.main.java.version}"/>
-      </and>
-    </condition>
-
     <local name="destdir"/>
-    <property name="destdir" value="${build.classes.dir}/java.base" if:set="modules"/>
-    <property name="destdir" value="${build.classes.dir}" unless:set="modules"/>
+    <property name="destdir" value="${build.classes.dir}/java.base"/>
 
     <mkdir dir="${destdir}"/>
 
@@ -412,7 +412,7 @@
            fork="true">
 
       <include name="**/*.java"/>
-      <compilerarg value="--patch-module=java.base=${src.dir}" if:set="modules"/>
+      <compilerarg value="--patch-module=java.base=${src.dir}"/>
       <compilerarg value="-Xprefer:source"/>
       <compilerarg value="-XDignore.symbol.file=true"/>
       <compilerarg value="-Xlint:all"/>
@@ -463,7 +463,7 @@
              sourcepath="${src.dir}"
              classpath=""
              source="9"
-             executable="${javadoc9}">
+             executable="${build.main.javadoc}">
       <fileset dir="${src.dir}" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
@@ -680,7 +680,7 @@
            includeAntRuntime="false"
            includeJavaRuntime="false"
            encoding="ASCII"
-           executable="${javac9}"
+           executable="${build.main.javac}"
            fork="true">
 
       <include name="*.java"/>
@@ -1521,7 +1521,7 @@
     <get src="http://repo2.maven.org/maven2/com/google/guava/guava-testlib/${guava.version}/guava-testlib-${guava.version}-tests.jar"
          dest="${guava.dir}/guava-testlib-tests.jar" usetimestamp="true"/>
     <junit printsummary="true" showoutput="true" haltonfailure="true"
-           jvm="${java9}" fork="true">
+           jvm="${build.main.java}" fork="true">
       <jvmarg line="-ea -esa --patch-module java.base=${product.jar}"/>
       <formatter type="brief"/>
       <classpath>
