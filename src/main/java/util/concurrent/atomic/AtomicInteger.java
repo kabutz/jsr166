@@ -111,7 +111,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * the actual value was not equal to the expected value.
      */
     public final boolean compareAndSet(int expectedValue, int newValue) {
-        return U.compareAndSwapInt(this, VALUE, expectedValue, newValue);
+        return U.compareAndSetInt(this, VALUE, expectedValue, newValue);
     }
 
     /**
@@ -132,7 +132,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      */
     @Deprecated(since="9")
     public final boolean weakCompareAndSet(int expectedValue, int newValue) {
-        return U.weakCompareAndSwapInt(this, VALUE, expectedValue, newValue);
+        return U.weakCompareAndSetIntPlain(this, VALUE, expectedValue, newValue);
     }
 
     /**
@@ -146,7 +146,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @since 9
      */
     public final boolean weakCompareAndSetPlain(int expectedValue, int newValue) {
-        return U.weakCompareAndSwapInt(this, VALUE, expectedValue, newValue);
+        return U.weakCompareAndSetIntPlain(this, VALUE, expectedValue, newValue);
     }
 
     /**
@@ -448,7 +448,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @since 9
      */
     public final int compareAndExchange(int expectedValue, int newValue) {
-        return U.compareAndExchangeIntVolatile(this, VALUE, expectedValue, newValue);
+        return U.compareAndExchangeInt(this, VALUE, expectedValue, newValue);
     }
 
     /**
@@ -495,7 +495,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @since 9
      */
     public final boolean weakCompareAndSetVolatile(int expectedValue, int newValue) {
-        return U.weakCompareAndSwapIntVolatile(this, VALUE, expectedValue, newValue);
+        return U.weakCompareAndSetInt(this, VALUE, expectedValue, newValue);
     }
 
     /**
@@ -510,7 +510,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @since 9
      */
     public final boolean weakCompareAndSetAcquire(int expectedValue, int newValue) {
-        return U.weakCompareAndSwapIntAcquire(this, VALUE, expectedValue, newValue);
+        return U.weakCompareAndSetIntAcquire(this, VALUE, expectedValue, newValue);
     }
 
     /**
@@ -525,7 +525,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * @since 9
      */
     public final boolean weakCompareAndSetRelease(int expectedValue, int newValue) {
-        return U.weakCompareAndSwapIntRelease(this, VALUE, expectedValue, newValue);
+        return U.weakCompareAndSetIntRelease(this, VALUE, expectedValue, newValue);
     }
 
 }
