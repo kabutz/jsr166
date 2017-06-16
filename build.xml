@@ -296,6 +296,12 @@
   </macrodef>
 
   <!-- Define jtreg test sets for different jdk versions -->
+  <fileset dir="${jtreg10.src.dir}">
+    <patternset id="jdk10.jtreg.tests">
+      <include name="**/*.java"/>
+    </patternset>
+  </fileset>
+
   <fileset dir="${jtreg9.src.dir}">
     <patternset id="jdk9.jtreg.tests">
       <include name="**/*.java"/>
