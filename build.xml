@@ -597,22 +597,20 @@
 
 <!--   </target> -->
 
-<!--   <target name="test89" -->
-<!--           description="Runs tck and jtreg tests for src/main for multiple java versions"> -->
+  <target name="test910"
+          description="Runs tck and jtreg tests for src/main for multiple java versions">
 
-<!--     <antcall target="clean"/> -->
-<!--     <antcall target="test"> -->
-<!--       <param name="build.main.java.version" value="8"/> -->
-<!--       <param name="build.main.javac" value="${javac8}"/> -->
-<!--     </antcall> -->
+    <antcall target="clean"/>
+    <antcall target="test">
+      <param name="build.main.java.version" value="9"/>
+    </antcall>
 
-<!--     <antcall target="clean"/> -->
-<!--     <antcall target="test"> -->
-<!--       <param name="build.main.java.version" value="9"/> -->
-<!--       <param name="build.main.javac" value="${javac9}"/> -->
-<!--     </antcall> -->
+    <antcall target="clean"/>
+    <antcall target="test">
+      <param name="build.main.java.version" value="10"/>
+    </antcall>
 
-<!--   </target> -->
+  </target>
 
 
 
