@@ -3234,6 +3234,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     /**
      * Completion methods throw NullPointerException with null arguments
      */
+    @SuppressWarnings("FutureReturnValueIgnored")
     public void testNPE() {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         CompletableFuture<Integer> g = new CompletableFuture<>();
