@@ -745,30 +745,31 @@ public class ArrayList<E> extends AbstractList<E>
                         final int from, final int end) {
         Objects.requireNonNull(c);
         final Object[] es = elementData;
-        final boolean modified;
         int r;
         // Optimize for initial run of survivors
-        for (r = from; r < end && c.contains(es[r]) == complement; r++)
-            ;
-        if (modified = (r < end)) {
-            int w = r++;
-            try {
-                for (Object e; r < end; r++)
-                    if (c.contains(e = es[r]) == complement)
-                        es[w++] = e;
-            } catch (Throwable ex) {
-                // Preserve behavioral compatibility with AbstractCollection,
-                // even if c.contains() throws.
-                System.arraycopy(es, r, es, w, end - r);
-                w += end - r;
-                throw ex;
-            } finally {
-                modCount += end - w;
-                shiftTailOverGap(es, w, end);
-            }
+        for (r = from;; r++) {
+            if (r == end)
+                return false;
+            if (c.contains(es[r]) != complement)
+                break;
+        }
+        int w = r++;
+        try {
+            for (Object e; r < end; r++)
+                if (c.contains(e = es[r]) == complement)
+                    es[w++] = e;
+        } catch (Throwable ex) {
+            // Preserve behavioral compatibility with AbstractCollection,
+            // even if c.contains() throws.
+            System.arraycopy(es, r, es, w, end - r);
+            w += end - r;
+            throw ex;
+        } finally {
+            modCount += end - w;
+            shiftTailOverGap(es, w, end);
         }
         // checkInvariants();
-        return modified;
+        return true;
     }
 
     /**
