@@ -1373,7 +1373,6 @@
 
 <!-- ==============================================================
   Experimental errorprone support - http://errorprone.info
-  You may need to bring your own errorprone jar.
 =================================================================== -->
   <target name="errorprone"
           depends="clean, configure-compiler"
@@ -1396,16 +1395,7 @@
            fork="true">
 
       <include name="**/*.java"/>
-      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"/>
-      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"/>
-      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"/>
-      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED"/>
-      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED"/>
-      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED"/>
-      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED"/>
-      <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"/>
-      <compilerarg value="-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"/>
-      <compilerarg line="-processorpath ${lib.dir}/error_prone_ant-2.0.20-SNAPSHOT.jar"/>
+      <compilerarg line="-processorpath ${lib.dir}/error_prone_ant-2.0.21.jar"/>
       <compilerarg value="-Xplugin:ErrorProne
                           -Xep:IdentityBinaryExpression:WARN
                           -Xep:MissingOverride:OFF
@@ -1415,7 +1405,6 @@
                           -Xep:MultipleTopLevelClasses:ERROR
                           -Xep:EmptyIf:ERROR
                           -Xep:LongLiteralLowerCaseSuffix:ERROR
-                          -Xep:ArgumentParameterSwap:ERROR
                           -Xep:RedundantThrows:ERROR
                           -Xep:MethodCanBeStatic:WARN"/>
       <compilerarg value="--patch-module=java.base=${src.dir}"/>
@@ -1436,16 +1425,7 @@
       workdir="${build.dir}"
       classes="${product.jar}">
       <javac-elements>
-        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"/>
-        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"/>
-        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"/>
-        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED"/>
-        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED"/>
-        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED"/>
-        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED"/>
-        <compilerarg value="-J--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"/>
-        <compilerarg value="-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"/>
-        <compilerarg line="-processorpath ${lib.dir}/error_prone_ant-2.0.20-SNAPSHOT.jar"/>
+        <compilerarg line="-processorpath ${lib.dir}/error_prone_ant-2.0.21.jar"/>
         <compilerarg value="-Xplugin:ErrorProne
                             -Xep:IdentityBinaryExpression:WARN
                             -Xep:BoxedPrimitiveConstructor:OFF
@@ -1458,7 +1438,6 @@
                             -Xep:MultipleTopLevelClasses:ERROR
                             -Xep:EmptyIf:ERROR
                             -Xep:LongLiteralLowerCaseSuffix:ERROR
-                            -Xep:ArgumentParameterSwap:ERROR
                             -Xep:RedundantThrows:ERROR
                             -Xep:MethodCanBeStatic:WARN"/>
         <compilerarg line="-Xmaxerrs 3000 -Xmaxwarns 3000"/>
