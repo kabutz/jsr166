@@ -1238,6 +1238,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         r.assertInvoked();
     }}
 
+    @SuppressWarnings("FutureReturnValueIgnored")
     public void testRunAsync_rejectingExecutor() {
         CountingRejectingExecutor e = new CountingRejectingExecutor();
         try {
@@ -1284,6 +1285,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         r.assertInvoked();
     }}
 
+    @SuppressWarnings("FutureReturnValueIgnored")
     public void testSupplyAsync_rejectingExecutor() {
         CountingRejectingExecutor e = new CountingRejectingExecutor();
         try {
@@ -4296,6 +4298,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     }
 
     /** Test long recursive chains of CompletableFutures with cascading completions */
+    @SuppressWarnings("FutureReturnValueIgnored")
     public void testRecursiveChains() throws Throwable {
         for (ExecutionMode m : ExecutionMode.values())
         for (boolean addDeadEnds : new boolean[] { true, false })
@@ -4320,6 +4323,7 @@ public class CompletableFutureTest extends JSR166TestCase {
      * A single CompletableFuture with many dependents.
      * A demo of scalability - runtime is O(n).
      */
+    @SuppressWarnings("FutureReturnValueIgnored")
     public void testManyDependents() throws Throwable {
         final int n = expensiveTests ? 1_000_000 : 10;
         final CompletableFuture<Void> head = new CompletableFuture<>();
@@ -4349,6 +4353,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     }
 
     /** ant -Dvmoptions=-Xmx8m -Djsr166.expensiveTests=true -Djsr166.tckTestClass=CompletableFutureTest tck */
+    @SuppressWarnings("FutureReturnValueIgnored")
     public void testCoCompletionGarbageRetention() throws Throwable {
         final int n = expensiveTests ? 1_000_000 : 10;
         final CompletableFuture<Integer> incomplete = new CompletableFuture<>();
