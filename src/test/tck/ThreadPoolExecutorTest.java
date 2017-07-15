@@ -2085,33 +2085,28 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
         }
     }
 
-    public void testAbortPolicy() {
-        final RejectedExecutionHandler handler = new AbortPolicy();
+    /** Directly test simple ThreadPoolExecutor RejectedExecutionHandlers. */
+    public void testStandardRejectedExecutionHandlers() {
         final ThreadPoolExecutor p =
-            new ThreadPoolExecutor(1, 1,
-                                   LONG_DELAY_MS, MILLISECONDS,
-                                   new ArrayBlockingQueue<Runnable>(10));
-        final TrackedNoOpRunnable r = new TrackedNoOpRunnable();
-        try {
-            handler.rejectedExecution(r, p);
-            shouldThrow();
-        } catch (RejectedExecutionException success) {}
-        assertFalse(r.done);
-        assertEquals(0, p.getTaskCount());
-        assertTrue(p.getQueue().isEmpty());
-    }
-
-    public void testCallerRunsPolicy() {
-        final RejectedExecutionHandler handler = new CallerRunsPolicy();
-        final ThreadPoolExecutor p =
-            new ThreadPoolExecutor(1, 1,
-                                   LONG_DELAY_MS, MILLISECONDS,
-                                   new ArrayBlockingQueue<Runnable>(10));
+            new ThreadPoolExecutor(1, 1, 1, SECONDS,
+                                   new ArrayBlockingQueue<Runnable>(1));
         final AtomicReference<Thread> thread = new AtomicReference<>();
         final Runnable r = new Runnable() { public void run() {
             thread.set(Thread.currentThread()); }};
-        handler.rejectedExecution(r, p);
+
+        try {
+            new AbortPolicy().rejectedExecution(r, p);
+            shouldThrow();
+        } catch (RejectedExecutionException success) {}
+        assertNull(thread.get());
+
+        new DiscardPolicy().rejectedExecution(r, p);
+        assertNull(thread.get());
+
+        new CallerRunsPolicy().rejectedExecution(r, p);
         assertSame(Thread.currentThread(), thread.get());
+
+        // check that pool was not perturbed by handlers
         assertTrue(p.getRejectedExecutionHandler() instanceof AbortPolicy);
         assertEquals(0, p.getTaskCount());
         assertTrue(p.getQueue().isEmpty());
