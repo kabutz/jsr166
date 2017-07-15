@@ -2081,4 +2081,21 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
         }
     }
 
+    public void testAbortPolicy() {
+        final RejectedExecutionHandler handler =
+            new ThreadPoolExecutor.AbortPolicy();
+        final ThreadPoolExecutor p =
+            new ThreadPoolExecutor(1, 1,
+                                   LONG_DELAY_MS, MILLISECONDS,
+                                   new ArrayBlockingQueue<Runnable>(10));
+        final TrackedNoOpRunnable r = new TrackedNoOpRunnable();
+        try {
+            handler.rejectedExecution(r, p);
+            shouldThrow();
+        } catch (RejectedExecutionException success) {}
+        assertFalse(r.done);
+        assertEquals(0, p.getTaskCount());
+        assertTrue(p.getQueue().isEmpty());
+    }
+
 }
