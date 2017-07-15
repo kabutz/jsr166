@@ -29,7 +29,12 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
+import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
+import java.util.concurrent.ThreadPoolExecutor.DiscardPolicy;
+import java.util.concurrent.ThreadPoolExecutor.DiscardOldestPolicy;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -284,8 +289,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
         try (PoolCleaner cleaner = cleaner(p)) {
-            assertTrue(p.getRejectedExecutionHandler()
-                       instanceof ThreadPoolExecutor.AbortPolicy);
+            assertTrue(p.getRejectedExecutionHandler() instanceof AbortPolicy);
         }
     }
 
@@ -1147,7 +1151,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                                    LONG_DELAY_MS,
                                    MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1),
-                                   new ThreadPoolExecutor.CallerRunsPolicy());
+                                   new CallerRunsPolicy());
         try (PoolCleaner cleaner = cleaner(p)) {
             final CountDownLatch done = new CountDownLatch(1);
             Runnable blocker = new CheckedRunnable() {
@@ -1179,7 +1183,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 1,
                           LONG_DELAY_MS, MILLISECONDS,
                           new ArrayBlockingQueue<Runnable>(1),
-                          new ThreadPoolExecutor.DiscardPolicy());
+                          new DiscardPolicy());
         try (PoolCleaner cleaner = cleaner(p, done)) {
             p.execute(awaiter(done));
 
@@ -1205,7 +1209,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1),
-                                   new ThreadPoolExecutor.DiscardOldestPolicy());
+                                   new DiscardOldestPolicy());
         try (PoolCleaner cleaner = cleaner(p, done)) {
             assertEquals(LatchAwaiter.NEW, r1.state);
             assertEquals(LatchAwaiter.NEW, r2.state);
@@ -1243,7 +1247,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
      * execute using CallerRunsPolicy drops task on shutdown
      */
     public void testCallerRunsOnShutdown() {
-        RejectedExecutionHandler h = new ThreadPoolExecutor.CallerRunsPolicy();
+        RejectedExecutionHandler h = new CallerRunsPolicy();
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
@@ -1265,7 +1269,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1),
-                                   new ThreadPoolExecutor.DiscardPolicy());
+                                   new DiscardPolicy());
 
         try { p.shutdown(); } catch (SecurityException ok) { return; }
         try (PoolCleaner cleaner = cleaner(p)) {
@@ -1283,7 +1287,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
                                    new ArrayBlockingQueue<Runnable>(1),
-                                   new ThreadPoolExecutor.DiscardOldestPolicy());
+                                   new DiscardOldestPolicy());
 
         try { p.shutdown(); } catch (SecurityException ok) { return; }
         try (PoolCleaner cleaner = cleaner(p)) {
@@ -2082,8 +2086,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
     }
 
     public void testAbortPolicy() {
-        final RejectedExecutionHandler handler =
-            new ThreadPoolExecutor.AbortPolicy();
+        final RejectedExecutionHandler handler = new AbortPolicy();
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 1,
                                    LONG_DELAY_MS, MILLISECONDS,
@@ -2094,6 +2097,22 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             shouldThrow();
         } catch (RejectedExecutionException success) {}
         assertFalse(r.done);
+        assertEquals(0, p.getTaskCount());
+        assertTrue(p.getQueue().isEmpty());
+    }
+
+    public void testCallerRunsPolicy() {
+        final RejectedExecutionHandler handler = new CallerRunsPolicy();
+        final ThreadPoolExecutor p =
+            new ThreadPoolExecutor(1, 1,
+                                   LONG_DELAY_MS, MILLISECONDS,
+                                   new ArrayBlockingQueue<Runnable>(10));
+        final AtomicReference<Thread> thread = new AtomicReference<>();
+        final Runnable r = new Runnable() { public void run() {
+            thread.set(Thread.currentThread()); }};
+        handler.rejectedExecution(r, p);
+        assertSame(Thread.currentThread(), thread.get());
+        assertTrue(p.getRejectedExecutionHandler() instanceof AbortPolicy);
         assertEquals(0, p.getTaskCount());
         assertTrue(p.getQueue().isEmpty());
     }
