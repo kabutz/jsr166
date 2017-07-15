@@ -28,6 +28,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
@@ -1065,130 +1066,153 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
     }
 
     /**
-     * execute throws RejectedExecutionException if saturated.
+     * Submitted tasks are rejected when saturated.
      */
-    public void testSaturatedExecute() {
+    @SuppressWarnings("FutureReturnValueIgnored")
+    public void testSubmittedTasksRejectedWhenSaturated() {
+        final ThreadLocalRandom rnd = ThreadLocalRandom.current();
         final CountDownLatch done = new CountDownLatch(1);
-        final ThreadPoolExecutor p =
-            new ThreadPoolExecutor(1, 1,
-                                   LONG_DELAY_MS, MILLISECONDS,
-                                   new ArrayBlockingQueue<Runnable>(1));
-        try (PoolCleaner cleaner = cleaner(p, done)) {
-            Runnable task = new CheckedRunnable() {
-                public void realRun() throws InterruptedException {
-                    await(done);
-                }};
-            for (int i = 0; i < 2; ++i)
-                p.execute(task);
-            for (int i = 0; i < 2; ++i) {
-                try {
-                    p.execute(task);
-                    shouldThrow();
-                } catch (RejectedExecutionException success) {}
-                assertTrue(p.getTaskCount() <= 2);
-            }
-        }
-    }
+        final Runnable r = awaiter(done);
+        final Callable<Boolean> c = new CheckedCallable() {
+            public Boolean realCall() throws InterruptedException {
+                await(done);
+                return Boolean.TRUE;
+            }};
+        final ThreadPoolExecutor p = new ThreadPoolExecutor(
+            1, 1, 1, SECONDS, new ArrayBlockingQueue<Runnable>(1));
 
-    /**
-     * submit(runnable) throws RejectedExecutionException if saturated.
-     */
-    public void testSaturatedSubmitRunnable() {
-        final CountDownLatch done = new CountDownLatch(1);
-        final ThreadPoolExecutor p =
-            new ThreadPoolExecutor(1, 1,
-                                   LONG_DELAY_MS, MILLISECONDS,
-                                   new ArrayBlockingQueue<Runnable>(1));
         try (PoolCleaner cleaner = cleaner(p, done)) {
-            Runnable task = new CheckedRunnable() {
-                public void realRun() throws InterruptedException {
-                    await(done);
-                }};
-            for (int i = 0; i < 2; ++i)
-                p.submit(task);
-            for (int i = 0; i < 2; ++i) {
-                try {
-                    p.execute(task);
-                    shouldThrow();
-                } catch (RejectedExecutionException success) {}
-                assertTrue(p.getTaskCount() <= 2);
+            // saturate
+            for (int i = saturatedSize(p); i--> 0; ) {
+                switch (rnd.nextInt(3)) {
+                case 0: p.execute(r); break;
+                case 1: assertFalse(p.submit(r).isDone()); break;
+                case 2: assertFalse(p.submit(c).isDone()); break;
+                }
             }
-        }
-    }
 
-    /**
-     * submit(callable) throws RejectedExecutionException if saturated.
-     */
-    public void testSaturatedSubmitCallable() {
-        final CountDownLatch done = new CountDownLatch(1);
-        final ThreadPoolExecutor p =
-            new ThreadPoolExecutor(1, 1,
-                                   LONG_DELAY_MS, MILLISECONDS,
-                                   new ArrayBlockingQueue<Runnable>(1));
-        try (PoolCleaner cleaner = cleaner(p, done)) {
-            Runnable task = new CheckedRunnable() {
-                public void realRun() throws InterruptedException {
-                    await(done);
-                }};
-            for (int i = 0; i < 2; ++i)
-                p.execute(task);
-            for (int i = 0; i < 2; ++i) {
+            // check default handler
+            assertTrue(p.getRejectedExecutionHandler() instanceof AbortPolicy);
+            for (int i = 2; i--> 0; ) {
                 try {
-                    p.execute(task);
+                    p.execute(r);
                     shouldThrow();
                 } catch (RejectedExecutionException success) {}
-                assertTrue(p.getTaskCount() <= 2);
+                try {
+                    p.submit(r);
+                    shouldThrow();
+                } catch (RejectedExecutionException success) {}
+                try {
+                    p.submit(c);
+                    shouldThrow();
+                } catch (RejectedExecutionException success) {}
             }
+
+            // check CallerRunsPolicy runs task in caller thread
+            {
+                RejectedExecutionHandler handler = new CallerRunsPolicy();
+                p.setRejectedExecutionHandler(handler);
+                assertSame(handler, p.getRejectedExecutionHandler());
+                final AtomicReference<Thread> thread = new AtomicReference<>();
+                p.execute(new Runnable() { public void run() {
+                    thread.set(Thread.currentThread()); }});
+                assertSame(Thread.currentThread(), thread.get());
+            }
+
+            // check DiscardPolicy does nothing
+            {
+                RejectedExecutionHandler handler = new DiscardPolicy();
+                p.setRejectedExecutionHandler(handler);
+                assertSame(handler, p.getRejectedExecutionHandler());
+                final AtomicReference<Thread> thread = new AtomicReference<>();
+                p.execute(new Runnable() { public void run() {
+                    thread.set(Thread.currentThread()); }});
+                assertNull(thread.get());
+            }
+
+            class Recorder implements RejectedExecutionHandler {
+                public volatile Runnable r = null;
+                public volatile ThreadPoolExecutor p = null;
+                public void reset() { r = null; p = null; }
+                public void rejectedExecution(Runnable r, ThreadPoolExecutor p) {
+                    assertNull(this.r);
+                    assertNull(this.p);
+                    this.r = r;
+                    this.p = p;
+                }
+            }
+
+            // check custom handler is invoked exactly once per task
+            Recorder recorder = new Recorder();
+            p.setRejectedExecutionHandler(recorder);
+            assertSame(recorder, p.getRejectedExecutionHandler());
+            for (int i = 2; i--> 0; ) {
+                recorder.reset();
+                p.execute(r);
+                assertSame(r, recorder.r);
+                assertSame(p, recorder.p);
+
+                recorder.reset();
+                assertFalse(p.submit(r).isDone());
+                assertTrue(recorder.r instanceof FutureTask);
+                assertSame(p, recorder.p);
+
+                recorder.reset();
+                assertFalse(p.submit(c).isDone());
+                assertTrue(recorder.r instanceof FutureTask);
+                assertSame(p, recorder.p);
+            }
+
+            // check that pool was not perturbed by handlers
+            assertEquals(2, p.getTaskCount());
+            assertEquals(0, p.getCompletedTaskCount());
+            assertEquals(0, p.getQueue().remainingCapacity());
         }
+        assertEquals(saturatedSize(p), p.getCompletedTaskCount());
     }
 
     /**
      * executor using CallerRunsPolicy runs task if saturated.
      */
     public void testSaturatedExecute2() {
-        final ThreadPoolExecutor p =
-            new ThreadPoolExecutor(1, 1,
-                                   LONG_DELAY_MS,
-                                   MILLISECONDS,
-                                   new ArrayBlockingQueue<Runnable>(1),
-                                   new CallerRunsPolicy());
-        try (PoolCleaner cleaner = cleaner(p)) {
-            final CountDownLatch done = new CountDownLatch(1);
-            Runnable blocker = new CheckedRunnable() {
-                public void realRun() throws InterruptedException {
-                    await(done);
-                }};
-            p.execute(blocker);
-            TrackedNoOpRunnable[] tasks = new TrackedNoOpRunnable[5];
+        final RejectedExecutionHandler handler = new CallerRunsPolicy();
+        final ThreadPoolExecutor p = new ThreadPoolExecutor(
+            1, 1, LONG_DELAY_MS, SECONDS, new ArrayBlockingQueue<Runnable>(1),
+            handler);
+        assertSame(handler, p.getRejectedExecutionHandler());
+        final TrackedNoOpRunnable[] tasks = new TrackedNoOpRunnable[5];
+        final CountDownLatch done = new CountDownLatch(1);
+        try (PoolCleaner cleaner = cleaner(p, done)) {
+            p.execute(awaiter(done));
+
             for (int i = 0; i < tasks.length; i++)
-                tasks[i] = new TrackedNoOpRunnable();
-            for (int i = 0; i < tasks.length; i++)
-                p.execute(tasks[i]);
+                p.execute(tasks[i] = new TrackedNoOpRunnable());
+
             for (int i = 1; i < tasks.length; i++)
                 assertTrue(tasks[i].done);
             assertFalse(tasks[0].done); // waiting in queue
-            done.countDown();
         }
+        for (TrackedNoOpRunnable task : tasks)
+            assertTrue(task.done);
     }
 
     /**
      * executor using DiscardPolicy drops task if saturated.
      */
     public void testSaturatedExecute3() {
-        final CountDownLatch done = new CountDownLatch(1);
+        final RejectedExecutionHandler handler = new DiscardPolicy();
+        final ThreadPoolExecutor p = new ThreadPoolExecutor(
+            1, 1, LONG_DELAY_MS, SECONDS, new ArrayBlockingQueue<Runnable>(1),
+            handler);
+        assertSame(handler, p.getRejectedExecutionHandler());
         final TrackedNoOpRunnable[] tasks = new TrackedNoOpRunnable[5];
-        for (int i = 0; i < tasks.length; ++i)
-            tasks[i] = new TrackedNoOpRunnable();
-        final ThreadPoolExecutor p =
-            new ThreadPoolExecutor(1, 1,
-                          LONG_DELAY_MS, MILLISECONDS,
-                          new ArrayBlockingQueue<Runnable>(1),
-                          new DiscardPolicy());
+        final CountDownLatch done = new CountDownLatch(1);
         try (PoolCleaner cleaner = cleaner(p, done)) {
             p.execute(awaiter(done));
 
-            for (TrackedNoOpRunnable task : tasks)
-                p.execute(task);
+            for (int i = 0; i < tasks.length; i++)
+                p.execute(tasks[i] = new TrackedNoOpRunnable());
+
             for (int i = 1; i < tasks.length; i++)
                 assertFalse(tasks[i].done);
         }

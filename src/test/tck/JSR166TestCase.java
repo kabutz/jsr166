@@ -1951,6 +1951,16 @@ public class JSR166TestCase extends TestCase {
                                1000L, MILLISECONDS,
                                new SynchronousQueue<Runnable>());
 
+    /**
+     * Returns maximum number of tasks that can be submitted to given
+     * pool (with bounded queue) before saturation (when submission
+     * throws RejectedExecutionException).
+     */
+    static final int saturatedSize(ThreadPoolExecutor pool) {
+        BlockingQueue<Runnable> q = pool.getQueue();
+        return pool.getMaximumPoolSize() + q.size() + q.remainingCapacity();
+    }
+
     static <T> void shuffle(T[] array) {
         Collections.shuffle(Arrays.asList(array), ThreadLocalRandom.current());
     }
