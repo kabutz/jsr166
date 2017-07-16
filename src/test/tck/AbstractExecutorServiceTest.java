@@ -166,25 +166,25 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
     }
 
     /**
-     * execute(null runnable) throws NPE
+     * Submitting null tasks throws NullPointerException.
      */
-    public void testExecuteNullRunnable() {
-        ExecutorService e = new DirectExecutorService();
-        try {
-            e.submit((Runnable) null);
-            shouldThrow();
-        } catch (NullPointerException success) {}
-    }
-
-    /**
-     * submit(null callable) throws NPE
-     */
-    public void testSubmitNullCallable() {
-        ExecutorService e = new DirectExecutorService();
-        try {
-            e.submit((Callable) null);
-            shouldThrow();
-        } catch (NullPointerException success) {}
+    @SuppressWarnings("FutureReturnValueIgnored")
+    public void testNullTaskSubmission() throws Exception {
+        final ExecutorService e = new DirectExecutorService();
+        try (PoolCleaner cleaner = cleaner(e)) {
+            try {
+                e.execute((Runnable) null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
+            try {
+                e.submit((Runnable) null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
+            try {
+                e.submit((Callable) null);
+                shouldThrow();
+            } catch (NullPointerException success) {}
+        }
     }
 
     /**
