@@ -76,14 +76,19 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadLocalRandom;
@@ -1951,6 +1956,12 @@ public class JSR166TestCase extends TestCase {
                                1000L, MILLISECONDS,
                                new SynchronousQueue<Runnable>());
 
+    static <T> void shuffle(T[] array) {
+        Collections.shuffle(Arrays.asList(array), ThreadLocalRandom.current());
+    }
+
+    // --- Shared assertions for Executor tests ---
+
     /**
      * Returns maximum number of tasks that can be submitted to given
      * pool (with bounded queue) before saturation (when submission
@@ -1961,7 +1972,163 @@ public class JSR166TestCase extends TestCase {
         return pool.getMaximumPoolSize() + q.size() + q.remainingCapacity();
     }
 
-    static <T> void shuffle(T[] array) {
-        Collections.shuffle(Arrays.asList(array), ThreadLocalRandom.current());
+    @SuppressWarnings("FutureReturnValueIgnored")
+    void assertNullTaskSubmissionThrowsNullPointerException(Executor e) {
+        try {
+            e.execute((Runnable) null);
+            shouldThrow();
+        } catch (NullPointerException success) {}
+
+        if (! (e instanceof ExecutorService)) return;
+        ExecutorService es = (ExecutorService) e;
+        try {
+            es.submit((Runnable) null);
+            shouldThrow();
+        } catch (NullPointerException success) {}
+        try {
+            es.submit((Runnable) null, Boolean.TRUE);
+            shouldThrow();
+        } catch (NullPointerException success) {}
+        try {
+            es.submit((Callable) null);
+            shouldThrow();
+        } catch (NullPointerException success) {}
+
+        if (! (e instanceof ScheduledExecutorService)) return;
+        ScheduledExecutorService ses = (ScheduledExecutorService) e;
+        try {
+            ses.schedule((Runnable) null,
+                         randomTimeout(), randomTimeUnit());
+            shouldThrow();
+        } catch (NullPointerException success) {}
+        try {
+            ses.schedule((Callable) null,
+                         randomTimeout(), randomTimeUnit());
+            shouldThrow();
+        } catch (NullPointerException success) {}
+        try {
+            ses.scheduleAtFixedRate((Runnable) null,
+                                    randomTimeout(), LONG_DELAY_MS, MILLISECONDS);
+            shouldThrow();
+        } catch (NullPointerException success) {}
+        try {
+            ses.scheduleWithFixedDelay((Runnable) null,
+                                       randomTimeout(), LONG_DELAY_MS, MILLISECONDS);
+            shouldThrow();
+        } catch (NullPointerException success) {}
+    }
+
+    void setRejectedExecutionHandler(
+        ThreadPoolExecutor p, RejectedExecutionHandler handler) {
+        p.setRejectedExecutionHandler(handler);
+        assertSame(handler, p.getRejectedExecutionHandler());
+    }
+
+    void assertTaskSubmissionsAreRejected(ThreadPoolExecutor p) {
+        final RejectedExecutionHandler savedHandler = p.getRejectedExecutionHandler();
+        final long savedTaskCount = p.getTaskCount();
+        final long savedCompletedTaskCount = p.getCompletedTaskCount();
+        final int savedQueueSize = p.getQueue().size();
+        final boolean stock = (p.getClass().getClassLoader() == null);
+
+        Runnable r = () -> {};
+        Callable<Boolean> c = () -> Boolean.TRUE;
+
+        class Recorder implements RejectedExecutionHandler {
+            public volatile Runnable r = null;
+            public volatile ThreadPoolExecutor p = null;
+            public void reset() { r = null; p = null; }
+            public void rejectedExecution(Runnable r, ThreadPoolExecutor p) {
+                assertNull(this.r);
+                assertNull(this.p);
+                this.r = r;
+                this.p = p;
+            }
+        }
+
+        // check custom handler is invoked exactly once per task
+        Recorder recorder = new Recorder();
+        setRejectedExecutionHandler(p, recorder);
+        for (int i = 2; i--> 0; ) {
+            recorder.reset();
+            p.execute(r);
+            if (stock && p.getClass() == ThreadPoolExecutor.class)
+                assertSame(r, recorder.r);
+            assertSame(p, recorder.p);
+
+            recorder.reset();
+            assertFalse(p.submit(r).isDone());
+            if (stock) assertTrue(!((FutureTask) recorder.r).isDone());
+            assertSame(p, recorder.p);
+
+            recorder.reset();
+            assertFalse(p.submit(r, Boolean.TRUE).isDone());
+            if (stock) assertTrue(!((FutureTask) recorder.r).isDone());
+            assertSame(p, recorder.p);
+
+            recorder.reset();
+            assertFalse(p.submit(c).isDone());
+            if (stock) assertTrue(!((FutureTask) recorder.r).isDone());
+            assertSame(p, recorder.p);
+
+            if (p instanceof ScheduledExecutorService) {
+                ScheduledExecutorService s = (ScheduledExecutorService) p;
+                ScheduledFuture<?> future;
+
+                recorder.reset();
+                future = s.schedule(r, randomTimeout(), randomTimeUnit());
+                assertFalse(future.isDone());
+                if (stock) assertTrue(!((FutureTask) recorder.r).isDone());
+                assertSame(p, recorder.p);
+
+                recorder.reset();
+                future = s.schedule(c, randomTimeout(), randomTimeUnit());
+                assertFalse(future.isDone());
+                if (stock) assertTrue(!((FutureTask) recorder.r).isDone());
+                assertSame(p, recorder.p);
+
+                recorder.reset();
+                future = s.scheduleAtFixedRate(r, randomTimeout(), LONG_DELAY_MS, MILLISECONDS);
+                assertFalse(future.isDone());
+                if (stock) assertTrue(!((FutureTask) recorder.r).isDone());
+                assertSame(p, recorder.p);
+
+                recorder.reset();
+                future = s.scheduleWithFixedDelay(r, randomTimeout(), LONG_DELAY_MS, MILLISECONDS);
+                assertFalse(future.isDone());
+                if (stock) assertTrue(!((FutureTask) recorder.r).isDone());
+                assertSame(p, recorder.p);
+            }
+        }
+
+        // Checking our custom handler above should be sufficient, but
+        // we add some integration tests of standard handlers.
+        final AtomicReference<Thread> thread = new AtomicReference<>();
+        final Runnable setThread = () -> thread.set(Thread.currentThread());
+
+        setRejectedExecutionHandler(p, new ThreadPoolExecutor.AbortPolicy());
+        try {
+            p.execute(setThread);
+            shouldThrow();
+        } catch (RejectedExecutionException success) {}
+        assertNull(thread.get());
+
+        setRejectedExecutionHandler(p, new ThreadPoolExecutor.DiscardPolicy());
+        p.execute(setThread);
+        assertNull(thread.get());
+
+        setRejectedExecutionHandler(p, new ThreadPoolExecutor.CallerRunsPolicy());
+        p.execute(setThread);
+        if (p.isShutdown())
+            assertNull(thread.get());
+        else
+            assertSame(Thread.currentThread(), thread.get());
+
+        setRejectedExecutionHandler(p, savedHandler);
+
+        // check that pool was not perturbed by handlers
+        assertEquals(savedTaskCount, p.getTaskCount());
+        assertEquals(savedCompletedTaskCount, p.getCompletedTaskCount());
+        assertEquals(savedQueueSize, p.getQueue().size());
     }
 }

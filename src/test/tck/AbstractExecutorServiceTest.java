@@ -166,24 +166,12 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
     }
 
     /**
-     * Submitting null tasks throws NullPointerException.
+     * Submitting null tasks throws NullPointerException
      */
-    @SuppressWarnings("FutureReturnValueIgnored")
-    public void testNullTaskSubmission() throws Exception {
+    public void testNullTaskSubmission() {
         final ExecutorService e = new DirectExecutorService();
         try (PoolCleaner cleaner = cleaner(e)) {
-            try {
-                e.execute((Runnable) null);
-                shouldThrow();
-            } catch (NullPointerException success) {}
-            try {
-                e.submit((Runnable) null);
-                shouldThrow();
-            } catch (NullPointerException success) {}
-            try {
-                e.submit((Callable) null);
-                shouldThrow();
-            } catch (NullPointerException success) {}
+            assertNullTaskSubmissionThrowsNullPointerException(e);
         }
     }
 

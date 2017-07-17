@@ -1059,172 +1059,76 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                     p.submit(task).get();
                 }});
 
-            await(threadStarted);
+            await(threadStarted); // ensure quiescence
             t.interrupt();
             awaitTermination(t);
         }
     }
 
     /**
-     * Submitted tasks are rejected when saturated.
+     * Submitted tasks are rejected when saturated or shutdown
      */
-    @SuppressWarnings("FutureReturnValueIgnored")
-    public void testSubmittedTasksRejectedWhenSaturated() {
-        final ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        final CountDownLatch done = new CountDownLatch(1);
-        final Runnable r = awaiter(done);
-        final Callable<Boolean> c = new CheckedCallable() {
-            public Boolean realCall() throws InterruptedException {
-                await(done);
-                return Boolean.TRUE;
-            }};
+    public void testSubmittedTasksRejectedWhenSaturatedOrShutdown() throws InterruptedException {
         final ThreadPoolExecutor p = new ThreadPoolExecutor(
             1, 1, 1, SECONDS, new ArrayBlockingQueue<Runnable>(1));
+        final int saturatedSize = saturatedSize(p);
+        final ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        final CountDownLatch threadsStarted = new CountDownLatch(p.getMaximumPoolSize());
+        final CountDownLatch done = new CountDownLatch(1);
+        final Runnable r = () -> {
+            threadsStarted.countDown();
+            for (;;) {
+                try {
+                    done.await();
+                    return;
+                } catch (InterruptedException shutdownNowDeliberatelyIgnored) {}
+            }};
+        final Callable<Boolean> c = () -> {
+            threadsStarted.countDown();
+            for (;;) {
+                try {
+                    done.await();
+                    return Boolean.TRUE;
+                } catch (InterruptedException shutdownNowDeliberatelyIgnored) {}
+            }};
+        final boolean shutdownNow = rnd.nextBoolean();
 
         try (PoolCleaner cleaner = cleaner(p, done)) {
             // saturate
-            for (int i = saturatedSize(p); i--> 0; ) {
-                switch (rnd.nextInt(3)) {
+            for (int i = saturatedSize; i--> 0; ) {
+                switch (rnd.nextInt(4)) {
                 case 0: p.execute(r); break;
                 case 1: assertFalse(p.submit(r).isDone()); break;
-                case 2: assertFalse(p.submit(c).isDone()); break;
+                case 2: assertFalse(p.submit(r, Boolean.TRUE).isDone()); break;
+                case 3: assertFalse(p.submit(c).isDone()); break;
                 }
             }
 
-            // check default handler
-            assertTrue(p.getRejectedExecutionHandler() instanceof AbortPolicy);
-            for (int i = 2; i--> 0; ) {
-                try {
-                    p.execute(r);
-                    shouldThrow();
-                } catch (RejectedExecutionException success) {}
-                try {
-                    p.submit(r);
-                    shouldThrow();
-                } catch (RejectedExecutionException success) {}
-                try {
-                    p.submit(c);
-                    shouldThrow();
-                } catch (RejectedExecutionException success) {}
-            }
+            await(threadsStarted);
+            assertTaskSubmissionsAreRejected(p);
 
-            // check CallerRunsPolicy runs task in caller thread
-            {
-                RejectedExecutionHandler handler = new CallerRunsPolicy();
-                p.setRejectedExecutionHandler(handler);
-                assertSame(handler, p.getRejectedExecutionHandler());
-                final AtomicReference<Thread> thread = new AtomicReference<>();
-                p.execute(new Runnable() { public void run() {
-                    thread.set(Thread.currentThread()); }});
-                assertSame(Thread.currentThread(), thread.get());
-            }
+            if (shutdownNow)
+                p.shutdownNow();
+            else
+                p.shutdown();
+            // Pool is shutdown, but not yet terminated
+            assertTaskSubmissionsAreRejected(p);
+            assertFalse(p.isTerminated());
 
-            // check DiscardPolicy does nothing
-            {
-                RejectedExecutionHandler handler = new DiscardPolicy();
-                p.setRejectedExecutionHandler(handler);
-                assertSame(handler, p.getRejectedExecutionHandler());
-                final AtomicReference<Thread> thread = new AtomicReference<>();
-                p.execute(new Runnable() { public void run() {
-                    thread.set(Thread.currentThread()); }});
-                assertNull(thread.get());
-            }
+            done.countDown();   // release blocking tasks
+            assertTrue(p.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
 
-            class Recorder implements RejectedExecutionHandler {
-                public volatile Runnable r = null;
-                public volatile ThreadPoolExecutor p = null;
-                public void reset() { r = null; p = null; }
-                public void rejectedExecution(Runnable r, ThreadPoolExecutor p) {
-                    assertNull(this.r);
-                    assertNull(this.p);
-                    this.r = r;
-                    this.p = p;
-                }
-            }
-
-            // check custom handler is invoked exactly once per task
-            Recorder recorder = new Recorder();
-            p.setRejectedExecutionHandler(recorder);
-            assertSame(recorder, p.getRejectedExecutionHandler());
-            for (int i = 2; i--> 0; ) {
-                recorder.reset();
-                p.execute(r);
-                assertSame(r, recorder.r);
-                assertSame(p, recorder.p);
-
-                recorder.reset();
-                assertFalse(p.submit(r).isDone());
-                assertTrue(recorder.r instanceof FutureTask);
-                assertSame(p, recorder.p);
-
-                recorder.reset();
-                assertFalse(p.submit(c).isDone());
-                assertTrue(recorder.r instanceof FutureTask);
-                assertSame(p, recorder.p);
-            }
-
-            // check that pool was not perturbed by handlers
-            assertEquals(2, p.getTaskCount());
-            assertEquals(0, p.getCompletedTaskCount());
-            assertEquals(0, p.getQueue().remainingCapacity());
+            assertTaskSubmissionsAreRejected(p);
         }
-        assertEquals(saturatedSize(p), p.getCompletedTaskCount());
-    }
-
-    /**
-     * executor using CallerRunsPolicy runs task if saturated.
-     */
-    public void testSaturatedExecute2() {
-        final RejectedExecutionHandler handler = new CallerRunsPolicy();
-        final ThreadPoolExecutor p = new ThreadPoolExecutor(
-            1, 1, LONG_DELAY_MS, SECONDS, new ArrayBlockingQueue<Runnable>(1),
-            handler);
-        assertSame(handler, p.getRejectedExecutionHandler());
-        final TrackedNoOpRunnable[] tasks = new TrackedNoOpRunnable[5];
-        final CountDownLatch done = new CountDownLatch(1);
-        try (PoolCleaner cleaner = cleaner(p, done)) {
-            p.execute(awaiter(done));
-
-            for (int i = 0; i < tasks.length; i++)
-                p.execute(tasks[i] = new TrackedNoOpRunnable());
-
-            for (int i = 1; i < tasks.length; i++)
-                assertTrue(tasks[i].done);
-            assertFalse(tasks[0].done); // waiting in queue
-        }
-        for (TrackedNoOpRunnable task : tasks)
-            assertTrue(task.done);
-    }
-
-    /**
-     * executor using DiscardPolicy drops task if saturated.
-     */
-    public void testSaturatedExecute3() {
-        final RejectedExecutionHandler handler = new DiscardPolicy();
-        final ThreadPoolExecutor p = new ThreadPoolExecutor(
-            1, 1, LONG_DELAY_MS, SECONDS, new ArrayBlockingQueue<Runnable>(1),
-            handler);
-        assertSame(handler, p.getRejectedExecutionHandler());
-        final TrackedNoOpRunnable[] tasks = new TrackedNoOpRunnable[5];
-        final CountDownLatch done = new CountDownLatch(1);
-        try (PoolCleaner cleaner = cleaner(p, done)) {
-            p.execute(awaiter(done));
-
-            for (int i = 0; i < tasks.length; i++)
-                p.execute(tasks[i] = new TrackedNoOpRunnable());
-
-            for (int i = 1; i < tasks.length; i++)
-                assertFalse(tasks[i].done);
-        }
-        for (int i = 1; i < tasks.length; i++)
-            assertFalse(tasks[i].done);
-        assertTrue(tasks[0].done); // was waiting in queue
+        assertEquals(saturatedSize(p)
+                     - (shutdownNow ? p.getQueue().remainingCapacity() : 0),
+                     p.getCompletedTaskCount());
     }
 
     /**
      * executor using DiscardOldestPolicy drops oldest task if saturated.
      */
-    public void testSaturatedExecute4() {
+    public void testSaturatedExecute_DiscardOldestPolicy() {
         final CountDownLatch done = new CountDownLatch(1);
         LatchAwaiter r1 = awaiter(done);
         LatchAwaiter r2 = awaiter(done);
@@ -1251,59 +1155,6 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
     }
 
     /**
-     * execute throws RejectedExecutionException if shutdown
-     */
-    public void testRejectedExecutionExceptionOnShutdown() {
-        final ThreadPoolExecutor p =
-            new ThreadPoolExecutor(1, 1,
-                                   LONG_DELAY_MS, MILLISECONDS,
-                                   new ArrayBlockingQueue<Runnable>(1));
-        try { p.shutdown(); } catch (SecurityException ok) { return; }
-        try (PoolCleaner cleaner = cleaner(p)) {
-            try {
-                p.execute(new NoOpRunnable());
-                shouldThrow();
-            } catch (RejectedExecutionException success) {}
-        }
-    }
-
-    /**
-     * execute using CallerRunsPolicy drops task on shutdown
-     */
-    public void testCallerRunsOnShutdown() {
-        RejectedExecutionHandler h = new CallerRunsPolicy();
-        final ThreadPoolExecutor p =
-            new ThreadPoolExecutor(1, 1,
-                                   LONG_DELAY_MS, MILLISECONDS,
-                                   new ArrayBlockingQueue<Runnable>(1), h);
-
-        try { p.shutdown(); } catch (SecurityException ok) { return; }
-        try (PoolCleaner cleaner = cleaner(p)) {
-            TrackedNoOpRunnable r = new TrackedNoOpRunnable();
-            p.execute(r);
-            assertFalse(r.done);
-        }
-    }
-
-    /**
-     * execute using DiscardPolicy drops task on shutdown
-     */
-    public void testDiscardOnShutdown() {
-        final ThreadPoolExecutor p =
-            new ThreadPoolExecutor(1, 1,
-                                   LONG_DELAY_MS, MILLISECONDS,
-                                   new ArrayBlockingQueue<Runnable>(1),
-                                   new DiscardPolicy());
-
-        try { p.shutdown(); } catch (SecurityException ok) { return; }
-        try (PoolCleaner cleaner = cleaner(p)) {
-            TrackedNoOpRunnable r = new TrackedNoOpRunnable();
-            p.execute(r);
-            assertFalse(r.done);
-        }
-    }
-
-    /**
      * execute using DiscardOldestPolicy drops task on shutdown
      */
     public void testDiscardOldestOnShutdown() {
@@ -1322,18 +1173,15 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
     }
 
     /**
-     * execute(null) throws NPE
+     * Submitting null tasks throws NullPointerException
      */
-    public void testExecuteNull() {
+    public void testNullTaskSubmission() {
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 2,
                                    1L, SECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
         try (PoolCleaner cleaner = cleaner(p)) {
-            try {
-                p.execute(null);
-                shouldThrow();
-            } catch (NullPointerException success) {}
+            assertNullTaskSubmissionThrowsNullPointerException(p);
         }
     }
 

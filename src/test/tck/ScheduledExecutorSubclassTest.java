@@ -280,110 +280,67 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
     }
 
     /**
-     * execute(null) throws NPE
+     * Submitting null tasks throws NullPointerException
      */
-    public void testExecuteNull() throws InterruptedException {
+    public void testNullTaskSubmission() {
         final CustomExecutor p = new CustomExecutor(1);
         try (PoolCleaner cleaner = cleaner(p)) {
-            try {
-                p.execute(null);
-                shouldThrow();
-            } catch (NullPointerException success) {}
+            assertNullTaskSubmissionThrowsNullPointerException(p);
         }
     }
 
     /**
-     * schedule(null) throws NPE
+     * Submitted tasks are rejected when shutdown
      */
-    public void testScheduleNull() throws InterruptedException {
-        final CustomExecutor p = new CustomExecutor(1);
-        try (PoolCleaner cleaner = cleaner(p)) {
-            try {
-                Future f = p.schedule((Callable)null,
-                                      randomTimeout(), randomTimeUnit());
-                shouldThrow();
-            } catch (NullPointerException success) {}
-        }
-    }
+    public void testSubmittedTasksRejectedWhenShutdown() throws InterruptedException {
+        final CustomExecutor p = new CustomExecutor(2);
+        final ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        final CountDownLatch threadsStarted = new CountDownLatch(p.getCorePoolSize());
+        final CountDownLatch done = new CountDownLatch(1);
+        final Runnable r = () -> {
+            threadsStarted.countDown();
+            for (;;) {
+                try {
+                    done.await();
+                    return;
+                } catch (InterruptedException shutdownNowDeliberatelyIgnored) {}
+            }};
+        final Callable<Boolean> c = () -> {
+            threadsStarted.countDown();
+            for (;;) {
+                try {
+                    done.await();
+                    return Boolean.TRUE;
+                } catch (InterruptedException shutdownNowDeliberatelyIgnored) {}
+            }};
 
-    /**
-     * execute throws RejectedExecutionException if shutdown
-     */
-    public void testSchedule1_RejectedExecutionException() {
-        final CustomExecutor p = new CustomExecutor(1);
-        try (PoolCleaner cleaner = cleaner(p)) {
-            try {
+        try (PoolCleaner cleaner = cleaner(p, done)) {
+            for (int i = p.getCorePoolSize(); i--> 0; ) {
+                switch (rnd.nextInt(4)) {
+                case 0: p.execute(r); break;
+                case 1: assertFalse(p.submit(r).isDone()); break;
+                case 2: assertFalse(p.submit(r, Boolean.TRUE).isDone()); break;
+                case 3: assertFalse(p.submit(c).isDone()); break;
+                }
+            }
+
+            // ScheduledThreadPoolExecutor has an unbounded queue, so never saturated.
+            await(threadsStarted);
+
+            if (rnd.nextBoolean())
+                p.shutdownNow();
+            else
                 p.shutdown();
-                p.schedule(new NoOpRunnable(),
-                           randomTimeout(), randomTimeUnit());
-                shouldThrow();
-            } catch (RejectedExecutionException success) {
-            } catch (SecurityException ok) {}
-        }
-    }
+            // Pool is shutdown, but not yet terminated
+            assertTaskSubmissionsAreRejected(p);
+            assertFalse(p.isTerminated());
 
-    /**
-     * schedule throws RejectedExecutionException if shutdown
-     */
-    public void testSchedule2_RejectedExecutionException() {
-        final CustomExecutor p = new CustomExecutor(1);
-        try (PoolCleaner cleaner = cleaner(p)) {
-            try {
-                p.shutdown();
-                p.schedule(new NoOpCallable(),
-                           randomTimeout(), randomTimeUnit());
-                shouldThrow();
-            } catch (RejectedExecutionException success) {
-            } catch (SecurityException ok) {}
-        }
-    }
+            done.countDown();   // release blocking tasks
+            assertTrue(p.awaitTermination(LONG_DELAY_MS, MILLISECONDS));
 
-    /**
-     * schedule callable throws RejectedExecutionException if shutdown
-     */
-    public void testSchedule3_RejectedExecutionException() {
-        final CustomExecutor p = new CustomExecutor(1);
-        try (PoolCleaner cleaner = cleaner(p)) {
-            try {
-                p.shutdown();
-                p.schedule(new NoOpCallable(),
-                           randomTimeout(), randomTimeUnit());
-                shouldThrow();
-            } catch (RejectedExecutionException success) {
-            } catch (SecurityException ok) {}
+            assertTaskSubmissionsAreRejected(p);
         }
-    }
-
-    /**
-     * scheduleAtFixedRate throws RejectedExecutionException if shutdown
-     */
-    public void testScheduleAtFixedRate1_RejectedExecutionException() {
-        final CustomExecutor p = new CustomExecutor(1);
-        try (PoolCleaner cleaner = cleaner(p)) {
-            try {
-                p.shutdown();
-                p.scheduleAtFixedRate(new NoOpRunnable(),
-                                      MEDIUM_DELAY_MS, MEDIUM_DELAY_MS, MILLISECONDS);
-                shouldThrow();
-            } catch (RejectedExecutionException success) {
-            } catch (SecurityException ok) {}
-        }
-    }
-
-    /**
-     * scheduleWithFixedDelay throws RejectedExecutionException if shutdown
-     */
-    public void testScheduleWithFixedDelay1_RejectedExecutionException() {
-        final CustomExecutor p = new CustomExecutor(1);
-        try (PoolCleaner cleaner = cleaner(p)) {
-            try {
-                p.shutdown();
-                p.scheduleWithFixedDelay(new NoOpRunnable(),
-                                         MEDIUM_DELAY_MS, MEDIUM_DELAY_MS, MILLISECONDS);
-                shouldThrow();
-            } catch (RejectedExecutionException success) {
-            } catch (SecurityException ok) {}
-        }
+        assertEquals(p.getCorePoolSize(), p.getCompletedTaskCount());
     }
 
     /**
@@ -789,6 +746,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
      * - setExecuteExistingDelayedTasksAfterShutdownPolicy
      * - setContinueExistingPeriodicTasksAfterShutdownPolicy
      */
+    @SuppressWarnings("FutureReturnValueIgnored")
     public void testShutdown_cancellation() throws Exception {
         final int poolSize = 4;
         final CustomExecutor p = new CustomExecutor(poolSize);
