@@ -20,6 +20,7 @@ import junit.framework.AssertionFailedError;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
+@SuppressWarnings("WaitNotInLoop") // we implement spurious-wakeup freedom
 public class ReentrantLockTest extends JSR166TestCase {
     public static void main(String[] args) {
         main(suite(), args);
