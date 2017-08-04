@@ -62,7 +62,7 @@ public class DoubleAdderTest extends JSR166TestCase {
     }
 
     /**
-     * a deserialized serialized adder holds same value
+     * a deserialized/reserialized adder holds same value
      */
     public void testSerialization() throws Exception {
         DoubleAdder x = new DoubleAdder();

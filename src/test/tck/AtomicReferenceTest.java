@@ -116,7 +116,7 @@ public class AtomicReferenceTest extends JSR166TestCase {
     }
 
     /**
-     * a deserialized serialized atomic holds same value
+     * a deserialized/reserialized atomic holds same value
      */
     public void testSerialization() throws Exception {
         AtomicReference x = new AtomicReference();

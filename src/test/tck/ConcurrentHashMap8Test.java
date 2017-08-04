@@ -543,7 +543,7 @@ public class ConcurrentHashMap8Test extends JSR166TestCase {
     }
 
     /**
-     * A deserialized serialized set is equal
+     * A deserialized/reserialized set equals original
      */
     public void testSerialization() throws Exception {
         int size = 20;
