@@ -801,6 +801,23 @@ public class ConcurrentSkipListMapTest extends JSR166TestCase {
     }
 
     /**
+     * A cloned map equals original
+     */
+    public void testClone() throws Exception {
+        ConcurrentSkipListMap x = map5();
+        ConcurrentSkipListMap y = x.clone();
+
+        assertNotSame(x, y);
+        assertEquals(x.size(), y.size());
+        assertEquals(x.toString(), y.toString());
+        assertEquals(x, y);
+        assertEquals(y, x);
+        y.clear();
+        assertTrue(y.isEmpty());
+        assertFalse(x.equals(y));
+    }
+
+    /**
      * A deserialized map equals original
      */
     public void testSerialization() throws Exception {
@@ -812,6 +829,9 @@ public class ConcurrentSkipListMapTest extends JSR166TestCase {
         assertEquals(x.toString(), y.toString());
         assertEquals(x, y);
         assertEquals(y, x);
+        y.clear();
+        assertTrue(y.isEmpty());
+        assertFalse(x.equals(y));
     }
 
     /**
