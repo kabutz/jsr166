@@ -245,8 +245,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      * methods, and ensuring that linked objects are transitively
      * acquired via dependent reads (normally once) unless performing
      * a volatile-mode CAS operation (that also acts as an acquire and
-     * release).  This is a form of fence-hoisting is similar to RCU
-     * and related techniques (see McKenney's online book
+     * release).  This form of fence-hoisting is similar to RCU and
+     * related techniques (see McKenney's online book
      * https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html)
      * It minimizes overhead that may otherwise occur when using so
      * many volatile-mode reads. Using explicit acquireFences is
