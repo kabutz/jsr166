@@ -2073,8 +2073,10 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         final void advance(Node<K,V> b) {
             Node<K,V> n = null;
             V v = null;
-            if ((lastReturned = b) != null)
-                do {} while ((n = b.next) != null && (v = n.val) == null);
+            if ((lastReturned = b) != null) {
+                while ((n = b.next) != null && (v = n.val) == null)
+                    b = n;
+            }
             nextValue = v;
             next = n;
         }
