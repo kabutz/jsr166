@@ -255,9 +255,9 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      * to the entry points or loop headers of a few methods. A
      * potential disadvantage is that these few remaining fences are
      * not easily optimized away by compilers under exclusively
-     * single-thread use.  It requires some care avoid volatile mode
-     * reads of other fields. (Note that the memory semantics of a
-     * reference dependently read in plain mode exactly once are
+     * single-thread use.  It requires some care to avoid volatile
+     * mode reads of other fields. (Note that the memory semantics of
+     * a reference dependently read in plain mode exactly once are
      * equivalent to those for atomic opaque mode.)  Iterators and
      * other traversals encounter each node and value exactly once.
      * Other operations locate an element (or position to insert an
