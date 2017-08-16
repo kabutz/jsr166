@@ -2863,6 +2863,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             V nextValue;
 
             SubMapIter() {
+                VarHandle.acquireFence();
                 Comparator<? super K> cmp = m.comparator;
                 for (;;) {
                     next = isDescending ? hiNode(cmp) : loNode(cmp);
