@@ -327,8 +327,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      * Nodes hold keys and values, and are singly linked in sorted
      * order, possibly with some intervening marker nodes. The list is
      * headed by a header node accessible as head.node. Headers and
-     * marker nodes have have null keys. The val field (but currently
-     * not the key field) is nulled out upon deletion.
+     * marker nodes have null keys. The val field (but currently not
+     * the key field) is nulled out upon deletion.
      */
     static final class Node<K,V> {
         final K key; // currently, never detached
