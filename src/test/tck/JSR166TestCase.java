@@ -1913,6 +1913,18 @@ public class JSR166TestCase extends TestCase {
         Collections.shuffle(Arrays.asList(array), ThreadLocalRandom.current());
     }
 
+    /**
+     * Returns the same String as would be returned by {@link
+     * Object#toString}, whether or not the given object's class
+     * overrides toString().
+     *
+     * @see System#identityHashCode
+     */
+    static String identityString(Object x) {
+        return x.getClass().getName()
+            + "@" + Integer.toHexString(System.identityHashCode(x));
+    }
+
     // --- Shared assertions for Executor tests ---
 
     /**

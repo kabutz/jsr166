@@ -1346,6 +1346,9 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         public final void setRawResult(T v) { result = v; }
         public final boolean exec() { runnable.run(); return true; }
         public final void run() { invoke(); }
+        public String toString() {
+            return super.toString() + "[Wrapped task = " + runnable + "]";
+        }
         private static final long serialVersionUID = 5232453952276885070L;
     }
 
@@ -1363,6 +1366,9 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         public final void setRawResult(Void v) { }
         public final boolean exec() { runnable.run(); return true; }
         public final void run() { invoke(); }
+        public String toString() {
+            return super.toString() + "[Wrapped task = " + runnable + "]";
+        }
         private static final long serialVersionUID = 5232453952276885070L;
     }
 
@@ -1409,6 +1415,9 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         }
         public final void run() { invoke(); }
         private static final long serialVersionUID = 2838392045355241008L;
+        public String toString() {
+            return super.toString() + "[Wrapped task = " + callable + "]";
+        }
     }
 
     /**
