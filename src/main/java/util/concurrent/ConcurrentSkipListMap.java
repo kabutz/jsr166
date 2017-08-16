@@ -320,7 +320,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     private transient Values<K,V> values;
     /** Lazily initialized entry set */
     private transient EntrySet<K,V> entrySet;
-    /** Lazily initialized descending key set */
+    /** Lazily initialized descending map */
     private transient SubMap<K,V> descendingMap;
 
     /**
