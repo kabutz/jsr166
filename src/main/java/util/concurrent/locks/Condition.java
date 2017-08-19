@@ -281,7 +281,8 @@ public interface Condition {
      * the following form:
      *
      * <pre> {@code
-     * boolean aMethod(long timeout, TimeUnit unit) {
+     * boolean aMethod(long timeout, TimeUnit unit)
+     *     throws InterruptedException {
      *   long nanos = unit.toNanos(timeout);
      *   lock.lock();
      *   try {
@@ -291,6 +292,7 @@ public interface Condition {
      *       nanos = theCondition.awaitNanos(nanos);
      *     }
      *     // ...
+     *     return true;
      *   } finally {
      *     lock.unlock();
      *   }
@@ -381,7 +383,8 @@ public interface Condition {
      * <p>The return value indicates whether the deadline has elapsed,
      * which can be used as follows:
      * <pre> {@code
-     * boolean aMethod(Date deadline) {
+     * boolean aMethod(Date deadline)
+     *     throws InterruptedException {
      *   boolean stillWaiting = true;
      *   lock.lock();
      *   try {
@@ -391,6 +394,7 @@ public interface Condition {
      *       stillWaiting = theCondition.awaitUntil(deadline);
      *     }
      *     // ...
+     *     return true;
      *   } finally {
      *     lock.unlock();
      *   }
