@@ -317,7 +317,7 @@ public enum TimeUnit {
      *     throws InterruptedException {
      *   synchronized (lock) {
      *     while (isEmpty()) {
-     *       unit.timedWait(this, timeout);
+     *       unit.timedWait(lock, timeout);
      *       ...
      *     }
      *   }
