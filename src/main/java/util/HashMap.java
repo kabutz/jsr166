@@ -1394,9 +1394,10 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Save the state of the {@code HashMap} instance to a stream (i.e.,
-     * serialize it).
+     * Saves this map to a stream (that is, serializes it).
      *
+     * @param s the stream
+     * @throws IOException if an I/O error occurs
      * @serialData The <i>capacity</i> of the HashMap (the length of the
      *             bucket array) is emitted (int), followed by the
      *             <i>size</i> (an int, the number of key-value
@@ -1415,8 +1416,11 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Reconstitute the {@code HashMap} instance from a stream (i.e.,
-     * deserialize it).
+     * Reconstitutes this map from a stream (that is, deserializes it).
+     * @param s the stream
+     * @throws ClassNotFoundException if the class of a serialized object
+     *         could not be found
+     * @throws IOException if an I/O error occurs
      */
     private void readObject(java.io.ObjectInputStream s)
         throws IOException, ClassNotFoundException {
