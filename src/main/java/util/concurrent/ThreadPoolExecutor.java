@@ -676,7 +676,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             int c = ctl.get();
             if (isRunning(c) ||
                 runStateAtLeast(c, TIDYING) ||
-                (runStateOf(c) == SHUTDOWN && ! workQueue.isEmpty()))
+                (runStateLessThan(c, STOP) && ! workQueue.isEmpty()))
                 return;
             if (workerCountOf(c) != 0) { // Eligible to terminate
                 interruptIdleWorkers(ONLY_ONE);
@@ -867,15 +867,12 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      */
     private boolean addWorker(Runnable firstTask, boolean core) {
         retry:
-        for (;;) {
-            int c = ctl.get();
-            int rs = runStateOf(c);
-
+        for (int c = ctl.get();;) {
             // Check if queue empty only if necessary.
-            if (rs >= SHUTDOWN &&
-                ! (rs == SHUTDOWN &&
-                   firstTask == null &&
-                   ! workQueue.isEmpty()))
+            if (runStateAtLeast(c, SHUTDOWN)
+                && (runStateAtLeast(c, STOP)
+                    || firstTask != null
+                    || workQueue.isEmpty()))
                 return false;
 
             for (;;) {
@@ -886,7 +883,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                 if (compareAndIncrementWorkerCount(c))
                     break retry;
                 c = ctl.get();  // Re-read ctl
-                if (runStateOf(c) != rs)
+                if (runStateAtLeast(c, SHUTDOWN))
                     continue retry;
                 // else CAS failed due to workerCount change; retry inner loop
             }
@@ -905,10 +902,10 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                     // Recheck while holding lock.
                     // Back out on ThreadFactory failure or if
                     // shut down before lock acquired.
-                    int rs = runStateOf(ctl.get());
+                    int c = ctl.get();
 
-                    if (rs < SHUTDOWN ||
-                        (rs == SHUTDOWN && firstTask == null)) {
+                    if (isRunning(c) ||
+                        (runStateLessThan(c, STOP) && firstTask == null)) {
                         if (t.isAlive()) // precheck that t is startable
                             throw new IllegalThreadStateException();
                         workers.add(w);
@@ -1015,10 +1012,10 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 
         for (;;) {
             int c = ctl.get();
-            int rs = runStateOf(c);
 
             // Check if queue empty only if necessary.
-            if (rs >= SHUTDOWN && (rs >= STOP || workQueue.isEmpty())) {
+            if (runStateAtLeast(c, SHUTDOWN)
+                && (runStateAtLeast(c, STOP) || workQueue.isEmpty())) {
                 decrementWorkerCount();
                 return null;
             }
@@ -1409,7 +1406,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     }
 
     public boolean isShutdown() {
-        return ! isRunning(ctl.get());
+        return runStateAtLeast(ctl.get(), SHUTDOWN);
     }
 
     /** Used by ScheduledThreadPoolExecutor. */
@@ -1430,7 +1427,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      */
     public boolean isTerminating() {
         int c = ctl.get();
-        return ! isRunning(c) && runStateLessThan(c, TERMINATED);
+        return runStateAtLeast(c, SHUTDOWN) && runStateLessThan(c, TERMINATED);
     }
 
     public boolean isTerminated() {
@@ -1443,7 +1440,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         final ReentrantLock mainLock = this.mainLock;
         mainLock.lock();
         try {
-            while (!runStateAtLeast(ctl.get(), TERMINATED)) {
+            while (runStateLessThan(ctl.get(), TERMINATED)) {
                 if (nanos <= 0L)
                     return false;
                 nanos = termination.awaitNanos(nanos);
@@ -1922,7 +1919,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         }
         int c = ctl.get();
         String runState =
-            runStateLessThan(c, SHUTDOWN) ? "Running" :
+            isRunning(c) ? "Running" :
             runStateAtLeast(c, TERMINATED) ? "Terminated" :
             "Shutting down";
         return super.toString() +
