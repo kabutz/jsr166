@@ -1299,7 +1299,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      *
      * If the task cannot be submitted for execution, either because this
      * executor has been shutdown or because its capacity has been reached,
-     * the task is handled by the current {@code RejectedExecutionHandler}.
+     * the task is handled by the current {@link RejectedExecutionHandler}.
      *
      * @param command the task to execute
      * @throws RejectedExecutionException at discretion of
