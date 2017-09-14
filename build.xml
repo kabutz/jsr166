@@ -346,8 +346,8 @@
            workDir="@{workdir}/JTwork">
       <patternset refid="jdk@{target}.jtreg.tests"/>
       <arg value="-Xbootclasspath/p:@{classes}" unless:set="modules"/>
-      <arg value="-javacoptions:--patch-module java.base=@{classes}" if:set="modules"/>
-      <arg value="-vmoptions:--patch-module java.base=@{classes}" if:set="modules"/>
+      <arg value="-javacoptions:--patch-module=java.base=@{classes}" if:set="modules"/>
+      <arg value="-vmoptions:--patch-module=java.base=@{classes}" if:set="modules"/>
       <arg value="-agentvm"/>
       <arg value="-noreport"/>
       <arg value="-verbose:${jtreg.verbose}"/>
