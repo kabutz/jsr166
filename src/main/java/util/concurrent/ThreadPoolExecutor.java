@@ -720,17 +720,12 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * specially.
      */
     private void checkShutdownAccess() {
+        // assert mainLock.isHeldByCurrentThread();
         SecurityManager security = System.getSecurityManager();
         if (security != null) {
             security.checkPermission(shutdownPerm);
-            final ReentrantLock mainLock = this.mainLock;
-            mainLock.lock();
-            try {
-                for (Worker w : workers)
-                    security.checkAccess(w.thread);
-            } finally {
-                mainLock.unlock();
-            }
+            for (Worker w : workers)
+                security.checkAccess(w.thread);
         }
     }
 
@@ -739,14 +734,9 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * (in which case some threads may remain uninterrupted).
      */
     private void interruptWorkers() {
-        final ReentrantLock mainLock = this.mainLock;
-        mainLock.lock();
-        try {
-            for (Worker w : workers)
-                w.interruptIfStarted();
-        } finally {
-            mainLock.unlock();
-        }
+        // assert mainLock.isHeldByCurrentThread();
+        for (Worker w : workers)
+            w.interruptIfStarted();
     }
 
     /**
