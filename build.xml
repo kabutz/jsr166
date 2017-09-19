@@ -610,6 +610,9 @@
       <param name="build.main.java.version" value="10"/>
     </antcall>
 
+    <!-- Clean up to avoid obscure wrong class file version bugs -->
+    <antcall target="clean"/>
+
   </target>
 
 
