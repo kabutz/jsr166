@@ -1502,7 +1502,7 @@
          dest="${guava.dir}/guava-testlib-tests.jar" usetimestamp="true"/>
     <junit printsummary="true" showoutput="true" haltonfailure="true"
            jvm="${build.main.java}" fork="true">
-      <jvmarg line="-ea -esa --patch-module java.base=${product.jar}"/>
+      <jvmarg line="-ea -esa --patch-module=java.base=${product.jar}"/>
       <formatter type="brief"/>
       <classpath>
         <pathelement location="${guava.dir}/guava-testlib-tests.jar"/>
