@@ -43,7 +43,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
@@ -74,8 +73,8 @@ public class ThrowingTasks {
         = new UncaughtExceptions();
     static final UncaughtExceptionsTable uncaughtExceptionsTable
         = new UncaughtExceptionsTable();
-    static final AtomicLong totalUncaughtExceptions
-        = new AtomicLong(0);
+    static final AtomicInteger totalUncaughtExceptions
+        = new AtomicInteger(0);
     static final CountDownLatch uncaughtExceptionsLatch
         = new CountDownLatch(24);
 
@@ -263,7 +262,7 @@ public class ThrowingTasks {
             equal(map.get(RuntimeException.class), throwers.size() + 1);
             equal(map.size(), 4);
         }
-        equal(totalUncaughtExceptions.get(), 4L*throwers.size() + 4L);
+        equal(totalUncaughtExceptions.get(), 4*throwers.size() + 4);
 
         equal(beforeExecuteCount.get(), flakes.size());
         equal(afterExecuteCount.get(), throwers.size());
