@@ -1102,15 +1102,12 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                     wt.interrupt();
                 try {
                     beforeExecute(wt, task);
-                    Throwable thrown = null;
                     try {
                         task.run();
-                    } catch (RuntimeException | Error x) {
-                        thrown = x; throw x;
-                    } catch (Throwable x) {
-                        thrown = x; throw new Error(x);
-                    } finally {
-                        afterExecute(task, thrown);
+                        afterExecute(task, null);
+                    } catch (Throwable ex) {
+                        afterExecute(task, ex);
+                        throw ex;
                     }
                 } finally {
                     task = null;

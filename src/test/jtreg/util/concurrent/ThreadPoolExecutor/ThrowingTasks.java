@@ -249,9 +249,9 @@ public class ThrowingTasks {
         maps.add(uncaughtExceptions);
         maps.add(uncaughtExceptionsTable);
         for (Map<Class<?>, Integer> map : maps) {
-            equal(map.get(Exception.class), throwers.size());
-            equal(map.get(weird.getClass()), throwers.size());
-            equal(map.get(Error.class), throwers.size() + 1 + 2);
+            equal(map.get(Exception.class), throwers.size() + 1);
+            equal(map.get(weird.getClass()), throwers.size() + 1);
+            equal(map.get(Error.class), throwers.size() + 1);
             equal(map.get(RuntimeException.class), throwers.size() + 1);
             equal(map.size(), 4);
         }
