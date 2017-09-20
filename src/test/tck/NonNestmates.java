@@ -17,9 +17,9 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 /**
- * This helper class and its subclasses are deliberately not contained
- * textually in the test source files that use them, to avoid making
- * them nestmates, which affects access rules (see JEP 181).
+ * This source file contains test code deliberately not contained in
+ * the same source file as the tests that use them, to avoid making
+ * them nestmates, which affects accessibility rules (see JEP 181).
  */
 class NonNestmates {
 
