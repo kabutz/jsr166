@@ -108,14 +108,12 @@ public class ThrowingTasks {
         }
     }
 
-    static final Thrower noThrower      = new Thrower(null);
-    static final Thrower rteThrower     = new Thrower(rte);
-    static final Thrower errorThrower   = new Thrower(error);
-    static final Thrower weirdThrower   = new Thrower(weird);
-    static final Thrower checkedThrower = new Thrower(checkedException);
-
     static final List<Thrower> throwers = Arrays.asList(
-        noThrower, rteThrower, errorThrower, weirdThrower, checkedThrower);
+        new Thrower(null),
+        new Thrower(rte),
+        new Thrower(error),
+        new Thrower(weird),
+        new Thrower(checkedException));
 
     static class Flaky implements Runnable {
         final Runnable beforeExecute;
