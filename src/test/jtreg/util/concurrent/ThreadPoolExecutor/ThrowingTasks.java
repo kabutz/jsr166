@@ -59,13 +59,14 @@ public class ThrowingTasks {
         }
     }
 
+    /** Double-check that HashTable and ConcurrentHashMap are equivalent. */
     @SuppressWarnings("serial")
     static class UncaughtExceptionsTable
         extends Hashtable<Class<?>, Integer> {
 
         synchronized void inc(Class<?> key) {
-            Integer i = get(key);
-            put(key, (i == null) ? 1 : i + 1);
+            Integer v = get(key);
+            put(key, (v == null) ? 1 : v + 1);
         }
     }
 
