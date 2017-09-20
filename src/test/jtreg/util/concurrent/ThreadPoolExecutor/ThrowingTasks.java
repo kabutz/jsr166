@@ -59,7 +59,7 @@ public class ThrowingTasks {
         }
     }
 
-    /** Double-check that HashTable and ConcurrentHashMap are equivalent. */
+    /** Double-check that HashTable and ConcurrentHashMap are work-alikes. */
     @SuppressWarnings("serial")
     static class UncaughtExceptionsTable
         extends Hashtable<Class<?>, Integer> {
@@ -79,24 +79,21 @@ public class ThrowingTasks {
     static final CountDownLatch uncaughtExceptionsLatch
         = new CountDownLatch(24);
 
-    static final Thread.UncaughtExceptionHandler handler
-        = new Thread.UncaughtExceptionHandler() {
-                public void uncaughtException(Thread t, Throwable e) {
-                    check(! Thread.currentThread().isInterrupted());
-                    totalUncaughtExceptions.getAndIncrement();
-                    uncaughtExceptions.inc(e.getClass());
-                    uncaughtExceptionsTable.inc(e.getClass());
-                    uncaughtExceptionsLatch.countDown();
-                }};
+    static final Thread.UncaughtExceptionHandler handler = (thread, ex) -> {
+        check(! Thread.currentThread().isInterrupted());
+        totalUncaughtExceptions.getAndIncrement();
+        uncaughtExceptions.inc(ex.getClass());
+        uncaughtExceptionsTable.inc(ex.getClass());
+        uncaughtExceptionsLatch.countDown();
+    };
 
     static final ThreadGroup tg = new ThreadGroup("Flaky");
 
-    static final ThreadFactory tf = new ThreadFactory() {
-            public Thread newThread(Runnable r) {
-                Thread t = new Thread(tg, r);
-                t.setUncaughtExceptionHandler(handler);
-                return t;
-            }};
+    static final ThreadFactory tf = (runnable) -> {
+        Thread thread = new Thread(tg, runnable);
+        thread.setUncaughtExceptionHandler(handler);
+        return thread;
+    };
 
     static final RuntimeException rte = new RuntimeException();
     static final Error error = new Error();
@@ -104,7 +101,7 @@ public class ThrowingTasks {
     static final Exception checkedException = new Exception();
 
     static class Thrower implements Runnable {
-        Throwable t;
+        final Throwable t;
         Thrower(Throwable t) { this.t = t; }
         public void run() {
             if (t != null)
