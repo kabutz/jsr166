@@ -245,8 +245,6 @@ public class ThrowingTasks {
         check(tpe.awaitTermination(10L, TimeUnit.MINUTES));
         checkTerminated(tpe);
 
-        //while (tg.activeCount() > 0) Thread.sleep(10);
-        //System.out.println(uncaughtExceptions);
         List<Map<Class<?>, Integer>> maps = new ArrayList<>();
         maps.add(uncaughtExceptions);
         maps.add(uncaughtExceptionsTable);
