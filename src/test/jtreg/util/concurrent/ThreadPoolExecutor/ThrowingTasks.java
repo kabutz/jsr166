@@ -55,16 +55,7 @@ public class ThrowingTasks {
         extends ConcurrentHashMap<Class<?>, Integer> {
 
         void inc(Class<?> key) {
-            for (;;) {
-                Integer i = get(key);
-                if (i == null) {
-                    if (putIfAbsent(key, 1) == null)
-                        return;
-                } else {
-                    if (replace(key, i, i + 1))
-                        return;
-                }
-            }
+            compute(key, (k, v) -> (v == null) ? 1 : v + 1);
         }
     }
 
