@@ -119,7 +119,7 @@ public class AtomicReferenceFieldUpdaterTest extends JSR166TestCase {
     }
 
     /**
-     * compareAndSet succeeds in changing value if equal to expected else fails
+     * compareAndSet succeeds in changing value if same as expected else fails
      */
     public void testCompareAndSet() {
         AtomicReferenceFieldUpdater<AtomicReferenceFieldUpdaterTest, Integer> a;
@@ -132,6 +132,15 @@ public class AtomicReferenceFieldUpdaterTest extends JSR166TestCase {
         assertNotSame(seven, a.get(this));
         assertTrue(a.compareAndSet(this, m4, seven));
         assertSame(seven, a.get(this));
+    }
+
+    /**
+     * compareAndSet succeeds in changing protected field value if
+     * same as expected else fails
+     */
+    public void testCompareAndSetProtectedInSubclass() {
+        new NonNestmates.AtomicReferenceFieldUpdaterTestSubclass()
+            .checkCompareAndSetProtectedSub();
     }
 
     /**
@@ -157,8 +166,7 @@ public class AtomicReferenceFieldUpdaterTest extends JSR166TestCase {
     }
 
     /**
-     * repeated weakCompareAndSet succeeds in changing value when equal
-     * to expected
+     * repeated weakCompareAndSet succeeds in changing value when same as expected
      */
     public void testWeakCompareAndSet() {
         AtomicReferenceFieldUpdater<AtomicReferenceFieldUpdaterTest, Integer> a;

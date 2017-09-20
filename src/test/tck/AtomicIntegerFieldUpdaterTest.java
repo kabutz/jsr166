@@ -144,9 +144,8 @@ public class AtomicIntegerFieldUpdaterTest extends JSR166TestCase {
      * equal to expected else fails
      */
     public void testCompareAndSetProtectedInSubclass() {
-        NonNestmates.AtomicIntegerFieldUpdaterTestSubclass s =
-            new NonNestmates.AtomicIntegerFieldUpdaterTestSubclass();
-        s.checkCompareAndSetProtectedSub();
+        new NonNestmates.AtomicIntegerFieldUpdaterTestSubclass()
+            .checkCompareAndSetProtectedSub();
     }
 
     /**

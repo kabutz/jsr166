@@ -144,9 +144,8 @@ public class AtomicLongFieldUpdaterTest extends JSR166TestCase {
      * equal to expected else fails
      */
     public void testCompareAndSetProtectedInSubclass() {
-        NonNestmates.AtomicLongFieldUpdaterTestSubclass s =
-            new NonNestmates.AtomicLongFieldUpdaterTestSubclass();
-        s.checkCompareAndSetProtectedSub();
+        new NonNestmates.AtomicLongFieldUpdaterTestSubclass()
+            .checkCompareAndSetProtectedSub();
     }
 
     /**
