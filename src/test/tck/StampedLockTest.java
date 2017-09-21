@@ -1180,4 +1180,50 @@ public class StampedLockTest extends JSR166TestCase {
         }
         assertUnlocked(lock);
     }
+
+    /**
+     * Stamped locks are not reentrant.
+     */
+    public void testNonReentrant() throws InterruptedException {
+        final StampedLock lock = new StampedLock();
+        long stamp;
+
+        stamp = lock.writeLock();
+        assertValid(lock, stamp);
+        assertEquals(0L, lock.tryWriteLock(0L, DAYS));
+        assertEquals(0L, lock.tryReadLock(0L, DAYS));
+        assertValid(lock, stamp);
+        lock.unlockWrite(stamp);
+
+        stamp = lock.tryWriteLock(1L, DAYS);
+        assertEquals(0L, lock.tryWriteLock(0L, DAYS));
+        assertValid(lock, stamp);
+        lock.unlockWrite(stamp);
+
+        stamp = lock.readLock();
+        assertEquals(0L, lock.tryWriteLock(0L, DAYS));
+        assertValid(lock, stamp);
+        lock.unlockRead(stamp);
+    }
+
+    /**
+     * """StampedLocks have no notion of ownership. Locks acquired in
+     * one thread can be released or converted in another."""
+     */
+    public void testNoOwnership() throws Throwable {
+        ArrayList<Future<?>> futures = new ArrayList<>();
+        for (Function<StampedLock, Long> writeLocker : writeLockers())
+        for (BiConsumer<StampedLock, Long> writeUnlocker : writeUnlockers()) {
+            StampedLock lock = new StampedLock();
+            long stamp = writeLocker.apply(lock);
+            futures.add(cachedThreadPool.submit(new CheckedRunnable() {
+                public void realRun() {
+                    writeUnlocker.accept(lock, stamp);
+                    assertUnlocked(lock);
+                    assertFalse(lock.validate(stamp));
+                }}));
+        }
+        for (Future<?> future : futures)
+            assertNull(future.get());
+    }
 }
