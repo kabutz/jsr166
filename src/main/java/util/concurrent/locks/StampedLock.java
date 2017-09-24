@@ -133,7 +133,7 @@ import jdk.internal.vm.annotation.ReservedStackAccess;
  *         sl.unlockRead(stamp);
  *       }
  *     }
- *     return Math.sqrt(currentX * currentX + currentY * currentY);
+ *     return Math.hypot(currentX, currentY);
  *   }
  *
  *   void moveIfAtOrigin(double newX, double newY) { // upgrade
