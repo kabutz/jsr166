@@ -1226,4 +1226,44 @@ public class StampedLockTest extends JSR166TestCase {
         for (Future<?> future : futures)
             assertNull(future.get());
     }
+
+    /** Tries out sample usage code from StampedLock javadoc. */
+    public void testSampleUsage() throws Throwable {
+        class Point {
+            private double x, y;
+            private final StampedLock sl = new StampedLock();
+
+            void move(double deltaX, double deltaY) { // an exclusively locked method
+                long stamp = sl.writeLock();
+                try {
+                    x += deltaX;
+                    y += deltaY;
+                } finally {
+                    sl.unlockWrite(stamp);
+                }
+            }
+
+            double distanceFromOrigin() { // A read-only method
+                double currentX, currentY;
+                long stamp = sl.tryOptimisticRead();
+                do {
+                    if (stamp == 0L)
+                        stamp = sl.readLock();
+                    try {
+                        // possibly racy reads
+                        currentX = x;
+                        currentY = y;
+                    } finally {
+                        stamp = sl.tryConvertToOptimisticRead(stamp);
+                    }
+                } while (stamp == 0);
+                return Math.hypot(currentX, currentY);
+            }
+        }
+
+        Point p = new Point();
+        p.move(3.0, 4.0);
+        assertEquals(5.0, p.distanceFromOrigin());
+    }
+    
 }
