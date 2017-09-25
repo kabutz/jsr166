@@ -1377,6 +1377,7 @@
 <!-- ==============================================================
   Experimental errorprone support - http://errorprone.info
 =================================================================== -->
+  <property name="errorprone.jar" location="${lib.dir}/error_prone_ant-2.0.21.jar"/>
   <target name="errorprone"
           depends="clean, configure-compiler"
           description="Run errorprone over jsr166 source code (experimental)">
@@ -1398,7 +1399,7 @@
            fork="true">
 
       <include name="**/*.java"/>
-      <compilerarg line="-processorpath ${lib.dir}/error_prone_ant-2.0.21.jar"/>
+      <compilerarg line="-processorpath ${errorprone.jar}"/>
       <compilerarg value="-Xplugin:ErrorProne
                           -Xep:IdentityBinaryExpression:WARN
                           -Xep:MissingOverride:OFF
@@ -1428,7 +1429,7 @@
       workdir="${build.dir}"
       classes="${product.jar}">
       <javac-elements>
-        <compilerarg line="-processorpath ${lib.dir}/error_prone_ant-2.0.21.jar"/>
+        <compilerarg line="-processorpath ${errorprone.jar}"/>
         <compilerarg value="-Xplugin:ErrorProne
                             -Xep:IdentityBinaryExpression:WARN
                             -Xep:BoxedPrimitiveConstructor:OFF
