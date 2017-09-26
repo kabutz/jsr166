@@ -1414,10 +1414,10 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             }
         }
         public final void run() { invoke(); }
-        private static final long serialVersionUID = 2838392045355241008L;
         public String toString() {
             return super.toString() + "[Wrapped task = " + callable + "]";
         }
+        private static final long serialVersionUID = 2838392045355241008L;
     }
 
     /**
