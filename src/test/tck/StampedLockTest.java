@@ -1265,5 +1265,5 @@ public class StampedLockTest extends JSR166TestCase {
         p.move(3.0, 4.0);
         assertEquals(5.0, p.distanceFromOrigin());
     }
-    
+
 }
