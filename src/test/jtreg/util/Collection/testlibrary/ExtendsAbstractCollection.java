@@ -21,7 +21,6 @@
  * questions.
  */
 import java.util.AbstractCollection;
-import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
