@@ -328,7 +328,9 @@
     <attribute name="target"/>
     <attribute name="workdir"/>
     <attribute name="classes"/>
+    <attribute name="verbose" default="${jtreg.verbose}"/>
     <attribute name="jtregflags" default=""/>
+    <element name="jtreg-elements" optional="true"/>
 
     <sequential>
 
@@ -350,12 +352,13 @@
       <arg value="-vmoptions:--patch-module=java.base=@{classes}" if:set="modules"/>
       <arg value="-agentvm"/>
       <arg value="-noreport"/>
-      <arg value="-verbose:${jtreg.verbose}"/>
+      <arg value="-verbose:@{verbose}"/>
       <arg value="-vmoptions:-esa -ea"/>
       <arg value="-automatic"/>
       <arg value="-k:!ignore"/>
       <arg line="@{jtregflags}"/>
       <arg line="${jtreg.flags}"/>
+      <jtreg-elements/>
     </jtreg>
     </sequential>
   </macrodef>
@@ -1447,6 +1450,37 @@
         <compilerarg line="-Xmaxerrs 3000 -Xmaxwarns 3000"/>
       </javac-elements>
     </run-tck-tests>
+  </target>
+
+  <!-- ant errorprone-jtreg |& grep -EA1 '(warning|error):' -->
+  <target name="errorprone-jtreg"
+          depends="jar"
+          description="Run errorprone over jtreg tests (experimental)">
+
+    <run-jtreg-tests
+       target="${build.main.java.version}"
+       workdir="${build.dir}"
+       classes="${product.jar}"
+       verbose="all">
+      <jtreg-elements>
+        <arg value="-javacoption:-processorpath"/>
+        <arg value="-javacoption:${errorprone.jar}"/>
+        <arg value="-javacoption:-Xplugin:ErrorProne
+                            -Xep:IdentityBinaryExpression:WARN
+                            -Xep:BoxedPrimitiveConstructor:OFF
+                            -Xep:HashtableContains:OFF
+                            -Xep:ModifyingCollectionWithItself:OFF
+                            -Xep:MissingOverride:OFF
+                            -Xep:MixedArrayDimensions:WARN
+                            -Xep:RemoveUnusedImports:ERROR
+                            -Xep:ClassName:ERROR
+                            -Xep:MultipleTopLevelClasses:ERROR
+                            -Xep:EmptyIf:ERROR
+                            -Xep:LongLiteralLowerCaseSuffix:ERROR
+                            -Xep:RedundantThrows:ERROR
+                            -Xep:MethodCanBeStatic:WARN"/>
+      </jtreg-elements>
+    </run-jtreg-tests>
   </target>
 
 
