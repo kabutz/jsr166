@@ -46,7 +46,6 @@ import java.util.ConcurrentModificationException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 /**
  * @test
