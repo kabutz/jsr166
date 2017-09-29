@@ -165,19 +165,13 @@ import java.util.concurrent.TimeUnit;
  * represent the locked state. While a non-reentrant lock
  * does not strictly require recording of the current owner
  * thread, this class does so anyway to make usage easier to monitor.
- * It also supports conditions and exposes
- * one of the instrumentation methods:
+ * It also supports conditions and exposes some instrumentation methods:
  *
  * <pre> {@code
  * class Mutex implements Lock, java.io.Serializable {
  *
  *   // Our internal helper class
  *   private static class Sync extends AbstractQueuedSynchronizer {
- *     // Reports whether in locked state
- *     protected boolean isHeldExclusively() {
- *       return getState() == 1;
- *     }
- *
  *     // Acquires the lock if state is zero
  *     public boolean tryAcquire(int acquires) {
  *       assert acquires == 1; // Otherwise unused
@@ -191,14 +185,27 @@ import java.util.concurrent.TimeUnit;
  *     // Releases the lock by setting state to zero
  *     protected boolean tryRelease(int releases) {
  *       assert releases == 1; // Otherwise unused
- *       if (getState() == 0) throw new IllegalMonitorStateException();
+ *       if (!isHeldExclusively())
+ *         throw new IllegalMonitorStateException();
  *       setExclusiveOwnerThread(null);
  *       setState(0);
  *       return true;
  *     }
  *
+ *     // Reports whether in locked state
+ *     public boolean isLocked() {
+ *       return getState() != 0;
+ *     }
+ *
+ *     public boolean isHeldExclusively() {
+ *       // a data race, but safe due to out-of-thin-air guarantees
+ *       return getExclusiveOwnerThread() == Thread.currentThread();
+ *     }
+ *
  *     // Provides a Condition
- *     Condition newCondition() { return new ConditionObject(); }
+ *     public Condition newCondition() {
+ *       return new ConditionObject();
+ *     }
  *
  *     // Deserializes properly
  *     private void readObject(ObjectInputStream s)
@@ -211,12 +218,17 @@ import java.util.concurrent.TimeUnit;
  *   // The sync object does all the hard work. We just forward to it.
  *   private final Sync sync = new Sync();
  *
- *   public void lock()                { sync.acquire(1); }
- *   public boolean tryLock()          { return sync.tryAcquire(1); }
- *   public void unlock()              { sync.release(1); }
- *   public Condition newCondition()   { return sync.newCondition(); }
- *   public boolean isLocked()         { return sync.isHeldExclusively(); }
- *   public boolean hasQueuedThreads() { return sync.hasQueuedThreads(); }
+ *   public void lock()              { sync.acquire(1); }
+ *   public boolean tryLock()        { return sync.tryAcquire(1); }
+ *   public void unlock()            { sync.release(1); }
+ *   public Condition newCondition() { return sync.newCondition(); }
+ *   public boolean isLocked()       { return sync.isLocked(); }
+ *   public boolean isHeldByCurrentThread() {
+ *     return sync.isHeldExclusively();
+ *   }
+ *   public boolean hasQueuedThreads() {
+ *     return sync.hasQueuedThreads();
+ *   }
  *   public void lockInterruptibly() throws InterruptedException {
  *     sync.acquireInterruptibly(1);
  *   }
