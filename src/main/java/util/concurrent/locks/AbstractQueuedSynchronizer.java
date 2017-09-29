@@ -1817,9 +1817,8 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Condition implementation for a {@link
-     * AbstractQueuedSynchronizer} serving as the basis of a {@link
-     * Lock} implementation.
+     * Condition implementation for a {@link AbstractQueuedSynchronizer}
+     * serving as the basis of a {@link Lock} implementation.
      *
      * <p>Method documentation for this class describes mechanics,
      * not behavioral specifications from the point of view of Lock
