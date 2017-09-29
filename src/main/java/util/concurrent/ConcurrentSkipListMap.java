@@ -295,9 +295,6 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      * Keys:         k, key
      * Values:       v, value
      * Comparisons:  c
-     *
-     * Note that, with VarHandles, a boolean result of
-     * compareAndSet must be declared even if not used.
      */
 
     private static final long serialVersionUID = -8627078645895051609L;
@@ -398,7 +395,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
                     break;
                 }
             }
-            boolean cas = NEXT.compareAndSet(b, n, p);
+            NEXT.compareAndSet(b, n, p);
         }
     }
 
@@ -445,9 +442,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
                 while ((r = q.right) != null) {
                     Node<K,V> p; K k;
                     if ((p = r.node) == null || (k = p.key) == null ||
-                        p.val == null) { // unlink index to deleted node
-                        boolean cas = RIGHT.compareAndSet(q, r, r.right);
-                    }
+                        p.val == null)  // unlink index to deleted node
+                        RIGHT.compareAndSet(q, r, r.right);
                     else if (cpr(cmp, key, k) > 0)
                         q = r;
                     else
@@ -520,9 +516,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
                 while ((r = q.right) != null) {
                     Node<K,V> p; K k; V v; int c;
                     if ((p = r.node) == null || (k = p.key) == null ||
-                        (v = p.val) == null) {
-                        boolean cas = RIGHT.compareAndSet(q, r, r.right);
-                    }
+                        (v = p.val) == null)
+                        RIGHT.compareAndSet(q, r, r.right);
                     else if ((c = cpr(cmp, key, k)) > 0)
                         q = r;
                     else if (c == 0) {
@@ -586,9 +581,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
                     while ((r = q.right) != null) {
                         Node<K,V> p; K k;
                         if ((p = r.node) == null || (k = p.key) == null ||
-                            p.val == null) {
-                            boolean cas = RIGHT.compareAndSet(q, r, r.right);
-                        }
+                            p.val == null)
+                            RIGHT.compareAndSet(q, r, r.right);
                         else if (cpr(cmp, key, k) > 0)
                             q = r;
                         else
@@ -651,7 +645,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
                             head == h) {         // try to add new level
                             Index<K,V> hx = new Index<K,V>(z, x, null);
                             Index<K,V> nh = new Index<K,V>(h.node, h, hx);
-                            boolean cas = HEAD.compareAndSet(this, h, nh);
+                            HEAD.compareAndSet(this, h, nh);
                         }
                         if (z.val == null)       // deleted while adding indices
                             findPredecessor(key, cmp); // clean
@@ -687,7 +681,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
                     Node<K,V> p; K k;
                     if ((p = r.node) == null || (k = p.key) == null ||
                         p.val == null) {
-                        boolean cas = RIGHT.compareAndSet(q, r, r.right);
+                        RIGHT.compareAndSet(q, r, r.right);
                         c = 0;
                     }
                     else if ((c = cpr(cmp, key, k)) > 0)
@@ -793,9 +787,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             (d = h.down) != null && d.right == null &&
             (e = d.down) != null && e.right == null &&
             HEAD.compareAndSet(this, h, d) &&
-            h.right != null) {  // recheck
-            boolean cas = HEAD.compareAndSet(this, d, h);  // try to backout
-        }
+            h.right != null)   // recheck
+            HEAD.compareAndSet(this, d, h);  // try to backout
     }
 
     /* ---------------- Finding and removing first element -------------- */
@@ -871,9 +864,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             for (Index<K,V> r, d;;) {
                 while ((r = q.right) != null) {
                     Node<K,V> p;
-                    if ((p = r.node) == null || p.val == null) {
-                        boolean cas = RIGHT.compareAndSet(q, r, r.right);
-                    }
+                    if ((p = r.node) == null || p.val == null)
+                        RIGHT.compareAndSet(q, r, r.right);
                     else
                         q = r;
                 }
@@ -933,9 +925,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             for (;;) {
                 Index<K,V> d, r; Node<K,V> p;
                 while ((r = q.right) != null) {
-                    if ((p = r.node) == null || p.val == null) {
-                        boolean cas = RIGHT.compareAndSet(q, r, r.right);
-                    }
+                    if ((p = r.node) == null || p.val == null)
+                        RIGHT.compareAndSet(q, r, r.right);
                     else if (p.next != null)
                         q = r;  // continue only if a successor
                     else
@@ -1390,12 +1381,10 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         Index<K,V> h, r, d; Node<K,V> b;
         VarHandle.acquireFence();
         while ((h = head) != null) {
-            if ((r = h.right) != null) {       // remove indices
-                boolean cas = RIGHT.compareAndSet(h, r, null);
-            }
-            else if ((d = h.down) != null) {   // remove levels
-                boolean cas = HEAD.compareAndSet(this, h, d);
-            }
+            if ((r = h.right) != null)        // remove indices
+                RIGHT.compareAndSet(h, r, null);
+            else if ((d = h.down) != null)    // remove levels
+                HEAD.compareAndSet(this, h, d);
             else {
                 long count = 0L;
                 if ((b = h.node) != null) {    // remove nodes
