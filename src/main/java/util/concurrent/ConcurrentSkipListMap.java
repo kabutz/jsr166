@@ -1681,11 +1681,12 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             return false;
         Map<?,?> m = (Map<?,?>) o;
         try {
+            Comparator<? super K> cmp = comparator;            
             @SuppressWarnings("unchecked")
             Iterator<Map.Entry<?,?>> it =
                 (Iterator<Map.Entry<?,?>>)m.entrySet().iterator();
             if (m instanceof SortedMap &&
-                ((SortedMap<?,?>)m).comparator() == comparator) {
+                ((SortedMap<?,?>)m).comparator() == cmp) {
                 Node<K,V> b, n;
                 if ((b = baseHead()) != null) {
                     while ((n = b.next) != null) {
@@ -1696,8 +1697,15 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
                             Map.Entry<?,?> e = it.next();
                             Object mk = e.getKey();
                             Object mv = e.getValue();
-                            if (mk == null || mv == null ||
-                                !mk.equals(k) || !mv.equals(v))
+                            if (mk == null || mv == null)
+                                return false;
+                            try {
+                                if (cpr(cmp, k, mk) != 0)
+                                    return false;
+                            } catch (ClassCastException cce) {
+                                return false;
+                            }
+                            if (!mv.equals(v))
                                 return false;
                         }
                         b = n;
