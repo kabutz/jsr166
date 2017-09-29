@@ -1372,10 +1372,7 @@ public abstract class AbstractQueuedLongSynchronizer
          * @return its new wait node
          */
         private Node addConditionWaiter() {
-            Thread owner;
-            if (!isHeldExclusively() ||
-                ((owner = getExclusiveOwnerThread()) != null &&
-                 owner != Thread.currentThread()))
+            if (!isHeldExclusively())
                 throw new IllegalMonitorStateException();
             Node t = lastWaiter;
             // If lastWaiter is cancelled, clean out.
