@@ -1681,7 +1681,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             return false;
         Map<?,?> m = (Map<?,?>) o;
         try {
-            Comparator<? super K> cmp = comparator;            
+            Comparator<? super K> cmp = comparator;
             @SuppressWarnings("unchecked")
             Iterator<Map.Entry<?,?>> it =
                 (Iterator<Map.Entry<?,?>>)m.entrySet().iterator();
