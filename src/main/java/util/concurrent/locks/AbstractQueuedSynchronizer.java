@@ -1176,8 +1176,7 @@ public abstract class AbstractQueuedSynchronizer
     /**
      * Returns {@code true} if synchronization is held exclusively with
      * respect to the current (calling) thread.  This method is invoked
-     * upon each call to a non-waiting {@link ConditionObject} method.
-     * (Waiting methods instead invoke {@link #release}.)
+     * upon each call to a {@link ConditionObject} method.
      *
      * <p>The default implementation throws {@link
      * UnsupportedOperationException}. This method is invoked
