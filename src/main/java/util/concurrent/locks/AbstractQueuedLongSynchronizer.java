@@ -39,9 +39,9 @@ public abstract class AbstractQueuedLongSynchronizer
 
     /*
      * To keep sources in sync, the remainder of this source file is
-     *  exactly cloned from AbstractQueuedSynchronizer, replacing class
-     *  name and changing ints related with sync state to longs. Please
-     *  keep it that way.
+     * exactly cloned from AbstractQueuedSynchronizer, replacing class
+     * name and changing ints related with sync state to longs. Please
+     * keep it that way.
      */
 
     /**
