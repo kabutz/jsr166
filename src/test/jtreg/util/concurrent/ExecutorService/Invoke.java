@@ -31,8 +31,9 @@
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -107,9 +108,10 @@ public class Invoke {
         }
 
         try {
-            final List<Task> tasks = new ArrayList<>();
-            for (int n = rnd.nextInt(nThreads); n--> 0; )
-                tasks.add(new Task());
+            final List<Task> tasks =
+                IntStream.range(0, nThreads)
+                .mapToObj(i -> new Task())
+                .collect(Collectors.toList());
 
             List<Future<Long>> futures;
             if (timed) {
@@ -124,7 +126,7 @@ public class Invoke {
 
             long gauss = 0;
             for (Future<Long> future : futures) gauss += future.get();
-            check(gauss == ((tasks.size()+1)*tasks.size())/2);
+            check(gauss == (tasks.size()+1)*tasks.size()/2);
 
             pool.shutdown();
             check(pool.awaitTermination(10L, SECONDS));
@@ -135,7 +137,6 @@ public class Invoke {
 
     static void testInvokeAny() throws Throwable {
         final ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        final int nTasks = rnd.nextInt(1, 7);
         final boolean timed = rnd.nextBoolean();
         final ExecutorService pool = Executors.newSingleThreadExecutor();
         final AtomicLong count = new AtomicLong(0);
@@ -151,9 +152,10 @@ public class Invoke {
         }
 
         try {
-            final List<Task> tasks = new ArrayList<>();
-            for (int i = nTasks; i--> 0; )
-                tasks.add(new Task());
+            final List<Task> tasks =
+                IntStream.range(0, rnd.nextInt(1, 7))
+                .mapToObj(i -> new Task())
+                .collect(Collectors.toList());
 
             long val;
             if (timed) {
@@ -199,9 +201,10 @@ public class Invoke {
         }
 
         try {
-            final List<Task> tasks = new ArrayList<>();
-            for (int i = nThreads; i--> 0; )
-                tasks.add(new Task());
+            final List<Task> tasks =
+                IntStream.range(0, nThreads)
+                .mapToObj(i -> new Task())
+                .collect(Collectors.toList());
 
             long val;
             if (timed) {
