@@ -70,6 +70,16 @@ public class Invoke {
         return NANOSECONDS.toSeconds(System.nanoTime() - startTime);
     }
 
+    static void awaitInterrupt(long timeoutSeconds) {
+        long startTime = System.nanoTime();
+        try {
+            Thread.sleep(SECONDS.toMillis(timeoutSeconds));
+            fail("timed out waiting for interrupt");
+        } catch (InterruptedException expected) {
+            check(secondsElapsedSince(startTime) < timeoutSeconds);
+        }
+    }
+
     public static void main(String[] args) {
         try {
             testInvokeAll();
@@ -102,12 +112,13 @@ public class Invoke {
                 tasks.add(new Task());
 
             List<Future<Long>> futures;
-            long startTime = System.nanoTime();
-            if (timed)
-                futures = pool.invokeAll(tasks, 2 * timeoutSeconds, SECONDS);
+            if (timed) {
+                long startTime = System.nanoTime();
+                futures = pool.invokeAll(tasks, timeoutSeconds, SECONDS);
+                check(secondsElapsedSince(startTime) < timeoutSeconds);
+            }
             else
                 futures = pool.invokeAll(tasks);
-            check(secondsElapsedSince(startTime) < timeoutSeconds);
             check(futures.size() == tasks.size());
             check(count.get() == tasks.size());
 
@@ -132,15 +143,9 @@ public class Invoke {
             public Long call() throws Exception {
                 long x = count.incrementAndGet();
                 check(x <= 2);
-                if (x == 2) {
-                    // main thread will interrupt us
-                    long startTime = System.nanoTime();
-                    try {
-                        Thread.sleep(SECONDS.toMillis(2 * timeoutSeconds));
-                    } catch (InterruptedException expected) {
-                        check(secondsElapsedSince(startTime) < timeoutSeconds);
-                    }
-                }
+                if (x == 2)
+                    // wait for main thread to interrupt us
+                    awaitInterrupt(timeoutSeconds);
                 return x;
             }
         }
@@ -150,14 +155,15 @@ public class Invoke {
             for (int i = nTasks; i--> 0; )
                 tasks.add(new Task());
 
-            long startTime = System.nanoTime();
             long val;
-            if (timed)
-                val = pool.invokeAny(tasks, 2 * timeoutSeconds, SECONDS);
+            if (timed) {
+                long startTime = System.nanoTime();
+                val = pool.invokeAny(tasks, timeoutSeconds, SECONDS);
+                check(secondsElapsedSince(startTime) < timeoutSeconds);
+            }
             else
                 val = pool.invokeAny(tasks);
             check(val == 1);
-            check(secondsElapsedSince(startTime) < timeoutSeconds);
 
             // inherent race between main thread interrupt and
             // start of second task
@@ -185,16 +191,9 @@ public class Invoke {
             public Long call() throws Exception {
                 allStarted.await();
                 long x = count.incrementAndGet();
-                if (x > 1) {
+                if (x > 1)
                     // main thread will interrupt us
-                    long startTime = System.nanoTime();
-                    try {
-                        Thread.sleep(SECONDS.toMillis(2 * timeoutSeconds));
-                    } catch (InterruptedException expected) {
-                        interruptedCount.incrementAndGet();
-                        check(secondsElapsedSince(startTime) < timeoutSeconds);
-                    }
-                }
+                    awaitInterrupt(timeoutSeconds);
                 return x;
             }
         }
@@ -204,14 +203,15 @@ public class Invoke {
             for (int i = nThreads; i--> 0; )
                 tasks.add(new Task());
 
-            long startTime = System.nanoTime();
             long val;
-            if (timed)
-                val = pool.invokeAny(tasks, 2 * timeoutSeconds, SECONDS);
+            if (timed) {
+                long startTime = System.nanoTime();
+                val = pool.invokeAny(tasks, timeoutSeconds, SECONDS);
+                check(secondsElapsedSince(startTime) < timeoutSeconds);
+            }
             else
                 val = pool.invokeAny(tasks);
             check(val == 1);
-            check(secondsElapsedSince(startTime) < timeoutSeconds);
 
             pool.shutdown();
             check(pool.awaitTermination(timeoutSeconds, SECONDS));
