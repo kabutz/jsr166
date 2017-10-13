@@ -562,7 +562,7 @@ public class SplittableRandomTest extends JSR166TestCase {
      */
     public void testNextBytes() {
         SplittableRandom sr = new SplittableRandom();
-        int n = sr.nextInt(20);
+        int n = sr.nextInt(1, 20);
         byte[] bytes = new byte[n];
         outer:
         for (int i = 0; i < n; i++) {
@@ -575,6 +575,20 @@ public class SplittableRandomTest extends JSR166TestCase {
             }
             fail("not enough variation in random bytes");
         }
+    }
+
+    /**
+     * Filling an empty array with random bytes succeeds without effect.
+     */
+    public void testNextBytes_emptyArray() {
+        new SplittableRandom().nextBytes(new byte[0]);
+    }
+
+    public void testNextBytes_nullArray() {
+        try {
+            new SplittableRandom().nextBytes(null);
+            shouldThrow();
+        } catch (NullPointerException success) {}
     }
 
 }

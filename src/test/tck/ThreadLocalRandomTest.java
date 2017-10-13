@@ -390,7 +390,7 @@ public class ThreadLocalRandomTest extends JSR166TestCase {
      */
     public void testNextBytes() {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        int n = rnd.nextInt(20);
+        int n = rnd.nextInt(1, 20);
         byte[] bytes = new byte[n];
         outer:
         for (int i = 0; i < n; i++) {
@@ -403,6 +403,20 @@ public class ThreadLocalRandomTest extends JSR166TestCase {
             }
             fail("not enough variation in random bytes");
         }
+    }
+
+    /**
+     * Filling an empty array with random bytes succeeds without effect.
+     */
+    public void testNextBytes_emptyArray() {
+        ThreadLocalRandom.current().nextBytes(new byte[0]);
+    }
+
+    public void testNextBytes_nullArray() {
+        try {
+            ThreadLocalRandom.current().nextBytes(null);
+            shouldThrow();
+        } catch (NullPointerException success) {}
     }
 
 }
