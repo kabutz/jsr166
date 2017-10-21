@@ -21,7 +21,7 @@
  * questions.
  */
 
-/**
+/*
  * @test
  * @bug 4627516
  * @summary HashMap.Entry.setValue() returns new value (as opposed to old)

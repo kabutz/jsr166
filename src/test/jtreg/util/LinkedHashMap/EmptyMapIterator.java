@@ -21,7 +21,7 @@
  * questions.
  */
 
-/**
+/*
  * @test
  * @bug 4473440
  * @summary iterators on collection views of empty map weren't fail-fast.

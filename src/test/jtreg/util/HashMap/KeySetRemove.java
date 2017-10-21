@@ -21,7 +21,7 @@
  * questions.
  */
 
-/**
+/*
  * @test
  * @bug 4286765
  * @summary HashMap and TreeMap entrySet().remove(k) spuriously returned

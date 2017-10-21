@@ -21,7 +21,7 @@
  * questions.
  */
 
-/**
+/*
  * @test
  * @bug 4224271
  * @summary A null Comparator is now specified to indicate natural ordering.

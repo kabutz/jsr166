@@ -23,7 +23,7 @@
 
 import java.util.*;
 
-/**
+/*
  * @test
  * @bug     4503146
  * @summary Zero initial capacity should be legal

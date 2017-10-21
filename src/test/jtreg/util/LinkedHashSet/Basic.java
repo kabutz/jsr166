@@ -21,7 +21,7 @@
  * questions.
  */
 
-/**
+/*
  * @test
  * @bug 4245809
  * @summary Basic test for LinkedHashSet.  (Based on SetBash)
