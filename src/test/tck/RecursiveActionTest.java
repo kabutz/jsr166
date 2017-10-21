@@ -99,7 +99,7 @@ public class RecursiveActionTest extends JSR166TestCase {
         try {
             assertNull(a.get());
             assertNull(a.get(randomTimeout(), randomTimeUnit()));
-        } catch (Throwable fail) { threadUnexpectedException(fail); }
+        } catch (Exception fail) { threadUnexpectedException(fail); }
     }
 
     void checkCancelled(RecursiveAction a) {

@@ -108,7 +108,7 @@ public class FutureTaskTest extends JSR166TestCase {
         try {
             assertSame(expected, f.get());
             assertSame(expected, f.get(randomTimeout(), randomTimeUnit()));
-        } catch (Throwable fail) { threadUnexpectedException(fail); }
+        } catch (Exception fail) { threadUnexpectedException(fail); }
     }
 
     void checkCancelled(Future<?> f) {
