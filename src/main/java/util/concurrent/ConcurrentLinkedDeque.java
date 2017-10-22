@@ -666,8 +666,9 @@ public class ConcurrentLinkedDeque<E>
      * stale pointer that is now off the list.
      */
     final Node<E> pred(Node<E> p) {
-        Node<E> q = p.prev;
-        return (p == q) ? last() : q;
+        if (p == (p = p.prev))
+            p = last();
+        return p;
     }
 
     /**
@@ -838,31 +839,31 @@ public class ConcurrentLinkedDeque<E>
 
     public E peekFirst() {
         restart: for (;;) {
-            for (Node<E> first = first(), p = first;;) {
-                final E item;
-                if ((item = p.item) != null) {
-                    // recheck for linearizability
-                    if (first.prev != null) continue restart;
-                    return item;
-                }
-                if ((p = succ(p)) == null)
-                    return null;
+            E item;
+            Node<E> first = first(), p = first;
+            while ((item = p.item) == null) {
+                if (p == (p = p.next)) continue restart;
+                if (p == null)
+                    break;
             }
+            // recheck for linearizability
+            if (first.prev != null) continue restart;
+            return item;
         }
     }
 
     public E peekLast() {
         restart: for (;;) {
-            for (Node<E> last = last(), p = last;;) {
-                final E item;
-                if ((item = p.item) != null) {
-                    // recheck for linearizability
-                    if (last.next != null) continue restart;
-                    return item;
-                }
-                if ((p = pred(p)) == null)
-                    return null;
+            E item;
+            Node<E> last = last(), p = last;
+            while ((item = p.item) == null) {
+                if (p == (p = p.prev)) continue restart;
+                if (p == null)
+                    break;
             }
+            // recheck for linearizability
+            if (last.next != null) continue restart;
+            return item;
         }
     }
 
@@ -892,8 +893,11 @@ public class ConcurrentLinkedDeque<E>
                         return item;
                     }
                 }
-                if ((p = succ(p)) == null)
+                if (p == (p = p.next)) continue restart;
+                if (p == null) {
+                    if (first.prev != null) continue restart;
                     return null;
+                }
             }
         }
     }
@@ -910,8 +914,11 @@ public class ConcurrentLinkedDeque<E>
                         return item;
                     }
                 }
-                if ((p = pred(p)) == null)
+                if (p == (p = p.prev)) continue restart;
+                if (p == null) {
+                    if (last.next != null) continue restart;
                     return null;
+                }
             }
         }
     }
@@ -1081,7 +1088,7 @@ public class ConcurrentLinkedDeque<E>
                 if (p.item != null)
                     if (++count == Integer.MAX_VALUE)
                         break;  // @see Collection.size()
-                if (p == (p = p.next))
+                if (p == (p = p.next)) 
                     continue restart;
             }
             return count;
