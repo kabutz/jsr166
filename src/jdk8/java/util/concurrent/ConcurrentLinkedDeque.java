@@ -700,8 +700,9 @@ public class ConcurrentLinkedDeque<E>
      * stale pointer that is now off the list.
      */
     final Node<E> pred(Node<E> p) {
-        Node<E> q = p.prev;
-        return (p == q) ? last() : q;
+        if (p == (p = p.prev))
+            p = last();
+        return p;
     }
 
     /**
@@ -871,21 +872,33 @@ public class ConcurrentLinkedDeque<E>
     }
 
     public E peekFirst() {
-        for (Node<E> p = first(); p != null; p = succ(p)) {
-            E item = p.item;
-            if (item != null)
-                return item;
+        restart: for (;;) {
+            E item;
+            Node<E> first = first(), p = first;
+            while ((item = p.item) == null) {
+                if (p == (p = p.next)) continue restart;
+                if (p == null)
+                    break;
+            }
+            // recheck for linearizability
+            if (first.prev != null) continue restart;
+            return item;
         }
-        return null;
     }
 
     public E peekLast() {
-        for (Node<E> p = last(); p != null; p = pred(p)) {
-            E item = p.item;
-            if (item != null)
-                return item;
+        restart: for (;;) {
+            E item;
+            Node<E> last = last(), p = last;
+            while ((item = p.item) == null) {
+                if (p == (p = p.prev)) continue restart;
+                if (p == null)
+                    break;
+            }
+            // recheck for linearizability
+            if (last.next != null) continue restart;
+            return item;
         }
-        return null;
     }
 
     /**
@@ -903,25 +916,45 @@ public class ConcurrentLinkedDeque<E>
     }
 
     public E pollFirst() {
-        for (Node<E> p = first(); p != null; p = succ(p)) {
-            E item = p.item;
-            if (item != null && p.casItem(item, null)) {
-                unlink(p);
-                return item;
+        restart: for (;;) {
+            for (Node<E> first = first(), p = first;;) {
+                final E item;
+                if ((item = p.item) != null) {
+                    // recheck for linearizability
+                    if (first.prev != null) continue restart;
+                    if (p.casItem(item, null)) {
+                        unlink(p);
+                        return item;
+                    }
+                }
+                if (p == (p = p.next)) continue restart;
+                if (p == null) {
+                    if (first.prev != null) continue restart;
+                    return null;
+                }
             }
         }
-        return null;
     }
 
     public E pollLast() {
-        for (Node<E> p = last(); p != null; p = pred(p)) {
-            E item = p.item;
-            if (item != null && p.casItem(item, null)) {
-                unlink(p);
-                return item;
+        restart: for (;;) {
+            for (Node<E> last = last(), p = last;;) {
+                final E item;
+                if ((item = p.item) != null) {
+                    // recheck for linearizability
+                    if (last.next != null) continue restart;
+                    if (p.casItem(item, null)) {
+                        unlink(p);
+                        return item;
+                    }
+                }
+                if (p == (p = p.prev)) continue restart;
+                if (p == null) {
+                    if (last.next != null) continue restart;
+                    return null;
+                }
             }
         }
-        return null;
     }
 
     /**
