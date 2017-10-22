@@ -1380,7 +1380,7 @@
 <!-- ==============================================================
   Experimental errorprone support - http://errorprone.info
 =================================================================== -->
-  <property name="errorprone.jar" location="${lib.dir}/error_prone_ant-2.0.21.jar"/>
+  <property name="errorprone.jar" location="${lib.dir}/error_prone_ant-2.1.2.jar"/>
   <target name="errorprone"
           depends="clean, configure-compiler"
           description="Run errorprone over jsr166 source code (experimental)">
@@ -1406,7 +1406,7 @@
       <compilerarg value="-Xplugin:ErrorProne
                           -Xep:IdentityBinaryExpression:WARN
                           -Xep:MissingOverride:OFF
-                          -Xep:MixedArrayDimensions:WARN
+                          -Xep:MixedArrayDimensions:ERROR
                           -Xep:RemoveUnusedImports:ERROR
                           -Xep:ClassName:ERROR
                           -Xep:MultipleTopLevelClasses:ERROR
@@ -1439,7 +1439,9 @@
                             -Xep:HashtableContains:OFF
                             -Xep:ModifyingCollectionWithItself:OFF
                             -Xep:MissingOverride:OFF
-                            -Xep:MixedArrayDimensions:WARN
+                            -Xep:MissingFail:OFF
+                            -Xep:JdkObsolete:OFF
+                            -Xep:MixedArrayDimensions:ERROR
                             -Xep:RemoveUnusedImports:ERROR
                             -Xep:ClassName:ERROR
                             -Xep:MultipleTopLevelClasses:ERROR
@@ -1471,7 +1473,9 @@
                             -Xep:HashtableContains:OFF
                             -Xep:ModifyingCollectionWithItself:OFF
                             -Xep:MissingOverride:OFF
-                            -Xep:MixedArrayDimensions:WARN
+                            -Xep:JdkObsolete:OFF
+                            -Xep:NonAtomicVolatileUpdate:OFF
+                            -Xep:MixedArrayDimensions:ERROR
                             -Xep:RemoveUnusedImports:ERROR
                             -Xep:ClassName:ERROR
                             -Xep:MultipleTopLevelClasses:ERROR
