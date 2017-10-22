@@ -36,7 +36,7 @@ import java.util.*;
  */
 public class IllegalConstructorArgs {
 
-    public static void main(String argv[]) {
+    public static void main(String[] args) {
         int testSucceeded=0;
 
         try {

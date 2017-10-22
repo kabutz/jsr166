@@ -37,7 +37,7 @@ public class Rotate {
     static Random rnd = new Random();
 
     public static void main(String[] args) throws Exception {
-        List a[] = {new ArrayList(), new LinkedList(), new Vector()};
+        List[] a = {new ArrayList(), new LinkedList(), new Vector()};
 
         for (int i=0; i<a.length; i++) {
             List lst = a[i];

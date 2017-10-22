@@ -37,7 +37,7 @@ public class NullComparator {
         List sorted = new ArrayList(list);
         Collections.shuffle(list);
 
-        Object a[] = list.toArray();
+        Object[] a = list.toArray();
         Arrays.sort(a, null);
         if (!Arrays.asList(a).equals(sorted))
             throw new Exception("Arrays.sort");

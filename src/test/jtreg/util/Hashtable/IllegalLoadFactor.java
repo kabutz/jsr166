@@ -34,7 +34,7 @@ import java.util.*;
  */
 public class IllegalLoadFactor {
 
-    public static void main(String argv[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         boolean testSucceeded = false;
         try {
             // this should generate an IllegalArgumentException

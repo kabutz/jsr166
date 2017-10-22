@@ -809,7 +809,7 @@ public class SpliteratorTraversingAndSplittingTest {
 
         List<Object[]> data = new ArrayList<>();
         for (int size : SIZES) {
-            int exp[] = arrayIntRange(size);
+            int[] exp = arrayIntRange(size);
             SpliteratorOfIntDataBuilder db = new SpliteratorOfIntDataBuilder(data, listIntRange(size));
 
             db.add("Spliterators.spliterator(int[], ...)",
