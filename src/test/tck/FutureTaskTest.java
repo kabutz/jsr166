@@ -51,7 +51,7 @@ public class FutureTaskTest extends JSR166TestCase {
                 exInfo = CancellationException.class;
             } catch (ExecutionException t) {
                 exInfo = t.getCause();
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 threadUnexpectedException(t);
             }
 
@@ -66,7 +66,7 @@ public class FutureTaskTest extends JSR166TestCase {
                 assertSame(exInfo, CancellationException.class);
             } catch (ExecutionException t) {
                 assertSame(exInfo, t.getCause());
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 threadUnexpectedException(t);
             }
             assertTrue(f.isDone());
