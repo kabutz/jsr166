@@ -1088,7 +1088,7 @@ public class ConcurrentLinkedDeque<E>
                 if (p.item != null)
                     if (++count == Integer.MAX_VALUE)
                         break;  // @see Collection.size()
-                if (p == (p = p.next)) 
+                if (p == (p = p.next))
                     continue restart;
             }
             return count;
