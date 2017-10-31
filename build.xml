@@ -181,11 +181,12 @@
   <property name="junit.jar"        location="${lib.dir}/junit.jar"/>
 
   <!-- Canonical location of jdk docs root, to use with javadoc -Xdocrootparent flag -->
-  <property name="java5.docroot.url"  value="http://docs.oracle.com/javase/1.5.0/docs"/>
-  <property name="java6.docroot.url"  value="http://docs.oracle.com/javase/6/docs"/>
-  <property name="java7.docroot.url"  value="http://docs.oracle.com/javase/7/docs"/>
-  <property name="java8.docroot.url"  value="http://docs.oracle.com/javase/8/docs"/>
-  <property name="java9.docroot.url"  value="http://docs.oracle.com/javase/9/docs"/>
+  <!-- Switched to https: in 2017-10 - JDK-8190312 -->
+  <property name="java5.docroot.url"  value="https://docs.oracle.com/javase/1.5.0/docs"/>
+  <property name="java6.docroot.url"  value="https://docs.oracle.com/javase/6/docs"/>
+  <property name="java7.docroot.url"  value="https://docs.oracle.com/javase/7/docs"/>
+  <property name="java8.docroot.url"  value="https://docs.oracle.com/javase/8/docs"/>
+  <property name="java9.docroot.url"  value="https://docs.oracle.com/javase/9/docs"/>
   <!-- The location of jdk9 early access docs -->
   <!-- <property name="java9.docroot.url" value="http://download.java.net/java/jdk9/docs"/> -->
   <!-- Default jdk doc location (latest stable release seems best) -->
