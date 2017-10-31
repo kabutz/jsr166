@@ -187,7 +187,7 @@
   <property name="java7.docroot.url"  value="https://docs.oracle.com/javase/7/docs"/>
   <property name="java8.docroot.url"  value="https://docs.oracle.com/javase/8/docs"/>
   <property name="java9.docroot.url"  value="https://docs.oracle.com/javase/9/docs"/>
-  <!-- The location of jdk9 early access docs -->
+  <!-- The location of jdk9 early access docs (RIP) -->
   <!-- <property name="java9.docroot.url" value="http://download.java.net/java/jdk9/docs"/> -->
   <!-- Default jdk doc location (latest stable release seems best) -->
   <property name="java.docroot.url"   value="${java9.docroot.url}"/>
