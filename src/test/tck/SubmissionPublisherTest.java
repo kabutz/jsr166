@@ -566,7 +566,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
 
     /**
      * estimateMinimumDemand reports 0 until request, nonzero after
-     * request, and zero again after delivery
+     * request
      */
     public void testEstimateMinimumDemand() {
         TestSubscriber s = new TestSubscriber();
@@ -577,9 +577,6 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         assertEquals(0, p.estimateMinimumDemand());
         s.sn.request(1);
         assertEquals(1, p.estimateMinimumDemand());
-        p.submit(1);
-        s.awaitNext(1);
-        assertEquals(0, p.estimateMinimumDemand());
     }
 
     /**
