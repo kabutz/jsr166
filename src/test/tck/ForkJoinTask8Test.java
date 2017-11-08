@@ -145,7 +145,7 @@ public class ForkJoinTask8Test extends JSR166TestCase {
         try {
             assertSame(expected, a.get());
             assertSame(expected, a.get(randomTimeout(), randomTimeUnit()));
-        } catch (Exception fail) { threadUnexpectedException(fail); }
+        } catch (Throwable fail) { threadUnexpectedException(fail); }
     }
 
     void checkCompletedAbnormally(ForkJoinTask a, Throwable t) {

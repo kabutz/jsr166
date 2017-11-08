@@ -111,7 +111,7 @@ public class CountedCompleterTest extends JSR166TestCase {
         try {
             assertNull(a.get());
             assertNull(a.get(randomTimeout(), randomTimeUnit()));
-        } catch (Exception fail) { threadUnexpectedException(fail); }
+        } catch (Throwable fail) { threadUnexpectedException(fail); }
     }
 
     void checkCancelled(CountedCompleter a) {

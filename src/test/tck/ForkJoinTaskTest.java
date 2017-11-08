@@ -116,7 +116,7 @@ public class ForkJoinTaskTest extends JSR166TestCase {
         try {
             assertSame(expected, a.get());
             assertSame(expected, a.get(randomTimeout(), randomTimeUnit()));
-        } catch (Exception fail) { threadUnexpectedException(fail); }
+        } catch (Throwable fail) { threadUnexpectedException(fail); }
     }
 
     void checkCancelled(ForkJoinTask a) {
