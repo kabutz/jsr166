@@ -676,7 +676,7 @@ public class SubmissionPublisher<T> implements Publisher<T>,
      */
     public int getNumberOfSubscribers() {
         int count;
-        synchronized(this) {
+        synchronized (this) {
             count = cleanAndCount();
         }
         return count;
