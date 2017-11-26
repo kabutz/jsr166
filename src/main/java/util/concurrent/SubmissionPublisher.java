@@ -15,7 +15,9 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
-import static java.util.concurrent.Flow.*; // improve code readablitly
+import static java.util.concurrent.Flow.Publisher;
+import static java.util.concurrent.Flow.Subscriber;
+import static java.util.concurrent.Flow.Subscription;
 
 /**
  * A {@link Flow.Publisher} that asynchronously issues submitted
@@ -196,7 +198,7 @@ public class SubmissionPublisher<T> implements Publisher<T>,
      * publishing. Unsubscribing occurs only during traversal loops,
      * when BufferedSubscription methods return negative values
      * signifying that they have been closed.  To reduce
-     * head-of-line blocking,  submit and offer methods first call
+     * head-of-line blocking, submit and offer methods first call
      * BufferedSubscription.offer on each subscriber, and place
      * saturated ones in retries list (using nextRetry field), and
      * retry, possibly blocking or dropping.
@@ -352,7 +354,7 @@ public class SubmissionPublisher<T> implements Publisher<T>,
 
     /**
      * Common implementation for all three forms of submit and offer.
-     * Acts as submit if nanos == Long.MAX_VALUE, else offer
+     * Acts as submit if nanos == Long.MAX_VALUE, else offer.
      */
     private int doOffer(T item, long nanos,
                         BiPredicate<Subscriber<? super T>, ? super T> onDrop) {
@@ -395,7 +397,7 @@ public class SubmissionPublisher<T> implements Publisher<T>,
 
     /**
      * Helps, (timed) waits for, and/or drops buffers on list; returns
-     * lag or negative drops (for use in offer)
+     * lag or negative drops (for use in offer).
      */
     private int retryOffer(T item, long nanos,
                            BiPredicate<Subscriber<? super T>, ? super T> onDrop,
@@ -949,7 +951,7 @@ public class SubmissionPublisher<T> implements Publisher<T>,
      * subscribers per publisher).  We additionally segregate some
      * fields that would otherwise nearly always encounter cache line
      * contention among producers and consumers. To reduce contention
-     * acrosss time (vs space), consumers only periodically update
+     * across time (vs space), consumers only periodically update
      * other fields (see method takeItems), at the expense of possibly
      * staler reporting of lags and demand (bounded at 12.5% == 1/8
      * capacity) and possibly more atomic operations.
