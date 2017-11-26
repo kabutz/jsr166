@@ -402,7 +402,8 @@ public class SubmissionPublisherTest extends JSR166TestCase {
      * Cancelling a subscription eventually causes no more onNexts to be issued
      */
     public void testCancel() {
-        SubmissionPublisher<Integer> p = basicPublisher();
+        SubmissionPublisher<Integer> p =
+            new SubmissionPublisher<Integer>(basicExecutor, 4); // must be < 20
         TestSubscriber s1 = new TestSubscriber();
         TestSubscriber s2 = new TestSubscriber();
         p.subscribe(s1);
@@ -639,7 +640,6 @@ public class SubmissionPublisherTest extends JSR166TestCase {
         p.subscribe(s1);
         p.subscribe(s2);
         for (int i = 1; i <= 20; ++i) {
-            assertTrue(p.estimateMinimumDemand() <= 1);
             assertTrue(p.submit(i) >= 0);
         }
         p.close();
