@@ -476,7 +476,7 @@ public abstract class AbstractQueuedSynchronizer
          *
          * @return the predecessor of this node
          */
-        final Node predecessor() throws NullPointerException {
+        final Node predecessor() {
             Node p = prev;
             if (p == null)
                 throw new NullPointerException();
