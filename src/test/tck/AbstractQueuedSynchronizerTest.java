@@ -9,6 +9,7 @@
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -1257,6 +1258,57 @@ public class AbstractQueuedSynchronizerTest extends JSR166TestCase {
         assertTrue(c.awaitNanos(Long.MIN_VALUE) <= 0);
         assertFalse(c.await(Long.MIN_VALUE, NANOSECONDS));
         sync.release();
+    }
+
+    /**
+     * Disabled demo test for (unfixed as of 2017-11)
+     * JDK-8191483: AbstractQueuedSynchronizer cancel/cancel race
+     * ant -Djsr166.tckTestClass=AbstractQueuedSynchronizerTest -Djsr166.methodFilter=testCancelCancelRace -Djsr166.runsPerTest=100 tck
+     */
+    public void XXXXtestCancelCancelRace() throws InterruptedException {
+        class Sync extends AbstractQueuedSynchronizer {
+            private static final long serialVersionUID = 1L;
+
+            public boolean tryAcquire(int acquires) {
+                return !hasQueuedPredecessors() && compareAndSetState(0, 1);
+            }
+
+            protected boolean tryRelease(int releases) {
+                return compareAndSetState(1, 0);
+            }
+        }
+
+        Sync s = new Sync();
+        s.acquire(1);           // acquire to force other threads to enqueue
+
+        // try to trigger double cancel race with two background threads
+        ArrayList<Thread> ts = new ArrayList<>();
+        Runnable failedAcquire = () -> {
+            try {
+                s.acquireInterruptibly(1);
+                throw new AssertionError();
+            } catch (InterruptedException expected) {}
+        };
+        for (int i = 0; i < 2; i++) {
+            Thread t = new Thread(failedAcquire);
+            t.start();
+            ts.add(t);
+        }
+        Thread.sleep(100);
+        for (Thread t : ts) t.interrupt();
+        for (Thread t : ts) t.join();
+
+        s.release(1);
+
+        // no one holds lock now, we should be able to acquire
+        if (!s.tryAcquire(1))
+            throw new RuntimeException(
+                String.format(
+                    "Broken: hasQueuedPredecessors=%s hasQueuedThreads=%s queueLength=%d firstQueuedThread=%s",
+                    s.hasQueuedPredecessors(),
+                    s.hasQueuedThreads(),
+                    s.getQueueLength(),
+                    s.getFirstQueuedThread()));
     }
 
 }
