@@ -371,13 +371,17 @@ public class SubmissionPublisher<T> implements Publisher<T>,
             else {
                 complete = false;
                 boolean cleanMe = false;
-                BufferedSubscription<T> retries = null, next;
+                BufferedSubscription<T> retries = null, rtail = null, next;
                 do {
                     next = b.next;
                     int stat = b.offer(item, unowned);
-                    if (stat == 0) {              // saturated
-                        b.nextRetry = retries;    // add to retry list
-                        retries = b;
+                    if (stat == 0) {              // saturated; add to retry list
+                        b.nextRetry = null;       // avoid garbage on exceptions
+                        if (rtail == null)
+                            retries = b;
+                        else
+                            rtail.nextRetry = b;
+                        rtail = b;
                     }
                     else if (stat < 0)            // closed
                         cleanMe = true;           // remove later
@@ -1156,7 +1160,8 @@ public class SubmissionPublisher<T> implements Publisher<T>,
          * @param bits state bits, assumed to include RUN but not CLOSED
          */
         final void startOnSignal(int bits) {
-            if ((getAndBitwiseOrCtl(bits) & (RUN | CLOSED)) == 0)
+            if ((ctl & bits) != bits &&
+                (getAndBitwiseOrCtl(bits) & (RUN | CLOSED)) == 0)
                 tryStart();
         }
 
@@ -1191,8 +1196,7 @@ public class SubmissionPublisher<T> implements Publisher<T>,
                     if (casDemand(p, d < p ? Long.MAX_VALUE : d))
                         break;
                 }
-                if ((ctl & (RUN | ACTIVE | REQS)) != (RUN | ACTIVE | REQS))
-                    startOnSignal(RUN | ACTIVE | REQS);
+                startOnSignal(RUN | ACTIVE | REQS);
             }
             else
                 onError(new IllegalArgumentException(
