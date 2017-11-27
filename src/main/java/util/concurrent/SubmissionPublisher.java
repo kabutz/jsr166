@@ -677,11 +677,9 @@ public class SubmissionPublisher<T> implements Publisher<T>,
      * @return the number of current subscribers
      */
     public int getNumberOfSubscribers() {
-        int count;
         synchronized (this) {
-            count = cleanAndCount();
+            return cleanAndCount();
         }
-        return count;
     }
 
     /**
