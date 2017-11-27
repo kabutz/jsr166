@@ -873,8 +873,8 @@ public abstract class AbstractQueuedSynchronizer
      * @return {@code true} if interrupted while waiting
      */
     final boolean acquireQueued(final Node node, int arg) {
+        boolean interrupted = false;
         try {
-            boolean interrupted = false;
             for (;;) {
                 final Node p = node.predecessor();
                 if (p == head && tryAcquire(arg)) {
@@ -882,12 +882,13 @@ public abstract class AbstractQueuedSynchronizer
                     p.next = null; // help GC
                     return interrupted;
                 }
-                if (shouldParkAfterFailedAcquire(p, node) &&
-                    parkAndCheckInterrupt())
-                    interrupted = true;
+                if (shouldParkAfterFailedAcquire(p, node))
+                    interrupted |= parkAndCheckInterrupt();
             }
         } catch (Throwable t) {
             cancelAcquire(node);
+            if (interrupted)
+                selfInterrupt();
             throw t;
         }
     }
@@ -961,8 +962,8 @@ public abstract class AbstractQueuedSynchronizer
      */
     private void doAcquireShared(int arg) {
         final Node node = addWaiter(Node.SHARED);
+        boolean interrupted = false;
         try {
-            boolean interrupted = false;
             for (;;) {
                 final Node p = node.predecessor();
                 if (p == head) {
@@ -970,18 +971,18 @@ public abstract class AbstractQueuedSynchronizer
                     if (r >= 0) {
                         setHeadAndPropagate(node, r);
                         p.next = null; // help GC
-                        if (interrupted)
-                            selfInterrupt();
                         return;
                     }
                 }
-                if (shouldParkAfterFailedAcquire(p, node) &&
-                    parkAndCheckInterrupt())
-                    interrupted = true;
+                if (shouldParkAfterFailedAcquire(p, node))
+                    interrupted |= parkAndCheckInterrupt();
             }
         } catch (Throwable t) {
             cancelAcquire(node);
             throw t;
+        } finally {
+            if (interrupted)
+                selfInterrupt();
         }
     }
 
