@@ -1266,7 +1266,7 @@ public class AbstractQueuedSynchronizerTest extends JSR166TestCase {
      * JDK-8191483: AbstractQueuedSynchronizer cancel/cancel race
      * ant -Djsr166.tckTestClass=AbstractQueuedSynchronizerTest -Djsr166.methodFilter=testCancelCancelRace -Djsr166.runsPerTest=100 tck
      */
-    public void XXXXtestCancelCancelRace() throws InterruptedException {
+    public void DISABLED_testCancelCancelRace() throws InterruptedException {
         class Sync extends AbstractQueuedSynchronizer {
             protected boolean tryAcquire(int acquires) {
                 return !hasQueuedPredecessors() && compareAndSetState(0, 1);
