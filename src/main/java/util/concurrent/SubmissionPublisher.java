@@ -972,7 +972,6 @@ public class SubmissionPublisher<T> implements Publisher<T>,
     @jdk.internal.vm.annotation.Contended
     static final class BufferedSubscription<T>
         implements Subscription, ForkJoinPool.ManagedBlocker {
-        // Order-sensitive field declarations
         long timeout;                      // Long.MAX_VALUE if untimed wait
         int head;                          // next position to take
         int tail;                          // next position to put
