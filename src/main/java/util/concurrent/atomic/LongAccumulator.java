@@ -139,13 +139,11 @@ public class LongAccumulator extends Striped64 implements Serializable {
      */
     public long getThenReset() {
         Cell[] as = cells;
-        long result = base;
-        base = identity;
+        long result = getAndSetBase(identity);
         if (as != null) {
             for (Cell a : as) {
                 if (a != null) {
-                    long v = a.value;
-                    a.reset(identity);
+                    long v = a.getAndSet(identity);
                     result = function.applyAsLong(result, v);
                 }
             }

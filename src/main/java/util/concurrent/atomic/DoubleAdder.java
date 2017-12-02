@@ -125,15 +125,11 @@ public class DoubleAdder extends Striped64 implements Serializable {
      */
     public double sumThenReset() {
         Cell[] as = cells;
-        double sum = Double.longBitsToDouble(base);
-        base = 0L;
+        double sum = Double.longBitsToDouble(getAndSetBase(0L));
         if (as != null) {
             for (Cell a : as) {
-                if (a != null) {
-                    long v = a.value;
-                    a.reset();
-                    sum += Double.longBitsToDouble(v);
-                }
+                if (a != null)
+                    sum += Double.longBitsToDouble(a.getAndSet(0L));
             }
         }
         return sum;

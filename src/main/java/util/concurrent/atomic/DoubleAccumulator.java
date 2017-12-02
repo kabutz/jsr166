@@ -145,13 +145,11 @@ public class DoubleAccumulator extends Striped64 implements Serializable {
      */
     public double getThenReset() {
         Cell[] as = cells;
-        double result = longBitsToDouble(base);
-        base = identity;
+        double result = longBitsToDouble(getAndSetBase(identity));
         if (as != null) {
             for (Cell a : as) {
                 if (a != null) {
-                    double v = longBitsToDouble(a.value);
-                    a.reset(identity);
+                    double v = longBitsToDouble(a.getAndSet(identity));
                     result = function.applyAsDouble(result, v);
                 }
             }

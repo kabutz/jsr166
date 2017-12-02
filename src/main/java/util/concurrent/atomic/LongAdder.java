@@ -127,14 +127,11 @@ public class LongAdder extends Striped64 implements Serializable {
      */
     public long sumThenReset() {
         Cell[] as = cells;
-        long sum = base;
-        base = 0L;
+        long sum = getAndSetBase(0L);
         if (as != null) {
             for (Cell a : as) {
-                if (a != null) {
-                    sum += a.value;
-                    a.reset();
-                }
+                if (a != null)
+                    sum += a.getAndSet(0L);
             }
         }
         return sum;
