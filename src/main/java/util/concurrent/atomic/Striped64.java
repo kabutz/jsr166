@@ -107,7 +107,7 @@ abstract class Striped64 extends Number {
         final long getAndSet(long val) {
             return (long)VALUE.getAndSet(this, val);
         }
-        
+
         // VarHandle mechanics
         private static final VarHandle VALUE;
         static {
@@ -155,7 +155,7 @@ abstract class Striped64 extends Number {
     final long getAndSetBase(long val) {
         return (long)BASE.getAndSet(this, val);
     }
-    
+
     /**
      * CASes the cellsBusy field from 0 to 1 to acquire lock.
      */
