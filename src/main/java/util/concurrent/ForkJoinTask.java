@@ -194,12 +194,12 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      * The status field holds run control status bits packed into a
      * single int to ensure atomicity.  Status is initially zero, and
      * takes on nonnegative values until completed, upon which it
-     * holds (negative bit) DONE, possibly with ABNORMAL (cancelled or
+     * holds (sign bit) DONE, possibly with ABNORMAL (cancelled or
      * exceptional) and THROWN (in which case an exception has been
-     * stored). Tasks undergoing blocking waits by other threads have
-     * the SIGNAL bit set.  Completion of a task with SIGNAL set
-     * awakens any waiters via notifyAll. (Waiters also help signal
-     * others upon completion.)
+     * stored). Tasks with dependent blocked waiting joiners have the
+     * SIGNAL bit set.  Completion of a task with SIGNAL set awakens
+     * any waiters via notifyAll. (Waiters also help signal others
+     * upon completion.)
      *
      * These control bits occupy only (some of) the upper half (16
      * bits) of status field. The lower bits are used for user-defined
