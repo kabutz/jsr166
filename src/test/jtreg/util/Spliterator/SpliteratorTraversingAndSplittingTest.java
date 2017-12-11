@@ -1024,7 +1024,7 @@ public class SpliteratorTraversingAndSplittingTest {
 
         List<Object[]> data = new ArrayList<>();
         for (int size : SIZES) {
-            long exp[] = arrayLongRange(size);
+            long[] exp = arrayLongRange(size);
             SpliteratorOfLongDataBuilder db = new SpliteratorOfLongDataBuilder(data, listLongRange(size));
 
             db.add("Spliterators.spliterator(long[], ...)",
@@ -1184,7 +1184,7 @@ public class SpliteratorTraversingAndSplittingTest {
 
         List<Object[]> data = new ArrayList<>();
         for (int size : SIZES) {
-            double exp[] = arrayDoubleRange(size);
+            double[] exp = arrayDoubleRange(size);
             SpliteratorOfDoubleDataBuilder db = new SpliteratorOfDoubleDataBuilder(data, listDoubleRange(size));
 
             db.add("Spliterators.spliterator(double[], ...)",
