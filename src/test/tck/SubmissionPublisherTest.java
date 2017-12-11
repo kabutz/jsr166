@@ -985,6 +985,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
      * cvs update -D '2017-11-25' src/main/java/util/concurrent/SubmissionPublisher.java && ant -Djsr166.expensiveTests=true -Djsr166.tckTestClass=SubmissionPublisherTest -Djsr166.methodFilter=testMissedSignal tck; cvs update -A src/main/java/util/concurrent/SubmissionPublisher.java
      */
     public void testMissedSignal_8187947() throws Exception {
+        if (!atLeastJava9()) return; // backport to jdk8 too hard
         final int N = expensiveTests ? (1 << 20) : (1 << 10);
         final CountDownLatch finished = new CountDownLatch(1);
         final SubmissionPublisher<Boolean> pub = new SubmissionPublisher<>();
