@@ -21,10 +21,12 @@
   $HOME/jdk/jdk8
   $HOME/jdk/jdk9
   $HOME/jdk/jdk10
+  $HOME/jdk/jdk11
   where each of the above is a JDK or a symlink to same, and
   $HOME/jdk/src/jdk8
   $HOME/jdk/src/jdk9
   $HOME/jdk/src/jdk10
+  $HOME/jdk/src/jdk11
   where each of the above is a complete JDK source tree
   (e.g. mercurial forest) or a symlink to same.
 
@@ -132,6 +134,7 @@
   <defjdklocations v="8"/>
   <defjdklocations v="9"/>
   <defjdklocations v="10"/>
+  <defjdklocations v="11"/>
 
   <!-- Source locations -->
   <property name="src.dir"              location="${basedir}/src/main"/>
@@ -142,6 +145,7 @@
   <property name="jtreg8.src.dir"       location="${test.src.dir}/jtreg-jdk8"/>
   <property name="jtreg9.src.dir"       location="${test.src.dir}/jtreg"/>
   <property name="jtreg10.src.dir"      location="${test.src.dir}/jtreg"/>
+  <property name="jtreg11.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg.src.dir"        location="${jtreg9.src.dir}"/>
   <property name="lib.dir"              location="${basedir}/lib"/>
   <property name="dist.dir"             location="${basedir}/dist"/>
@@ -191,6 +195,7 @@
   <!-- <property name="java9.docroot.url" value="http://download.java.net/java/jdk9/docs"/> -->
   <!-- Default jdk doc location (latest stable release seems best) -->
   <property name="java10.docroot.url" value="http://download.java.net/java/jdk10/docs"/>
+  <property name="java11.docroot.url" value="http://download.java.net/java/jdk11/docs"/>
   <property name="java.docroot.url"   value="${java9.docroot.url}"/>
 
   <!-- Canonical location of jdk API docs, to use with javadoc link attribute -->
@@ -200,6 +205,7 @@
   <property name="java8.api.url"      value="${java8.docroot.url}/api/"/>
   <property name="java9.api.url"      value="${java9.docroot.url}/api/"/>
   <property name="java10.api.url"     value="${java10.docroot.url}/api/"/>
+  <property name="java11.api.url"     value="${java11.docroot.url}/api/"/>
   <property name="java.api.url"       value="${java.docroot.url}/api/"/>
 
   <!-- Define the "jtreg" task -->
@@ -299,6 +305,12 @@
   </macrodef>
 
   <!-- Define jtreg test sets for different jdk versions -->
+  <fileset dir="${jtreg11.src.dir}">
+    <patternset id="jdk11.jtreg.tests">
+      <include name="**/*.java"/>
+    </patternset>
+  </fileset>
+
   <fileset dir="${jtreg10.src.dir}">
     <patternset id="jdk10.jtreg.tests">
       <include name="**/*.java"/>
@@ -603,7 +615,7 @@
 
 <!--   </target> -->
 
-  <target name="test910"
+  <target name="test91011"
           description="Runs tck and jtreg tests for src/main for multiple java versions">
 
     <antcall target="clean"/>
@@ -614,6 +626,11 @@
     <antcall target="clean"/>
     <antcall target="test">
       <param name="build.main.java.version" value="10"/>
+    </antcall>
+
+    <antcall target="clean"/>
+    <antcall target="test">
+      <param name="build.main.java.version" value="11"/>
     </antcall>
 
     <!-- Clean up to avoid obscure wrong class file version bugs -->
