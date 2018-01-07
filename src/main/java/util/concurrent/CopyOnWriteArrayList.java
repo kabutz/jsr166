@@ -962,9 +962,8 @@ public class CopyOnWriteArrayList<E>
 
         List<?> list = (List<?>)o;
         Iterator<?> it = list.iterator();
-        Object[] elements = getArray();
-        for (int i = 0, len = elements.length; i < len; i++)
-            if (!it.hasNext() || !Objects.equals(elements[i], it.next()))
+        for (Object element : getArray())
+            if (!it.hasNext() || !Objects.equals(element, it.next()))
                 return false;
         return !it.hasNext();
     }
