@@ -271,8 +271,7 @@ public class RemoveMicroBenchmark {
             new LinkedBlockingQueue<>(),
             new LinkedBlockingDeque<>(),
             new LinkedTransferQueue<>(),
-            new PriorityBlockingQueue<>())
-            .stream().forEach(
+            new PriorityBlockingQueue<>()).forEach(
                 x -> {
                     String klazz = x.getClass().getSimpleName();
                     jobs.addAll(collectionJobs(klazz, () -> x, al));

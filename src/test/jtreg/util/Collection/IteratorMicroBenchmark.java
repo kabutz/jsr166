@@ -272,22 +272,22 @@ public class IteratorMicroBenchmark {
 
         ArrayList<Job> jobs = new ArrayList<>();
 
-        List.of(al, ad, abq,
-                new LinkedList<>(al),
-                new PriorityQueue<>(al),
-                new Vector<>(al),
-                new ConcurrentLinkedQueue<>(al),
-                new ConcurrentLinkedDeque<>(al),
-                new LinkedBlockingQueue<>(al),
-                new LinkedBlockingDeque<>(al),
-                new LinkedTransferQueue<>(al),
-                new PriorityBlockingQueue<>(al))
-            .stream()
-            .forEach(x -> {
-                         jobs.addAll(collectionJobs(x));
-                         if (x instanceof Deque)
-                             jobs.addAll(dequeJobs((Deque<Integer>)x));
-                     });
+        List.<Collection<Integer>>of(
+            al, ad, abq,
+            new LinkedList<>(al),
+            new PriorityQueue<>(al),
+            new Vector<>(al),
+            new ConcurrentLinkedQueue<>(al),
+            new ConcurrentLinkedDeque<>(al),
+            new LinkedBlockingQueue<>(al),
+            new LinkedBlockingDeque<>(al),
+            new LinkedTransferQueue<>(al),
+            new PriorityBlockingQueue<>(al)).forEach(
+                x -> {
+                    jobs.addAll(collectionJobs(x));
+                    if (x instanceof Deque)
+                        jobs.addAll(dequeJobs((Deque<Integer>)x));
+                });
 
         if (reverse) Collections.reverse(jobs);
         if (shuffle) Collections.shuffle(jobs);
