@@ -32,6 +32,8 @@
  * @author Martin Buchholz
  */
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.concurrent.CountDownLatch;
@@ -133,16 +135,11 @@ public class RangeCheckMicroBenchmark {
     }
 
     private static Job[] filter(Pattern filter, Job[] jobs) {
-        if (filter == null) return jobs;
-        Job[] newJobs = new Job[jobs.length];
-        int n = 0;
-        for (Job job : jobs)
-            if (filter.matcher(job.name()).find())
-                newJobs[n++] = job;
-        // Arrays.copyOf not available in JDK 5
-        Job[] ret = new Job[n];
-        System.arraycopy(newJobs, 0, ret, 0, n);
-        return ret;
+        return (filter == null) ? jobs
+            : Arrays.stream(jobs)
+            .filter(job -> filter.matcher(job.name()).find())
+            .collect(toList())
+            .toArray(new Job[0]);
     }
 
     private static void deoptimize(ArrayList<Integer> list) {

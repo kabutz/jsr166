@@ -28,6 +28,7 @@
  */
 
 import static java.util.stream.Collectors.summingInt;
+import static java.util.stream.Collectors.toList;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
@@ -205,12 +206,10 @@ public class IteratorMicroBenchmark {
     }
 
     private static List<Job> filter(Pattern filter, List<Job> jobs) {
-        if (filter == null) return jobs;
-        ArrayList<Job> newJobs = new ArrayList<>();
-        for (Job job : jobs)
-            if (filter.matcher(job.name()).find())
-                newJobs.add(job);
-        return newJobs;
+        return (filter == null) ? jobs
+            : jobs.stream()
+            .filter(job -> filter.matcher(job.name()).find())
+            .collect(toList());
     }
 
     private static void deoptimize(int sum) {
