@@ -216,8 +216,7 @@ public abstract class AbstractExecutorService implements ExecutorService {
                 Future<T> f = futures.get(i);
                 if (!f.isDone()) {
                     try { f.get(); }
-                    catch (CancellationException ignore) {}
-                    catch (ExecutionException ignore) {}
+                    catch (CancellationException | ExecutionException ignore) {}
                 }
             }
             return futures;
@@ -254,8 +253,7 @@ public abstract class AbstractExecutorService implements ExecutorService {
                 Future<T> f = futures.get(j);
                 if (!f.isDone()) {
                     try { f.get(deadline - System.nanoTime(), NANOSECONDS); }
-                    catch (CancellationException ignore) {}
-                    catch (ExecutionException ignore) {}
+                    catch (CancellationException | ExecutionException ignore) {}
                     catch (TimeoutException timedOut) {
                         break timedOut;
                     }
