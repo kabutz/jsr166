@@ -2424,9 +2424,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             if (k == null) // pass by markers and headers
                 return true;
             int c = cpr(cmp, k, hi);
-            if (c > 0 || (c == 0 && !hiInclusive))
-                return false;
-            return true;
+            return c < 0 || (c == 0 && hiInclusive);
         }
 
         /**
