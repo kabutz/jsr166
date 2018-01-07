@@ -124,9 +124,8 @@ public class EmptyNavigableMap {
      */
     @Test(dataProvider = "NavigableMap<?,?>", dataProviderClass = EmptyNavigableMap.class)
     public void testContainsRequiresComparable(String description, NavigableMap<?,?> navigableMap) {
-        assertThrowsCCE(() -> {
-            navigableMap.containsKey(new Object());
-        },
+        assertThrowsCCE(
+            () -> navigableMap.containsKey(new Object()),
             description + ": Compareable should be required");
     }
 
@@ -252,9 +251,7 @@ public class EmptyNavigableMap {
         Object last = (BigInteger.ZERO == first) ? BigInteger.TEN : BigInteger.ZERO;
 
             assertThrowsIAE(
-                () -> {
-                    navigableMap.subMap(last, true, first, false);
-                },
+                () -> navigableMap.subMap(last, true, first, false),
                 description + ": Must throw IllegalArgumentException when fromElement is not less than toElement.");
 
         navigableMap.subMap(first, true, last, false);
@@ -273,9 +270,8 @@ public class EmptyNavigableMap {
         // slightly smaller
         NavigableMap ns = subMap.subMap(first, false, last, false);
         // slight expansion
-        assertThrowsIAE(() -> {
-            ns.subMap(first, true, last, true);
-        },
+        assertThrowsIAE(
+            () -> ns.subMap(first, true, last, true),
             description + ": Expansion should not be allowed");
 
         // much smaller
@@ -293,9 +289,8 @@ public class EmptyNavigableMap {
         NavigableMap ns = subMap.headMap(BigInteger.ONE, false);
 
         // slight expansion
-        assertThrowsIAE(() -> {
-            ns.headMap(BigInteger.ONE, true);
-        },
+        assertThrowsIAE(
+            () -> ns.headMap(BigInteger.ONE, true),
             description + ": Expansion should not be allowed");
 
         // much smaller
@@ -313,9 +308,8 @@ public class EmptyNavigableMap {
         NavigableMap ns = subMap.tailMap(BigInteger.ONE, false);
 
         // slight expansion
-        assertThrowsIAE(() -> {
-            ns.tailMap(BigInteger.ONE, true);
-        },
+        assertThrowsIAE(
+            () -> ns.tailMap(BigInteger.ONE, true),
             description + ": Expansion should not be allowed");
 
         // much smaller
@@ -327,14 +321,12 @@ public class EmptyNavigableMap {
      */
     @Test(dataProvider = "NavigableMap<?,?>", dataProviderClass = EmptyNavigableMap.class)
     public void testTailMap(String description, NavigableMap navigableMap) {
-        assertThrowsNPE(() -> {
-            navigableMap.tailMap(null);
-        },
+        assertThrowsNPE(
+            () -> navigableMap.tailMap(null),
             description + ": Must throw NullPointerException for null element");
 
-        assertThrowsCCE(() -> {
-            navigableMap.tailMap(new Object());
-        },
+        assertThrowsCCE(
+            () -> navigableMap.tailMap(new Object()),
             description);
 
         NavigableMap ss = navigableMap.tailMap("1", true);

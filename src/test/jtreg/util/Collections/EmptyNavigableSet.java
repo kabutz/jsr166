@@ -130,9 +130,8 @@ public class EmptyNavigableSet {
      */
     @Test(dataProvider = "NavigableSet<?>", dataProviderClass = EmptyNavigableSet.class)
     public void testContainsRequiresComparable(String description, NavigableSet<?> navigableSet) {
-        assertThrowsCCE(() -> {
-            navigableSet.contains(new Object());
-        },
+        assertThrowsCCE(
+            () -> navigableSet.contains(new Object()),
             description + ": Compareable should be required");
     }
 
@@ -273,9 +272,7 @@ public class EmptyNavigableSet {
         Object last = (BigInteger.ZERO == first) ? BigInteger.TEN : BigInteger.ZERO;
 
             assertThrowsIAE(
-                () -> {
-                    navigableSet.subSet(last, true, first, false);
-                },
+                () -> navigableSet.subSet(last, true, first, false),
                 description
                 + ": Must throw IllegalArgumentException when fromElement is not less than toElement.");
 
@@ -295,9 +292,8 @@ public class EmptyNavigableSet {
         // slightly smaller
         NavigableSet ns = subSet.subSet(first, false, last, false);
         // slight expansion
-        assertThrowsIAE(() -> {
-            ns.subSet(first, true, last, true);
-        },
+        assertThrowsIAE(
+            () -> ns.subSet(first, true, last, true),
             description + ": Expansion should not be allowed");
 
         // much smaller
@@ -315,9 +311,8 @@ public class EmptyNavigableSet {
         NavigableSet ns = subSet.headSet(BigInteger.ONE, false);
 
         // slight expansion
-        assertThrowsIAE(() -> {
-            ns.headSet(BigInteger.ONE, true);
-        },
+        assertThrowsIAE(
+            () -> ns.headSet(BigInteger.ONE, true),
             description + ": Expansion should not be allowed");
 
         // much smaller
@@ -335,9 +330,8 @@ public class EmptyNavigableSet {
         NavigableSet ns = subSet.tailSet(BigInteger.ONE, false);
 
         // slight expansion
-        assertThrowsIAE(() -> {
-            ns.tailSet(BigInteger.ONE, true);
-        },
+        assertThrowsIAE(
+            () -> ns.tailSet(BigInteger.ONE, true),
             description + ": Expansion should not be allowed");
 
         // much smaller
@@ -349,14 +343,13 @@ public class EmptyNavigableSet {
      */
     @Test(dataProvider = "NavigableSet<?>", dataProviderClass = EmptyNavigableSet.class)
     public void testTailSet(String description, NavigableSet navigableSet) {
-        assertThrowsNPE(() -> {
-            navigableSet.tailSet(null);
-        },
+        assertThrowsNPE(
+            () -> navigableSet.tailSet(null),
             description + ": Must throw NullPointerException for null element");
 
-        assertThrowsCCE(() -> {
-            navigableSet.tailSet(new Object());
-        }, description);
+        assertThrowsCCE(
+            () -> navigableSet.tailSet(new Object()),
+            description);
 
         NavigableSet ss = navigableSet.tailSet("1", true);
 
