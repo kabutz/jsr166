@@ -730,7 +730,7 @@ public class Defaults {
         e90, e91, e92, e93, e94, e95, e96, e97, e98, e99,
         EXTRA_KEY;
         public static final int SIZE = values().length;
-    };
+    }
     private static final int TEST_SIZE = IntegerEnum.SIZE - 1;
     /**
      * Realized keys ensure that there is always a hard ref to all test objects.
