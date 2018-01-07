@@ -743,9 +743,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         Node first = null;
         restartFromHead: for (;;) {
             Node h = head, p = h;
-            for (; p != null;) {
-                final Object item;
-                if ((item = p.item) != null) {
+            while (p != null) {
+                if (p.item != null) {
                     if (p.isData) {
                         first = p;
                         break;
