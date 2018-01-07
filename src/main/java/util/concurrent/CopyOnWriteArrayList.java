@@ -490,7 +490,7 @@ public class CopyOnWriteArrayList<E>
     public boolean remove(Object o) {
         Object[] snapshot = getArray();
         int index = indexOf(o, snapshot, 0, snapshot.length);
-        return (index < 0) ? false : remove(o, snapshot, index);
+        return index >= 0 && remove(o, snapshot, index);
     }
 
     /**
@@ -569,8 +569,8 @@ public class CopyOnWriteArrayList<E>
      */
     public boolean addIfAbsent(E e) {
         Object[] snapshot = getArray();
-        return indexOf(e, snapshot, 0, snapshot.length) >= 0 ? false :
-            addIfAbsent(e, snapshot);
+        return indexOf(e, snapshot, 0, snapshot.length) < 0
+            && addIfAbsent(e, snapshot);
     }
 
     /**
