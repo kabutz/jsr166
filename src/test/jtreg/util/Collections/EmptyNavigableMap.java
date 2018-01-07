@@ -126,7 +126,7 @@ public class EmptyNavigableMap {
     public void testContainsRequiresComparable(String description, NavigableMap<?,?> navigableMap) {
         assertThrowsCCE(
             () -> navigableMap.containsKey(new Object()),
-            description + ": Compareable should be required");
+            description + ": Comparable should be required");
     }
 
     /**

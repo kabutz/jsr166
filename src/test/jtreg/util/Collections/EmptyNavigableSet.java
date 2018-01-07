@@ -132,7 +132,7 @@ public class EmptyNavigableSet {
     public void testContainsRequiresComparable(String description, NavigableSet<?> navigableSet) {
         assertThrowsCCE(
             () -> navigableSet.contains(new Object()),
-            description + ": Compareable should be required");
+            description + ": Comparable should be required");
     }
 
     /**
