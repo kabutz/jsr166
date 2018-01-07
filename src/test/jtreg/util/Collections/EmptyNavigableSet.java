@@ -182,9 +182,7 @@ public class EmptyNavigableSet {
      */
     @Test(dataProvider = "NavigableSet<?>", dataProviderClass = EmptyNavigableSet.class)
     public void testFirst(String description, NavigableSet<?> navigableSet) {
-        assertThrowsNSEE(() -> {
-            navigableSet.first();
-        }, description);
+        assertThrowsNSEE(navigableSet::first, description);
     }
 
     /**
@@ -210,9 +208,7 @@ public class EmptyNavigableSet {
      */
     @Test(dataProvider = "NavigableSet<?>", dataProviderClass = EmptyNavigableSet.class)
     public void testLast(String description, NavigableSet<?> navigableSet) {
-        assertThrowsNSEE(() -> {
-            navigableSet.last();
-        }, description);
+        assertThrowsNSEE(navigableSet::last, description);
     }
 
     /**
