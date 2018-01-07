@@ -404,7 +404,7 @@ public class SubmissionPublisherTest extends JSR166TestCase {
      */
     public void testCancel() {
         SubmissionPublisher<Integer> p =
-            new SubmissionPublisher<Integer>(basicExecutor, 4); // must be < 20
+            new SubmissionPublisher<>(basicExecutor, 4); // must be < 20
         TestSubscriber s1 = new TestSubscriber();
         TestSubscriber s2 = new TestSubscriber();
         p.subscribe(s1);

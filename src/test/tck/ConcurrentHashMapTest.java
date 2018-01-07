@@ -128,8 +128,7 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
      */
     public void testComparableFamily() {
         int size = 500;         // makes measured test run time -> 60ms
-        ConcurrentHashMap<BI, Boolean> m =
-            new ConcurrentHashMap<BI, Boolean>();
+        ConcurrentHashMap<BI, Boolean> m = new ConcurrentHashMap<>();
         for (int i = 0; i < size; i++) {
             assertNull(m.put(new CI(i), true));
         }
@@ -145,13 +144,12 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
      */
     public void testGenericComparable() {
         int size = 120;         // makes measured test run time -> 60ms
-        ConcurrentHashMap<Object, Boolean> m =
-            new ConcurrentHashMap<Object, Boolean>();
+        ConcurrentHashMap<Object, Boolean> m = new ConcurrentHashMap<>();
         for (int i = 0; i < size; i++) {
             BI bi = new BI(i);
             BS bs = new BS(String.valueOf(i));
-            LexicographicList<BI> bis = new LexicographicList<BI>(bi);
-            LexicographicList<BS> bss = new LexicographicList<BS>(bs);
+            LexicographicList<BI> bis = new LexicographicList<>(bi);
+            LexicographicList<BS> bss = new LexicographicList<>(bs);
             assertNull(m.putIfAbsent(bis, true));
             assertTrue(m.containsKey(bis));
             if (m.putIfAbsent(bss, true) == null)
@@ -170,14 +168,13 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
      */
     public void testGenericComparable2() {
         int size = 500;         // makes measured test run time -> 60ms
-        ConcurrentHashMap<Object, Boolean> m =
-            new ConcurrentHashMap<Object, Boolean>();
+        ConcurrentHashMap<Object, Boolean> m = new ConcurrentHashMap<>();
         for (int i = 0; i < size; i++) {
             m.put(Collections.singletonList(new BI(i)), true);
         }
 
         for (int i = 0; i < size; i++) {
-            LexicographicList<BI> bis = new LexicographicList<BI>(new BI(i));
+            LexicographicList<BI> bis = new LexicographicList<>(new BI(i));
             assertTrue(m.containsKey(bis));
         }
     }
@@ -188,8 +185,7 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
      */
     public void testMixedComparable() {
         int size = 1200;        // makes measured test run time -> 35ms
-        ConcurrentHashMap<Object, Object> map =
-            new ConcurrentHashMap<Object, Object>();
+        ConcurrentHashMap<Object, Object> map = new ConcurrentHashMap<>();
         Random rng = new Random();
         for (int i = 0; i < size; i++) {
             Object x;
