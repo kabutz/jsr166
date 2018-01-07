@@ -270,7 +270,7 @@ public class IteratorMicroBenchmark {
             abq.add(abq.remove());
         }
 
-        ArrayList<Job> jobs = new ArrayList<>(Arrays.asList());
+        ArrayList<Job> jobs = new ArrayList<>();
 
         List.of(al, ad, abq,
                 new LinkedList<>(al),
