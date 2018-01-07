@@ -52,7 +52,7 @@ public class ReadObject extends Hashtable {
         Object getValue() {
             return mValue;
         }
-    };
+    }
 
     public Object get(Object key) {
         ValueWrapper valueWrapper = (ValueWrapper)super.get(key);
