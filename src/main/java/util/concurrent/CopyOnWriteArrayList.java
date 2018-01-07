@@ -966,9 +966,7 @@ public class CopyOnWriteArrayList<E>
         for (int i = 0, len = elements.length; i < len; i++)
             if (!it.hasNext() || !Objects.equals(elements[i], it.next()))
                 return false;
-        if (it.hasNext())
-            return false;
-        return true;
+        return !it.hasNext();
     }
 
     /**
