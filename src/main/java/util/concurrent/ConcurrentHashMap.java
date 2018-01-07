@@ -2603,12 +2603,8 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                 else if (cellsBusy == 0 &&
                          U.compareAndSetInt(this, CELLSBUSY, 0, 1)) {
                     try {
-                        if (counterCells == as) {// Expand table unless stale
-                            CounterCell[] rs = new CounterCell[n << 1];
-                            for (int i = 0; i < n; ++i)
-                                rs[i] = as[i];
-                            counterCells = rs;
-                        }
+                        if (counterCells == as) // Expand table unless stale
+                            counterCells = Arrays.copyOf(as, n << 1);
                     } finally {
                         cellsBusy = 0;
                     }
