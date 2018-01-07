@@ -1,5 +1,5 @@
 The software comprising JSR166 was written by Doug Lea with assistance
-from members of JCP JSR-166 Expert roup and released to the public
+from members of JCP JSR-166 Expert group and released to the public
 domain, as explained at:
 http://creativecommons.org/publicdomain/zero/1.0/, excepting portions
 of the class java.util.concurrent.CopyOnWriteArrayList, which were
