@@ -1573,8 +1573,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         // Read in elements until trailing null sentinel found
         Node h = null, t = null;
         for (Object item; (item = s.readObject()) != null; ) {
-            @SuppressWarnings("unchecked")
-            Node newNode = new Node((E) item);
+            Node newNode = new Node(item);
             if (h == null)
                 h = t = newNode;
             else
