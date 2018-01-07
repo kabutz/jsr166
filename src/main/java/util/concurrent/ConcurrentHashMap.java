@@ -688,12 +688,12 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      */
     static Class<?> comparableClassFor(Object x) {
         if (x instanceof Comparable) {
-            Class<?> c; Type[] ts, as; Type t; ParameterizedType p;
+            Class<?> c; Type[] ts, as; ParameterizedType p;
             if ((c = x.getClass()) == String.class) // bypass checks
                 return c;
             if ((ts = c.getGenericInterfaces()) != null) {
-                for (int i = 0; i < ts.length; ++i) {
-                    if (((t = ts[i]) instanceof ParameterizedType) &&
+                for (Type t : ts) {
+                    if ((t instanceof ParameterizedType) &&
                         ((p = (ParameterizedType)t).getRawType() ==
                          Comparable.class) &&
                         (as = p.getActualTypeArguments()) != null &&
@@ -2545,13 +2545,12 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     final long sumCount() {
-        CounterCell[] as = counterCells; CounterCell a;
+        CounterCell[] as = counterCells;
         long sum = baseCount;
         if (as != null) {
-            for (int i = 0; i < as.length; ++i) {
-                if ((a = as[i]) != null)
+            for (CounterCell a : as)
+                if (a != null)
                     sum += a.value;
-            }
         }
         return sum;
     }
