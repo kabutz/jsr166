@@ -1556,7 +1556,6 @@ public class ArrayList<E> extends AbstractList<E>
                     setBit(deathRow, i - beg);
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
-            expectedModCount++;
             modCount++;
             int w = beg;
             for (i = beg; i < end; i++)
