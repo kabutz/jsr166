@@ -27,7 +27,9 @@
  * @summary iterators on collection views of empty map weren't fail-fast.
  */
 
-import java.util.*;
+import java.util.ConcurrentModificationException;
+import java.util.HashMap;
+import java.util.Iterator;
 
 public class EmptyMapIterator {
     public static void main(String[] args) throws Exception {

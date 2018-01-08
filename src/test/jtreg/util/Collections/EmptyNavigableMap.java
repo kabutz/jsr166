@@ -27,6 +27,12 @@
  * @summary Unit test for Collections.emptyNavigableMap
  * @run testng EmptyNavigableMap
  */
+
+import org.testng.Assert;
+import org.testng.Assert.ThrowingRunnable;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,13 +43,8 @@ import java.util.NavigableMap;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.testng.Assert;
-import org.testng.Assert.ThrowingRunnable;
-import org.testng.annotations.Test;
-import org.testng.annotations.DataProvider;
-
-import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 public class EmptyNavigableMap {
 
