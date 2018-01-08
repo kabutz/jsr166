@@ -22,11 +22,7 @@ public class PriorityQueueSort {
 
     static class MyComparator implements Comparator<Integer> {
         public int compare(Integer x, Integer y) {
-            int i = x.intValue();
-            int j = y.intValue();
-            if (i < j) return -1;
-            if (i > j) return 1;
-            return 0;
+            return Integer.compare(x.intValue(), y.intValue());
         }
     }
 
