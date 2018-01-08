@@ -32,11 +32,14 @@
  * @author Martin Buchholz
  */
 
-import static java.util.stream.Collectors.toList;
-
-import java.util.*;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Pattern;
+
+import static java.util.stream.Collectors.toList;
 
 public class RangeCheckMicroBenchmark {
     abstract static class Job {
