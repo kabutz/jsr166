@@ -21,7 +21,7 @@
  * questions.
  */
 
-/**
+/*
  * @test
  * @bug 4652911
  * @summary test Hashtable readObject for invocation of overridable put method

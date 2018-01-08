@@ -21,7 +21,7 @@
  * questions.
  */
 
-/**
+/*
  * @test
  * @bug 5078378
  * @summary REGRESSION: Some calls to Collections.binarySearch no longer compile
