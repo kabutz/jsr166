@@ -56,17 +56,12 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
         return map;
     }
 
-    /** Re-implement Integer.compare for old java versions */
-    static int compare(int x, int y) {
-        return (x < y) ? -1 : (x > y) ? 1 : 0;
-    }
-
     // classes for testing Comparable fallbacks
     static class BI implements Comparable<BI> {
         private final int value;
         BI(int value) { this.value = value; }
         public int compareTo(BI other) {
-            return compare(value, other.value);
+            return Integer.compare(value, other.value);
         }
         public boolean equals(Object x) {
             return (x instanceof BI) && ((BI)x).value == value;
@@ -100,7 +95,7 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
                     break;
             }
             if (r == 0)
-                r = compare(size(), other.size());
+                r = Integer.compare(size(), other.size());
             return r;
         }
         private static final long serialVersionUID = 0;
