@@ -845,7 +845,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
         immediates.forEach(
             f -> assertTrue(((ScheduledFuture)f).getDelay(NANOSECONDS) <= 0L));
 
-        Stream.of(immediates, delayeds, periodics).flatMap(c -> c.stream())
+        Stream.of(immediates, delayeds, periodics).flatMap(Collection::stream)
             .forEach(f -> assertFalse(f.isDone()));
 
         try { p.shutdown(); } catch (SecurityException ok) { return; }
@@ -899,7 +899,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
 
         assertTrue(q.isEmpty());
 
-        Stream.of(immediates, delayeds, periodics).flatMap(c -> c.stream())
+        Stream.of(immediates, delayeds, periodics).flatMap(Collection::stream)
             .forEach(f -> assertTrue(f.isDone()));
 
         for (Future<?> f : immediates) assertNull(f.get());
