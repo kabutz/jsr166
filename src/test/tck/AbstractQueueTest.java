@@ -53,7 +53,7 @@ public class AbstractQueueTest extends JSR166TestCase {
     }
 
     /**
-     * add throws IllegalStateException true if offer fails
+     * add throws IllegalStateException if offer fails
      */
     public void testAddF() {
         Fail q = new Fail();
