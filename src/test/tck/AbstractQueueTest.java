@@ -98,7 +98,7 @@ public class AbstractQueueTest extends JSR166TestCase {
      */
     public void testElementS() {
         Succeed q = new Succeed();
-        q.element();
+        assertSame(one, q.element());
     }
 
     /**
