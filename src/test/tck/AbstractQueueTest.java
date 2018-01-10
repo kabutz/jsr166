@@ -79,7 +79,7 @@ public class AbstractQueueTest extends JSR166TestCase {
      */
     public void testRemoveS() {
         Succeed q = new Succeed();
-        q.remove();
+        assertSame(one, q.remove());
     }
 
     /**
