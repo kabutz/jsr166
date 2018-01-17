@@ -573,7 +573,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * adjacent WorkQueue instances, as well as the ForkJoinPool.ctl
      * field. WorkQueue arrays are allocated (by their threads) with
      * larger initial sizes than most ever need, mostly to reduce
-     * false sharing current garbage collectors that use cardmark
+     * false sharing with current garbage collectors that use cardmark
      * tables.
      *
      * Style notes
