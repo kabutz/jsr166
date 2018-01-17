@@ -1135,8 +1135,7 @@ public class MOAT {
             //System.out.printf("Serializing %s%n", m.getClass().getName());
             try {
                 Object clone = serialClone(m);
-                equal(m instanceof Serializable,
-                      clone instanceof Serializable);
+                check(clone instanceof Serializable);
                 equal(m, clone);
             } catch (Error xxx) {
                 if (! (xxx.getCause() instanceof NotSerializableException))
