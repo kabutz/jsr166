@@ -239,8 +239,8 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <dd>A pool that is no longer referenced in a program <em>AND</em>
  * has no remaining threads may be reclaimed (garbage collected)
- * without being explicity shutdown. You can configure a pool to allow
- * all unused threads to eventually die by setting appropriate
+ * without being explicitly shutdown. You can configure a pool to
+ * allow all unused threads to eventually die by setting appropriate
  * keep-alive times, using a lower bound of zero core threads and/or
  * setting {@link #allowCoreThreadTimeOut(boolean)}.  </dd>
  *
