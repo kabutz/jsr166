@@ -203,7 +203,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      *
      * (The actual code needs to null-check and size-check the array,
      * uses masking, not mod, for indexing a power-of-two-sized array,
-     * adds a release fence for publication,, and possibly signals
+     * adds a release fence for publication, and possibly signals
      * waiting workers to start scanning -- see below.)  Both a
      * successful pop and poll mainly entail a CAS of a slot from
      * non-null to null.
