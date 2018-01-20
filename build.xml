@@ -1400,7 +1400,28 @@
 <!-- ==============================================================
   Experimental errorprone support - http://errorprone.info
 =================================================================== -->
-  <property name="errorprone.jar" location="${lib.dir}/error_prone_ant-2.1.2.jar"/>
+  <property name="errorprone.jar" location="${lib.dir}/error_prone_ant-2.2.0.jar"/>
+  <property name="errorprone.jsr166.flags"
+            value="-Xep:BoxedPrimitiveConstructor:OFF
+                   -Xep:HashtableContains:OFF
+                   -Xep:JdkObsolete:OFF
+                   -Xep:ModifyingCollectionWithItself:OFF
+                   -Xep:MissingOverride:OFF
+                   -Xep:MissingFail:OFF
+                   -Xep:IdentityBinaryExpression:WARN
+                   -Xep:MethodCanBeStatic:WARN"/>
+  <!-- -Xep:WildcardImport:ERROR -->
+  <property name="errorprone.jsr166.test.flags"
+            value="-Xep:MissingOverride:OFF
+                   -Xep:StringSplitter:OFF
+                   -Xep:MixedArrayDimensions:ERROR
+                   -Xep:RemoveUnusedImports:ERROR
+                   -Xep:LongLiteralLowerCaseSuffix:ERROR
+                   -Xep:RedundantThrows:ERROR
+                   -Xep:EmptyIf:ERROR
+                   -Xep:MultipleTopLevelClasses:ERROR
+                   -Xep:ClassName:ERROR"/>
+  <!-- ant -emacs errorprone |& grep -EA1 '(warning|error):|warnings' -->
   <target name="errorprone"
           depends="clean, configure-compiler"
           description="Run errorprone over jsr166 source code (experimental)">
@@ -1424,16 +1445,7 @@
       <include name="**/*.java"/>
       <compilerarg line="-processorpath ${errorprone.jar}"/>
       <compilerarg value="-Xplugin:ErrorProne
-                          -Xep:IdentityBinaryExpression:WARN
-                          -Xep:MissingOverride:OFF
-                          -Xep:MixedArrayDimensions:ERROR
-                          -Xep:RemoveUnusedImports:ERROR
-                          -Xep:ClassName:ERROR
-                          -Xep:MultipleTopLevelClasses:ERROR
-                          -Xep:EmptyIf:ERROR
-                          -Xep:LongLiteralLowerCaseSuffix:ERROR
-                          -Xep:RedundantThrows:ERROR
-                          -Xep:MethodCanBeStatic:WARN"/>
+                          ${errorprone.jsr166.flags}"/>
       <compilerarg value="--patch-module=java.base=${src.dir}"/>
       <compilerarg value="-Xprefer:source"/>
       <compilerarg value="-XDignore.symbol.file=true"/>
@@ -1454,27 +1466,15 @@
       <javac-elements>
         <compilerarg line="-processorpath ${errorprone.jar}"/>
         <compilerarg value="-Xplugin:ErrorProne
-                            -Xep:IdentityBinaryExpression:WARN
-                            -Xep:BoxedPrimitiveConstructor:OFF
-                            -Xep:HashtableContains:OFF
-                            -Xep:ModifyingCollectionWithItself:OFF
-                            -Xep:MissingOverride:OFF
-                            -Xep:MissingFail:OFF
-                            -Xep:JdkObsolete:OFF
-                            -Xep:MixedArrayDimensions:ERROR
-                            -Xep:RemoveUnusedImports:ERROR
-                            -Xep:ClassName:ERROR
-                            -Xep:MultipleTopLevelClasses:ERROR
-                            -Xep:EmptyIf:ERROR
-                            -Xep:LongLiteralLowerCaseSuffix:ERROR
-                            -Xep:RedundantThrows:ERROR
-                            -Xep:MethodCanBeStatic:WARN"/>
+                            ${errorprone.jsr166.flags}
+                            ${errorprone.jsr166.test.flags}"/>
         <compilerarg line="-Xmaxerrs 3000 -Xmaxwarns 3000"/>
       </javac-elements>
     </run-tck-tests>
   </target>
 
-  <!-- ant errorprone-jtreg |& grep -EA1 '(warning|error):' -->
+  <!-- ant -emacs errorprone-jtreg |& grep -EA1 '(warning|error):' -->
+  <!-- -XDcompilePolicy=simple or by-file avoids confusing UnusedImports -->
   <target name="errorprone-jtreg"
           depends="jar"
           description="Run errorprone over jtreg tests (experimental)">
@@ -1485,24 +1485,13 @@
        classes="${product.jar}"
        verbose="all">
       <jtreg-elements>
+        <arg value="-javacoption:-XDcompilePolicy=simple"/>
         <arg value="-javacoption:-processorpath"/>
         <arg value="-javacoption:${errorprone.jar}"/>
         <arg value="-javacoption:-Xplugin:ErrorProne
-                            -Xep:IdentityBinaryExpression:WARN
-                            -Xep:BoxedPrimitiveConstructor:OFF
-                            -Xep:HashtableContains:OFF
-                            -Xep:ModifyingCollectionWithItself:OFF
-                            -Xep:MissingOverride:OFF
-                            -Xep:JdkObsolete:OFF
-                            -Xep:NonAtomicVolatileUpdate:OFF
-                            -Xep:MixedArrayDimensions:ERROR
-                            -Xep:RemoveUnusedImports:ERROR
-                            -Xep:ClassName:ERROR
-                            -Xep:MultipleTopLevelClasses:ERROR
-                            -Xep:EmptyIf:ERROR
-                            -Xep:LongLiteralLowerCaseSuffix:ERROR
-                            -Xep:RedundantThrows:ERROR
-                            -Xep:MethodCanBeStatic:WARN"/>
+                            ${errorprone.jsr166.flags}
+                            ${errorprone.jsr166.test.flags}
+                            -Xep:NonAtomicVolatileUpdate:OFF"/>
       </jtreg-elements>
     </run-jtreg-tests>
   </target>
