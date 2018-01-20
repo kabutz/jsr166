@@ -649,7 +649,7 @@ public class Executors {
      * of an ExecutorService implementation.
      */
     private static class DelegatedExecutorService
-            extends AbstractExecutorService {
+            implements ExecutorService {
         private final ExecutorService e;
         DelegatedExecutorService(ExecutorService executor) { e = executor; }
         public void execute(Runnable command) { e.execute(command); }
