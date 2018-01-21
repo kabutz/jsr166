@@ -156,9 +156,7 @@ public class Executors {
      * returned executor is guaranteed not to be reconfigurable to use
      * additional threads.
      *
-     * @param threadFactory the factory to use when creating new
-     * threads
-     *
+     * @param threadFactory the factory to use when creating new threads
      * @return the newly created single-threaded Executor
      * @throws NullPointerException if threadFactory is null
      */
@@ -197,6 +195,7 @@ public class Executors {
      * will reuse previously constructed threads when they are
      * available, and uses the provided
      * ThreadFactory to create new threads when needed.
+     *
      * @param threadFactory the factory to use when creating new threads
      * @return the newly created thread pool
      * @throws NullPointerException if threadFactory is null
@@ -219,6 +218,7 @@ public class Executors {
      * given time. Unlike the otherwise equivalent
      * {@code newScheduledThreadPool(1)} the returned executor is
      * guaranteed not to be reconfigurable to use additional threads.
+     *
      * @return the newly created scheduled executor
      */
     public static ScheduledExecutorService newSingleThreadScheduledExecutor() {
@@ -237,9 +237,9 @@ public class Executors {
      * equivalent {@code newScheduledThreadPool(1, threadFactory)}
      * the returned executor is guaranteed not to be reconfigurable to
      * use additional threads.
-     * @param threadFactory the factory to use when creating new
-     * threads
-     * @return a newly created scheduled executor
+     *
+     * @param threadFactory the factory to use when creating new threads
+     * @return the newly created scheduled executor
      * @throws NullPointerException if threadFactory is null
      */
     public static ScheduledExecutorService newSingleThreadScheduledExecutor(ThreadFactory threadFactory) {
@@ -252,7 +252,7 @@ public class Executors {
      * given delay, or to execute periodically.
      * @param corePoolSize the number of threads to keep in the pool,
      * even if they are idle
-     * @return a newly created scheduled thread pool
+     * @return the newly created scheduled thread pool
      * @throws IllegalArgumentException if {@code corePoolSize < 0}
      */
     public static ScheduledExecutorService newScheduledThreadPool(int corePoolSize) {
@@ -266,7 +266,7 @@ public class Executors {
      * even if they are idle
      * @param threadFactory the factory to use when the executor
      * creates a new thread
-     * @return a newly created scheduled thread pool
+     * @return the newly created scheduled thread pool
      * @throws IllegalArgumentException if {@code corePoolSize < 0}
      * @throws NullPointerException if threadFactory is null
      */
