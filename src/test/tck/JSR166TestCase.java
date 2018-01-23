@@ -1089,7 +1089,7 @@ public class JSR166TestCase extends TestCase {
         for (long retries = LONG_DELAY_MS * 3 / 4; retries-->0; ) {
             try { delay(1); }
             catch (InterruptedException fail) {
-                fail("Unexpected InterruptedException");
+                throw new AssertionError("Unexpected InterruptedException", fail);
             }
             Thread.State s = thread.getState();
             if (s == expected)
