@@ -16,7 +16,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.AbstractQueuedLongSynchronizer;
 import java.util.concurrent.locks.AbstractQueuedLongSynchronizer.ConditionObject;
 
-import junit.framework.AssertionFailedError;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -141,7 +140,7 @@ public class AbstractQueuedLongSynchronizerTest extends JSR166TestCase {
         long startTime = System.nanoTime();
         while (!sync.isQueued(t)) {
             if (millisElapsedSince(startTime) > LONG_DELAY_MS)
-                throw new AssertionFailedError("timed out");
+                throw new AssertionError("timed out");
             Thread.yield();
         }
         assertTrue(t.isAlive());
