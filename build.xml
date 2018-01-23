@@ -1402,25 +1402,24 @@
 =================================================================== -->
   <property name="errorprone.jar" location="${lib.dir}/error_prone_ant-2.2.0.jar"/>
   <property name="errorprone.jsr166.flags"
-            value="-Xep:BoxedPrimitiveConstructor:OFF
-                   -Xep:HashtableContains:OFF
+            value="-Xep:HashtableContains:OFF
                    -Xep:JdkObsolete:OFF
-                   -Xep:ModifyingCollectionWithItself:OFF
                    -Xep:MissingOverride:OFF
                    -Xep:MissingFail:OFF
+                   -Xep:MixedArrayDimensions:ERROR
+                   -Xep:RemoveUnusedImports:ERROR
+                   -Xep:EmptyIf:ERROR
+                   -Xep:MultipleTopLevelClasses:ERROR
+                   -Xep:ClassName:ERROR
+                   -Xep:LongLiteralLowerCaseSuffix:ERROR
+                   -Xep:RedundantThrows:ERROR
                    -Xep:IdentityBinaryExpression:WARN
                    -Xep:MethodCanBeStatic:WARN"/>
   <!-- -Xep:WildcardImport:ERROR -->
   <property name="errorprone.jsr166.test.flags"
-            value="-Xep:MissingOverride:OFF
-                   -Xep:StringSplitter:OFF
-                   -Xep:MixedArrayDimensions:ERROR
-                   -Xep:RemoveUnusedImports:ERROR
-                   -Xep:LongLiteralLowerCaseSuffix:ERROR
-                   -Xep:RedundantThrows:ERROR
-                   -Xep:EmptyIf:ERROR
-                   -Xep:MultipleTopLevelClasses:ERROR
-                   -Xep:ClassName:ERROR"/>
+            value="-Xep:StringSplitter:OFF
+                   -Xep:BoxedPrimitiveConstructor:OFF
+                   -Xep:ModifyingCollectionWithItself:OFF"/>
   <!-- ant -emacs errorprone |& grep -EA1 '(warning|error):|warnings' -->
   <target name="errorprone"
           depends="clean, configure-compiler"
