@@ -1442,6 +1442,7 @@
            fork="true">
 
       <include name="**/*.java"/>
+      <compilerarg value="-XDcompilePolicy=simple"/>
       <compilerarg line="-processorpath ${errorprone.jar}"/>
       <compilerarg value="-Xplugin:ErrorProne
                           ${errorprone.jsr166.flags}"/>
@@ -1463,6 +1464,7 @@
       workdir="${build.dir}"
       classes="${product.jar}">
       <javac-elements>
+        <compilerarg value="-XDcompilePolicy=simple"/>
         <compilerarg line="-processorpath ${errorprone.jar}"/>
         <compilerarg value="-Xplugin:ErrorProne
                             ${errorprone.jsr166.flags}
@@ -1484,7 +1486,7 @@
        classes="${product.jar}"
        verbose="all">
       <jtreg-elements>
-        <arg value="-javacoption:-XDcompilePolicy=byfile"/>
+        <arg value="-javacoption:-XDcompilePolicy=simple"/>
         <arg value="-javacoption:-processorpath"/>
         <arg value="-javacoption:${errorprone.jar}"/>
         <arg value="-javacoption:-Xplugin:ErrorProne
