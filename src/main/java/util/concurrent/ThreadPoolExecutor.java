@@ -1430,6 +1430,23 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         }
     }
 
+    // Override without "throws Throwable" for compatibility with subclasses
+    // whose finalize method invokes super.finalize() (as is recommended).
+    // Before jdk 11, finalize() had a non-empty method body.
+
+    /**
+     * @deprecated The {@code finalize} method has been deprecated.
+     *     Subclasses that override {@code finalize} in order to perform cleanup
+     *     should be modified to use alternative cleanup mechanisms and
+     *     to remove the overriding {@code finalize} method.
+     *     When overriding the {@code finalize} method, its implementation must explicitly
+     *     ensure that {@code super.finalize()} is invoked as described in {@link Object#finalize}.
+     *     See the specification for {@link Object#finalize()} for further
+     *     information about migration options.
+     */
+    @Deprecated(since="9")
+    protected void finalize() {}
+
     /**
      * Sets the thread factory used to create new threads.
      *
