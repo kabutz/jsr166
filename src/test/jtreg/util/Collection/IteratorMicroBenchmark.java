@@ -276,7 +276,8 @@ public class IteratorMicroBenchmark {
                 new LinkedTransferQueue<>(al),
                 new PriorityBlockingQueue<>(al))
             .flatMap(x -> jobs(x))
-            .filter(job -> nameFilter.matcher(job.name()).find())
+            .filter(job ->
+                nameFilter == null || nameFilter.matcher(job.name()).find())
             .collect(toCollection(ArrayList::new));
 
         if (reverse) Collections.reverse(jobs);
