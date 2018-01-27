@@ -46,6 +46,7 @@ import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.LinkedTransferQueue;
@@ -55,6 +56,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * Usage: [iterations=N] [size=N] [filter=REGEXP] [warmup=SECONDS]
@@ -270,22 +272,25 @@ public class IteratorMicroBenchmark {
 
         ArrayList<Job> jobs = new ArrayList<>();
 
-        List.<Collection<Integer>>of(
+        Stream.<Collection<Integer>>of(
             al, ad, abq,
             new LinkedList<>(al),
             new PriorityQueue<>(al),
             new Vector<>(al),
+            new CopyOnWriteArrayList<>(al),
             new ConcurrentLinkedQueue<>(al),
             new ConcurrentLinkedDeque<>(al),
             new LinkedBlockingQueue<>(al),
             new LinkedBlockingDeque<>(al),
             new LinkedTransferQueue<>(al),
-            new PriorityBlockingQueue<>(al)).forEach(
-                x -> {
-                    jobs.addAll(collectionJobs(x));
-                    if (x instanceof Deque)
-                        jobs.addAll(dequeJobs((Deque<Integer>)x));
-                });
+            new PriorityBlockingQueue<>(al))
+            .forEach(x -> {
+                jobs.addAll(collectionJobs(x));
+                if (x instanceof Deque)
+                    jobs.addAll(dequeJobs((Deque<Integer>)x));
+                if (x instanceof List)
+                    jobs.addAll(listJobs((List<Integer>)x));
+            });
 
         if (reverse) Collections.reverse(jobs);
         if (shuffle) Collections.shuffle(jobs);
@@ -454,5 +459,51 @@ public class IteratorMicroBenchmark {
                         sum[0] = 0;
                         x.descendingIterator().forEachRemaining(n -> sum[0] += n);
                         check.sum(sum[0]);}}});
+    }
+
+    List<Job> listJobs(List<Integer> x) {
+        String klazz = x.getClass().getSimpleName();
+        return List.of(
+            new Job(klazz + " subList toArray()") {
+                public void work() throws Throwable {
+                    int size = x.size();
+                    for (int i = 0; i < iterations; i++) {
+                        int total = Stream.of(x.subList(0, size / 2),
+                                              x.subList(size / 2, size))
+                            .mapToInt(subList -> {
+                                int sum = 0;
+                                for (Object o : subList.toArray())
+                                    sum += (Integer) o;
+                                return sum; })
+                            .sum();
+                        check.sum(total);}}},
+            new Job(klazz + " subList toArray(a)") {
+                public void work() throws Throwable {
+                    int size = x.size();
+                    for (int i = 0; i < iterations; i++) {
+                        int total = Stream.of(x.subList(0, size / 2),
+                                              x.subList(size / 2, size))
+                            .mapToInt(subList -> {
+                                int sum = 0;
+                                Integer[] a = new Integer[subList.size()];
+                                for (Object o : subList.toArray(a))
+                                    sum += (Integer) o;
+                                return sum; })
+                            .sum();
+                        check.sum(total);}}},
+            new Job(klazz + " subList toArray(empty)") {
+                public void work() throws Throwable {
+                    int size = x.size();
+                    Integer[] empty = new Integer[0];
+                    for (int i = 0; i < iterations; i++) {
+                        int total = Stream.of(x.subList(0, size / 2),
+                                              x.subList(size / 2, size))
+                            .mapToInt(subList -> {
+                                int sum = 0;
+                                for (Object o : subList.toArray(empty))
+                                    sum += (Integer) o;
+                                return sum; })
+                            .sum();
+                        check.sum(total);}}});
     }
 }
