@@ -28,7 +28,7 @@
  */
 
 import static java.util.stream.Collectors.summingInt;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toCollection;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
@@ -81,7 +81,7 @@ public class IteratorMicroBenchmark {
     final int size;             // number of elements in collections
     final double warmupSeconds;
     final long warmupNanos;
-    final Pattern filter;       // select subset of Jobs to run
+    final Pattern nameFilter;   // select subset of Jobs to run
     final boolean reverse;      // reverse order of Jobs
     final boolean shuffle;      // randomize order of Jobs
 
@@ -89,7 +89,7 @@ public class IteratorMicroBenchmark {
         iterations    = intArg(args, "iterations", 10_000);
         size          = intArg(args, "size", 1000);
         warmupSeconds = doubleArg(args, "warmup", 7.0);
-        filter        = patternArg(args, "filter");
+        nameFilter    = patternArg(args, "filter");
         reverse       = booleanArg(args, "reverse");
         shuffle       = booleanArg(args, "shuffle");
 
@@ -206,13 +206,6 @@ public class IteratorMicroBenchmark {
         throw new IllegalArgumentException(val);
     }
 
-    private static List<Job> filter(Pattern filter, List<Job> jobs) {
-        return (filter == null) ? jobs
-            : jobs.stream()
-            .filter(job -> filter.matcher(job.name()).find())
-            .collect(toList());
-    }
-
     private static void deoptimize(int sum) {
         if (sum == 42)
             System.out.println("the answer");
@@ -251,7 +244,7 @@ public class IteratorMicroBenchmark {
     void run() throws Throwable {
 //         System.out.printf(
 //             "iterations=%d size=%d, warmup=%1g, filter=\"%s\"%n",
-//             iterations, size, warmupSeconds, filter);
+//             iterations, size, warmupSeconds, nameFilter);
 
         final ArrayList<Integer> al = new ArrayList<>(size);
 
@@ -270,37 +263,43 @@ public class IteratorMicroBenchmark {
             abq.add(abq.remove());
         }
 
-        ArrayList<Job> jobs = new ArrayList<>();
-
-        Stream.<Collection<Integer>>of(
-            al, ad, abq,
-            new LinkedList<>(al),
-            new PriorityQueue<>(al),
-            new Vector<>(al),
-            new CopyOnWriteArrayList<>(al),
-            new ConcurrentLinkedQueue<>(al),
-            new ConcurrentLinkedDeque<>(al),
-            new LinkedBlockingQueue<>(al),
-            new LinkedBlockingDeque<>(al),
-            new LinkedTransferQueue<>(al),
-            new PriorityBlockingQueue<>(al))
-            .forEach(x -> {
-                jobs.addAll(collectionJobs(x));
-                if (x instanceof Deque)
-                    jobs.addAll(dequeJobs((Deque<Integer>)x));
-                if (x instanceof List)
-                    jobs.addAll(listJobs((List<Integer>)x));
-            });
+        ArrayList<Job> jobs = Stream.<Collection<Integer>>of(
+                al, ad, abq,
+                new LinkedList<>(al),
+                new PriorityQueue<>(al),
+                new Vector<>(al),
+                new CopyOnWriteArrayList<>(al),
+                new ConcurrentLinkedQueue<>(al),
+                new ConcurrentLinkedDeque<>(al),
+                new LinkedBlockingQueue<>(al),
+                new LinkedBlockingDeque<>(al),
+                new LinkedTransferQueue<>(al),
+                new PriorityBlockingQueue<>(al))
+            .flatMap(x -> jobs(x))
+            .filter(job -> nameFilter.matcher(job.name()).find())
+            .collect(toCollection(ArrayList::new));
 
         if (reverse) Collections.reverse(jobs);
         if (shuffle) Collections.shuffle(jobs);
 
-        time(filter(filter, jobs));
+        time(jobs);
     }
 
-    List<Job> collectionJobs(Collection<Integer> x) {
+    Stream<Job> jobs(Collection<Integer> x) {
+        return Stream.of(
+                collectionJobs(x),
+                (x instanceof Deque)
+                ? dequeJobs((Deque<Integer>)x)
+                : Stream.<Job>empty(),
+                (x instanceof List)
+                ? listJobs((List<Integer>)x)
+                : Stream.<Job>empty())
+            .flatMap(s -> s);
+    }
+
+    Stream<Job> collectionJobs(Collection<Integer> x) {
         String klazz = x.getClass().getSimpleName();
-        return List.of(
+        return Stream.of(
             new Job(klazz + " iterate for loop") {
                 public void work() throws Throwable {
                     for (int i = 0; i < iterations; i++) {
@@ -441,9 +440,9 @@ public class IteratorMicroBenchmark {
                         check.sum(sum[0]);}}});
     }
 
-    List<Job> dequeJobs(Deque<Integer> x) {
+    Stream<Job> dequeJobs(Deque<Integer> x) {
         String klazz = x.getClass().getSimpleName();
-        return List.of(
+        return Stream.of(
             new Job(klazz + " descendingIterator() loop") {
                 public void work() throws Throwable {
                     for (int i = 0; i < iterations; i++) {
@@ -461,9 +460,9 @@ public class IteratorMicroBenchmark {
                         check.sum(sum[0]);}}});
     }
 
-    List<Job> listJobs(List<Integer> x) {
+    Stream<Job> listJobs(List<Integer> x) {
         String klazz = x.getClass().getSimpleName();
-        return List.of(
+        return Stream.of(
             new Job(klazz + " subList toArray()") {
                 public void work() throws Throwable {
                     int size = x.size();
