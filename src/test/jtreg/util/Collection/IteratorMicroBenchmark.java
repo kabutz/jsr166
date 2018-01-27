@@ -285,16 +285,20 @@ public class IteratorMicroBenchmark {
         time(jobs);
     }
 
+    @SafeVarargs @SuppressWarnings("varargs")
+    private <T> Stream<T> concatStreams(Stream<T> ... streams) {
+        return Stream.of(streams).flatMap(s -> s);
+    }
+    
     Stream<Job> jobs(Collection<Integer> x) {
-        return Stream.of(
-                collectionJobs(x),
-                (x instanceof Deque)
-                ? dequeJobs((Deque<Integer>)x)
-                : Stream.<Job>empty(),
-                (x instanceof List)
-                ? listJobs((List<Integer>)x)
-                : Stream.<Job>empty())
-            .flatMap(s -> s);
+        return concatStreams(
+            collectionJobs(x),
+            (x instanceof Deque)
+            ? dequeJobs((Deque<Integer>)x)
+            : Stream.empty(),
+            (x instanceof List)
+            ? listJobs((List<Integer>)x)
+            : Stream.empty());
     }
 
     Stream<Job> collectionJobs(Collection<Integer> x) {
