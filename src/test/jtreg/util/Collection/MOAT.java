@@ -1005,10 +1005,10 @@ public class MOAT {
             try {
                 int size = l.size();
                 AbstractList<Integer> abList = (AbstractList<Integer>) l;
-                Method m = AbstractList.class.getDeclaredMethod("removeRange", new Class[] { int.class, int.class });
+                Method m = AbstractList.class.getDeclaredMethod("removeRange", int.class, int.class);
                 m.setAccessible(true);
-                m.invoke(abList, new Object[] { 0, 0 });
-                m.invoke(abList, new Object[] { size, size });
+                m.invoke(abList, 0, 0);
+                m.invoke(abList, size, size);
                 equal(size, l.size());
             }
             catch (UnsupportedOperationException ignored) {/* OK */}
