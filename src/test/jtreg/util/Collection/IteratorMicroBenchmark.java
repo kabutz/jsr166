@@ -290,7 +290,7 @@ public class IteratorMicroBenchmark {
     private <T> Stream<T> concatStreams(Stream<T> ... streams) {
         return Stream.of(streams).flatMap(s -> s);
     }
-    
+
     Stream<Job> jobs(Collection<Integer> x) {
         return concatStreams(
             collectionJobs(x),
