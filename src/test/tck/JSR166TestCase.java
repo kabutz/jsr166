@@ -418,11 +418,10 @@ public class JSR166TestCase extends TestCase {
         for (String testClassName : testClassNames) {
             try {
                 Class<?> testClass = Class.forName(testClassName);
-                Method m = testClass.getDeclaredMethod("suite",
-                                                       new Class<?>[0]);
+                Method m = testClass.getDeclaredMethod("suite");
                 suite.addTest(newTestSuite((Test)m.invoke(null)));
-            } catch (Exception e) {
-                throw new Error("Missing test class", e);
+            } catch (ReflectiveOperationException e) {
+                throw new AssertionError("Missing test class", e);
             }
         }
     }
@@ -599,8 +598,8 @@ public class JSR166TestCase extends TestCase {
             for (String methodName : testMethodNames(testClass))
                 suite.addTest((Test) c.newInstance(data, methodName));
             return suite;
-        } catch (Exception e) {
-            throw new Error(e);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError(e);
         }
     }
 
@@ -616,14 +615,14 @@ public class JSR166TestCase extends TestCase {
         if (atLeastJava8()) {
             String name = testClass.getName();
             String name8 = name.replaceAll("Test$", "8Test");
-            if (name.equals(name8)) throw new Error(name);
+            if (name.equals(name8)) throw new AssertionError(name);
             try {
                 return (Test)
                     Class.forName(name8)
-                    .getMethod("testSuite", new Class[] { dataClass })
+                    .getMethod("testSuite", dataClass)
                     .invoke(null, data);
-            } catch (Exception e) {
-                throw new Error(e);
+            } catch (ReflectiveOperationException e) {
+                throw new AssertionError(e);
             }
         } else {
             return new TestSuite();
