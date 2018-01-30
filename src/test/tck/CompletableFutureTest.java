@@ -291,7 +291,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
 
         f = new CompletableFuture<>();
-        f.completeExceptionally(ex = new CFException());
+        f.completeExceptionally(new CFException());
         f.obtrudeValue(v1);
         checkCompletedNormally(f, v1);
         f.obtrudeException(ex = new CFException());
