@@ -396,7 +396,13 @@
     <sequential>
       <property name="build.main.java"    value="${java@{v}}"/>
       <property name="build.main.javac"   value="${javac@{v}}"/>
-      <property name="build.main.javadoc" value="${javadoc@{v}}"/>
+      <!-- Force javadoc version to be at least 10, 
+           so we can use override-methods=summary -->
+      <condition property="build.main.javadoc" 
+                 value="${javadoc10}"
+                 else="${javadoc@{v}}">
+        <equals arg1="@{v}" arg2="9"/>
+      </condition>
     </sequential>
   </macrodef>
   <define-build-main-properties v="${build.main.java.version}"/>
@@ -490,20 +496,15 @@
       <arg value="-XDignore.symbol.file=true"/>
       <arg value="-html5"/>
       <arg value="--patch-module=java.base=${src.dir}"/>
-      <arg value="-tag"/>
-      <arg value="${javadoc.jls.option}"/>
-<!-- @apiNote currently unused -->
-<!--       <arg value="-tag"/> -->
-<!--       <arg value="apiNote:a:API Note:"/> -->
-      <arg value="-tag"/>
-      <arg value="implSpec:a:Implementation Requirements:"/>
-      <arg value="-tag"/>
-      <arg value="implNote:a:Implementation Note:"/>
+      <arg value="--override-methods=summary"/>
+      <arg value="-tag"/> <arg value="${javadoc.jls.option}"/>
+      <arg value="-tag"/> <arg value="implSpec:a:Implementation Requirements:"/>
+      <arg value="-tag"/> <arg value="implNote:a:Implementation Note:"/>
+<!-- @apiNote tag currently unused -->
+<!--  <arg value="-tag"/> <arg value="apiNote:a:API Note:"/> -->
 <!-- tags added in jdk9: currently unused -->
-<!--       <arg value="-tag"/> -->
-<!--       <arg value="revised:X"/> -->
-<!--       <arg value="-tag"/> -->
-<!--       <arg value="spec:X"/> -->
+<!--  <arg value="-tag"/> <arg value="revised:X"/> -->
+<!--  <arg value="-tag"/> <arg value="spec:X"/> -->
     </javadoc>
   </target>
 
@@ -845,15 +846,11 @@
       </fileset>
       <arg line="-Xdocrootparent ${java8.docroot.url}"/>
       <arg value="-XDignore.symbol.file=true"/>
-      <arg value="-tag"/>
-      <arg value="${javadoc.jls.option}"/>
-<!-- @apiNote currently unused -->
-<!--       <arg value="-tag"/> -->
-<!--       <arg value="apiNote:a:&lt;em&gt;API Note:&lt;/em&gt;"/> -->
-      <arg value="-tag"/>
-      <arg value="implSpec:a:&lt;em&gt;Implementation Requirements:&lt;/em&gt;"/>
-      <arg value="-tag"/>
-      <arg value="implNote:a:&lt;em&gt;Implementation Note:&lt;/em&gt;"/>
+      <arg value="-tag"/> <arg value="${javadoc.jls.option}"/>
+      <arg value="-tag"/> <arg value="implSpec:a:&lt;em&gt;Implementation Requirements:&lt;/em&gt;"/>
+      <arg value="-tag"/> <arg value="implNote:a:&lt;em&gt;Implementation Note:&lt;/em&gt;"/>
+<!-- @apiNote tag currently unused -->
+<!--  <arg value="-tag"/> <arg value="apiNote:a:&lt;em&gt;API Note:&lt;/em&gt;"/> -->
     </javadoc>
   </target>
 
