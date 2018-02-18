@@ -416,23 +416,25 @@ public class ForkJoinPool extends AbstractExecutorService {
      * if to its current value).  This would be extremely costly. So
      * we relax it in several ways: (1) Producers only signal when
      * their queue is possibly empty at some point during a push
-     * operation. (2) Other workers propagate this signal when they
-     * find tasks. (3) Workers only enqueue after scanning (see below)
-     * and not finding any tasks.  (4) Rather than CASing ctl to its
-     * current value in the common case where no action is required,
-     * we reduce write contention by equivalently prefacing signalWork
-     * when called by an external task producer using a memory access
-     * with full-volatile semantics or a "fullFence".
+     * operation (which requires conservatively checking size zero or
+     * one to cover races). (2) Other workers propagate this signal
+     * when they find tasks in a queue with size greater than one. (3)
+     * Workers only enqueue after scanning (see below) and not finding
+     * any tasks.  (4) Rather than CASing ctl to its current value in
+     * the common case where no action is required, we reduce write
+     * contention by equivalently prefacing signalWork when called by
+     * an external task producer using a memory access with
+     * full-volatile semantics or a "fullFence".
      *
-     * Almost always, too many signals are issued. A task producer
-     * cannot in general tell if some existing worker is in the midst
-     * of finishing one task (or already scanning) and ready to take
-     * another without being signalled. So the producer might instead
-     * activate a different worker that does not find any work, and
-     * then inactivates. This scarcely matters in steady-state
-     * computations involving all workers, but can create contention
-     * and bookkeeping bottlenecks during ramp-up, ramp-down, and small
-     * computations involving only a few workers.
+     * Almost always, too many signals are issued, in part because a
+     * task producer cannot tell if some existing worker is in the
+     * midst of finishing one task (or already scanning) and ready to
+     * take another without being signalled. So the producer might
+     * instead activate a different worker that does not find any
+     * work, and then inactivates. This scarcely matters in
+     * steady-state computations involving all workers, but can create
+     * contention and bookkeeping bottlenecks during ramp-up,
+     * ramp-down, and small computations involving only a few workers.
      *
      * Scanning. Method scan (from runWorker) performs top-level
      * scanning for tasks. (Similar scans appear in helpQuiesce and
@@ -810,16 +812,17 @@ public class ForkJoinPool extends AbstractExecutorService {
          */
         final void push(ForkJoinTask<?> task) {
             ForkJoinTask<?>[] a;
-            int s = top, d, cap;
+            int s = top, d, cap, m;
             ForkJoinPool p = pool;
             if ((a = array) != null && (cap = a.length) > 0) {
-                QA.setRelease(a, (cap - 1) & s, task);
+                QA.setRelease(a, (m = cap - 1) & s, task);
                 top = s + 1;
-                if ((d = (int)BASE.getAcquire(this) - s) == 0 && p != null) {
+                if (((d = s - (int)BASE.getAcquire(this)) & ~1) == 0 &&
+                    p != null) {                 // size 0 or 1
                     VarHandle.fullFence();
                     p.signalWork();
                 }
-                else if (d + cap - 1 == 0)
+                else if (d == m)
                     growArray(false);
             }
         }
@@ -831,7 +834,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         final boolean lockedPush(ForkJoinTask<?> task) {
             ForkJoinTask<?>[] a;
             boolean signal = false;
-            int s = top, b = base, cap;
+            int s = top, b = base, cap, d;
             if ((a = array) != null && (cap = a.length) > 0) {
                 a[(cap - 1) & s] = task;
                 top = s + 1;
@@ -839,7 +842,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                     growArray(true);
                 else {
                     phase = 0; // full volatile unlock
-                    if (base == s)
+                    if (((s - base) & ~1) == 0) // size 0 or 1
                         signal = true;
                 }
             }
@@ -890,7 +893,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         final ForkJoinTask<?> poll() {
             int b, k, cap; ForkJoinTask<?>[] a;
             while ((a = array) != null && (cap = a.length) > 0 &&
-                   (b = base) != top) {
+                   top - (b = base) > 0) {
                 ForkJoinTask<?> t = (ForkJoinTask<?>)
                     QA.getAcquire(a, k = (cap - 1) & b);
                 if (base == b++) {
@@ -982,17 +985,17 @@ public class ForkJoinPool extends AbstractExecutorService {
          * queue, up to bound n (to avoid infinite unfairness).
          */
         final void topLevelExec(ForkJoinTask<?> t, WorkQueue q, int n) {
-            if (t != null) {
+            if (t != null && q != null) { // hoist checks
                 int nstolen = 1;
                 for (;;) {
                     t.doExec();
                     if (n-- < 0)
                         break;
                     else if ((t = nextLocalTask()) == null) {
-                        if (q != null && (t = q.poll()) != null)
-                            ++nstolen;
-                        else
+                        if ((t = q.poll()) == null)
                             break;
+                        else
+                            ++nstolen;
                     }
                 }
                 ForkJoinWorkerThread thread = owner;
@@ -1009,7 +1012,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         final void tryRemoveAndExec(ForkJoinTask<?> task) {
             ForkJoinTask<?>[] a; int s, cap;
             if ((a = array) != null && (cap = a.length) > 0 &&
-                base - (s = top) < 0) { // traverse from top
+                (s = top) - base > 0) { // traverse from top
                 for (int m = cap - 1, ns = s - 1, i = ns; ; --i) {
                     int index = i & m;
                     ForkJoinTask<?> t = (ForkJoinTask<?>)QA.get(a, index);
@@ -1049,7 +1052,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             if (task != null && (status = task.status) >= 0) {
                 int s, k, cap; ForkJoinTask<?>[] a;
                 while ((a = array) != null && (cap = a.length) > 0 &&
-                       (s = top) != base) {
+                       (s = top) - base > 0) {
                     CountedCompleter<?> v = null;
                     ForkJoinTask<?> o = a[k = (cap - 1) & (s - 1)];
                     if (o instanceof CountedCompleter) {
@@ -1099,7 +1102,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             if (blocker != null) {
                 int b, k, cap; ForkJoinTask<?>[] a; ForkJoinTask<?> t;
                 while ((a = array) != null && (cap = a.length) > 0 &&
-                       (b = base) != top) {
+                       top - (b = base) > 0) {
                     t = (ForkJoinTask<?>)QA.getAcquire(a, k = (cap - 1) & b);
                     if (blocker.isReleasable())
                         break;
@@ -1609,8 +1612,8 @@ public class ForkJoinPool extends AbstractExecutorService {
         WorkQueue[] ws; int n;
         if ((ws = workQueues) != null && (n = ws.length) > 0 && w != null) {
             for (int m = n - 1, j = r & m;;) {
-                WorkQueue q; int b, d;
-                if ((q = ws[j]) != null && (d = (b = q.base) - q.top) != 0) {
+                WorkQueue q; int b;
+                if ((q = ws[j]) != null && q.top != (b = q.base)) {
                     int qid = q.id;
                     ForkJoinTask<?>[] a; int cap, k; ForkJoinTask<?> t;
                     if ((a = q.array) != null && (cap = a.length) > 0) {
@@ -1619,7 +1622,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                             QA.compareAndSet(a, k, t, null)) {
                             q.base = b;
                             w.source = qid;
-                            if (d != -1 || b != q.top)
+                            if (q.top - b > 0)
                                 signalWork();
                             w.topLevelExec(t, q,  // random fairness bound
                                            r & ((n << TOP_BOUND_SHIFT) - 1));
@@ -1663,7 +1666,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 while (n > 0) {
                     WorkQueue q; int b;
                     if ((q = ws[r & m]) != null && q.source == id &&
-                        (b = q.base) != q.top) {
+                        q.top != (b = q.base)) {
                         ForkJoinTask<?>[] a; int cap, k;
                         int qid = q.id;
                         if ((a = q.array) != null && (cap = a.length) > 0) {
@@ -1726,7 +1729,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 WorkQueue q; int b;
                 if ((q = ws[r & m]) != null) {
                     int qs = q.source;
-                    if ((b = q.base) != q.top) {
+                    if (q.top != (b = q.base)) {
                         quiet = empty = false;
                         ForkJoinTask<?>[] a; int cap, k;
                         int qid = q.id;
@@ -1795,7 +1798,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 WorkQueue q;
                 if ((q = ws[i]) != null) {
                     int b; ForkJoinTask<?> t;
-                    if ((b = q.base) != q.top) {
+                    if (q.top - (b = q.base) > 0) {
                         nonempty = true;
                         if ((t = q.poll()) != null)
                             return t;
