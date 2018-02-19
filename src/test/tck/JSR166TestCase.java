@@ -1446,26 +1446,6 @@ public class JSR166TestCase extends TestCase {
         }
     }
 
-    public abstract class RunnableShouldThrow implements Runnable {
-        protected abstract void realRun() throws Throwable;
-
-        final Class<?> exceptionClass;
-
-        <T extends Throwable> RunnableShouldThrow(Class<T> exceptionClass) {
-            this.exceptionClass = exceptionClass;
-        }
-
-        public final void run() {
-            try {
-                realRun();
-                threadShouldThrow(exceptionClass.getSimpleName());
-            } catch (Throwable t) {
-                if (! exceptionClass.isInstance(t))
-                    threadUnexpectedException(t);
-            }
-        }
-    }
-
     public abstract class ThreadShouldThrow extends Thread {
         protected abstract void realRun() throws Throwable;
 
