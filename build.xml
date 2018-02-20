@@ -1,5 +1,6 @@
 <project name="jsr166" default="usage"
-  xmlns:if="ant:if" xmlns:unless="ant:unless"
+  xmlns:if="ant:if" 
+  xmlns:unless="ant:unless"
   xmlns:ivy="antlib:org.apache.ivy.ant">
 
   <description>
@@ -305,35 +306,25 @@
   </macrodef>
 
   <!-- Define jtreg test sets for different jdk versions -->
-  <fileset dir="${jtreg11.src.dir}">
-    <patternset id="jdk11.jtreg.tests">
-      <include name="**/*.java"/>
-    </patternset>
-  </fileset>
+  <!-- ant -Djtreg.test.pattern="**/ConcurrentHashMap/" -->
+  <!-- ant -Djtreg.test.pattern="**/ToArray.java" -->
+  <property name="jtreg.test.pattern" value="**/*.java"/>
+  <macrodef name="defjtregtests">
+    <attribute name="v"/>
+    <sequential>
+      <fileset dir="${jtreg@{v}.src.dir}">
+        <patternset id="jdk@{v}.jtreg.tests">
+          <include name="${jtreg.test.pattern}"/>
+        </patternset>
+      </fileset>
+    </sequential>
+  </macrodef>
 
-  <fileset dir="${jtreg10.src.dir}">
-    <patternset id="jdk10.jtreg.tests">
-      <include name="**/*.java"/>
-    </patternset>
-  </fileset>
-
-  <fileset dir="${jtreg9.src.dir}">
-    <patternset id="jdk9.jtreg.tests">
-      <include name="**/*.java"/>
-    </patternset>
-  </fileset>
-
-  <fileset dir="${jtreg8.src.dir}">
-    <patternset id="jdk8.jtreg.tests">
-      <include name="**/*.java"/>
-    </patternset>
-  </fileset>
-
-  <fileset dir="${jtreg7.src.dir}">
-    <patternset id="jdk7.jtreg.tests">
-      <include name="**/*.java"/>
-    </patternset>
-  </fileset>
+  <defjtregtests v="11"/>
+  <defjtregtests v="10"/>
+  <defjtregtests v="9"/>
+  <defjtregtests v="8"/>
+  <defjtregtests v="7"/>
 
   <!-- ant -Djtreg.flags=-timeoutFactor:4 -->
   <property name="jtreg.flags" value=""/>
