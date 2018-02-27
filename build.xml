@@ -1389,6 +1389,7 @@
   Experimental errorprone support - http://errorprone.info
 =================================================================== -->
   <property name="errorprone.jar" location="${lib.dir}/error_prone_ant-2.2.0.jar"/>
+  <property name="errorprone.jsr166.user.flags" value=""/>
   <property name="errorprone.jsr166.flags"
             value="-Xep:HashtableContains:OFF
                    -Xep:JdkObsolete:OFF
@@ -1402,7 +1403,8 @@
                    -Xep:LongLiteralLowerCaseSuffix:ERROR
                    -Xep:RedundantThrows:ERROR
                    -Xep:IdentityBinaryExpression:WARN
-                   -Xep:MethodCanBeStatic:WARN"/>
+                   -Xep:MethodCanBeStatic:WARN
+                   ${errorprone.jsr166.user.flags}"/>
   <!-- -Xep:WildcardImport:ERROR -->
   <property name="errorprone.jsr166.test.flags"
             value="-Xep:StringSplitter:OFF
