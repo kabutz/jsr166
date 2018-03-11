@@ -37,7 +37,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
             VALUE = U.objectFieldOffset
                 (AtomicInteger.class.getDeclaredField("value"));
         } catch (ReflectiveOperationException e) {
-            throw new Error(e);
+            throw new ExceptionInInitializerError(e);
         }
     }
 

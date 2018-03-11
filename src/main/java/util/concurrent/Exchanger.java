@@ -612,7 +612,7 @@ public class Exchanger<V> {
             MATCH = l.findVarHandle(Node.class, "match", Object.class);
             AA = MethodHandles.arrayElementVarHandle(Node[].class);
         } catch (ReflectiveOperationException e) {
-            throw new Error(e);
+            throw new ExceptionInInitializerError(e);
         }
     }
 

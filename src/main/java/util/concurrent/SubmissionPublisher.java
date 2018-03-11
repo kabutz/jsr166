@@ -1437,7 +1437,7 @@ public class SubmissionPublisher<T> implements Publisher<T>,
                                          long.class);
                 QA = MethodHandles.arrayElementVarHandle(Object[].class);
             } catch (ReflectiveOperationException e) {
-                throw new Error(e);
+                throw new ExceptionInInitializerError(e);
             }
 
             // Reduce the risk of rare disastrous classloading in first call to

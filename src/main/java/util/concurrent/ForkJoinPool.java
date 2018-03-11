@@ -1141,7 +1141,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 BASE = l.findVarHandle(WorkQueue.class, "base", int.class);
                 TOP = l.findVarHandle(WorkQueue.class, "top", int.class);
             } catch (ReflectiveOperationException e) {
-                throw new Error(e);
+                throw new ExceptionInInitializerError(e);
             }
         }
     }
@@ -3144,7 +3144,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             MODE = l.findVarHandle(ForkJoinPool.class, "mode", int.class);
             QA = MethodHandles.arrayElementVarHandle(ForkJoinTask[].class);
         } catch (ReflectiveOperationException e) {
-            throw new Error(e);
+            throw new ExceptionInInitializerError(e);
         }
 
         // Reduce the risk of rare disastrous classloading in first call to

@@ -51,7 +51,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
             VALUE = U.objectFieldOffset
                 (AtomicLong.class.getDeclaredField("value"));
         } catch (ReflectiveOperationException e) {
-            throw new Error(e);
+            throw new ExceptionInInitializerError(e);
         }
     }
 

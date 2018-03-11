@@ -1642,7 +1642,7 @@ public class ConcurrentLinkedDeque<E>
             NEXT = l.findVarHandle(Node.class, "next", Node.class);
             ITEM = l.findVarHandle(Node.class, "item", Object.class);
         } catch (ReflectiveOperationException e) {
-            throw new Error(e);
+            throw new ExceptionInInitializerError(e);
         }
     }
 }

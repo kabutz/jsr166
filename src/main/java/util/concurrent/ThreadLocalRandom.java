@@ -1045,7 +1045,7 @@ public class ThreadLocalRandom extends Random {
             INHERITEDACCESSCONTROLCONTEXT = U.objectFieldOffset
                 (Thread.class.getDeclaredField("inheritedAccessControlContext"));
         } catch (ReflectiveOperationException e) {
-            throw new Error(e);
+            throw new ExceptionInInitializerError(e);
         }
     }
 

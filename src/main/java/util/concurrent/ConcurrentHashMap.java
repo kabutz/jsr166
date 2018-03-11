@@ -3278,7 +3278,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                 LOCKSTATE = U.objectFieldOffset
                     (TreeBin.class.getDeclaredField("lockState"));
             } catch (ReflectiveOperationException e) {
-                throw new Error(e);
+                throw new ExceptionInInitializerError(e);
             }
         }
     }
@@ -6365,7 +6365,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                 throw new Error("array index scale not a power of two");
             ASHIFT = 31 - Integer.numberOfLeadingZeros(scale);
         } catch (ReflectiveOperationException e) {
-            throw new Error(e);
+            throw new ExceptionInInitializerError(e);
         }
 
         // Reduce the risk of rare disastrous classloading in first call to

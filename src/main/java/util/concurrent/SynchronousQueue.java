@@ -264,7 +264,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
                     SMATCH = l.findVarHandle(SNode.class, "match", SNode.class);
                     SNEXT = l.findVarHandle(SNode.class, "next", SNode.class);
                 } catch (ReflectiveOperationException e) {
-                    throw new Error(e);
+                    throw new ExceptionInInitializerError(e);
                 }
             }
         }
@@ -487,7 +487,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
                 MethodHandles.Lookup l = MethodHandles.lookup();
                 SHEAD = l.findVarHandle(TransferStack.class, "head", SNode.class);
             } catch (ReflectiveOperationException e) {
-                throw new Error(e);
+                throw new ExceptionInInitializerError(e);
             }
         }
     }
@@ -554,7 +554,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
                     QITEM = l.findVarHandle(QNode.class, "item", Object.class);
                     QNEXT = l.findVarHandle(QNode.class, "next", QNode.class);
                 } catch (ReflectiveOperationException e) {
-                    throw new Error(e);
+                    throw new ExceptionInInitializerError(e);
                 }
             }
         }
@@ -801,7 +801,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
                 QCLEANME = l.findVarHandle(TransferQueue.class, "cleanMe",
                                            QNode.class);
             } catch (ReflectiveOperationException e) {
-                throw new Error(e);
+                throw new ExceptionInInitializerError(e);
             }
         }
     }

@@ -405,7 +405,7 @@ public class LockSupport {
                 (Thread.class.getDeclaredField("tid"));
 
         } catch (ReflectiveOperationException e) {
-            throw new Error(e);
+            throw new ExceptionInInitializerError(e);
         }
     }
 

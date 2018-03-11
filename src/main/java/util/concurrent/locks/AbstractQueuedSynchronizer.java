@@ -526,7 +526,7 @@ public abstract class AbstractQueuedSynchronizer
                 THREAD = l.findVarHandle(Node.class, "thread", Thread.class);
                 WAITSTATUS = l.findVarHandle(Node.class, "waitStatus", int.class);
             } catch (ReflectiveOperationException e) {
-                throw new Error(e);
+                throw new ExceptionInInitializerError(e);
             }
         }
     }
@@ -2279,7 +2279,7 @@ public abstract class AbstractQueuedSynchronizer
             HEAD = l.findVarHandle(AbstractQueuedSynchronizer.class, "head", Node.class);
             TAIL = l.findVarHandle(AbstractQueuedSynchronizer.class, "tail", Node.class);
         } catch (ReflectiveOperationException e) {
-            throw new Error(e);
+            throw new ExceptionInInitializerError(e);
         }
 
         // Reduce the risk of rare disastrous classloading in first call to
