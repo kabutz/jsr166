@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
@@ -59,8 +60,9 @@ public class Collection8Test extends JSR166TestCase {
 
     Object bomb() {
         return new Object() {
-            public boolean equals(Object x) { throw new AssertionError(); }
-            public int hashCode() { throw new AssertionError(); }
+            @Override public boolean equals(Object x) { throw new AssertionError(); }
+            @Override public int hashCode() { throw new AssertionError(); }
+            @Override public String toString() { throw new AssertionError(); }
         };
     }
 
@@ -92,6 +94,19 @@ public class Collection8Test extends JSR166TestCase {
         assertTrue(c.isEmpty());
         assertEquals(0, c.size());
         assertEquals("[]", c.toString());
+        if (c instanceof List<?>) {
+            List x = (List) c;
+            assertEquals(1, x.hashCode());
+            assertEquals(x, Collections.emptyList());
+            assertEquals(Collections.emptyList(), x);
+            assertEquals(-1, x.indexOf(impl.makeElement(86)));
+            assertEquals(-1, x.lastIndexOf(impl.makeElement(99)));
+        }
+        else if (c instanceof Set<?>) {
+            assertEquals(0, c.hashCode());
+            assertEquals(c, Collections.emptySet());
+            assertEquals(Collections.emptySet(), c);
+        }
         {
             Object[] a = c.toArray();
             assertEquals(0, a.length);
@@ -251,6 +266,16 @@ public class Collection8Test extends JSR166TestCase {
                 () -> d.removeLast(),
                 () -> d.pop(),
                 () -> d.descendingIterator().next());
+        }
+        if (c instanceof List) {
+            List x = (List) c;
+            assertThrows(
+                NoSuchElementException.class,
+                () -> x.iterator().next(),
+                () -> x.listIterator().next(),
+                () -> x.listIterator(0).next(),
+                () -> x.listIterator().previous(),
+                () -> x.listIterator(0).previous());
         }
     }
 
