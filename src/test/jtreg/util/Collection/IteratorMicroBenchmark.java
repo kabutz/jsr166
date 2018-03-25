@@ -466,7 +466,7 @@ public class IteratorMicroBenchmark {
     }
 
     Stream<Job> listJobs(List<Integer> x) {
-        String klazz = x.getClass().getSimpleName();
+        final String klazz = x.getClass().getSimpleName();
         return Stream.of(
             new Job(klazz + " subList toArray()") {
                 public void work() throws Throwable {
@@ -508,6 +508,26 @@ public class IteratorMicroBenchmark {
                                     sum += (Integer) o;
                                 return sum; })
                             .sum();
-                        check.sum(total);}}});
+                        check.sum(total);}}},
+            new Job(klazz + " indexOf") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    Object y = new Object() {
+                        public boolean equals(Object z) {
+                            sum[0] += (int) z; return false; }};
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        if (x.indexOf(y) != -1) throw new AssertionError();
+                        check.sum(sum[0]);}}},
+            new Job(klazz + " lastIndexOf") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    Object y = new Object() {
+                        public boolean equals(Object z) {
+                            sum[0] += (int) z; return false; }};
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        if (x.lastIndexOf(y) != -1) throw new AssertionError();
+                        check.sum(sum[0]);}}});
     }
 }
