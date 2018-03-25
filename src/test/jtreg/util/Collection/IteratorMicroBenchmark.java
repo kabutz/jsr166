@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -57,6 +58,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import java.util.function.ToIntFunction;
 
 /**
  * Usage: [iterations=N] [size=N] [filter=REGEXP] [warmup=SECONDS]
@@ -102,6 +104,7 @@ public class IteratorMicroBenchmark {
     static void forceFullGc() {
         CountDownLatch finalizeDone = new CountDownLatch(1);
         WeakReference<?> ref = new WeakReference<Object>(new Object() {
+            @SuppressWarnings("deprecation")
             protected void finalize() { finalizeDone.countDown(); }});
         try {
             for (int i = 0; i < 10; i++) {
@@ -211,10 +214,6 @@ public class IteratorMicroBenchmark {
             System.out.println("the answer");
     }
 
-    private static <T> List<T> asSubList(List<T> list) {
-        return list.subList(0, list.size());
-    }
-
     private static <T> Iterable<T> backwards(final List<T> list) {
         return new Iterable<T>() {
             public Iterator<T> iterator() {
@@ -241,6 +240,31 @@ public class IteratorMicroBenchmark {
         new IteratorMicroBenchmark(args).run();
     }
 
+    HashMap<Class<?>, String> goodClassName = new HashMap<>();
+
+    String goodClassName(Class<?> klazz) {
+        return goodClassName.computeIfAbsent(
+            klazz,
+            k -> {
+                String simple = k.getSimpleName();
+                return (simple.equals("SubList")) // too simple!
+                    ? k.getName().replaceFirst(".*\\.", "")
+                    : simple;
+            });
+    }
+
+    static List<Integer> makeSubList(List<Integer> list) {
+        final ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        int size = list.size();
+        if (size <= 2) return list.subList(0, size);
+        List<Integer> subList = list.subList(rnd.nextInt(0, 2),
+                                             size - rnd.nextInt(0, 2));
+        List<Integer> copy = new ArrayList<>(list);
+        subList.clear();
+        subList.addAll(copy);
+        return subList;
+    }
+
     void run() throws Throwable {
 //         System.out.printf(
 //             "iterations=%d size=%d, warmup=%1g, filter=\"%s\"%n",
@@ -265,10 +289,14 @@ public class IteratorMicroBenchmark {
 
         ArrayList<Job> jobs = Stream.<Collection<Integer>>of(
                 al, ad, abq,
+                makeSubList(new ArrayList<>(al)),
                 new LinkedList<>(al),
+                makeSubList(new LinkedList<>(al)),
                 new PriorityQueue<>(al),
                 new Vector<>(al),
+                makeSubList(new Vector<>(al)),
                 new CopyOnWriteArrayList<>(al),
+                makeSubList(new CopyOnWriteArrayList<>(al)),
                 new ConcurrentLinkedQueue<>(al),
                 new ConcurrentLinkedDeque<>(al),
                 new LinkedBlockingQueue<>(al),
@@ -302,8 +330,15 @@ public class IteratorMicroBenchmark {
             : Stream.empty());
     }
 
+    Object sneakyAdder(int[] sneakySum) {
+        return new Object() {
+            public int hashCode() { throw new AssertionError(); }
+            public boolean equals(Object z) {
+                sneakySum[0] += (int) z; return false; }};
+    }
+
     Stream<Job> collectionJobs(Collection<Integer> x) {
-        String klazz = x.getClass().getSimpleName();
+        final String klazz = goodClassName(x.getClass());
         return Stream.of(
             new Job(klazz + " iterate for loop") {
                 public void work() throws Throwable {
@@ -345,22 +380,18 @@ public class IteratorMicroBenchmark {
             new Job(klazz + " contains") {
                 public void work() throws Throwable {
                     int[] sum = new int[1];
-                    Object y = new Object() {
-                        public boolean equals(Object z) {
-                            sum[0] += (int) z; return false; }};
+                    Object sneakyAdder = sneakyAdder(sum);
                     for (int i = 0; i < iterations; i++) {
                         sum[0] = 0;
-                        if (x.contains(y)) throw new AssertionError();
+                        if (x.contains(sneakyAdder)) throw new AssertionError();
                         check.sum(sum[0]);}}},
             new Job(klazz + " remove(Object)") {
                 public void work() throws Throwable {
                     int[] sum = new int[1];
-                    Object y = new Object() {
-                        public boolean equals(Object z) {
-                            sum[0] += (int) z; return false; }};
+                    Object sneakyAdder = sneakyAdder(sum);
                     for (int i = 0; i < iterations; i++) {
                         sum[0] = 0;
-                        if (x.remove(y)) throw new AssertionError();
+                        if (x.remove(sneakyAdder)) throw new AssertionError();
                         check.sum(sum[0]);}}},
             new Job(klazz + " forEach") {
                 public void work() throws Throwable {
@@ -446,7 +477,7 @@ public class IteratorMicroBenchmark {
     }
 
     Stream<Job> dequeJobs(Deque<Integer> x) {
-        String klazz = x.getClass().getSimpleName();
+        String klazz = goodClassName(x.getClass());
         return Stream.of(
             new Job(klazz + " descendingIterator() loop") {
                 public void work() throws Throwable {
@@ -465,69 +496,88 @@ public class IteratorMicroBenchmark {
                         check.sum(sum[0]);}}});
     }
 
+    <T> Job iterateJob(String name, T x, ToIntFunction<T> sumFunction) {
+        return new Job(name) {
+            public void work() throws Throwable {
+                for (int i = 0; i < iterations; i++) {
+                    check.sum(sumFunction.applyAsInt(x));}}};
+    }
+
+//     Job subListJob(String name, List<Integer> x, ToIntFunction<List<Integer>> sumFunction) {
+//         final String klazz = goodClassName(x.getClass());
+//         final int size = x.size(), half = size / 2;
+//         return new Job(klazz + " ToIntFunction subList " + name) {
+//             public void work() throws Throwable {
+//                 for (int i = 0; i < iterations; i++) {
+//                     int total = Stream.of(x.subList(0, half),
+//                                           x.subList(half, size))
+//                         .mapToInt(sumFunction::applyAsInt)
+//                         .sum();
+//                     check.sum(total);}}};
+//     }
+
     Stream<Job> listJobs(List<Integer> x) {
-        final String klazz = x.getClass().getSimpleName();
+        final String klazz = goodClassName(x.getClass());
+        final int[] sneakySum = new int[1];
+        final Object sneakyAdder = sneakyAdder(sneakySum);
+
         return Stream.of(
-            new Job(klazz + " subList toArray()") {
-                public void work() throws Throwable {
-                    int size = x.size();
-                    for (int i = 0; i < iterations; i++) {
-                        int total = Stream.of(x.subList(0, size / 2),
-                                              x.subList(size / 2, size))
-                            .mapToInt(subList -> {
-                                int sum = 0;
-                                for (Object o : subList.toArray())
-                                    sum += (Integer) o;
-                                return sum; })
-                            .sum();
-                        check.sum(total);}}},
-            new Job(klazz + " subList toArray(a)") {
-                public void work() throws Throwable {
-                    int size = x.size();
-                    for (int i = 0; i < iterations; i++) {
-                        int total = Stream.of(x.subList(0, size / 2),
-                                              x.subList(size / 2, size))
-                            .mapToInt(subList -> {
-                                int sum = 0;
-                                Integer[] a = new Integer[subList.size()];
-                                for (Object o : subList.toArray(a))
-                                    sum += (Integer) o;
-                                return sum; })
-                            .sum();
-                        check.sum(total);}}},
-            new Job(klazz + " subList toArray(empty)") {
-                public void work() throws Throwable {
-                    int size = x.size();
-                    Integer[] empty = new Integer[0];
-                    for (int i = 0; i < iterations; i++) {
-                        int total = Stream.of(x.subList(0, size / 2),
-                                              x.subList(size / 2, size))
-                            .mapToInt(subList -> {
-                                int sum = 0;
-                                for (Object o : subList.toArray(empty))
-                                    sum += (Integer) o;
-                                return sum; })
-                            .sum();
-                        check.sum(total);}}},
-            new Job(klazz + " indexOf") {
-                public void work() throws Throwable {
-                    int[] sum = new int[1];
-                    Object y = new Object() {
-                        public boolean equals(Object z) {
-                            sum[0] += (int) z; return false; }};
-                    for (int i = 0; i < iterations; i++) {
-                        sum[0] = 0;
-                        if (x.indexOf(y) != -1) throw new AssertionError();
-                        check.sum(sum[0]);}}},
-            new Job(klazz + " lastIndexOf") {
-                public void work() throws Throwable {
-                    int[] sum = new int[1];
-                    Object y = new Object() {
-                        public boolean equals(Object z) {
-                            sum[0] += (int) z; return false; }};
-                    for (int i = 0; i < iterations; i++) {
-                        sum[0] = 0;
-                        if (x.lastIndexOf(y) != -1) throw new AssertionError();
-                        check.sum(sum[0]);}}});
+            iterateJob(
+                klazz + " indexOf", x,
+                z -> {
+                    sneakySum[0] = 0;
+                    if (z.indexOf(sneakyAdder) != -1) throw new AssertionError();
+                    return sneakySum[0]; }),
+            iterateJob(
+                klazz + " lastIndexOf", x,
+                z -> {
+                    sneakySum[0] = 0;
+                    if (z.lastIndexOf(sneakyAdder) != -1) throw new AssertionError();
+                    return sneakySum[0]; }));
+
+//         final int size = x.size(), half = size / 2;
+//         ToIntFunction<List<Integer>> indexOf = z -> {
+//             sneakySum[0] = 0;
+//             if (z.indexOf(sneakyAdder) != -1) throw new AssertionError();
+//             return sneakySum[0]; };
+//         ToIntFunction<List<Integer>> lastIndexOf = z -> {
+//             sneakySum[0] = 0;
+//             if (z.lastIndexOf(sneakyAdder) != -1) throw new AssertionError();
+//             return sneakySum[0]; };
+
+//         return Stream.of(
+//             subListJob("toArray()", x, subList -> {
+//                            int sum = 0;
+//                            for (Object o : subList.toArray())
+//                                sum += (Integer) o;
+//                            return sum; }),
+//             subListJob("toArray(a)", x, subList -> {
+//                            int sum = 0;
+//                            Integer[] a = new Integer[subList.size()];
+//                            for (Object o : subList.toArray(a))
+//                                sum += (Integer) o;
+//                            return sum; }),
+//             subListJob("toArray(empty)", x, subList -> {
+//                 int sum = 0;
+//                 Integer[] a = new Integer[0];
+//                 for (Object o : subList.toArray(a))
+//                     sum += (Integer) o;
+//                 return sum; }),
+//             subListJob("contains", x, subList -> {
+//                 sneakySum[0] = 0;
+//                 if (subList.contains(sneakyAdder)) throw new AssertionError();
+//                 return sneakySum[0]; }),
+//             subListJob("forEach", x, subList -> {
+//                 sneakySum[0] = 0;
+//                 subList.forEach(n -> sneakySum[0] += n);
+//                 return sneakySum[0]; }),
+//             subListJob("stream().forEach", x, subList -> {
+//                 sneakySum[0] = 0;
+//                 subList.stream().forEach(n -> sneakySum[0] += n);
+//                 return sneakySum[0]; }),
+//             iterateJob("indexOf", x, indexOf),
+//             subListJob("indexOf", x, indexOf),
+//             iterateJob("lastIndexOf", x, lastIndexOf),
+//             subListJob("lastIndexOf", x, lastIndexOf));
     }
 }
