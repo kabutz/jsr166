@@ -72,6 +72,13 @@ public class RemoveMicroBenchmark {
         public Job(String name) { this.name = name; }
         public String name() { return name; }
         public abstract void work() throws Throwable;
+        public void run() {
+            try { work(); }
+            catch (Throwable ex) {
+                // current job cannot always be deduced from stacktrace.
+                throw new RuntimeException("Job failed: " + name(), ex);
+            }
+        }
     }
 
     final int iterations;
@@ -120,7 +127,7 @@ public class RemoveMicroBenchmark {
      * compiling everything worth compiling.
      * Returns array of average times per job per run.
      */
-    long[] time0(List<Job> jobs) throws Throwable {
+    long[] time0(List<Job> jobs) {
         final int size = jobs.size();
         long[] nanoss = new long[size];
         for (int i = 0; i < size; i++) {
@@ -129,7 +136,7 @@ public class RemoveMicroBenchmark {
             long totalTime;
             int runs = 0;
             long startTime = System.nanoTime();
-            do { job.work(); runs++; }
+            do { job.run(); runs++; }
             while ((totalTime = System.nanoTime() - startTime) < warmupNanos);
             nanoss[i] = totalTime/runs;
         }
