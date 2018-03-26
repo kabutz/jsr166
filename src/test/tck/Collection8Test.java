@@ -101,6 +101,10 @@ public class Collection8Test extends JSR166TestCase {
             assertEquals(Collections.emptyList(), x);
             assertEquals(-1, x.indexOf(impl.makeElement(86)));
             assertEquals(-1, x.lastIndexOf(impl.makeElement(99)));
+            assertThrows(
+                IndexOutOfBoundsException.class,
+                () -> x.get(0),
+                () -> x.set(0, impl.makeElement(42)));
         }
         else if (c instanceof Set<?>) {
             assertEquals(0, c.hashCode());
