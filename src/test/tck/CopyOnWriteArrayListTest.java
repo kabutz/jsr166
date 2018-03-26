@@ -234,22 +234,62 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
     }
 
     /**
-     * indexOf gives the index for the given object
+     * indexOf(Object) returns the index of the first occurrence of the
+     * specified element in this list, or -1 if this list does not
+     * contain the element
      */
     public void testIndexOf() {
-        CopyOnWriteArrayList full = populatedArray(3);
-        assertEquals(1, full.indexOf(one));
-        assertEquals(-1, full.indexOf("puppies"));
+        CopyOnWriteArrayList list = populatedArray(3);
+        assertEquals(-1, list.indexOf(-42));
+        int size = list.size();
+        for (int i = 0; i < size; i++) {
+            assertEquals(i, list.indexOf(i));
+            assertEquals(i, list.subList(0, size).indexOf(i));
+            assertEquals(i, list.subList(0, i + 1).indexOf(i));
+            assertEquals(-1, list.subList(0, i).indexOf(i));
+            assertEquals(0, list.subList(i, size).indexOf(i));
+            assertEquals(-1, list.subList(i + 1, size).indexOf(i));
+        }
+
+        list.add(1);
+        assertEquals(1, list.indexOf(1));
+        assertEquals(1, list.subList(0, size + 1).indexOf(1));
+        assertEquals(0, list.subList(1, size + 1).indexOf(1));
+        assertEquals(size - 2, list.subList(2, size + 1).indexOf(1));
+        assertEquals(0, list.subList(size, size + 1).indexOf(1));
+        assertEquals(-1, list.subList(size + 1, size + 1).indexOf(1));
     }
 
     /**
-     * indexOf gives the index based on the given index
-     * at which to start searching
+     * indexOf(E, int) returns the index of the first occurrence of the
+     * specified element in this list, searching forwards from index,
+     * or returns -1 if the element is not found
      */
     public void testIndexOf2() {
-        CopyOnWriteArrayList full = populatedArray(3);
-        assertEquals(1, full.indexOf(one, 0));
-        assertEquals(-1, full.indexOf(one, 2));
+        CopyOnWriteArrayList list = populatedArray(3);
+        int size = list.size();
+        assertEquals(-1, list.indexOf(-42, 0));
+
+        // we might expect IOOBE, but spec says otherwise
+        assertEquals(-1, list.indexOf(0, size));
+        assertEquals(-1, list.indexOf(0, Integer.MAX_VALUE));
+
+        assertThrows(
+            IndexOutOfBoundsException.class,
+            () -> list.indexOf(0, -1),
+            () -> list.indexOf(0, Integer.MIN_VALUE));
+
+        for (int i = 0; i < size; i++) {
+            assertEquals(i, list.indexOf(i, 0));
+            assertEquals(i, list.indexOf(i, i));
+            assertEquals(-1, list.indexOf(i, i + 1));
+        }
+
+        list.add(1);
+        assertEquals(1, list.indexOf(1, 0));
+        assertEquals(1, list.indexOf(1, 1));
+        assertEquals(size, list.indexOf(1, 2));
+        assertEquals(size, list.indexOf(1, size));
     }
 
     /**
@@ -323,25 +363,61 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
     }
 
     /**
-     * lastIndexOf returns the index for the given object
+     * lastIndexOf(Object) returns the index of the last occurrence of
+     * the specified element in this list, or -1 if this list does not
+     * contain the element
      */
     public void testLastIndexOf1() {
-        CopyOnWriteArrayList full = populatedArray(3);
-        full.add(one);
-        full.add(three);
-        assertEquals(3, full.lastIndexOf(one));
-        assertEquals(-1, full.lastIndexOf(six));
+        CopyOnWriteArrayList list = populatedArray(3);
+        assertEquals(-1, list.lastIndexOf(-42));
+        int size = list.size();
+        for (int i = 0; i < size; i++) {
+            assertEquals(i, list.lastIndexOf(i));
+            assertEquals(i, list.subList(0, size).lastIndexOf(i));
+            assertEquals(i, list.subList(0, i + 1).lastIndexOf(i));
+            assertEquals(-1, list.subList(0, i).lastIndexOf(i));
+            assertEquals(0, list.subList(i, size).lastIndexOf(i));
+            assertEquals(-1, list.subList(i + 1, size).lastIndexOf(i));
+        }
+
+        list.add(1);
+        assertEquals(size, list.lastIndexOf(1));
+        assertEquals(size, list.subList(0, size + 1).lastIndexOf(1));
+        assertEquals(1, list.subList(0, size).lastIndexOf(1));
+        assertEquals(0, list.subList(1, 2).lastIndexOf(1));
+        assertEquals(-1, list.subList(0, 1).indexOf(1));
     }
 
     /**
-     * lastIndexOf returns the index from the given starting point
+     * lastIndexOf(E, int) returns the index of the last occurrence of the
+     * specified element in this list, searching backwards from index, or
+     * returns -1 if the element is not found
      */
     public void testLastIndexOf2() {
-        CopyOnWriteArrayList full = populatedArray(3);
-        full.add(one);
-        full.add(three);
-        assertEquals(3, full.lastIndexOf(one, 4));
-        assertEquals(-1, full.lastIndexOf(three, 3));
+        CopyOnWriteArrayList list = populatedArray(3);
+
+        // we might expect IOOBE, but spec says otherwise
+        assertEquals(-1, list.lastIndexOf(0, -1));
+
+        int size = list.size();
+        assertThrows(
+            IndexOutOfBoundsException.class,
+            () -> list.lastIndexOf(0, size),
+            () -> list.lastIndexOf(0, Integer.MAX_VALUE));
+
+        for (int i = 0; i < size; i++) {
+            assertEquals(i, list.lastIndexOf(i, i));
+            assertEquals(list.indexOf(i), list.lastIndexOf(i, i));
+            if (i > 0)
+                assertEquals(-1, list.lastIndexOf(i, i - 1));
+        }
+        list.add(one);
+        list.add(three);
+        assertEquals(1, list.lastIndexOf(one, 1));
+        assertEquals(1, list.lastIndexOf(one, 2));
+        assertEquals(3, list.lastIndexOf(one, 3));
+        assertEquals(3, list.lastIndexOf(one, 4));
+        assertEquals(-1, list.lastIndexOf(three, 3));
     }
 
     /**
@@ -517,6 +593,11 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
         assertEquals(a.get(4), m1);
         s.clear();
         assertEquals(7, a.size());
+
+        assertThrows(
+            IndexOutOfBoundsException.class,
+            () -> s.get(0),
+            () -> s.set(0, 42));
     }
 
     // Exception tests
