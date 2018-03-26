@@ -503,30 +503,26 @@ public class IteratorMicroBenchmark {
                         check.sum(sum[0]);}}});
     }
 
-    <T> Job iterateJob(String name, T x, ToIntFunction<T> sumFunction) {
-        return new Job(name) {
-            public void work() throws Throwable {
-                for (int i = 0; i < iterations; i++) {
-                    check.sum(sumFunction.applyAsInt(x));}}};
-    }
-
     Stream<Job> listJobs(List<Integer> x) {
         final String klazz = goodClassName(x.getClass());
-        final int[] sneakySum = new int[1];
-        final Object sneakyAdder = sneakyAdder(sneakySum);
-
         return Stream.of(
-            iterateJob(
-                klazz + " indexOf", x,
-                z -> {
-                    sneakySum[0] = 0;
-                    if (z.indexOf(sneakyAdder) != -1) throw new AssertionError();
-                    return sneakySum[0]; }),
-            iterateJob(
-                klazz + " lastIndexOf", x,
-                z -> {
-                    sneakySum[0] = 0;
-                    if (z.lastIndexOf(sneakyAdder) != -1) throw new AssertionError();
-                    return sneakySum[0]; }));
+            new Job(klazz + " indexOf") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    Object sneakyAdder = sneakyAdder(sum);
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        if (x.indexOf(sneakyAdder) != -1)
+                            throw new AssertionError();
+                        check.sum(sum[0]);}}},
+            new Job(klazz + " lastIndexOf") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    Object sneakyAdder = sneakyAdder(sum);
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        if (x.lastIndexOf(sneakyAdder) != -1)
+                            throw new AssertionError();
+                        check.sum(sum[0]);}}});
     }
 }
