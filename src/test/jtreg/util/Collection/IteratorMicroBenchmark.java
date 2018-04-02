@@ -58,7 +58,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import java.util.function.ToIntFunction;
 
 /**
  * Usage: [iterations=N] [size=N] [filter=REGEXP] [warmup=SECONDS]
@@ -273,10 +272,6 @@ public class IteratorMicroBenchmark {
     }
 
     void run() throws Throwable {
-//         System.out.printf(
-//             "iterations=%d size=%d, warmup=%1g, filter=\"%s\"%n",
-//             iterations, size, warmupSeconds, nameFilter);
-
         final ArrayList<Integer> al = new ArrayList<>(size);
 
         // Populate collections with random data
@@ -329,9 +324,11 @@ public class IteratorMicroBenchmark {
     Stream<Job> jobs(Collection<Integer> x) {
         return concatStreams(
             collectionJobs(x),
+
             (x instanceof Deque)
             ? dequeJobs((Deque<Integer>)x)
             : Stream.empty(),
+
             (x instanceof List)
             ? listJobs((List<Integer>)x)
             : Stream.empty());
