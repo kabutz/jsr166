@@ -503,6 +503,22 @@ public class IteratorMicroBenchmark {
     Stream<Job> listJobs(List<Integer> x) {
         final String klazz = goodClassName(x.getClass());
         return Stream.of(
+            new Job(klazz + " listIterator forward loop") {
+                public void work() throws Throwable {
+                    for (int i = 0; i < iterations; i++) {
+                        int sum = 0;
+                        ListIterator<Integer> it = x.listIterator();
+                        while (it.hasNext())
+                            sum += it.next();
+                        check.sum(sum);}}},
+            new Job(klazz + " listIterator backward loop") {
+                public void work() throws Throwable {
+                    for (int i = 0; i < iterations; i++) {
+                        int sum = 0;
+                        ListIterator<Integer> it = x.listIterator(x.size());
+                        while (it.hasPrevious())
+                            sum += it.previous();
+                        check.sum(sum);}}},
             new Job(klazz + " indexOf") {
                 public void work() throws Throwable {
                     int[] sum = new int[1];
