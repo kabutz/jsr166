@@ -1188,6 +1188,12 @@ public class CopyOnWriteArrayList<E>
                 throw new IndexOutOfBoundsException(outOfBounds(index, size));
         }
 
+        private void rangeCheckForAdd(int index) {
+            // assert Thread.holdsLock(lock);
+            if (index < 0 || index > size)
+                throw new IndexOutOfBoundsException(outOfBounds(index, size));
+        }
+
         public Object[] toArray() {
             final Object[] es;
             final int offset;
@@ -1347,9 +1353,7 @@ public class CopyOnWriteArrayList<E>
         public void add(int index, E element) {
             synchronized (lock) {
                 checkForComodification();
-                if (index < 0 || index > size)
-                    throw new IndexOutOfBoundsException(
-                            outOfBounds(index, size));
+                rangeCheckForAdd(index);
                 CopyOnWriteArrayList.this.add(offset + index, element);
                 expectedArray = getArray();
                 size++;
@@ -1368,9 +1372,7 @@ public class CopyOnWriteArrayList<E>
 
         public boolean addAll(int index, Collection<? extends E> c) {
             synchronized (lock) {
-                if (index < 0 || index > size)
-                    throw new IndexOutOfBoundsException(
-                            outOfBounds(index, size));
+                rangeCheckForAdd(index);
                 final Object[] oldArray = getArrayChecked();
                 boolean modified =
                     CopyOnWriteArrayList.this.addAll(offset + index, c);
@@ -1421,9 +1423,7 @@ public class CopyOnWriteArrayList<E>
         public ListIterator<E> listIterator(int index) {
             synchronized (lock) {
                 checkForComodification();
-                if (index < 0 || index > size)
-                    throw new IndexOutOfBoundsException
-                        (outOfBounds(index, size));
+                rangeCheckForAdd(index);
                 return new COWSubListIterator<E>(
                     CopyOnWriteArrayList.this, index, offset, size);
             }
