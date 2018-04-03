@@ -35,7 +35,12 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
         }
         class SubListImplementation extends Implementation {
             public List emptyCollection() {
-                return super.emptyCollection().subList(0, 0);
+                List list = super.emptyCollection();
+                ThreadLocalRandom rnd = ThreadLocalRandom.current();
+                if (rnd.nextBoolean())
+                    list.add(makeElement(rnd.nextInt()));
+                int i = rnd.nextInt(list.size() + 1);
+                return list.subList(i, i);
             }
         }
         return newTestSuite(
