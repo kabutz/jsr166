@@ -1297,6 +1297,7 @@ public class CopyOnWriteArrayList<E>
                 return true;
             if (!(o instanceof List))
                 return false;
+            Iterator<?> it = ((List<?>)o).iterator();
 
             final Object[] es;
             final int offset;
@@ -1307,8 +1308,6 @@ public class CopyOnWriteArrayList<E>
                 size = this.size;
             }
 
-            List<?> list = (List<?>)o;
-            Iterator<?> it = list.iterator();
             for (int i = offset, end = offset + size; i < end; i++)
                 if (!it.hasNext() || !Objects.equals(es[i], it.next()))
                     return false;
