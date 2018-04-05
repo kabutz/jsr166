@@ -843,7 +843,6 @@ public class CopyOnWriteArrayList<E>
     }
 
     public void replaceAll(UnaryOperator<E> operator) {
-        Objects.requireNonNull(operator);
         synchronized (lock) {
             replaceAllRange(operator, 0, getArray().length);
         }
@@ -851,6 +850,7 @@ public class CopyOnWriteArrayList<E>
 
     void replaceAllRange(UnaryOperator<E> operator, int i, int end) {
         // assert Thread.holdsLock(lock);
+        Objects.requireNonNull(operator);
         final Object[] es = getArray().clone();
         for (; i < end; i++)
             es[i] = operator.apply(elementAt(es, i));
@@ -1451,7 +1451,6 @@ public class CopyOnWriteArrayList<E>
         }
 
         public void replaceAll(UnaryOperator<E> operator) {
-            Objects.requireNonNull(operator);
             synchronized (lock) {
                 checkForComodification();
                 replaceAllRange(operator, offset, offset + size);
