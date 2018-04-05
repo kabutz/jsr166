@@ -56,6 +56,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -536,6 +537,15 @@ public class IteratorMicroBenchmark {
                         sum[0] = 0;
                         if (x.lastIndexOf(sneakyAdder) != -1)
                             throw new AssertionError();
+                        check.sum(sum[0]);}}},
+            new Job(klazz + " replaceAll") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    UnaryOperator<Integer> sneakyAdder =
+                        x -> { sum[0] += x; return x; };
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        x.replaceAll(sneakyAdder);
                         check.sum(sum[0]);}}});
     }
 }
