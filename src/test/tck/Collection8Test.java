@@ -8,6 +8,7 @@
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -906,24 +907,29 @@ public class Collection8Test extends JSR166TestCase {
         }
     }
 
-    public void testObjectMethods() {
+    public void testCollectionCopies() throws Exception {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
         Collection c = impl.emptyCollection();
-        for (int n = rnd.nextInt(3); n--> 0; )
+        for (int n = rnd.nextInt(4); n--> 0; )
             c.add(impl.makeElement(rnd.nextInt()));
         assertEquals(c, c);
-        if (c instanceof List) {
-            List copy = new ArrayList(c);
-            assertEquals(copy, c);
-            assertEquals(c, copy);
-            assertEquals(copy.hashCode(), c.hashCode());
+        if (c instanceof List)
+            assertCollectionsEquals(c, new ArrayList(c));
+        else if (c instanceof Set)
+            assertCollectionsEquals(c, new HashSet(c));
+        else if (c instanceof Deque)
+            assertCollectionsEquivalent(c, new ArrayDeque(c));
+
+        Collection clone = cloneableClone(c);
+        if (clone != null) {
+            assertSame(c.getClass(), clone.getClass());
+            assertCollectionsEquivalent(c, clone);
         }
-        if (c instanceof Set) {
-            Set copy = new HashSet(c);
-            assertEquals(copy, c);
-            assertEquals(c, copy);
-            assertEquals(copy.hashCode(), c.hashCode());
-        }
+        try {
+            Collection serialClone = serialClonePossiblyFailing(c);
+            assertSame(c.getClass(), serialClone.getClass());
+            assertCollectionsEquivalent(c, serialClone);
+        } catch (java.io.NotSerializableException acceptable) {}
     }
 
 //     public void testCollection8DebugFail() {
