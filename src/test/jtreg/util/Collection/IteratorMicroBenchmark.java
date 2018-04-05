@@ -390,6 +390,16 @@ public class IteratorMicroBenchmark {
                         sum[0] = 0;
                         if (x.contains(sneakyAdder)) throw new AssertionError();
                         check.sum(sum[0]);}}},
+            new Job(klazz + " containsAll") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    Collection<Object> sneakyAdderCollection =
+                        Collections.singleton(sneakyAdder(sum));
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        if (x.containsAll(sneakyAdderCollection))
+                            throw new AssertionError();
+                        check.sum(sum[0]);}}},
             new Job(klazz + " remove(Object)") {
                 public void work() throws Throwable {
                     int[] sum = new int[1];
