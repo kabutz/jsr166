@@ -326,9 +326,9 @@ public class ForkJoinPool extends AbstractExecutorService {
      * operations, the array size is always a power of two, and all
      * readers must tolerate null slots. Worker queues are at odd
      * indices. Shared (submission) queues are at even indices, up to
-     * a maximum of 64 slots, to limit growth even if array needs to
-     * expand to add more workers. Grouping them together in this way
-     * simplifies and speeds up task scanning.
+     * a maximum of 64 slots, to limit growth even if the array needs
+     * to expand to add more workers. Grouping them together in this
+     * way simplifies and speeds up task scanning.
      *
      * All worker thread creation is on-demand, triggered by task
      * submissions, replacement of terminated workers, and/or
