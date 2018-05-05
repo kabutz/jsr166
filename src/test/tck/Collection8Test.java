@@ -932,6 +932,25 @@ public class Collection8Test extends JSR166TestCase {
         } catch (java.io.NotSerializableException acceptable) {}
     }
 
+    public void testReplaceAllIsNotStructuralModification() {
+        Collection c = impl.emptyCollection();
+        if (!(c instanceof List))
+            return;
+        List list = (List) c;
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        for (int n = rnd.nextInt(2, 10); n--> 0; )
+            list.add(impl.makeElement(rnd.nextInt()));
+        ArrayList copy = new ArrayList(list);
+        int size = list.size(), half = size / 2;
+        Iterator it = list.iterator();
+        for (int i = 0; i < half; i++)
+            assertEquals(it.next(), copy.get(i));
+        list.replaceAll(n -> n);
+        // ConcurrentModificationException must not be thrown here.
+        for (int i = half; i < size; i++)
+            assertEquals(it.next(), copy.get(i));
+    }
+
 //     public void testCollection8DebugFail() {
 //         fail(impl.klazz().getSimpleName());
 //     }
