@@ -235,17 +235,17 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
             if (pq.getClass() == PriorityBlockingQueue.class) // exact match
                 heapify = false;
         }
-        Object[] a = c.toArray();
-        int n = a.length;
+        Object[] es = c.toArray();
+        int n = es.length;
         // If c.toArray incorrectly doesn't return Object[], copy it.
-        if (a.getClass() != Object[].class)
-            a = Arrays.copyOf(a, n, Object[].class);
+        if (es.getClass() != Object[].class)
+            es = Arrays.copyOf(es, n, Object[].class);
         if (screen && (n == 1 || this.comparator != null)) {
-            for (Object elt : a)
-                if (elt == null)
+            for (Object e : es)
+                if (e == null)
                     throw new NullPointerException();
         }
-        this.queue = a;
+        this.queue = es;
         this.size = n;
         if (heapify)
             heapify();
@@ -294,19 +294,22 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      * Mechanics for poll().  Call only while holding lock.
      */
     private E dequeue() {
+        // assert lock.isHeldByCurrentThread();
         int n = size - 1;
         if (n < 0)
             return null;
         else {
-            Object[] array = queue;
-            E result = (E) array[0];
-            E x = (E) array[n];
-            array[n] = null;
-            Comparator<? super E> cmp = comparator;
-            if (cmp == null)
-                siftDownComparable(0, x, array, n);
-            else
-                siftDownUsingComparator(0, x, array, n, cmp);
+            final Object[] es = queue;
+            E result = (E) es[0];
+            E x = (E) es[n];
+            es[n] = null;
+            if (n > 0) {
+                Comparator<? super E> cmp = comparator;
+                if (cmp == null)
+                    siftDownComparable(0, x, es, n);
+                else
+                    siftDownUsingComparator(0, x, es, n, cmp);
+            }
             size = n;
             return result;
         }
@@ -323,32 +326,32 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      *
      * @param k the position to fill
      * @param x the item to insert
-     * @param array the heap array
+     * @param es the heap array
      */
-    private static <T> void siftUpComparable(int k, T x, Object[] array) {
+    private static <T> void siftUpComparable(int k, T x, Object[] es) {
         Comparable<? super T> key = (Comparable<? super T>) x;
         while (k > 0) {
             int parent = (k - 1) >>> 1;
-            Object e = array[parent];
+            Object e = es[parent];
             if (key.compareTo((T) e) >= 0)
                 break;
-            array[k] = e;
+            es[k] = e;
             k = parent;
         }
-        array[k] = key;
+        es[k] = key;
     }
 
-    private static <T> void siftUpUsingComparator(int k, T x, Object[] array,
-                                       Comparator<? super T> cmp) {
+    private static <T> void siftUpUsingComparator(
+        int k, T x, Object[] es, Comparator<? super T> cmp) {
         while (k > 0) {
             int parent = (k - 1) >>> 1;
-            Object e = array[parent];
+            Object e = es[parent];
             if (cmp.compare(x, (T) e) >= 0)
                 break;
-            array[k] = e;
+            es[k] = e;
             k = parent;
         }
-        array[k] = x;
+        es[k] = x;
     }
 
     /**
@@ -358,48 +361,44 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      *
      * @param k the position to fill
      * @param x the item to insert
-     * @param array the heap array
+     * @param es the heap array
      * @param n heap size
      */
-    private static <T> void siftDownComparable(int k, T x, Object[] array,
-                                               int n) {
-        if (n > 0) {
-            Comparable<? super T> key = (Comparable<? super T>)x;
-            int half = n >>> 1;           // loop while a non-leaf
-            while (k < half) {
-                int child = (k << 1) + 1; // assume left child is least
-                Object c = array[child];
-                int right = child + 1;
-                if (right < n &&
-                    ((Comparable<? super T>) c).compareTo((T) array[right]) > 0)
-                    c = array[child = right];
-                if (key.compareTo((T) c) <= 0)
-                    break;
-                array[k] = c;
-                k = child;
-            }
-            array[k] = key;
+    private static <T> void siftDownComparable(int k, T x, Object[] es, int n) {
+        // assert n > 0;
+        Comparable<? super T> key = (Comparable<? super T>)x;
+        int half = n >>> 1;           // loop while a non-leaf
+        while (k < half) {
+            int child = (k << 1) + 1; // assume left child is least
+            Object c = es[child];
+            int right = child + 1;
+            if (right < n &&
+                ((Comparable<? super T>) c).compareTo((T) es[right]) > 0)
+                c = es[child = right];
+            if (key.compareTo((T) c) <= 0)
+                break;
+            es[k] = c;
+            k = child;
         }
+        es[k] = key;
     }
 
-    private static <T> void siftDownUsingComparator(int k, T x, Object[] array,
-                                                    int n,
-                                                    Comparator<? super T> cmp) {
-        if (n > 0) {
-            int half = n >>> 1;
-            while (k < half) {
-                int child = (k << 1) + 1;
-                Object c = array[child];
-                int right = child + 1;
-                if (right < n && cmp.compare((T) c, (T) array[right]) > 0)
-                    c = array[child = right];
-                if (cmp.compare(x, (T) c) <= 0)
-                    break;
-                array[k] = c;
-                k = child;
-            }
-            array[k] = x;
+    private static <T> void siftDownUsingComparator(
+        int k, T x, Object[] es, int n, Comparator<? super T> cmp) {
+        // assert n > 0;
+        int half = n >>> 1;
+        while (k < half) {
+            int child = (k << 1) + 1;
+            Object c = es[child];
+            int right = child + 1;
+            if (right < n && cmp.compare((T) c, (T) es[right]) > 0)
+                c = es[child = right];
+            if (cmp.compare(x, (T) c) <= 0)
+                break;
+            es[k] = c;
+            k = child;
         }
+        es[k] = x;
     }
 
     /**
@@ -408,17 +407,15 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      * This classic algorithm due to Floyd (1964) is known to be O(size).
      */
     private void heapify() {
-        Object[] array = queue;
+        final Object[] es = queue;
         int n = size, i = (n >>> 1) - 1;
         Comparator<? super E> cmp = comparator;
-        if (cmp == null) {
+        if (cmp == null)
             for (; i >= 0; i--)
-                siftDownComparable(i, (E) array[i], array, n);
-        }
-        else {
+                siftDownComparable(i, (E) es[i], es, n);
+        else
             for (; i >= 0; i--)
-                siftDownUsingComparator(i, (E) array[i], array, n, cmp);
-        }
+                siftDownUsingComparator(i, (E) es[i], es, n, cmp);
     }
 
     /**
@@ -595,23 +592,23 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      * Removes the ith element from queue.
      */
     private void removeAt(int i) {
-        Object[] array = queue;
+        final Object[] es = queue;
         int n = size - 1;
         if (n == i) // removed last element
-            array[i] = null;
+            es[i] = null;
         else {
-            E moved = (E) array[n];
-            array[n] = null;
+            E moved = (E) es[n];
+            es[n] = null;
             Comparator<? super E> cmp = comparator;
             if (cmp == null)
-                siftDownComparable(i, moved, array, n);
+                siftDownComparable(i, moved, es, n);
             else
-                siftDownUsingComparator(i, moved, array, n, cmp);
-            if (array[i] == moved) {
+                siftDownUsingComparator(i, moved, es, n, cmp);
+            if (es[i] == moved) {
                 if (cmp == null)
-                    siftUpComparable(i, moved, array);
+                    siftUpComparable(i, moved, es);
                 else
-                    siftUpUsingComparator(i, moved, array, cmp);
+                    siftUpUsingComparator(i, moved, es, cmp);
             }
         }
         size = n;
@@ -934,10 +931,10 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         public void forEachRemaining(Consumer<? super E> action) {
             Objects.requireNonNull(action);
             final int hi = getFence(), lo = index;
-            final Object[] a = array;
+            final Object[] es = array;
             index = hi;                 // ensure exhaustion
             for (int i = lo; i < hi; i++)
-                action.accept((E) a[i]);
+                action.accept((E) es[i]);
         }
 
         public boolean tryAdvance(Consumer<? super E> action) {

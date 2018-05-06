@@ -81,6 +81,7 @@ import jdk.internal.misc.SharedSecrets;
  * @author Josh Bloch, Doug Lea
  * @param <E> the type of elements held in this queue
  */
+@SuppressWarnings("unchecked")
 public class PriorityQueue<E> extends AbstractQueue<E>
     implements java.io.Serializable {
 
@@ -187,7 +188,6 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * @throws NullPointerException if the specified collection or any
      *         of its elements are null
      */
-    @SuppressWarnings("unchecked")
     public PriorityQueue(Collection<? extends E> c) {
         if (c instanceof SortedSet<?>) {
             SortedSet<? extends E> ss = (SortedSet<? extends E>) c;
@@ -219,7 +219,6 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * @throws NullPointerException if the specified priority queue or any
      *         of its elements are null
      */
-    @SuppressWarnings("unchecked")
     public PriorityQueue(PriorityQueue<? extends E> c) {
         this.comparator = (Comparator<? super E>) c.comparator();
         initFromPriorityQueue(c);
@@ -238,7 +237,6 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * @throws NullPointerException if the specified sorted set or any
      *         of its elements are null
      */
-    @SuppressWarnings("unchecked")
     public PriorityQueue(SortedSet<? extends E> c) {
         this.comparator = (Comparator<? super E>) c.comparator();
         initElementsFromCollection(c);
@@ -254,17 +252,17 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     private void initElementsFromCollection(Collection<? extends E> c) {
-        Object[] a = c.toArray();
+        Object[] es = c.toArray();
+        int len = es.length;
         // If c.toArray incorrectly doesn't return Object[], copy it.
-        if (a.getClass() != Object[].class)
-            a = Arrays.copyOf(a, a.length, Object[].class);
-        int len = a.length;
+        if (es.getClass() != Object[].class)
+            es = Arrays.copyOf(es, len, Object[].class);
         if (len == 1 || this.comparator != null)
-            for (Object e : a)
+            for (Object e : es)
                 if (e == null)
                     throw new NullPointerException();
-        this.queue = a;
-        this.size = a.length;
+        this.queue = es;
+        this.size = len;
     }
 
     /**
@@ -344,7 +342,6 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         return true;
     }
 
-    @SuppressWarnings("unchecked")
     public E peek() {
         return (size == 0) ? null : (E) queue[0];
     }
@@ -460,7 +457,6 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      *         this queue
      * @throws NullPointerException if the specified array is null
      */
-    @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
         final int size = this.size;
         if (a.length < size)
@@ -529,7 +525,6 @@ public class PriorityQueue<E> extends AbstractQueue<E>
                 (forgetMeNot != null && !forgetMeNot.isEmpty());
         }
 
-        @SuppressWarnings("unchecked")
         public E next() {
             if (expectedModCount != modCount)
                 throw new ConcurrentModificationException();
@@ -583,7 +578,6 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         size = 0;
     }
 
-    @SuppressWarnings("unchecked")
     public E poll() {
         if (size == 0)
             return null;
@@ -609,7 +603,6 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * position before i. This fact is used by iterator.remove so as to
      * avoid missing traversing elements.
      */
-    @SuppressWarnings("unchecked")
     E removeAt(int i) {
         // assert i >= 0 && i < size;
         modCount++;
@@ -643,36 +636,35 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      */
     private void siftUp(int k, E x) {
         if (comparator != null)
-            siftUpUsingComparator(k, x);
+            siftUpUsingComparator(k, x, queue, comparator);
         else
-            siftUpComparable(k, x);
+            siftUpComparable(k, x, queue);
     }
 
-    @SuppressWarnings("unchecked")
-    private void siftUpComparable(int k, E x) {
-        Comparable<? super E> key = (Comparable<? super E>) x;
+    private static <T> void siftUpComparable(int k, T x, Object[] es) {
+        Comparable<? super T> key = (Comparable<? super T>) x;
         while (k > 0) {
             int parent = (k - 1) >>> 1;
-            Object e = queue[parent];
-            if (key.compareTo((E) e) >= 0)
+            Object e = es[parent];
+            if (key.compareTo((T) e) >= 0)
                 break;
-            queue[k] = e;
+            es[k] = e;
             k = parent;
         }
-        queue[k] = key;
+        es[k] = key;
     }
 
-    @SuppressWarnings("unchecked")
-    private void siftUpUsingComparator(int k, E x) {
+    private static <T> void siftUpUsingComparator(
+        int k, T x, Object[] es, Comparator<? super T> cmp) {
         while (k > 0) {
             int parent = (k - 1) >>> 1;
-            Object e = queue[parent];
-            if (comparator.compare(x, (E) e) >= 0)
+            Object e = es[parent];
+            if (cmp.compare(x, (T) e) >= 0)
                 break;
-            queue[k] = e;
+            es[k] = e;
             k = parent;
         }
-        queue[k] = x;
+        es[k] = x;
     }
 
     /**
@@ -685,46 +677,46 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      */
     private void siftDown(int k, E x) {
         if (comparator != null)
-            siftDownUsingComparator(k, x);
+            siftDownUsingComparator(k, x, queue, size, comparator);
         else
-            siftDownComparable(k, x);
+            siftDownComparable(k, x, queue, size);
     }
 
-    @SuppressWarnings("unchecked")
-    private void siftDownComparable(int k, E x) {
-        Comparable<? super E> key = (Comparable<? super E>)x;
-        int half = size >>> 1;        // loop while a non-leaf
+    private static <T> void siftDownComparable(int k, T x, Object[] es, int n) {
+        // assert n > 0;
+        Comparable<? super T> key = (Comparable<? super T>)x;
+        int half = n >>> 1;           // loop while a non-leaf
         while (k < half) {
             int child = (k << 1) + 1; // assume left child is least
-            Object c = queue[child];
+            Object c = es[child];
             int right = child + 1;
-            if (right < size &&
-                ((Comparable<? super E>) c).compareTo((E) queue[right]) > 0)
-                c = queue[child = right];
-            if (key.compareTo((E) c) <= 0)
+            if (right < n &&
+                ((Comparable<? super T>) c).compareTo((T) es[right]) > 0)
+                c = es[child = right];
+            if (key.compareTo((T) c) <= 0)
                 break;
-            queue[k] = c;
+            es[k] = c;
             k = child;
         }
-        queue[k] = key;
+        es[k] = key;
     }
 
-    @SuppressWarnings("unchecked")
-    private void siftDownUsingComparator(int k, E x) {
-        int half = size >>> 1;
+    private static <T> void siftDownUsingComparator(
+        int k, T x, Object[] es, int n, Comparator<? super T> cmp) {
+        // assert n > 0;
+        int half = n >>> 1;
         while (k < half) {
             int child = (k << 1) + 1;
-            Object c = queue[child];
+            Object c = es[child];
             int right = child + 1;
-            if (right < size &&
-                comparator.compare((E) c, (E) queue[right]) > 0)
-                c = queue[child = right];
-            if (comparator.compare(x, (E) c) <= 0)
+            if (right < n && cmp.compare((T) c, (T) es[right]) > 0)
+                c = es[child = right];
+            if (cmp.compare(x, (T) c) <= 0)
                 break;
-            queue[k] = c;
+            es[k] = c;
             k = child;
         }
-        queue[k] = x;
+        es[k] = x;
     }
 
     /**
@@ -732,16 +724,16 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * assuming nothing about the order of the elements prior to the call.
      * This classic algorithm due to Floyd (1964) is known to be O(size).
      */
-    @SuppressWarnings("unchecked")
     private void heapify() {
         final Object[] es = queue;
-        int i = (size >>> 1) - 1;
-        if (comparator == null)
+        int n = size, i = (n >>> 1) - 1;
+        Comparator<? super E> cmp = comparator;
+        if (cmp == null)
             for (; i >= 0; i--)
-                siftDownComparable(i, (E) es[i]);
+                siftDownComparable(i, (E) es[i], es, n);
         else
             for (; i >= 0; i--)
-                siftDownUsingComparator(i, (E) es[i]);
+                siftDownUsingComparator(i, (E) es[i], es, n, cmp);
     }
 
     /**
@@ -855,15 +847,14 @@ public class PriorityQueue<E> extends AbstractQueue<E>
                 new PriorityQueueSpliterator(lo, index = mid, expectedModCount);
         }
 
-        @SuppressWarnings("unchecked")
         public void forEachRemaining(Consumer<? super E> action) {
             if (action == null)
                 throw new NullPointerException();
             if (fence < 0) { fence = size; expectedModCount = modCount; }
-            final Object[] a = queue;
+            final Object[] es = queue;
             int i, hi; E e;
             for (i = index, index = hi = fence; i < hi; i++) {
-                if ((e = (E) a[i]) == null)
+                if ((e = (E) es[i]) == null)
                     break;      // must be CME
                 action.accept(e);
             }
@@ -871,7 +862,6 @@ public class PriorityQueue<E> extends AbstractQueue<E>
                 throw new ConcurrentModificationException();
         }
 
-        @SuppressWarnings("unchecked")
         public boolean tryAdvance(Consumer<? super E> action) {
             if (action == null)
                 throw new NullPointerException();
@@ -901,7 +891,6 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     /**
      * @throws NullPointerException {@inheritDoc}
      */
-    @SuppressWarnings("unchecked")
     public void forEach(Consumer<? super E> action) {
         Objects.requireNonNull(action);
         final int expectedModCount = modCount;
