@@ -448,15 +448,15 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         final ReentrantLock lock = this.lock;
         lock.lock();
         int n, cap;
-        Object[] array;
-        while ((n = size) >= (cap = (array = queue).length))
-            tryGrow(array, cap);
+        Object[] es;
+        while ((n = size) >= (cap = (es = queue).length))
+            tryGrow(es, cap);
         try {
             final Comparator<? super E> cmp;
             if ((cmp = comparator) == null)
-                siftUpComparable(n, e, array);
+                siftUpComparable(n, e, es);
             else
-                siftUpUsingComparator(n, e, array, cmp);
+                siftUpUsingComparator(n, e, es, cmp);
             size = n + 1;
             notEmpty.signal();
         } finally {
