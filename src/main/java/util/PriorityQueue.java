@@ -623,7 +623,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         if (s == i) // removed last element
             es[i] = null;
         else {
-            E moved = (E) queue[s];
+            E moved = (E) es[s];
             es[s] = null;
             siftDown(i, moved);
             if (es[i] == moved) {
