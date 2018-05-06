@@ -617,17 +617,18 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      */
     E removeAt(int i) {
         // assert i >= 0 && i < size;
+        final Object[] es = queue;
         modCount++;
         int s = --size;
         if (s == i) // removed last element
-            queue[i] = null;
+            es[i] = null;
         else {
             E moved = (E) queue[s];
-            queue[s] = null;
+            es[s] = null;
             siftDown(i, moved);
-            if (queue[i] == moved) {
+            if (es[i] == moved) {
                 siftUp(i, moved);
-                if (queue[i] != moved)
+                if (es[i] != moved)
                     return moved;
             }
         }
