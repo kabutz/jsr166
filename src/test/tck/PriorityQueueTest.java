@@ -30,14 +30,17 @@ public class PriorityQueueTest extends JSR166TestCase {
         }
         class ComparatorImplementation implements CollectionImplementation {
             public Class<?> klazz() { return PriorityQueue.class; }
-            public Collection emptyCollection() { return new PriorityQueue(new MyReverseComparator()); }
+            public Collection emptyCollection() {
+                return new PriorityQueue(new MyReverseComparator());
+            }
             public Object makeElement(int i) { return i; }
             public boolean isConcurrent() { return false; }
             public boolean permitsNulls() { return false; }
         }
-        return newTestSuite(PriorityQueueTest.class,
-                            CollectionTest.testSuite(new Implementation()),
-                            CollectionTest.testSuite(new ComparatorImplementation()));
+        return newTestSuite(
+            PriorityQueueTest.class,
+            CollectionTest.testSuite(new Implementation()),
+            CollectionTest.testSuite(new ComparatorImplementation()));
     }
 
     static class MyReverseComparator implements Comparator, java.io.Serializable {
