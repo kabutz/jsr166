@@ -895,4 +895,18 @@ public class PriorityQueue<E> extends AbstractQueue<E>
             return Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.NONNULL;
         }
     }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    @SuppressWarnings("unchecked")
+    public void forEach(Consumer<? super E> action) {
+        Objects.requireNonNull(action);
+        final int expectedModCount = modCount;
+        final Object[] es = queue;
+        for (int i = 0, n = size; i < n; i++)
+            action.accept((E) es[i]);
+        if (expectedModCount != modCount)
+            throw new ConcurrentModificationException();
+    }
 }
