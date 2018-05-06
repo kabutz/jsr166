@@ -26,6 +26,7 @@
 package java.util;
 
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import jdk.internal.misc.SharedSecrets;
 
 /**
@@ -898,6 +899,77 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         public int characteristics() {
             return Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.NONNULL;
         }
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean removeIf(Predicate<? super E> filter) {
+        Objects.requireNonNull(filter);
+        return bulkRemove(filter);
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean removeAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> c.contains(e));
+    }
+
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public boolean retainAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        return bulkRemove(e -> !c.contains(e));
+    }
+
+    // A tiny bit set implementation
+
+    private static long[] nBits(int n) {
+        return new long[((n - 1) >> 6) + 1];
+    }
+    private static void setBit(long[] bits, int i) {
+        bits[i >> 6] |= 1L << i;
+    }
+    private static boolean isClear(long[] bits, int i) {
+        return (bits[i >> 6] & (1L << i)) == 0;
+    }
+
+    /** Implementation of bulk remove methods. */
+    private boolean bulkRemove(Predicate<? super E> filter) {
+        final int expectedModCount = ++modCount;
+        final Object[] es = queue;
+        final int end = size;
+        int i;
+        // Optimize for initial run of survivors
+        for (i = 0; i < end && !filter.test((E) es[i]); i++)
+            ;
+        if (i >= end) {
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            return false;
+        }
+        // Tolerate predicates that reentrantly access the collection for
+        // read (but writers still get CME), so traverse once to find
+        // elements to delete, a second pass to physically expunge.
+        final int beg = i;
+        final long[] deathRow = nBits(end - beg);
+        deathRow[0] = 1L;   // set bit 0
+        for (i = beg + 1; i < end; i++)
+            if (filter.test((E) es[i]))
+                setBit(deathRow, i - beg);
+        if (modCount != expectedModCount)
+            throw new ConcurrentModificationException();
+        int w = beg;
+        for (i = beg; i < end; i++)
+            if (isClear(deathRow, i - beg))
+                es[w++] = es[i];
+        for (i = size = w; i < end; i++)
+            es[i] = null;
+        heapify();
+        return true;
     }
 
     /**
