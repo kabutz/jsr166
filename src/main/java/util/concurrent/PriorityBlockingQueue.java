@@ -979,6 +979,22 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         return new PBQSpliterator();
     }
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     */
+    public void forEach(Consumer<? super E> action) {
+        Objects.requireNonNull(action);
+        final ReentrantLock lock = this.lock;
+        lock.lock();
+        try {
+            final Object[] es = queue;
+            for (int i = 0, n = size; i < n; i++)
+                action.accept((E) es[i]);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     // VarHandle mechanics
     private static final VarHandle ALLOCATIONSPINLOCK;
     static {
