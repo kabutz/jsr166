@@ -589,15 +589,31 @@ public class Collection8Test extends JSR166TestCase {
     public void testRemoveAfterForEachRemaining() {
         Collection c = impl.emptyCollection();
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        ArrayList copy = new ArrayList();
+        boolean ordered = c.spliterator().hasCharacteristics(Spliterator.ORDERED);
         testCollection: {
             int n = 3 + rnd.nextInt(2);
-            for (int i = 0; i < n; i++) c.add(impl.makeElement(i));
+            for (int i = 0; i < n; i++) {
+                Object x = impl.makeElement(i);
+                c.add(x);
+                copy.add(x);
+            }
             Iterator it = c.iterator();
-            assertTrue(it.hasNext());
-            assertEquals(impl.makeElement(0), it.next());
-            assertTrue(it.hasNext());
-            assertEquals(impl.makeElement(1), it.next());
-            it.forEachRemaining(e -> assertTrue(c.contains(e)));
+            if (ordered) {
+                if (rnd.nextBoolean()) assertTrue(it.hasNext());
+                assertEquals(impl.makeElement(0), it.next());
+                if (rnd.nextBoolean()) assertTrue(it.hasNext());
+                assertEquals(impl.makeElement(1), it.next());
+            } else {
+                if (rnd.nextBoolean()) assertTrue(it.hasNext());
+                assertTrue(copy.contains(it.next()));
+                if (rnd.nextBoolean()) assertTrue(it.hasNext());
+                assertTrue(copy.contains(it.next()));
+            }
+            it.forEachRemaining(
+                e -> {
+                    assertTrue(c.contains(e));
+                    assertTrue(copy.contains(e));});
             if (testImplementationDetails) {
                 if (c instanceof java.util.concurrent.ArrayBlockingQueue) {
                     assertIteratorExhausted(it);
@@ -607,14 +623,17 @@ public class Collection8Test extends JSR166TestCase {
                         break testCollection;
                     }
                     assertEquals(n - 1, c.size());
-                    for (int i = 0; i < n - 1; i++)
-                        assertTrue(c.contains(impl.makeElement(i)));
-                    assertFalse(c.contains(impl.makeElement(n - 1)));
+                    if (ordered) {
+                        for (int i = 0; i < n - 1; i++)
+                            assertTrue(c.contains(impl.makeElement(i)));
+                        assertFalse(c.contains(impl.makeElement(n - 1)));
+                    }
                 }
             }
         }
         if (c instanceof Deque) {
             Deque d = (Deque) impl.emptyCollection();
+            assertTrue(ordered);
             int n = 3 + rnd.nextInt(2);
             for (int i = 0; i < n; i++) d.add(impl.makeElement(i));
             Iterator it = d.descendingIterator();
