@@ -351,8 +351,9 @@ public class PriorityQueue<E> extends AbstractQueue<E>
 
     private int indexOf(Object o) {
         if (o != null) {
-            for (int i = 0; i < size; i++)
-                if (o.equals(queue[i]))
+            final Object[] es = queue;
+            for (int i = 0, n = size; i < n; i++)
+                if (o.equals(es[i]))
                     return i;
         }
         return -1;
@@ -380,20 +381,18 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Version of remove using reference equality, not equals.
-     * Needed by iterator.remove.
+     * Identity-based version for use in Itr.remove.
      *
      * @param o element to be removed from this queue, if present
-     * @return {@code true} if removed
      */
-    boolean removeEq(Object o) {
-        for (int i = 0; i < size; i++) {
-            if (o == queue[i]) {
+    void removeEq(Object o) {
+        final Object[] es = queue;
+        for (int i = 0, n = size; i < n; i++) {
+            if (o == es[i]) {
                 removeAt(i);
-                return true;
+                break;
             }
         }
-        return false;
     }
 
     /**
@@ -578,8 +577,9 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      */
     public void clear() {
         modCount++;
-        for (int i = 0; i < size; i++)
-            queue[i] = null;
+        final Object[] es = queue;
+        for (int i = 0, n = size; i < n; i++)
+            es[i] = null;
         size = 0;
     }
 
@@ -775,8 +775,9 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         s.writeInt(Math.max(2, size + 1));
 
         // Write out all elements in the "proper order".
-        for (int i = 0; i < size; i++)
-            s.writeObject(queue[i]);
+        final Object[] es = queue;
+        for (int i = 0, n = size; i < n; i++)
+            s.writeObject(es[i]);
     }
 
     /**
@@ -800,8 +801,9 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         queue = new Object[size];
 
         // Read in all elements.
-        for (int i = 0; i < size; i++)
-            queue[i] = s.readObject();
+        final Object[] es = queue;
+        for (int i = 0, n = size; i < n; i++)
+            es[i] = s.readObject();
 
         // Elements are guaranteed to be in "proper order", but the
         // spec has never explained what that might be.

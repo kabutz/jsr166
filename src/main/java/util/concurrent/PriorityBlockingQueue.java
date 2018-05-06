@@ -583,10 +583,9 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
 
     private int indexOf(Object o) {
         if (o != null) {
-            Object[] array = queue;
-            int n = size;
-            for (int i = 0; i < n; i++)
-                if (o.equals(array[i]))
+            final Object[] es = queue;
+            for (int i = 0, n = size; i < n; i++)
+                if (o.equals(es[i]))
                     return i;
         }
         return -1;
@@ -645,14 +644,16 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
 
     /**
      * Identity-based version for use in Itr.remove.
+     *
+     * @param o element to be removed from this queue, if present
      */
-    void removeEQ(Object o) {
+    void removeEq(Object o) {
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            Object[] array = queue;
+            final Object[] es = queue;
             for (int i = 0, n = size; i < n; i++) {
-                if (o == array[i]) {
+                if (o == es[i]) {
                     removeAt(i);
                     break;
                 }
@@ -728,11 +729,10 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            Object[] array = queue;
-            int n = size;
+            final Object[] es = queue;
+            for (int i = 0, n = size; i < n; i++)
+                es[i] = null;
             size = 0;
-            for (int i = 0; i < n; i++)
-                array[i] = null;
         } finally {
             lock.unlock();
         }
@@ -853,7 +853,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         public void remove() {
             if (lastRet < 0)
                 throw new IllegalStateException();
-            removeEQ(array[lastRet]);
+            removeEq(array[lastRet]);
             lastRet = -1;
         }
     }
