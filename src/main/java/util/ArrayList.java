@@ -1598,11 +1598,11 @@ public class ArrayList<E> extends AbstractList<E>
         replaceAllRange(operator, 0, size);
     }
 
-    private void replaceAllRange(UnaryOperator<E> operator, int from, int to) {
+    private void replaceAllRange(UnaryOperator<E> operator, int i, int end) {
         Objects.requireNonNull(operator);
         final int expectedModCount = modCount;
         final Object[] es = elementData;
-        for (int i = from; modCount == expectedModCount && i < to; i++)
+        for (; modCount == expectedModCount && i < end; i++)
             es[i] = operator.apply(elementAt(es, i));
         if (modCount != expectedModCount)
             throw new ConcurrentModificationException();
