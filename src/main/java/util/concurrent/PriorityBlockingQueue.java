@@ -138,12 +138,12 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
     /**
      * Lock used for all public operations.
      */
-    private final ReentrantLock lock;
+    private final ReentrantLock lock = new ReentrantLock();
 
     /**
      * Condition for blocking when empty.
      */
-    private final Condition notEmpty;
+    private final Condition notEmpty = lock.newCondition();
 
     /**
      * Spinlock for allocation, acquired via CAS.
@@ -195,10 +195,8 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
                                  Comparator<? super E> comparator) {
         if (initialCapacity < 1)
             throw new IllegalArgumentException();
-        this.lock = new ReentrantLock();
-        this.notEmpty = lock.newCondition();
         this.comparator = comparator;
-        this.queue = new Object[initialCapacity];
+        this.queue = new Object[Math.max(1, initialCapacity)];
     }
 
     /**
@@ -218,8 +216,6 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      *         of its elements are null
      */
     public PriorityBlockingQueue(Collection<? extends E> c) {
-        this.lock = new ReentrantLock();
-        this.notEmpty = lock.newCondition();
         boolean heapify = true; // true if not known to be in heap order
         boolean screen = true;  // true if must screen for nulls
         if (c instanceof SortedSet<?>) {
@@ -245,10 +241,15 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
                 if (e == null)
                     throw new NullPointerException();
         }
-        this.queue = es;
+        this.queue = ensureNonEmpty(es);
         this.size = n;
         if (heapify)
             heapify();
+    }
+
+    /** Ensures that queue[0] exists, helping peek() and poll(). */
+    private static Object[] ensureNonEmpty(Object[] es) {
+        return (es.length > 0) ? es : new Object[1];
     }
 
     /**
@@ -295,24 +296,22 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      */
     private E dequeue() {
         // assert lock.isHeldByCurrentThread();
-        int n = size - 1;
-        if (n < 0)
-            return null;
-        else {
-            final Object[] es = queue;
-            E result = (E) es[0];
-            E x = (E) es[n];
+        final Object[] es;
+        final E result;
+
+        if ((result = (E) ((es = queue)[0])) != null) {
+            final int n;
+            final E x = (E) es[(n = --size)];
             es[n] = null;
             if (n > 0) {
-                Comparator<? super E> cmp = comparator;
-                if (cmp == null)
+                final Comparator<? super E> cmp;
+                if ((cmp = comparator) == null)
                     siftDownComparable(0, x, es, n);
                 else
                     siftDownUsingComparator(0, x, es, n, cmp);
             }
-            size = n;
-            return result;
         }
+        return result;
     }
 
     /**
@@ -409,8 +408,8 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
     private void heapify() {
         final Object[] es = queue;
         int n = size, i = (n >>> 1) - 1;
-        Comparator<? super E> cmp = comparator;
-        if (cmp == null)
+        final Comparator<? super E> cmp;
+        if ((cmp = comparator) == null)
             for (; i >= 0; i--)
                 siftDownComparable(i, (E) es[i], es, n);
         else
@@ -453,8 +452,8 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         while ((n = size) >= (cap = (array = queue).length))
             tryGrow(array, cap);
         try {
-            Comparator<? super E> cmp = comparator;
-            if (cmp == null)
+            final Comparator<? super E> cmp;
+            if ((cmp = comparator) == null)
                 siftUpComparable(n, e, array);
             else
                 siftUpUsingComparator(n, e, array, cmp);
@@ -540,7 +539,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            return (size == 0) ? null : (E) queue[0];
+            return (E) queue[0];
         } finally {
             lock.unlock();
         }
@@ -593,14 +592,14 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      */
     private void removeAt(int i) {
         final Object[] es = queue;
-        int n = size - 1;
+        final int n = size - 1;
         if (n == i) // removed last element
             es[i] = null;
         else {
             E moved = (E) es[n];
             es[n] = null;
-            Comparator<? super E> cmp = comparator;
-            if (cmp == null)
+            final Comparator<? super E> cmp;
+            if ((cmp = comparator) == null)
                 siftDownComparable(i, moved, es, n);
             else
                 siftDownUsingComparator(i, moved, es, n, cmp);
@@ -892,7 +891,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
             s.defaultReadObject();
             int sz = q.size();
             SharedSecrets.getJavaObjectInputStreamAccess().checkArray(s, Object[].class, sz);
-            this.queue = new Object[sz];
+            this.queue = new Object[Math.max(1, sz)];
             comparator = q.comparator();
             addAll(q);
         } finally {

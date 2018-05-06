@@ -242,9 +242,14 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         initElementsFromCollection(c);
     }
 
+    /** Ensures that queue[0] exists, helping peek() and poll(). */
+    private static Object[] ensureNonEmpty(Object[] es) {
+        return (es.length > 0) ? es : new Object[1];
+    }
+
     private void initFromPriorityQueue(PriorityQueue<? extends E> c) {
         if (c.getClass() == PriorityQueue.class) {
-            this.queue = c.toArray();
+            this.queue = ensureNonEmpty(c.toArray());
             this.size = c.size();
         } else {
             initFromCollection(c);
@@ -261,7 +266,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
             for (Object e : es)
                 if (e == null)
                     throw new NullPointerException();
-        this.queue = es;
+        this.queue = ensureNonEmpty(es);
         this.size = len;
     }
 
@@ -343,7 +348,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     public E peek() {
-        return (size == 0) ? null : (E) queue[0];
+        return (E) queue[0];
     }
 
     private int indexOf(Object o) {
@@ -579,15 +584,22 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     public E poll() {
-        if (size == 0)
-            return null;
-        int s = --size;
-        modCount++;
-        E result = (E) queue[0];
-        E x = (E) queue[s];
-        queue[s] = null;
-        if (s != 0)
-            siftDown(0, x);
+        final Object[] es;
+        final E result;
+
+        if ((result = (E) ((es = queue)[0])) != null) {
+            modCount++;
+            final int n;
+            final E x = (E) es[(n = --size)];
+            es[n] = null;
+            if (n > 0) {
+                final Comparator<? super E> cmp;
+                if ((cmp = comparator) == null)
+                    siftDownComparable(0, x, es, n);
+                else
+                    siftDownUsingComparator(0, x, es, n, cmp);
+            }
+        }
         return result;
     }
 
@@ -727,8 +739,8 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     private void heapify() {
         final Object[] es = queue;
         int n = size, i = (n >>> 1) - 1;
-        Comparator<? super E> cmp = comparator;
-        if (cmp == null)
+        final Comparator<? super E> cmp;
+        if ((cmp = comparator) == null)
             for (; i >= 0; i--)
                 siftDownComparable(i, (E) es[i], es, n);
         else
@@ -790,10 +802,9 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         s.readInt();
 
         SharedSecrets.getJavaObjectInputStreamAccess().checkArray(s, Object[].class, size);
-        queue = new Object[size];
+        final Object[] es = queue = new Object[Math.max(size, 1)];
 
         // Read in all elements.
-        final Object[] es = queue;
         for (int i = 0, n = size; i < n; i++)
             es[i] = s.readObject();
 
