@@ -610,6 +610,7 @@ public class Collection8Test extends JSR166TestCase {
                 if (rnd.nextBoolean()) assertTrue(it.hasNext());
                 assertTrue(copy.contains(it.next()));
             }
+            if (rnd.nextBoolean()) assertTrue(it.hasNext());
             it.forEachRemaining(
                 e -> {
                     assertTrue(c.contains(e));
