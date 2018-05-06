@@ -851,6 +851,19 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
             removeEq(array[lastRet]);
             lastRet = -1;
         }
+
+        public void forEachRemaining(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
+            final Object[] es = array;
+            int i;
+            if ((i = cursor) < es.length) {
+                lastRet = -1;
+                cursor = es.length;
+                for (; i < es.length; i++)
+                    action.accept((E) es[i]);
+                lastRet = es.length - 1;
+            }
+        }
     }
 
     /**
