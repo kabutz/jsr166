@@ -504,6 +504,15 @@ public class RemoveMicroBenchmark {
     Stream<Job> blockingQueueJobs(BlockingQueue<Integer> x) {
         final String klazz = goodClassName(x.getClass());
         return Stream.of(
+            new Job(klazz + " timed poll()") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        x.addAll(elements);
+                        for (Integer e; (e = x.poll(0L, TimeUnit.DAYS)) != null; )
+                            sum[0] += e;
+                        check.sum(sum[0]);}}},
             new Job(klazz + " drainTo(sink)") {
                 public void work() throws Throwable {
                     ArrayList<Integer> sink = new ArrayList<>();
