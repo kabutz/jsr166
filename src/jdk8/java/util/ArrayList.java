@@ -417,6 +417,11 @@ public class ArrayList<E> extends AbstractList<E>
         return (E) elementData[index];
     }
 
+    @SuppressWarnings("unchecked")
+    static <E> E elementAt(Object[] es, int index) {
+        return (E) es[index];
+    }
+
     /**
      * Returns the element at the specified position in this list.
      *
@@ -1435,18 +1440,19 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void replaceAll(UnaryOperator<E> operator) {
+        replaceAllRange(operator, 0, size);
+    }
+
+    private void replaceAllRange(UnaryOperator<E> operator, int i, int end) {
         Objects.requireNonNull(operator);
         final int expectedModCount = modCount;
-        final int size = this.size;
-        for (int i=0; modCount == expectedModCount && i < size; i++) {
-            elementData[i] = operator.apply((E) elementData[i]);
-        }
-        if (modCount != expectedModCount) {
+        final Object[] es = elementData;
+        for (; modCount == expectedModCount && i < end; i++)
+            es[i] = operator.apply(elementAt(es, i));
+        if (modCount != expectedModCount)
             throw new ConcurrentModificationException();
-        }
-        modCount++;
+        // checkInvariants();
     }
 
     @Override
