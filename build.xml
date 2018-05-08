@@ -1389,7 +1389,7 @@
 <!-- ==============================================================
   Experimental errorprone support - http://errorprone.info
 =================================================================== -->
-  <property name="errorprone.jar" location="${lib.dir}/error_prone_ant-2.2.0.jar"/>
+  <property name="errorprone.jar" location="${lib.dir}/error_prone_ant-2.3.1.jar"/>
   <property name="errorprone.jsr166.user.flags" value=""/>
   <property name="errorprone.jsr166.flags"
             value="-Xep:HashtableContains:OFF
@@ -1455,6 +1455,7 @@
       workdir="${build.dir}"
       classes="${product.jar}">
       <javac-elements>
+        <compilerarg value="-J--illegal-access=debug"/>
         <compilerarg value="-XDcompilePolicy=simple"/>
         <compilerarg line="-processorpath ${errorprone.jar}"/>
         <compilerarg value="-Xplugin:ErrorProne
@@ -1483,6 +1484,7 @@
         <arg value="-javacoption:-Xplugin:ErrorProne
                             ${errorprone.jsr166.flags}
                             ${errorprone.jsr166.test.flags}
+                            -Xep:MultipleTopLevelClasses:WARN
                             -Xep:NonAtomicVolatileUpdate:OFF"/>
       </jtreg-elements>
     </run-jtreg-tests>
