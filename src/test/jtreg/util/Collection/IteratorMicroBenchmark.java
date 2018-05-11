@@ -564,6 +564,12 @@ public class IteratorMicroBenchmark {
                         sum[0] = 0;
                         x.replaceAll(sneakyAdder);
                         check.sum(sum[0]);}}},
+            new Job(klazz + " equals") {
+                public void work() throws Throwable {
+                    ArrayList<Integer> copy = new ArrayList<>(x);
+                    for (int i = 0; i < iterations; i++) {
+                        if (!x.equals(copy))
+                            throw new AssertionError();}}},
             new Job(klazz + " hashCode") {
                 public void work() throws Throwable {
                     int hashCode = Arrays.hashCode(x.toArray());
