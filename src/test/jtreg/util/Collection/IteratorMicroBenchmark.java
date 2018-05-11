@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.toCollection;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -562,6 +563,12 @@ public class IteratorMicroBenchmark {
                     for (int i = 0; i < iterations; i++) {
                         sum[0] = 0;
                         x.replaceAll(sneakyAdder);
-                        check.sum(sum[0]);}}});
+                        check.sum(sum[0]);}}},
+            new Job(klazz + " hashCode") {
+                public void work() throws Throwable {
+                    int hashCode = Arrays.hashCode(x.toArray());
+                    for (int i = 0; i < iterations; i++) {
+                        if (x.hashCode() != hashCode)
+                            throw new AssertionError();}}});
     }
 }
