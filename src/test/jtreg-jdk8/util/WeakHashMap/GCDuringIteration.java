@@ -52,16 +52,15 @@ public class GCDuringIteration {
     /** No guarantees, but effective in practice. */
     static void forceFullGc() {
         long timeoutMillis = 1000L;
-        CountDownLatch finalizeDone = new CountDownLatch(1);
+        CountDownLatch finalized = new CountDownLatch(1);
         ReferenceQueue<Object> queue = new ReferenceQueue<>();
         WeakReference<Object> ref = new WeakReference<>(
-            new Object() {
-                protected void finalize() { finalizeDone.countDown(); }},
+            new Object() { protected void finalize() { finalized.countDown(); }},
             queue);
         try {
             for (int tries = 3; tries--> 0; ) {
                 System.gc();
-                if (finalizeDone.await(timeoutMillis, MILLISECONDS)
+                if (finalized.await(timeoutMillis, MILLISECONDS)
                     && queue.remove(timeoutMillis) != null
                     && ref.get() == null) {
                     System.runFinalization(); // try to pick up stragglers
