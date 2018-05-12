@@ -159,6 +159,7 @@ public class WhiteBox {
                 assertTrue(replay.remove(e));
                 return true;
             });
+        assertInvariants(q);
         for (Object e; (e = q.poll()) != null; )
             assertTrue(replay.remove(e));
         assertTrue(replay.isEmpty());
