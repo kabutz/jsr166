@@ -40,12 +40,8 @@ import java.util.function.Supplier;
 @Test
 public class WhiteBox {
     final ThreadLocalRandom rnd = ThreadLocalRandom.current();
-    final VarHandle PQ_QUEUE, PBQ_QUEUE;
-
-    WhiteBox() {
-        PQ_QUEUE = queueVarHandle(PriorityQueue.class);
-        PBQ_QUEUE = queueVarHandle(PriorityBlockingQueue.class);
-    }
+    final VarHandle PQ_QUEUE = queueVarHandle(PriorityQueue.class);
+    final VarHandle PBQ_QUEUE = queueVarHandle(PriorityBlockingQueue.class);
 
     VarHandle queueVarHandle(Class klazz) {
         return findVarHandle(klazz, "queue", Object[].class);
