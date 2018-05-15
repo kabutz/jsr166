@@ -1433,6 +1433,7 @@
            fork="true">
 
       <include name="**/*.java"/>
+      <compilerarg value="-J--illegal-access=debug"/>
       <compilerarg value="-XDcompilePolicy=simple"/>
       <compilerarg line="-processorpath ${errorprone.jar}"/>
       <compilerarg value="-Xplugin:ErrorProne
