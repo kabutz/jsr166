@@ -571,7 +571,7 @@ public class ArrayList<E> extends AbstractList<E>
         if (to > es.length) {
             throw new ConcurrentModificationException();
         }
-        var oit = other.iterator();
+        Iterator<?> oit = other.iterator();
         for (; from < to; from++) {
             if (!oit.hasNext() || !Objects.equals(es[from], oit.next())) {
                 return false;
