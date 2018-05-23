@@ -18,7 +18,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -27,6 +29,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class WhiteBox {
     final ThreadLocalRandom rnd = ThreadLocalRandom.current();
     final VarHandle TABLE, NEXTTABLE, SIZECTL;
+    final MethodHandle TABLE_SIZE_FOR;
 
     WhiteBox() throws ReflectiveOperationException {
         Class<?> mClass = ConcurrentHashMap.class;
@@ -38,11 +41,19 @@ public class WhiteBox {
         TABLE = lookup.findVarHandle(mClass, "table", nodeArrayClass);
         NEXTTABLE = lookup.findVarHandle(mClass, "nextTable", nodeArrayClass);
         SIZECTL = lookup.findVarHandle(mClass, "sizeCtl", int.class);
+        TABLE_SIZE_FOR = lookup.findStatic(
+                mClass, "tableSizeFor",
+                MethodType.methodType(int.class, int.class));
     }
 
     Object[] table(ConcurrentHashMap m) { return (Object[]) TABLE.getVolatile(m); }
     Object[] nextTable(ConcurrentHashMap m) { return (Object[]) NEXTTABLE.getVolatile(m); }
     int sizeCtl(ConcurrentHashMap m) { return (int) SIZECTL.getVolatile(m); }
+    int tableSizeFor(int n) {
+        try {
+            return (int) TABLE_SIZE_FOR.invoke(n);
+        } catch (Throwable t) { throw new AssertionError(t); }
+    }
 
     @Test
     public void defaultConstructor() {
@@ -72,6 +83,22 @@ public class WhiteBox {
             assertInvariants(m);
         }
         assertEquals(initialTable.length, expectedInitialTableLength);
+    }
+
+    @Test
+    public void testTableSizeFor() {
+        assertEquals(1, tableSizeFor(0));
+        assertEquals(1, tableSizeFor(1));
+        assertEquals(2, tableSizeFor(2));
+        assertEquals(4, tableSizeFor(3));
+        assertEquals(16, tableSizeFor(15));
+        assertEquals(16, tableSizeFor(16));
+        assertEquals(32, tableSizeFor(17));
+        int maxSize = 1 << 30;
+        assertEquals(maxSize, tableSizeFor(maxSize - 1));
+        assertEquals(maxSize, tableSizeFor(maxSize));
+        assertEquals(maxSize, tableSizeFor(maxSize + 1));
+        assertEquals(maxSize, tableSizeFor(Integer.MAX_VALUE));
     }
 
     byte[] serialBytes(Object o) {
