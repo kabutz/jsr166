@@ -1737,7 +1737,6 @@ public class ArrayList<E> extends AbstractList<E>
     @Override
     public void replaceAll(UnaryOperator<E> operator) {
         replaceAllRange(operator, 0, size);
-        modCount++;
     }
 
     private void replaceAllRange(UnaryOperator<E> operator, int i, int end) {
