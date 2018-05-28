@@ -810,12 +810,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * elements is negative
      */
     public ConcurrentHashMap(int initialCapacity) {
-        if (initialCapacity < 0)
-            throw new IllegalArgumentException();
-        int cap = ((initialCapacity >= (MAXIMUM_CAPACITY >>> 1)) ?
-                   MAXIMUM_CAPACITY :
-                   tableSizeFor(initialCapacity + (initialCapacity >>> 1) + 1));
-        this.sizeCtl = cap;
+        this(initialCapacity, LOAD_FACTOR, 1);
     }
 
     /**
@@ -1439,13 +1434,9 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         if (size == 0L)
             sizeCtl = 0;
         else {
-            int n;
-            if (size >= (long)(MAXIMUM_CAPACITY >>> 1))
-                n = MAXIMUM_CAPACITY;
-            else {
-                int sz = (int)size;
-                n = tableSizeFor(sz + (sz >>> 1) + 1);
-            }
+            long ts = (long)(1.0 + size / LOAD_FACTOR);
+            int n = (ts >= (long)MAXIMUM_CAPACITY) ?
+                MAXIMUM_CAPACITY : tableSizeFor((int)ts);
             @SuppressWarnings("unchecked")
             Node<K,V>[] tab = (Node<K,V>[])new Node<?,?>[n];
             int mask = n - 1;
