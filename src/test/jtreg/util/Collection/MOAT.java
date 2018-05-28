@@ -520,7 +520,7 @@ public class MOAT {
     /**
      * As above, for an empty map.
      *
-     * @param map the map instance to test, must be empty
+     * @param m the map instance to test, must be empty
      */
     private static void testEmptyMapMutatorsAlwaysThrow(Map<Integer,Integer> m) {
         if (! m.isEmpty()) {
