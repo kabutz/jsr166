@@ -844,8 +844,8 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
 
     /**
      * Creates a new, empty map with an initial table size based on
-     * the given number of elements ({@code initialCapacity}), table
-     * density ({@code loadFactor}), and number of concurrently
+     * the given number of elements ({@code initialCapacity}), initial
+     * table density ({@code loadFactor}), and number of concurrently
      * updating threads ({@code concurrencyLevel}).
      *
      * @param initialCapacity the initial capacity. The implementation
