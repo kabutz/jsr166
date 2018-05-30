@@ -22,8 +22,10 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 
 @Test
 public class WhiteBox {
@@ -55,6 +57,20 @@ public class WhiteBox {
         } catch (Throwable t) { throw new AssertionError(t); }
     }
 
+    List<Supplier<ConcurrentHashMap>> newConcurrentHashMapSuppliers(
+        int initialCapacity) {
+        return List.of(
+            () -> new ConcurrentHashMap(initialCapacity),
+            () -> new ConcurrentHashMap(initialCapacity, 0.75f),
+            () -> new ConcurrentHashMap(initialCapacity, 0.75f, 1));
+    }
+
+    ConcurrentHashMap newConcurrentHashMap(int initialCapacity) {
+        List<Supplier<ConcurrentHashMap>> suppliers
+            = newConcurrentHashMapSuppliers(initialCapacity);
+        return suppliers.get(rnd.nextInt(suppliers.size())).get();
+    }
+
     @Test
     public void defaultConstructor() {
         ConcurrentHashMap m = new ConcurrentHashMap();
@@ -67,7 +83,7 @@ public class WhiteBox {
     public void shouldNotResizeWhenInitialCapacityProvided() {
         int initialCapacity = rnd.nextInt(1, 100);
         Object[] initialTable = null;
-        ConcurrentHashMap m = new ConcurrentHashMap(initialCapacity);
+        ConcurrentHashMap m = newConcurrentHashMap(initialCapacity);
 
         // table is lazily initialized
         assertNull(table(m));
@@ -83,6 +99,18 @@ public class WhiteBox {
             assertInvariants(m);
         }
         assertEquals(initialTable.length, expectedInitialTableLength);
+    }
+
+    @Test
+    public void constructorsShouldGiveSameInitialCapacity() {
+        int initialCapacity = rnd.nextInt(1, 256);
+        long distinctTableLengths
+            = newConcurrentHashMapSuppliers(initialCapacity).stream()
+            .map(Supplier::get)
+            .mapToInt(map -> { map.put(42, 42); return table(map).length; })
+            .distinct()
+            .count();
+        assertEquals(1L, distinctTableLengths);
     }
 
     @Test
@@ -132,7 +160,7 @@ public class WhiteBox {
     public void testSerialization() {
         assertInvariants(serialClone(new ConcurrentHashMap()));
 
-        ConcurrentHashMap m = new ConcurrentHashMap(rnd.nextInt(100));
+        ConcurrentHashMap m = newConcurrentHashMap(rnd.nextInt(100));
         m.put(1, 1);
         ConcurrentHashMap clone = serialClone(m);
         assertInvariants(clone);
