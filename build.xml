@@ -1433,7 +1433,8 @@
            fork="true">
 
       <include name="**/*.java"/>
-      <compilerarg value="-J--illegal-access=debug"/>
+      <!-- Needed to silence -Xep:FutureReturnValueIgnored -->
+      <compilerarg value="-J--illegal-access=permit"/>
       <compilerarg value="-XDcompilePolicy=simple"/>
       <compilerarg line="-processorpath ${errorprone.jar}"/>
       <compilerarg value="-Xplugin:ErrorProne
@@ -1456,7 +1457,8 @@
       workdir="${build.dir}"
       classes="${product.jar}">
       <javac-elements>
-        <compilerarg value="-J--illegal-access=debug"/>
+        <!-- Needed to silence -Xep:FutureReturnValueIgnored -->
+        <compilerarg value="-J--illegal-access=permit"/>
         <compilerarg value="-XDcompilePolicy=simple"/>
         <compilerarg line="-processorpath ${errorprone.jar}"/>
         <compilerarg value="-Xplugin:ErrorProne
