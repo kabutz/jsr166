@@ -173,6 +173,9 @@ public enum TimeUnit {
      * {@code unit.convert(Duration.of(n, unit.toChronoUnit()))}
      * is equivalent to {@code n} (in the absence of overflow).
      *
+     * <p>This method differs from {@link Duration#toNanos()} in that
+     * it does not throw {@link ArithmeticException} on numeric overflow.
+     *
      * @param duration the time duration
      * @return the converted duration in this unit,
      * or {@code Long.MIN_VALUE} if conversion would negatively overflow,
