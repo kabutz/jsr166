@@ -190,7 +190,7 @@ public enum TimeUnit {
         if (secs < 0 && nano > 0) {
             // use representation compatible with integer division
             secs++;
-            nano -= SECOND_SCALE;
+            nano -= (int) SECOND_SCALE;
         }
         final long s, nanoVal;
         // Optimize for the common case - NANOSECONDS without overflow
