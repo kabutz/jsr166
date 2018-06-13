@@ -224,8 +224,8 @@ public class AbstractQueuedLongSynchronizerTest extends JSR166TestCase {
             assertTrue(c.await(timeoutMillis, MILLISECONDS));
             break;
         case awaitNanos:
-            long nanosTimeout = MILLISECONDS.toNanos(timeoutMillis);
-            long nanosRemaining = c.awaitNanos(nanosTimeout);
+            long timeoutNanos = MILLISECONDS.toNanos(timeoutMillis);
+            long nanosRemaining = c.awaitNanos(timeoutNanos);
             assertTrue(nanosRemaining > 0);
             break;
         case awaitUntil:
@@ -252,8 +252,8 @@ public class AbstractQueuedLongSynchronizerTest extends JSR166TestCase {
                 break;
             case awaitNanos:
                 startTime = System.nanoTime();
-                long nanosTimeout = MILLISECONDS.toNanos(timeoutMillis);
-                long nanosRemaining = c.awaitNanos(nanosTimeout);
+                long timeoutNanos = MILLISECONDS.toNanos(timeoutMillis);
+                long nanosRemaining = c.awaitNanos(timeoutNanos);
                 assertTrue(nanosRemaining <= 0);
                 assertTrue(nanosRemaining > -MILLISECONDS.toNanos(LONG_DELAY_MS));
                 assertTrue(millisElapsedSince(startTime) >= timeoutMillis);
