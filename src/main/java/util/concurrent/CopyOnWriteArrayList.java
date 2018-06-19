@@ -282,6 +282,9 @@ public class CopyOnWriteArrayList<E>
             CopyOnWriteArrayList<E> clone =
                 (CopyOnWriteArrayList<E>) super.clone();
             clone.resetLock();
+            // Unlike in readObject, here we cannot visibility-piggyback on the
+            // volatile write in setArray().
+            VarHandle.releaseFence();
             return clone;
         } catch (CloneNotSupportedException e) {
             // this shouldn't happen, since we are Cloneable
@@ -1578,7 +1581,6 @@ public class CopyOnWriteArrayList<E>
                 }});
         try {
             lockField.set(this, new Object());
-            VarHandle.releaseFence();
         } catch (IllegalAccessException e) {
             throw new Error(e);
         }
