@@ -104,7 +104,7 @@
     <property name="jdk@{v}.src.dir" location="${jdk@{v}.src.home}/jdk/src/share/classes"
       unless:set="have.java.base"/>
     <local name="modules"/>
-    <available property="modules" file="${jdk@{v}.home}/jmods" type="dir"/>
+    <available property="modules" file="${jdk@{v}.home}/lib/modules" type="file"/>
     <local name="boot.jar.dir"/>
     <property name="boot.jar.dir"   location="${jdk@{v}.home}/jre/lib" unless:set="modules"/>
     <path id="bootclasspath@{v}" unless:set="modules">
@@ -240,7 +240,7 @@
 
     <local name="modules"/>
     <condition property="modules">
-      <available file="${jdk@{compile-target}.home}/jmods" type="dir"/>
+      <available file="${jdk@{compile-target}.home}/lib/modules" type="file"/>
     </condition>
 
     <local name="use-doclint"/>
@@ -346,7 +346,7 @@
 
     <local name="modules"/>
     <condition property="modules">
-      <available file="${jdk@{target}.home}/jmods" type="dir"/>
+      <available file="${jdk@{target}.home}/lib/modules" type="file"/>
     </condition>
 
     <delete dir="@{workdir}/JTwork"   quiet="true"/>
