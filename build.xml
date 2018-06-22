@@ -492,8 +492,7 @@
       <arg value="-tag"/> <arg value="${javadoc.jls.option}"/>
       <arg value="-tag"/> <arg value="implSpec:a:Implementation Requirements:"/>
       <arg value="-tag"/> <arg value="implNote:a:Implementation Note:"/>
-<!-- @apiNote tag currently unused -->
-<!--  <arg value="-tag"/> <arg value="apiNote:a:API Note:"/> -->
+      <arg value="-tag"/> <arg value="apiNote:a:API Note:"/>
 <!-- tags added in jdk9: currently unused -->
 <!--  <arg value="-tag"/> <arg value="revised:X"/> -->
 <!--  <arg value="-tag"/> <arg value="spec:X"/> -->
