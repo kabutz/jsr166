@@ -66,7 +66,7 @@ public class WhiteBox {
 
     @Test
     public void shouldNotResizeWhenInitialCapacityProvided() {
-        int initialCapacity = rnd.nextInt(1, 20);
+        int initialCapacity = rnd.nextInt(0, 20);
         checkCapacity(new ArrayDeque(initialCapacity), initialCapacity);
     }
 
