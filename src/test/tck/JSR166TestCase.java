@@ -1571,13 +1571,15 @@ public class JSR166TestCase extends TestCase {
     }
 
     public void await(CountDownLatch latch, long timeoutMillis) {
+        boolean timedOut = false;
         try {
-            if (!latch.await(timeoutMillis, MILLISECONDS))
-                fail("timed out waiting for CountDownLatch for "
-                     + (timeoutMillis/1000) + " sec");
+            timedOut = !latch.await(timeoutMillis, MILLISECONDS);
         } catch (Throwable fail) {
             threadUnexpectedException(fail);
         }
+        if (timedOut)
+            fail("timed out waiting for CountDownLatch for "
+                 + (timeoutMillis/1000) + " sec");
     }
 
     public void await(CountDownLatch latch) {
@@ -1585,13 +1587,15 @@ public class JSR166TestCase extends TestCase {
     }
 
     public void await(Semaphore semaphore) {
+        boolean timedOut = false;
         try {
-            if (!semaphore.tryAcquire(LONG_DELAY_MS, MILLISECONDS))
-                fail("timed out waiting for Semaphore for "
-                     + (LONG_DELAY_MS/1000) + " sec");
+            timedOut = !semaphore.tryAcquire(LONG_DELAY_MS, MILLISECONDS);
         } catch (Throwable fail) {
             threadUnexpectedException(fail);
         }
+        if (timedOut)
+            fail("timed out waiting for Semaphore for "
+                 + (LONG_DELAY_MS/1000) + " sec");
     }
 
     public void await(CyclicBarrier barrier) {
