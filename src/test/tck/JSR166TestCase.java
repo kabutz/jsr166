@@ -1781,17 +1781,17 @@ public class JSR166TestCase extends TestCase {
 
     @SuppressWarnings("unchecked")
     <T> T serialClone(T o) {
+        T clone = null;
         try {
             ObjectInputStream ois = new ObjectInputStream
                 (new ByteArrayInputStream(serialBytes(o)));
-            T clone = (T) ois.readObject();
-            if (o == clone) assertImmutable(o);
-            assertSame(o.getClass(), clone.getClass());
-            return clone;
+            clone = (T) ois.readObject();
         } catch (Throwable fail) {
             threadUnexpectedException(fail);
-            return null;
         }
+        if (o == clone) assertImmutable(o);
+        else assertSame(o.getClass(), clone.getClass());
+        return clone;
     }
 
     /**
@@ -1810,7 +1810,7 @@ public class JSR166TestCase extends TestCase {
             (new ByteArrayInputStream(bos.toByteArray()));
         T clone = (T) ois.readObject();
         if (o == clone) assertImmutable(o);
-        assertSame(o.getClass(), clone.getClass());
+        else assertSame(o.getClass(), clone.getClass());
         return clone;
     }
 
