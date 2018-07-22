@@ -59,9 +59,13 @@ public class CompletableFutureTest extends JSR166TestCase {
         assertFalse(f.isDone());
         assertFalse(f.isCancelled());
         assertTrue(f.toString().matches(".*\\[.*Not completed.*\\]"));
+
+        Object result = null;
         try {
-            assertNull(f.getNow(null));
+            result = f.getNow(null);
         } catch (Throwable fail) { threadUnexpectedException(fail); }
+        assertNull(result);
+
         try {
             f.get(randomExpiredTimeout(), randomTimeUnit());
             shouldThrow();
