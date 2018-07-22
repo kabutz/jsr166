@@ -1283,7 +1283,7 @@ public class AbstractQueuedSynchronizerTest extends JSR166TestCase {
             try {
                 s.acquireInterruptibly(1);
                 shouldThrow();
-            } catch (InterruptedException expected) {}
+            } catch (InterruptedException success) {}
         };
         for (int i = 0; i < 2; i++) {
             Thread thread = new Thread(failedAcquire);
