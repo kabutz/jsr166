@@ -369,7 +369,7 @@ public class EmptyNavigableSet {
 
         assertSame(emptyNavigableSetArray, result);
 
-        assertTrue(result[0] == null);
+        assertNull(result[0]);
     }
 
     @DataProvider(name = "NavigableSet<?>", parallel = true)

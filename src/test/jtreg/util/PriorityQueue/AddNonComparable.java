@@ -64,7 +64,7 @@ public class AddNonComparable {
         test(new PriorityQueue<>(), AComparable::new,
              (q, e) -> {
                  assertEquals(q.size(), 1);
-                 assertTrue(e == null);
+                 assertNull(e);
              });
 
         test(new PriorityBlockingQueue<>(), NonComparable::new,
@@ -75,7 +75,7 @@ public class AddNonComparable {
         test(new PriorityBlockingQueue<>(), AComparable::new,
              (q, e) -> {
                  assertEquals(q.size(), 1);
-                 assertTrue(e == null);
+                 assertNull(e);
              });
     }
 
@@ -98,7 +98,7 @@ public class AddNonComparable {
         test(new TreeSet<>(), AComparable::new,
              (s, e) -> {
                  assertEquals(s.size(), 1);
-                 assertTrue(e == null);
+                 assertNull(e);
              });
 
         test(new ConcurrentSkipListSet<>(), NonComparable::new,
@@ -109,7 +109,7 @@ public class AddNonComparable {
         test(new ConcurrentSkipListSet<>(), AComparable::new,
              (s, e) -> {
                  assertEquals(s.size(), 1);
-                 assertTrue(e == null);
+                 assertNull(e);
              });
     }
 
@@ -131,7 +131,7 @@ public class AddNonComparable {
         test(new TreeMap<>(), AComparable::new,
              (m, e) -> {
                  assertEquals(m.size(), 1);
-                 assertTrue(e == null);
+                 assertNull(e);
              });
 
         test(new ConcurrentSkipListMap<>(), NonComparable::new,
@@ -142,7 +142,7 @@ public class AddNonComparable {
         test(new ConcurrentSkipListMap<>(), AComparable::new,
              (s, e) -> {
                  assertEquals(s.size(), 1);
-                 assertTrue(e == null);
+                 assertNull(e);
              });
     }
 
