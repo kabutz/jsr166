@@ -77,11 +77,15 @@ public class CompletableFutureTest extends JSR166TestCase {
     <T> void checkCompletedNormally(CompletableFuture<T> f, T value) {
         checkTimedGet(f, value);
 
+        assertEquals(value, f.join());
+        assertEquals(value, f.getNow(null));
+
+        T result = null;
         try {
-            assertEquals(value, f.join());
-            assertEquals(value, f.getNow(null));
-            assertEquals(value, f.get());
+            result = f.get();
         } catch (Throwable fail) { threadUnexpectedException(fail); }
+        assertEquals(value, result);
+
         assertTrue(f.isDone());
         assertFalse(f.isCancelled());
         assertFalse(f.isCompletedExceptionally());
