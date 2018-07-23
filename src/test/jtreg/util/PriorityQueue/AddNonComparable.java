@@ -42,6 +42,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 public class AddNonComparable {
