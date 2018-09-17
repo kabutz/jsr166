@@ -979,7 +979,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
             } catch (Throwable ex) {
                 d.result = encodeThrowable(ex);
             }
-        }        
+        }
         return d;
     }
 
@@ -993,7 +993,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         }
         final CompletableFuture<T> tryFire(int mode) {
             CompletableFuture<T> d; CompletableFuture<T> a;
-            Function<Throwable, ? extends CompletionStage<T>> f;            
+            Function<Throwable, ? extends CompletionStage<T>> f;
             Object r; Throwable x;
             if ((d = dep) == null || (f = fn) == null
                 || (a = src) == null || (r = a.result) == null)
@@ -1056,7 +1056,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         return d;
     }
 
-    
+
     @SuppressWarnings("serial")
     static final class UniRelay<U, T extends U> extends UniCompletion<T,U> {
         UniRelay(CompletableFuture<U> dep, CompletableFuture<T> src) {
@@ -2353,7 +2353,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         return uniExceptionallyStage(screenExecutor(executor), fn);
     }
 
-     public CompletableFuture<T> exceptionallyCompose(
+    public CompletableFuture<T> exceptionallyCompose(
         Function<Throwable, ? extends CompletionStage<T>> fn) {
         return uniComposeExceptionallyStage(null, fn);
     }
@@ -2368,7 +2368,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         Executor executor) {
         return uniComposeExceptionallyStage(screenExecutor(executor), fn);
     }
-    
+
     /* ------------- Arbitrary-arity constructions -------------- */
 
     /**
