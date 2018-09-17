@@ -2337,7 +2337,6 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         return this;
     }
 
-    // (as of jdk9, this method does not need class-level javadoc)
     public CompletableFuture<T> exceptionally(
         Function<Throwable, ? extends T> fn) {
         return uniExceptionallyStage(null, fn);
