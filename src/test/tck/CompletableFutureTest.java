@@ -5041,4 +5041,3 @@ public class CompletableFutureTest extends JSR166TestCase {
     }}
 
 }
-
