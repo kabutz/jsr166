@@ -850,9 +850,9 @@ public interface CompletionStage<T> {
     /**
      * Returns a new CompletionStage that, when this stage completes
      * exceptionally, is executed with this stage's exception as the
-     * argument to the supplied function, using using the supplied
-     * Executor.  Otherwise, if this stage completes normally, then
-     * the returned stage also completes normally with the same value.
+     * argument to the supplied function, using the supplied Executor.
+     * Otherwise, if this stage completes normally, then the returned
+     * stage also completes normally with the same value.
      *
      * @implSpec The default implementation invokes {@link #handle},
      * relaying to {@link #handleAsync} on exception, then {@link
@@ -898,8 +898,8 @@ public interface CompletionStage<T> {
     /**
      * Returns a new CompletionStage that, when this stage completes
      * exceptionally, is composed using the results of the supplied
-     * function applied to this stage's exception, using using this
-     * stage's default asynchronous execution facility.
+     * function applied to this stage's exception, using this stage's
+     * default asynchronous execution facility.
      *
      * @implSpec The default implementation invokes {@link #handle},
      * relaying to {@link #handleAsync} on exception, then {@link
