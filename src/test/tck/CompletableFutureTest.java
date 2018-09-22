@@ -551,9 +551,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         public CompletableFuture<Integer> apply(Integer x) {
             invoked();
             value = x;
-            CompletableFuture<Integer> f = new CompletableFuture<>();
-            assertTrue(f.complete(inc(x)));
-            return f;
+            return CompletableFuture.completedFuture(inc(x));
         }
     }
 
