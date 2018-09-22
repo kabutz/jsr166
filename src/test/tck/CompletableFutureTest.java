@@ -574,9 +574,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         ExceptionalCompletableFutureFunction(ExecutionMode m) { super(m); }
         public CompletionStage<Integer> apply(Throwable x) {
             invoked();
-            CompletableFuture<Integer> d = new CompletableFuture<Integer>();
-            d.complete(value);
-            return d;
+            return CompletableFuture.completedFuture(value);
         }
     }
 
