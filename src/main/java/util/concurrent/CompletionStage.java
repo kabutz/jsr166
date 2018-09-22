@@ -915,8 +915,8 @@ public interface CompletionStage<T> {
         return handle((r, ex) -> (ex == null)
                       ? this
                       : this.handleAsync((r1, ex1) -> fn.apply(ex1))
-                        .thenCompose(Function.identity())
-        ).thenCompose(Function.identity());
+                        .thenCompose(Function.identity()))
+            .thenCompose(Function.identity());
     }
 
     /**
@@ -941,8 +941,8 @@ public interface CompletionStage<T> {
         return handle((r, ex) -> (ex == null)
                       ? this
                       : this.handleAsync((r1, ex1) -> fn.apply(ex1), executor)
-                        .thenCompose(Function.identity())
-        ).thenCompose(Function.identity());
+                        .thenCompose(Function.identity()))
+            .thenCompose(Function.identity());
     }
 
     /**
