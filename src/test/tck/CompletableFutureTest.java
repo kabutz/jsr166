@@ -4983,7 +4983,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         final DelegatedCompletionStage<Integer> d =
             new DelegatedCompletionStage<Integer>(f);
         if (!createIncomplete) assertTrue(f.complete(v1));
-        final CompletionStage<Integer> g = d.exceptionallyComposeAsync(r,  new ThreadExecutor());
+        final CompletionStage<Integer> g = d.exceptionallyComposeAsync(r, new ThreadExecutor());
         if (createIncomplete) assertTrue(f.complete(v1));
 
         checkCompletedNormally(f, v1);
@@ -5005,7 +5005,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         final DelegatedCompletionStage<Integer> d =
             new DelegatedCompletionStage<Integer>(f);
         if (!createIncomplete) f.completeExceptionally(ex);
-        final CompletionStage<Integer> g = d.exceptionallyComposeAsync(r,  new ThreadExecutor());
+        final CompletionStage<Integer> g = d.exceptionallyComposeAsync(r, new ThreadExecutor());
         if (createIncomplete) f.completeExceptionally(ex);
 
         checkCompletedExceptionally(f, ex);
@@ -5028,7 +5028,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         final DelegatedCompletionStage<Integer> d =
             new DelegatedCompletionStage<Integer>(f);
         if (!createIncomplete) f.completeExceptionally(ex);
-        final CompletionStage<Integer> g = d.exceptionallyComposeAsync(r,  new ThreadExecutor());
+        final CompletionStage<Integer> g = d.exceptionallyComposeAsync(r, new ThreadExecutor());
         if (createIncomplete) f.completeExceptionally(ex);
 
         checkCompletedExceptionally(f, ex);
