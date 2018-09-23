@@ -3167,6 +3167,8 @@ public class CompletableFutureTest extends JSR166TestCase {
         final CompletableFuture<Integer> g = m.exceptionallyCompose(f, r);
         if (createIncomplete) assertTrue(f.complete(v1));
 
+        if (!createIncomplete && testImplementationDetails)
+            assertSame(f, g);
         checkCompletedNormally(f, v1);
         checkCompletedNormally(g, v1);
         r.assertNotInvoked();
