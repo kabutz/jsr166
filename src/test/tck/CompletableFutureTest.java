@@ -4783,7 +4783,7 @@ public class CompletableFutureTest extends JSR166TestCase {
      * default-implemented exceptionallyAsync action completes with
      * function value on source exception
      */
-    public void testDefaulExceptionallyAsync_exceptionalCompletion() {
+    public void testDefaultExceptionallyAsync_exceptionalCompletion() {
         for (boolean createIncomplete : new boolean[] { true, false })
         for (Integer v1 : new Integer[] { 1, null })
     {
@@ -4810,7 +4810,7 @@ public class CompletableFutureTest extends JSR166TestCase {
      * throws an exception, it completes exceptionally with that
      * exception
      */
-    public void testDefaulExceptionallyAsync_exceptionalCompletionActionFailed() {
+    public void testDefaultExceptionallyAsync_exceptionalCompletionActionFailed() {
         for (boolean createIncomplete : new boolean[] { true, false })
     {
         final AtomicInteger a = new AtomicInteger(0);
