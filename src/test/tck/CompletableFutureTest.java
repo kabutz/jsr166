@@ -3168,7 +3168,8 @@ public class CompletableFutureTest extends JSR166TestCase {
         if (createIncomplete) assertTrue(f.complete(v1));
 
         if (!createIncomplete && testImplementationDetails)
-            assertSame(f, g);
+            assertSame(f, g);   // an optimization
+
         checkCompletedNormally(f, v1);
         checkCompletedNormally(g, v1);
         r.assertNotInvoked();
@@ -3216,6 +3217,67 @@ public class CompletableFutureTest extends JSR166TestCase {
         r.assertInvoked();
     }}
 
+    /**
+     * thenComposeExceptionally result completes exceptionally if the
+     * result of the action does
+     */
+    public void testExceptionallyCompose_actionReturnsFailingFuture() {
+        for (ExecutionMode m : ExecutionMode.values())
+        for (int order = 0; order < 6; order++)
+        for (Integer v1 : new Integer[] { 1, null })
+    {
+        final CFException ex0 = new CFException();
+        final CFException ex = new CFException();
+        final CompletableFuture<Integer> f = new CompletableFuture<>();
+        final CompletableFuture<Integer> g = new CompletableFuture<>();
+        final CompletableFuture<Integer> h;
+        // Test all permutations of orders
+        switch (order) {
+        case 0:
+            assertTrue(f.completeExceptionally(ex0));
+            assertTrue(g.completeExceptionally(ex));
+            h = m.exceptionallyCompose(f, (x -> g));
+            break;
+        case 1:
+            assertTrue(f.completeExceptionally(ex0));
+            h = m.exceptionallyCompose(f, (x -> g));
+            assertTrue(g.completeExceptionally(ex));
+            break;
+        case 2:
+            assertTrue(g.completeExceptionally(ex));
+            assertTrue(f.completeExceptionally(ex0));
+            h = m.exceptionallyCompose(f, (x -> g));
+            break;
+        case 3:
+            assertTrue(g.completeExceptionally(ex));
+            h = m.exceptionallyCompose(f, (x -> g));
+            assertTrue(f.completeExceptionally(ex0));
+            break;
+        case 4:
+            h = m.exceptionallyCompose(f, (x -> g));
+            assertTrue(f.completeExceptionally(ex0));
+            assertTrue(g.completeExceptionally(ex));
+            break;
+        case 5:
+            h = m.exceptionallyCompose(f, (x -> g));
+            assertTrue(f.completeExceptionally(ex0));
+            assertTrue(g.completeExceptionally(ex));
+            break;
+        default: throw new AssertionError();
+        }
+
+        checkCompletedExceptionally(g, ex);
+
+        // TODO: should this be: checkCompletedWithWrappedException(h, ex);
+        try {
+            h.join();
+            shouldThrow();
+        } catch (Throwable t) {
+            assertSame(ex, (t instanceof CompletionException) ? t.getCause() : t);
+        }
+
+        checkCompletedExceptionally(f, ex0);
+    }}
 
     // other static methods
 
