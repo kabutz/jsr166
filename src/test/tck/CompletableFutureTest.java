@@ -4780,6 +4780,28 @@ public class CompletableFutureTest extends JSR166TestCase {
     }
 
     /**
+     * default-implemented exceptionallyAsync action is not invoked when
+     * source completes normally, and source result is propagated
+     */
+    public void testDefaultExceptionallyAsync_normalCompletion() {
+        for (boolean createIncomplete : new boolean[] { true, false })
+        for (Integer v1 : new Integer[] { 1, null })
+    {
+        final CompletableFuture<Integer> f = new CompletableFuture<>();
+        final DelegatedCompletionStage<Integer> d =
+            new DelegatedCompletionStage<Integer>(f);
+        if (!createIncomplete) assertTrue(f.complete(v1));
+        final CompletionStage<Integer> g = d.exceptionallyAsync
+            ((Throwable t) -> {
+                threadFail("should not be called");
+                return null;            // unreached
+            });
+        if (createIncomplete) assertTrue(f.complete(v1));
+
+        checkCompletedNormally(g.toCompletableFuture(), v1);
+    }}
+
+    /**
      * default-implemented exceptionallyAsync action completes with
      * function value on source exception
      */
