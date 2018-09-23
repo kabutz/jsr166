@@ -1940,7 +1940,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * Creates a new complete CompletableFuture with given encoded result.
      */
     CompletableFuture(Object r) {
-        this.result = r;
+        RESULT.setRelease(this, r);
     }
 
     /**
