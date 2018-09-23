@@ -926,12 +926,10 @@ public class CompletableFutureTest extends JSR166TestCase {
         for (boolean createIncomplete : new boolean[] { true, false })
         for (Integer v1 : new Integer[] { 1, null })
     {
-        final AtomicInteger a = new AtomicInteger(0);
         final CompletableFuture<Integer> f = new CompletableFuture<>();
         if (!createIncomplete) assertTrue(f.complete(v1));
         final CompletableFuture<Integer> g = m.exceptionally
             (f, (Throwable t) -> {
-                a.getAndIncrement();
                 threadFail("should not be called");
                 return null;            // unreached
             });
@@ -939,7 +937,6 @@ public class CompletableFutureTest extends JSR166TestCase {
 
         checkCompletedNormally(g, v1);
         checkCompletedNormally(f, v1);
-        assertEquals(0, a.get());
     }}
 
     /**
