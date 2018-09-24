@@ -3215,7 +3215,7 @@ public class CompletableFutureTest extends JSR166TestCase {
     }}
 
     /**
-     * thenComposeExceptionally result completes exceptionally if the
+     * exceptionallyCompose result completes exceptionally if the
      * result of the action does
      */
     public void testExceptionallyCompose_actionReturnsFailingFuture() {
