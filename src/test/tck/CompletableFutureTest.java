@@ -4907,8 +4907,8 @@ public class CompletableFutureTest extends JSR166TestCase {
     }}
 
     /**
-     * default exceptionallyCompose result completes normally after normal
-     * completion of source
+     * default-implemented exceptionallyCompose result completes
+     * normally after normal completion of source
      */
     public void testDefaultExceptionallyCompose_normalCompletion() {
         for (boolean createIncomplete : new boolean[] { true, false })
@@ -4974,8 +4974,8 @@ public class CompletableFutureTest extends JSR166TestCase {
     }}
 
     /**
-     * default exceptionallyComposeAsync result completes normally after normal
-     * completion of source
+     * default-implemented exceptionallyComposeAsync result completes
+     * normally after normal completion of source
      */
     public void testDefaultExceptionallyComposeAsync_normalCompletion() {
         for (boolean createIncomplete : new boolean[] { true, false })
@@ -5041,8 +5041,8 @@ public class CompletableFutureTest extends JSR166TestCase {
     }}
 
     /**
-     * default exceptionallyComposeAsync result completes normally after normal
-     * completion of source
+     * default-implemented exceptionallyComposeAsync result completes
+     * normally after normal completion of source
      */
     public void testDefaultExceptionallyComposeAsyncExecutor_normalCompletion() {
         for (boolean createIncomplete : new boolean[] { true, false })
