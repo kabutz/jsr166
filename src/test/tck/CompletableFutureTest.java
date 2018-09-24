@@ -3199,7 +3199,6 @@ public class CompletableFutureTest extends JSR166TestCase {
     public void testExceptionallyCompose_actionFailed() {
         for (ExecutionMode m : ExecutionMode.values())
         for (boolean createIncomplete : new boolean[] { true, false })
-        for (Integer v1 : new Integer[] { 1, null })
     {
         final CFException ex = new CFException();
         final CompletableFuture<Integer> f = new CompletableFuture<>();
@@ -3221,7 +3220,6 @@ public class CompletableFutureTest extends JSR166TestCase {
     public void testExceptionallyCompose_actionReturnsFailingFuture() {
         for (ExecutionMode m : ExecutionMode.values())
         for (int order = 0; order < 6; order++)
-        for (Integer v1 : new Integer[] { 1, null })
     {
         final CFException ex0 = new CFException();
         final CFException ex = new CFException();
@@ -4956,7 +4954,6 @@ public class CompletableFutureTest extends JSR166TestCase {
      */
     public void testDefaultExceptionallyCompose_actionFailed() {
         for (boolean createIncomplete : new boolean[] { true, false })
-        for (Integer v1 : new Integer[] { 1, null })
     {
         final CFException ex = new CFException();
         final CompletableFuture<Integer> f = new CompletableFuture<>();
@@ -5023,7 +5020,6 @@ public class CompletableFutureTest extends JSR166TestCase {
      */
     public void testDefaultExceptionallyComposeAsync_actionFailed() {
         for (boolean createIncomplete : new boolean[] { true, false })
-        for (Integer v1 : new Integer[] { 1, null })
     {
         final CFException ex = new CFException();
         final CompletableFuture<Integer> f = new CompletableFuture<>();
@@ -5090,7 +5086,6 @@ public class CompletableFutureTest extends JSR166TestCase {
      */
     public void testDefaultExceptionallyComposeAsyncExecutor_actionFailed() {
         for (boolean createIncomplete : new boolean[] { true, false })
-        for (Integer v1 : new Integer[] { 1, null })
     {
         final CFException ex = new CFException();
         final CompletableFuture<Integer> f = new CompletableFuture<>();
