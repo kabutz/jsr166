@@ -5040,7 +5040,6 @@ public class CompletableFutureTest extends JSR166TestCase {
         r.assertInvoked();
     }}
 
-
     /**
      * default exceptionallyComposeAsync result completes normally after normal
      * completion of source
