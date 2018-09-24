@@ -1027,22 +1027,31 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     private CompletableFuture<T> uniComposeExceptionallyStage(
         Executor e, Function<Throwable, ? extends CompletionStage<T>> f) {
         if (f == null) throw new NullPointerException();
-        final CompletableFuture<T> d;
-        Object r; Throwable x;
+        CompletableFuture<T> d = newIncompleteFuture();
+        Object r, s; Throwable x;
         if ((r = result) == null)
-            unipush(new UniComposeExceptionally<T>(
-                        e, d = newIncompleteFuture(), this, f));
-        else if (!(r instanceof AltResult) || (x = ((AltResult)r).ex) == null)
-            return this;
+            unipush(new UniComposeExceptionally<T>(e, d, this, f));
+        else if (e == null) {
+            if ((r instanceof AltResult) && (x = ((AltResult)r).ex) != null) {
+                try {
+                    CompletableFuture<T> g = f.apply(x).toCompletableFuture();
+                    if ((s = g.result) != null)
+                        d.result = encodeRelay(s);
+                    else {
+                        g.unipush(new UniRelay<T,T>(d, g));
+                    }
+                } catch (Throwable ex) {
+                    d.result = encodeThrowable(ex);
+                }
+            }
+            else
+                d.internalComplete(r);
+        }
         else
             try {
-                if (e == null)
-                    return f.apply(x).toCompletableFuture();
-                else
-                    e.execute(new UniComposeExceptionally<T>(
-                                  null, d = newIncompleteFuture(), this, f));
+                e.execute(new UniComposeExceptionally<T>(null, d, this, f));
             } catch (Throwable ex) {
-                return new CompletableFuture<T>(encodeThrowable(ex));
+                d.result = encodeThrowable(ex);
             }
         return d;
     }

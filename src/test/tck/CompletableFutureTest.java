@@ -3167,9 +3167,6 @@ public class CompletableFutureTest extends JSR166TestCase {
         final CompletableFuture<Integer> g = m.exceptionallyCompose(f, r);
         if (createIncomplete) assertTrue(f.complete(v1));
 
-        if (!createIncomplete && testImplementationDetails)
-            assertSame(f, g);   // an optimization
-
         checkCompletedNormally(f, v1);
         checkCompletedNormally(g, v1);
         r.assertNotInvoked();
@@ -3267,15 +3264,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         }
 
         checkCompletedExceptionally(g, ex);
-
-        // TODO: should this be: checkCompletedWithWrappedException(h, ex);
-        try {
-            h.join();
-            shouldThrow();
-        } catch (Throwable t) {
-            assertSame(ex, (t instanceof CompletionException) ? t.getCause() : t);
-        }
-
+        checkCompletedWithWrappedException(h, ex);
         checkCompletedExceptionally(f, ex0);
     }}
 
