@@ -197,13 +197,14 @@
   <property name="java8.docroot.url"  value="https://docs.oracle.com/javase/8/docs"/>
   <property name="java9.docroot.url"  value="https://docs.oracle.com/javase/9/docs"/>
   <property name="java10.docroot.url" value="https://docs.oracle.com/javase/10/docs"/>
+  <property name="java11.docroot.url" value="https://docs.oracle.com/en/java/javase/11/docs"/>
   <!-- The location of jdk early access docs (RIP) -->
   <!-- <property name="java9.docroot.url" value="http://download.java.net/java/jdk9/docs"/> -->
   <!-- <property name="java10.docroot.url" value="http://download.java.net/java/jdk10/docs"/> -->
-  <property name="java11.docroot.url" value="http://download.java.net/java/jdk11/docs"/>
-  <property name="java12.docroot.url" value="http://download.java.net/java/jdk12/docs"/>
+  <!-- <property name="java11.docroot.url" value="http://download.java.net/java/jdk11/docs"/> -->
+  <property name="java12.docroot.url" value="https://download.java.net/java/jdk12/docs"/>
   <!-- Default jdk doc location (latest stable release seems best) -->
-  <property name="java.docroot.url"   value="${java10.docroot.url}"/>
+  <property name="java.docroot.url"   value="${java11.docroot.url}"/>
 
   <!-- Canonical location of jdk API docs, to use with javadoc link attribute -->
   <property name="java5.api.url"      value="${java5.docroot.url}/api/"/>
