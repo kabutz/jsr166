@@ -1399,7 +1399,7 @@
 
 
 <!-- ==============================================================
-  Experimental errorprone support - http://errorprone.info
+  Experimental errorprone support - https://errorprone.info
 =================================================================== -->
   <property name="errorprone.jar" location="${lib.dir}/error_prone_ant-2.3.1.jar"/>
   <property name="errorprone.jsr166.user.flags" value=""/>
