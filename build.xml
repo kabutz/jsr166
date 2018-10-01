@@ -204,7 +204,9 @@
   <!-- <property name="java11.docroot.url" value="http://download.java.net/java/jdk11/docs"/> -->
   <property name="java12.docroot.url" value="https://download.java.net/java/jdk12/docs"/>
   <!-- Default jdk doc location (latest stable release seems best) -->
-  <property name="java.docroot.url"   value="${java11.docroot.url}"/>
+  <!-- But pin to jdk 10 until fix for -->
+  <!-- 8211194: javadoc -link doesn't take module path into consideration -->
+  <property name="java.docroot.url"   value="${java10.docroot.url}"/>
 
   <!-- Canonical location of jdk API docs, to use with javadoc link attribute -->
   <property name="java5.api.url"      value="${java5.docroot.url}/api/"/>
