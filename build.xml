@@ -389,7 +389,7 @@
 
   <!-- Main targets -->
 
-  <property name="build.main.java.version" value="9"/>
+  <property name="build.main.java.version" value="11"/>
   <!-- Workaround "no nested properties in ant" -->
   <macrodef name="define-build-main-properties">
     <attribute name="v"/>
@@ -481,17 +481,17 @@
 <!-- TODO: <arg line="- -module-source-path ${jdk9.home}/src.zip"/> -->
     <javadoc destdir="${docs.dir}"
              packagenames="none"
-             link="${java9.api.url}"
+             link="${java10.api.url}"
              overview="${src.dir}/intro.html"
              access="${build.javadoc.access}"
              sourcepath="${src.dir}"
              classpath=""
-             source="9"
+             source="11"
              executable="${build.main.javadoc}">
       <fileset dir="${src.dir}" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
-      <arg line="-Xdocrootparent ${java9.docroot.url}"/>
+      <arg line="-Xdocrootparent ${java10.docroot.url}"/>
       <arg line="-Xmaxerrs 1000 -Xmaxwarns 1000"/>
       <arg value="-XDignore.symbol.file=true"/>
       <arg value="-html5"/>
@@ -621,21 +621,35 @@
     <antcall target="clean"/>
     <antcall target="test">
       <param name="build.main.java.version" value="9"/>
+      <param name="build.main.java" value="${java9}"/>
+      <param name="build.main.javac" value="${javac9}"/>
     </antcall>
 
     <antcall target="clean"/>
     <antcall target="test">
       <param name="build.main.java.version" value="10"/>
+      <param name="build.main.java" value="${java10}"/>
+      <param name="build.main.javac" value="${javac10}"/>
     </antcall>
 
     <antcall target="clean"/>
     <antcall target="test">
       <param name="build.main.java.version" value="11"/>
+      <param name="build.main.java" value="${java11}"/>
+      <param name="build.main.javac" value="${javac11}"/>
     </antcall>
 
     <antcall target="clean"/>
     <antcall target="test">
       <param name="build.main.java.version" value="12"/>
+      <param name="build.main.java" value="${java12}"/>
+      <param name="build.main.javac" value="${javac12}"/>
+    </antcall>
+    <antcall target="docs">
+      <param name="build.main.java.version" value="12"/>
+      <param name="build.main.java" value="${java12}"/>
+      <param name="build.main.javac" value="${javac12}"/>
+      <param name="build.main.javadoc" value="${javadoc12}"/>
     </antcall>
 
     <!-- Clean up to avoid obscure wrong class file version bugs -->
