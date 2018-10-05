@@ -844,9 +844,8 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
             for (int i = 0; i < 100; i++) { // force a resize
                 map.computeIfAbsent(i, key -> findValue(map, key));
             }
-            fail("recursive computeIfAbsent");
-        } catch (IllegalStateException ex) {
-        }
+            fail("recursive computeIfAbsent should throw IllegalStateException");
+        } catch (IllegalStateException success) {}
     }
 
     private Integer findValue(ConcurrentHashMap<Integer, Integer> map,
