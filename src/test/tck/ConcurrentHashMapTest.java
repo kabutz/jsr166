@@ -838,8 +838,6 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
         assertEquals(mapSize, map.size());
     }
 
-
-    
     public void testReentrantComputeIfAbsent() {
         ConcurrentHashMap<Integer, Integer> map = new ConcurrentHashMap<>(16);
         try {
@@ -856,5 +854,5 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
         return (key % 5 == 0) ?  key :
             map.computeIfAbsent(key + 1, k -> findValue(map, k));
     }
-    
+
 }
