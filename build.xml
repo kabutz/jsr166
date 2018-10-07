@@ -398,13 +398,14 @@
     <sequential>
       <property name="build.main.java"    value="${java@{v}}"/>
       <property name="build.main.javac"   value="${javac@{v}}"/>
-      <!-- Force javadoc version to be at least 10, 
-           so we can use override-methods=summary -->
+      <!-- Force javadoc version to be at least 10, so we can use override-methods=summary -->
+      <!-- Force javadoc version to be at least 12, due to JDK-8202628 -->
       <condition property="build.main.javadoc" 
-                 value="${javadoc11}"
+                 value="${javadoc12}"
                  else="${javadoc@{v}}">
-        <equals arg1="@{v}" arg2="9"/>
+        <matches pattern="^(9|10|11)$" string="@{v}"/>
       </condition>
+      <property name="build.main.javadoc"   value="${javadoc12}"/>
     </sequential>
   </macrodef>
   <define-build-main-properties v="${build.main.java.version}"/>
@@ -483,7 +484,7 @@
 <!-- TODO: <arg line="- -module-source-path ${jdk9.home}/src.zip"/> -->
     <javadoc destdir="${docs.dir}"
              packagenames="none"
-             link="${java10.api.url}"
+             link="${java11.api.url}"
              overview="${src.dir}/intro.html"
              access="${build.javadoc.access}"
              sourcepath="${src.dir}"
