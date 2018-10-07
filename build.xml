@@ -405,7 +405,6 @@
                  else="${javadoc@{v}}">
         <matches pattern="^(9|10|11)$" string="@{v}"/>
       </condition>
-      <property name="build.main.javadoc"   value="${javadoc12}"/>
     </sequential>
   </macrodef>
   <define-build-main-properties v="${build.main.java.version}"/>
@@ -413,9 +412,7 @@
   <target name="dists"
           depends="dist, 4jdk8dist"
           description="Builds all public jars and docs"/>
-          <!--
-              depends="dist, 4jdk8dist, 4jdk7dist, jsr166edist, jsr166ydist, extra166ydist, jsr166xdist"
-          -->
+          <!-- no longer supported: 4jdk7dist, jsr166edist, jsr166ydist, extra166ydist, jsr166xdist -->
 
   <target name="compile"
           depends="configure-compiler"
