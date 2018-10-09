@@ -251,7 +251,7 @@ public class DoubleAccumulator extends Striped64 implements Serializable {
 
     /**
      * Returns a
-     * <a href="../../../../serialized-form.html#java.util.concurrent.atomic.DoubleAccumulator.SerializationProxy">
+     * <a href="{@docRoot}/serialized-form.html#java.util.concurrent.atomic.DoubleAccumulator.SerializationProxy">
      * SerializationProxy</a>
      * representing the state of this instance.
      *
