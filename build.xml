@@ -496,6 +496,7 @@
       <arg value="-XDignore.symbol.file=true"/>
       <arg value="-html5"/>
       <arg value="--patch-module=java.base=${src.dir}"/>
+      <arg value="--frames"/>
       <arg value="--override-methods=summary"/>
       <arg value="-tag"/> <arg value="${javadoc.jls.option}"/>
       <arg value="-tag"/> <arg value="implSpec:a:Implementation Requirements:"/>
