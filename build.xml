@@ -514,28 +514,6 @@
           description="Puts all distributable products in single hierarchy"/>
 
 
-  <target name="release"
-          depends="dist"
-          description="Puts entire CVS tree, plus distribution productions, in a jar">
-
-    <property name="release.jar" value="dist/jsr166-${version}-dist.jar"/>
-
-    <jar basedir="${basedir}" destfile="${release.jar}">
-      <!-- <exclude name="build/**"/> -->
-      <exclude name="${release.jar}"/>
-      <exclude name="user.properties"/>
-      <exclude name="etc/notes/**"/>
-      <exclude name="src/emulation/**"/>
-      <exclude name="**/SyntaxTest.java"/>
-      <exclude name="**/SuperfluousAbstract.java"/>
-      <manifest>
-        <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Implementation-Vendor" value="JCP JSR-166 Expert Group."/>
-      </manifest>
-    </jar>
-  </target>
-
-
   <target name="clean"
           description="Removes all build products">
     <delete dir="${build.dir}"/>
