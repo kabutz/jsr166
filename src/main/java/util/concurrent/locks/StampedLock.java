@@ -39,19 +39,21 @@ import jdk.internal.vm.annotation.ReservedStackAccess;
  *   returns a non-zero stamp only if the lock is not currently held
  *   in write mode. Method {@link #validate} returns true if the lock
  *   has not been acquired in write mode since obtaining a given
- *   stamp.  This mode can be thought of as an extremely weak version
- *   of a read-lock, that can be broken by a writer at any time.  The
- *   use of optimistic mode for short read-only code segments often
- *   reduces contention and improves throughput.  However, its use is
- *   inherently fragile.  Optimistic read sections should only read
- *   fields and hold them in local variables for later use after
- *   validation. Fields read while in optimistic mode may be wildly
- *   inconsistent, so usage applies only when you are familiar enough
- *   with data representations to check consistency and/or repeatedly
- *   invoke method {@code validate()}.  For example, such steps are
- *   typically required when first reading an object or array
- *   reference, and then accessing one of its fields, elements or
- *   methods.
+ *   stamp, in which case all actions prior to the most recent write
+ *   lock release happen-before actions following the call to
+ *   validate. This mode can be thought of as an extremely weak
+ *   version of a read-lock, that can be broken by a writer at any
+ *   time.  The use of optimistic mode for short read-only code
+ *   segments often reduces contention and improves throughput.
+ *   However, its use is inherently fragile.  Optimistic read sections
+ *   should only read fields and hold them in local variables for
+ *   later use after validation. Fields read while in optimistic mode
+ *   may be wildly inconsistent, so usage applies only when you are
+ *   familiar enough with data representations to check consistency
+ *   and/or repeatedly invoke method {@code validate()}.  For example,
+ *   such steps are typically required when first reading an object or
+ *   array reference, and then accessing one of its fields, elements
+ *   or methods.
  *
  * </ul>
  *
