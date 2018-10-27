@@ -55,7 +55,6 @@
 
 
   <!-- Compilation options -->
-  <property name="build.sourcelevel"    value="6"/>
   <property name="build.debug"          value="true"/>
   <property name="build.debuglevel"     value="source,lines,vars"/>
   <property name="build.deprecation"    value="false"/>
@@ -391,23 +390,14 @@
 
   <!-- Main targets -->
 
+  <!-- Default values: may seem strange ... -->
+  <!-- At runtime, target latest LTS, i.e. jdk11 -->
+  <!-- But at build time, target jdk9, for maximal binary portability -->
+  <!-- Use javadoc12, so we can use override-methods=summary, and JDK-8202628 -->
   <property name="build.main.java.version" value="11"/>
-  <!-- Workaround "no nested properties in ant" -->
-  <macrodef name="define-build-main-properties">
-    <attribute name="v"/>
-    <sequential>
-      <property name="build.main.java"    value="${java@{v}}"/>
-      <property name="build.main.javac"   value="${javac@{v}}"/>
-      <!-- Force javadoc version to be at least 10, so we can use override-methods=summary -->
-      <!-- Force javadoc version to be at least 12, due to JDK-8202628 -->
-      <condition property="build.main.javadoc" 
-                 value="${javadoc12}"
-                 else="${javadoc@{v}}">
-        <matches pattern="^(9|10|11)$" string="@{v}"/>
-      </condition>
-    </sequential>
-  </macrodef>
-  <define-build-main-properties v="${build.main.java.version}"/>
+  <property name="build.main.java" value="${java11}"/>
+  <property name="build.main.javac" value="${javac9}"/>
+  <property name="build.main.javadoc" value="${javadoc12}"/>
 
   <target name="dists"
           depends="dist, 4jdk8dist"
@@ -439,7 +429,7 @@
       <compilerarg value="--patch-module=java.base=${src.dir}"/>
       <compilerarg value="-Xprefer:source"/>
       <compilerarg value="-XDignore.symbol.file=true"/>
-      <compilerarg value="-Xlint:all"/>
+      <compilerarg value="-Xlint:all,-removal"/>
       <compilerarg line="--doclint-format html5"/>
       <compilerarg value="-Xdoclint:all/protected,reference/private"/>
       <compilerarg value="-Werror"/>
@@ -585,57 +575,79 @@
           depends="tck, tck-parallelism-1, tck-parallelism-0, jtreg"
           description="Runs tck and jtreg tests for src/main"/>
 
-<!--   <target name="jtreg8" description="Runs jtreg tests with jdk8"> -->
+  <target name="test-version-permutations"
+	  depends="test9, test10, test11, test12, test9-11, test9-12, clean, test, docs">
+  </target>
 
-<!--     <antcall target="jtreg"> -->
-<!--       <param name="build.main.java.version" value="8"/> -->
-<!--       <param name="build.main.javac" value="${javac8}"/> -->
-<!--     </antcall> -->
-
-<!--   </target> -->
-
-  <target name="test9101112"
-          description="Runs tck and jtreg tests for src/main for multiple java versions">
-
+  <target name="test9">
     <antcall target="clean"/>
-    <antcall target="test">
+    <antcall>
       <param name="build.main.java.version" value="9"/>
       <param name="build.main.java" value="${java9}"/>
       <param name="build.main.javac" value="${javac9}"/>
+      <target name="test"/>
     </antcall>
+  </target>
 
+  <target name="test10">
     <antcall target="clean"/>
-    <antcall target="test">
+    <antcall>
       <param name="build.main.java.version" value="10"/>
       <param name="build.main.java" value="${java10}"/>
       <param name="build.main.javac" value="${javac10}"/>
+      <param name="build.main.javadoc" value="${javadoc10}"/>
+      <target name="test"/>
+      <target name="docs"/>
     </antcall>
+  </target>
 
+  <target name="test11">
     <antcall target="clean"/>
-    <antcall target="test">
+    <antcall>
       <param name="build.main.java.version" value="11"/>
       <param name="build.main.java" value="${java11}"/>
       <param name="build.main.javac" value="${javac11}"/>
+      <param name="build.main.javadoc" value="${javadoc11}"/>
+      <target name="test"/>
+      <target name="docs"/>
     </antcall>
+  </target>
 
+  <target name="test12">
     <antcall target="clean"/>
-    <antcall target="test">
-      <param name="build.main.java.version" value="12"/>
-      <param name="build.main.java" value="${java12}"/>
-      <param name="build.main.javac" value="${javac12}"/>
-    </antcall>
-    <antcall target="docs">
+    <antcall>
       <param name="build.main.java.version" value="12"/>
       <param name="build.main.java" value="${java12}"/>
       <param name="build.main.javac" value="${javac12}"/>
       <param name="build.main.javadoc" value="${javadoc12}"/>
+      <target name="test"/>
+      <target name="docs"/>
     </antcall>
-
-    <!-- Clean up to avoid obscure wrong class file version bugs -->
-    <antcall target="clean"/>
-
   </target>
 
+  <target name="test9-11">
+    <antcall target="clean"/>
+    <antcall>
+      <param name="build.main.java.version" value="11"/>
+      <param name="build.main.java" value="${java11}"/>
+      <param name="build.main.javac" value="${javac9}"/>
+      <param name="build.main.javadoc" value="${javadoc11}"/>
+      <target name="test"/>
+      <target name="docs"/>
+    </antcall>
+  </target>
+
+  <target name="test9-12">
+    <antcall target="clean"/>
+    <antcall>
+      <param name="build.main.java.version" value="12"/>
+      <param name="build.main.java" value="${java12}"/>
+      <param name="build.main.javac" value="${javac9}"/>
+      <param name="build.main.javadoc" value="${javadoc12}"/>
+      <target name="test"/>
+      <target name="docs"/>
+    </antcall>
+  </target>
 
 
   <target name="configure-compiler">
@@ -655,37 +667,6 @@
     <!-- Common options in javac invocations -->
     <property name="build.args" value="${warnunchecked.arg}"/>
 
-  </target>
-
-
-
-  <!-- Various demos and test programs -->
-
-
-  <!-- description="Benchmark from Doug Lea's AQS paper" -->
-  <target name="loops" depends="configure-compiler">
-
-    <mkdir dir="${build.loops.dir}"/>
-
-    <javac srcdir="${loops.src.dir}"
-          destdir="${build.loops.dir}"
-            debug="${build.debug}"
-       debuglevel="${build.debuglevel}"
-      deprecation="${build.deprecation}"
-           source="${build.sourcelevel}"
-           target="${build.sourcelevel}"
-         encoding="ASCII"
-             fork="true">
-
-      <compilerarg line="${build.args}"/>
-      <classpath refid="loops.classpath"/>
-      <compilerarg value="-XDignore.symbol.file=true"/>
-
-    </javac>
-
-    <java classname="ALoops" fork="true">
-      <classpath refid="loops.classpath"/>
-    </java>
   </target>
 
 
