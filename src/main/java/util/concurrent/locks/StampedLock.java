@@ -47,10 +47,10 @@ import jdk.internal.vm.annotation.ReservedStackAccess;
  *   contention and improves throughput.  However, its use is inherently
  *   fragile.  Optimistic read sections should only read fields and hold
  *   them in local variables for later use after validation. Fields read
- *   while in optimistic mode may be wildly inconsistent, so usage applies
- *   only when you are familiar enough with data representations to check
- *   consistency and/or repeatedly invoke method {@code validate()}.  For
- *   example, such steps are typically required when first reading an
+ *   while in optimistic read mode may be wildly inconsistent, so usage
+ *   applies only when you are familiar enough with data representations to
+ *   check consistency and/or repeatedly invoke method {@code validate()}.
+ *   For example, such steps are typically required when first reading an
  *   object or array reference, and then accessing one of its fields,
  *   elements or methods.
  *
@@ -60,8 +60,8 @@ import jdk.internal.vm.annotation.ReservedStackAccess;
  * conversions across the three modes. For example, method {@link
  * #tryConvertToWriteLock} attempts to "upgrade" a mode, returning
  * a valid write stamp if (1) already in writing mode (2) in reading
- * mode and there are no other readers or (3) in optimistic mode and
- * the lock is available. The forms of these methods are designed to
+ * mode and there are no other readers or (3) in optimistic read mode
+ * and the lock is available. The forms of these methods are designed to
  * help reduce some of the code bloat that otherwise occurs in
  * retry-based designs.
  *
