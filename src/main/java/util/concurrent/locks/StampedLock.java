@@ -41,7 +41,7 @@ import jdk.internal.vm.annotation.ReservedStackAccess;
  *   has not been acquired in write mode since obtaining a given
  *   stamp, in which case all actions prior to the most recent write
  *   lock release happen-before actions following the call to
- *   validate. This mode can be thought of as an extremely weak
+ *   tryOptimisticRead. This mode can be thought of as an extremely weak
  *   version of a read-lock, that can be broken by a writer at any
  *   time.  The use of optimistic mode for short read-only code
  *   segments often reduces contention and improves throughput.
@@ -101,6 +101,20 @@ import jdk.internal.vm.annotation.ReservedStackAccess;
  * viewed {@link #asReadLock()}, {@link #asWriteLock()}, or {@link
  * #asReadWriteLock()} in applications requiring only the associated
  * set of functionality.
+ *
+ * <p><b>Memory Synchronization.</b> Methods with the effect of
+ * successfully locking in any mode have the same memory
+ * synchronization effects as a <em>Lock</em> action described <a
+ * href="https://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html#jls-17.4">
+ * Chapter 17 of <cite>The Java&trade; Language
+ * Specification</cite></a>.  Methods successfully unlocking in write
+ * mode have the same memory synchronization effects as
+ * <em>Unlock</em> actions.  In optimistic usages, actions prior to
+ * the most recent write mode unlock action are guaranteed to
+ * happen-before those following a tryOptimisticRead only if a later
+ * validate returns true; otherwise there is no guarantee that the
+ * reads between tryOptimisticRead and validate obtain a consistent
+ * snapshot.
  *
  * <p><b>Sample Usage.</b> The following illustrates some usage idioms
  * in a class that maintains simple two-dimensional points. The sample
