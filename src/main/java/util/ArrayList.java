@@ -28,7 +28,7 @@ package java.util;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
-import jdk.internal.misc.SharedSecrets;
+// OPENJDK import jdk.internal.access.SharedSecrets;
 
 /**
  * Resizable-array implementation of the {@code List} interface.  Implements
@@ -926,7 +926,7 @@ public class ArrayList<E> extends AbstractList<E>
 
         if (size > 0) {
             // like clone(), allocate array based upon size not capacity
-            SharedSecrets.getJavaObjectInputStreamAccess().checkArray(s, Object[].class, size);
+            jsr166.Platform.checkArray(s, Object[].class, size);
             Object[] elements = new Object[size];
 
             // Read in all elements in the proper order.

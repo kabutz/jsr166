@@ -27,7 +27,7 @@ package java.util;
 
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import jdk.internal.misc.SharedSecrets;
+// OPENJDK import jdk.internal.access.SharedSecrets;
 
 /**
  * An unbounded priority {@linkplain Queue queue} based on a priority heap.
@@ -803,7 +803,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         // Read in (and discard) array length
         s.readInt();
 
-        SharedSecrets.getJavaObjectInputStreamAccess().checkArray(s, Object[].class, size);
+        jsr166.Platform.checkArray(s, Object[].class, size);
         final Object[] es = queue = new Object[Math.max(size, 1)];
 
         // Read in all elements.
