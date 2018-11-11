@@ -8,7 +8,6 @@ package java.util;
 import java.io.Serializable;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
 // OPENJDK import jdk.internal.access.SharedSecrets;
 
 /**
@@ -917,7 +916,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @param operator the operator to apply to each element
      * @since TBD
      */
-    /* public */ void replaceAll(UnaryOperator<E> operator) {
+    /* public */ void replaceAll(java.util.function.UnaryOperator<E> operator) {
         Objects.requireNonNull(operator);
         final Object[] es = elements;
         for (int i = head, end = tail, to = (i <= end) ? end : es.length;
