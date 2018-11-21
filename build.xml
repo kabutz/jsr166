@@ -1373,10 +1373,16 @@
 
 
 <!-- ==============================================================
-  Experimental errorprone support - https://errorprone.info
+  Experimental errorprone support
+  https://errorprone.info
+  https://errorprone.info/docs/installation
+  https://github.com/google/error-prone/issues/1143
 =================================================================== -->
-  <property name="errorprone.jar" location="${lib.dir}/error_prone_ant-2.3.1.jar"/>
-  <property name="errorprone.processorpath" value="${errorprone.jar}"/>
+  <property name="errorprone.jar" location="${lib.dir}/error_prone_core-2.3.2-with-dependencies.jar"/>
+  <property name="dataflow.jar" location="${lib.dir}/dataflow-2.5.7.jar"/>
+  <property name="javacutil.jar" location="${lib.dir}/javacutil-2.5.7.jar"/>
+  <property name="jFormatString.jar" location="${lib.dir}/jFormatString-3.0.0.jar"/>
+  <property name="errorprone.processorpath" value="${errorprone.jar}:${jFormatString.jar}:${dataflow.jar}:${javacutil.jar}" />
   <property name="errorprone.jsr166.user.flags" value=""/>
   <property name="errorprone.jsr166.flags"
             value="-Xep:HashtableContains:OFF
@@ -1391,6 +1397,7 @@
                    -Xep:LongLiteralLowerCaseSuffix:ERROR
                    -Xep:RedundantThrows:ERROR
                    -Xep:IdentityBinaryExpression:WARN
+                   -Xep:ConstructorInvokesOverridable:WARN
                    -Xep:MethodCanBeStatic:WARN
                    ${errorprone.jsr166.user.flags}"/>
   <!-- -Xep:WildcardImport:ERROR -->
