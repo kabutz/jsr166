@@ -1,5 +1,5 @@
 <project name="jsr166" default="usage"
-  xmlns:if="ant:if" 
+  xmlns:if="ant:if"
   xmlns:unless="ant:unless"
   xmlns:ivy="antlib:org.apache.ivy.ant">
 
