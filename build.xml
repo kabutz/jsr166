@@ -1376,6 +1376,7 @@
   Experimental errorprone support - https://errorprone.info
 =================================================================== -->
   <property name="errorprone.jar" location="${lib.dir}/error_prone_ant-2.3.1.jar"/>
+  <property name="errorprone.processorpath" value="${errorprone.jar}"/>
   <property name="errorprone.jsr166.user.flags" value=""/>
   <property name="errorprone.jsr166.flags"
             value="-Xep:HashtableContains:OFF
@@ -1422,7 +1423,7 @@
       <!-- Needed to silence -Xep:FutureReturnValueIgnored -->
       <compilerarg value="-J--illegal-access=permit"/>
       <compilerarg value="-XDcompilePolicy=simple"/>
-      <compilerarg line="-processorpath ${errorprone.jar}"/>
+      <compilerarg line="-processorpath ${errorprone.processorpath}"/>
       <compilerarg value="-Xplugin:ErrorProne
                           ${errorprone.jsr166.flags}"/>
       <compilerarg value="--patch-module=java.base=${src.dir}"/>
@@ -1446,7 +1447,7 @@
         <!-- Needed to silence -Xep:FutureReturnValueIgnored -->
         <compilerarg value="-J--illegal-access=permit"/>
         <compilerarg value="-XDcompilePolicy=simple"/>
-        <compilerarg line="-processorpath ${errorprone.jar}"/>
+        <compilerarg line="-processorpath ${errorprone.processorpath}"/>
         <compilerarg value="-Xplugin:ErrorProne
                             ${errorprone.jsr166.flags}
                             ${errorprone.jsr166.test.flags}"/>
@@ -1469,7 +1470,7 @@
       <jtreg-elements>
         <arg value="-javacoption:-XDcompilePolicy=simple"/>
         <arg value="-javacoption:-processorpath"/>
-        <arg value="-javacoption:${errorprone.jar}"/>
+        <arg value="-javacoption:${errorprone.processorpath}"/>
         <arg value="-javacoption:-Xplugin:ErrorProne
                             ${errorprone.jsr166.flags}
                             ${errorprone.jsr166.test.flags}
