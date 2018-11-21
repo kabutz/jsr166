@@ -198,7 +198,7 @@ public class RecursiveTaskTest extends JSR166TestCase {
                 return n;
             FibTask f1 = new FibTask(n - 1);
             f1.fork();
-            return (new FibTask(n - 2)).compute() + f1.join();
+            return new FibTask(n - 2).compute() + f1.join();
         }
 
         public void publicSetRawResult(Integer result) {
@@ -217,7 +217,7 @@ public class RecursiveTaskTest extends JSR166TestCase {
                 throw new FJException();
             FailingFibTask f1 = new FailingFibTask(n - 1);
             f1.fork();
-            return (new FibTask(n - 2)).compute() + f1.join();
+            return new FibTask(n - 2).compute() + f1.join();
         }
     }
 
