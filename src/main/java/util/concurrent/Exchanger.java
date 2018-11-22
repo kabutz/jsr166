@@ -591,8 +591,8 @@ public class Exchanger<V> {
         long ns = unit.toNanos(timeout);
         if ((arena != null ||
              (v = slotExchange(item, true, ns)) == null) &&
-            ((Thread.interrupted() ||
-              (v = arenaExchange(item, true, ns)) == null)))
+            (Thread.interrupted() ||
+             (v = arenaExchange(item, true, ns)) == null))
             throw new InterruptedException();
         if (v == TIMED_OUT)
             throw new TimeoutException();
