@@ -535,8 +535,8 @@ public class Exchanger<V> {
         Object item = (x == null) ? NULL_ITEM : x; // translate null args
         if (((a = arena) != null ||
              (v = slotExchange(item, false, 0L)) == null) &&
-            ((Thread.interrupted() || // disambiguates null return
-              (v = arenaExchange(item, false, 0L)) == null)))
+            (Thread.interrupted() || // disambiguates null return
+             (v = arenaExchange(item, false, 0L)) == null))
             throw new InterruptedException();
         return (v == NULL_ITEM) ? null : (V)v;
     }
