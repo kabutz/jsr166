@@ -117,13 +117,21 @@ import junit.framework.TestSuite;
  *
  * <ol>
  *
- * <li>All assertions in code running in generated threads must use
- * the forms {@link #threadFail}, {@link #threadAssertTrue}, {@link
- * #threadAssertEquals}, or {@link #threadAssertNull}, (not
- * {@code fail}, {@code assertTrue}, etc.) It is OK (but not
- * particularly recommended) for other code to use these forms too.
- * Only the most typically used JUnit assertion methods are defined
- * this way, but enough to live with.
+ * <li>All code not running in the main test thread (manually spawned threads
+ * or the common fork join pool) must be checked for failure (and completion!).
+ * Mechanisms that can be used to ensure this are:
+ *   <ol>
+ *   <li>Signalling via a synchronizer like AtomicInteger or CountDownLatch
+ *    that the task completed normally, which is checked before returning from
+ *    the test method in the main thread.
+ *   <li>Using the forms {@link #threadFail}, {@link #threadAssertTrue},
+ *    or {@link #threadAssertNull}, (not {@code fail}, {@code assertTrue}, etc.)
+ *    Only the most typically used JUnit assertion methods are defined
+ *    this way, but enough to live with.
+ *   <li>Recording failure explicitly using {@link #threadUnexpectedException}
+ *    or {@link #threadRecordFailure}.
+ *   <li>Using a wrapper like CheckedRunnable that uses one the mechanisms above.
+ *   </ol>
  *
  * <li>If you override {@link #setUp} or {@link #tearDown}, make sure
  * to invoke {@code super.setUp} and {@code super.tearDown} within
@@ -1291,22 +1299,32 @@ public class JSR166TestCase extends TestCase {
     /**
      * Spin-waits up to the specified number of milliseconds for the given
      * thread to enter a wait state: BLOCKED, WAITING, or TIMED_WAITING.
+     * @param waitingForGodot if non-null, an additional condition to satisfy
      */
-    void waitForThreadToEnterWaitState(Thread thread, long timeoutMillis) {
-        long startTime = 0L;
-        for (;;) {
-            Thread.State s = thread.getState();
-            if (s == Thread.State.BLOCKED ||
-                s == Thread.State.WAITING ||
-                s == Thread.State.TIMED_WAITING)
-                return;
-            else if (s == Thread.State.TERMINATED)
+    void waitForThreadToEnterWaitState(Thread thread, long timeoutMillis,
+                                       Callable<Boolean> waitingForGodot) {
+        for (long startTime = 0L;;) {
+            switch (thread.getState()) {
+            case BLOCKED: case WAITING: case TIMED_WAITING:
+                try {
+                    if (waitingForGodot == null || waitingForGodot.call())
+                        return;
+                } catch (Throwable fail) { threadUnexpectedException(fail); }
+                break;
+            case TERMINATED:
                 fail("Unexpected thread termination");
-            else if (startTime == 0L)
+            }
+
+            if (startTime == 0L)
                 startTime = System.nanoTime();
             else if (millisElapsedSince(startTime) > timeoutMillis) {
-                threadAssertTrue(thread.isAlive());
-                fail("timed out waiting for thread to enter wait state");
+                assertTrue(thread.isAlive());
+                if (waitingForGodot == null
+                    || thread.getState() == Thread.State.RUNNABLE)
+                    fail("timed out waiting for thread to enter wait state");
+                else
+                    fail("timed out waiting for condition, thread state="
+                         + thread.getState());
             }
             Thread.yield();
         }
@@ -1314,32 +1332,10 @@ public class JSR166TestCase extends TestCase {
 
     /**
      * Spin-waits up to the specified number of milliseconds for the given
-     * thread to enter a wait state: BLOCKED, WAITING, or TIMED_WAITING,
-     * and additionally satisfy the given condition.
+     * thread to enter a wait state: BLOCKED, WAITING, or TIMED_WAITING.
      */
-    void waitForThreadToEnterWaitState(
-        Thread thread, long timeoutMillis, Callable<Boolean> waitingForGodot) {
-        long startTime = 0L;
-        for (;;) {
-            Thread.State s = thread.getState();
-            if (s == Thread.State.BLOCKED ||
-                s == Thread.State.WAITING ||
-                s == Thread.State.TIMED_WAITING) {
-                try {
-                    if (waitingForGodot.call())
-                        return;
-                } catch (Throwable fail) { threadUnexpectedException(fail); }
-            }
-            else if (s == Thread.State.TERMINATED)
-                fail("Unexpected thread termination");
-            else if (startTime == 0L)
-                startTime = System.nanoTime();
-            else if (millisElapsedSince(startTime) > timeoutMillis) {
-                threadAssertTrue(thread.isAlive());
-                fail("timed out waiting for thread to enter wait state");
-            }
-            Thread.yield();
-        }
+    void waitForThreadToEnterWaitState(Thread thread, long timeoutMillis) {
+        waitForThreadToEnterWaitState(thread, timeoutMillis, null);
     }
 
     /**
@@ -1347,7 +1343,7 @@ public class JSR166TestCase extends TestCase {
      * enter a wait state: BLOCKED, WAITING, or TIMED_WAITING.
      */
     void waitForThreadToEnterWaitState(Thread thread) {
-        waitForThreadToEnterWaitState(thread, LONG_DELAY_MS);
+        waitForThreadToEnterWaitState(thread, LONG_DELAY_MS, null);
     }
 
     /**
@@ -1355,8 +1351,8 @@ public class JSR166TestCase extends TestCase {
      * enter a wait state: BLOCKED, WAITING, or TIMED_WAITING,
      * and additionally satisfy the given condition.
      */
-    void waitForThreadToEnterWaitState(
-        Thread thread, Callable<Boolean> waitingForGodot) {
+    void waitForThreadToEnterWaitState(Thread thread,
+                                       Callable<Boolean> waitingForGodot) {
         waitForThreadToEnterWaitState(thread, LONG_DELAY_MS, waitingForGodot);
     }
 
@@ -1464,11 +1460,12 @@ public class JSR166TestCase extends TestCase {
         public final void run() {
             try {
                 realRun();
-                threadShouldThrow(exceptionClass.getSimpleName());
             } catch (Throwable t) {
                 if (! exceptionClass.isInstance(t))
                     threadUnexpectedException(t);
+                return;
             }
+            threadShouldThrow(exceptionClass.getSimpleName());
         }
     }
 
@@ -1478,12 +1475,13 @@ public class JSR166TestCase extends TestCase {
         public final void run() {
             try {
                 realRun();
-                threadShouldThrow("InterruptedException");
             } catch (InterruptedException success) {
                 threadAssertFalse(Thread.interrupted());
+                return;
             } catch (Throwable fail) {
                 threadUnexpectedException(fail);
             }
+            threadShouldThrow("InterruptedException");
         }
     }
 
@@ -1495,26 +1493,8 @@ public class JSR166TestCase extends TestCase {
                 return realCall();
             } catch (Throwable fail) {
                 threadUnexpectedException(fail);
-                return null;
             }
-        }
-    }
-
-    public abstract class CheckedInterruptedCallable<T>
-        implements Callable<T> {
-        protected abstract T realCall() throws Throwable;
-
-        public final T call() {
-            try {
-                T result = realCall();
-                threadShouldThrow("InterruptedException");
-                return result;
-            } catch (InterruptedException success) {
-                threadAssertFalse(Thread.interrupted());
-            } catch (Throwable fail) {
-                threadUnexpectedException(fail);
-            }
-            return null;
+            throw new AssertionError("unreached");
         }
     }
 
@@ -1692,8 +1672,8 @@ public class JSR166TestCase extends TestCase {
                 return realCompute();
             } catch (Throwable fail) {
                 threadUnexpectedException(fail);
-                return null;
             }
+            throw new AssertionError("unreached");
         }
     }
 
