@@ -1305,6 +1305,7 @@ public class JSR166TestCase extends TestCase {
                                        Callable<Boolean> waitingForGodot) {
         for (long startTime = 0L;;) {
             switch (thread.getState()) {
+            default: break;
             case BLOCKED: case WAITING: case TIMED_WAITING:
                 try {
                     if (waitingForGodot == null || waitingForGodot.call())
