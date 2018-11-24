@@ -4871,6 +4871,7 @@ public class CompletableFutureTest extends JSR166TestCase {
         if (createIncomplete) f.completeExceptionally(ex);
 
         checkCompletedNormally(g.toCompletableFuture(), v1);
+        checkCompletedExceptionally(f, ex);
         assertEquals(1, ran.get());
     }}
 
