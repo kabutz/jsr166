@@ -1609,14 +1609,6 @@ public class JSR166TestCase extends TestCase {
         public String call() { throw new NullPointerException(); }
     }
 
-    public class SmallPossiblyInterruptedRunnable extends CheckedRunnable {
-        protected void realRun() {
-            try {
-                delay(SMALL_DELAY_MS);
-            } catch (InterruptedException ok) {}
-        }
-    }
-
     public Runnable possiblyInterruptedRunnable(final long timeoutMillis) {
         return new CheckedRunnable() {
             protected void realRun() {
