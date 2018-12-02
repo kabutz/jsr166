@@ -202,10 +202,8 @@
   <!-- <property name="java10.docroot.url" value="http://download.java.net/java/jdk10/docs"/> -->
   <!-- <property name="java11.docroot.url" value="http://download.java.net/java/jdk11/docs"/> -->
   <property name="java12.docroot.url" value="https://download.java.net/java/jdk12/docs"/>
-  <!-- Default jdk doc location (latest stable release seems best) -->
-  <!-- But pin to jdk 10 until fix for -->
-  <!-- 8211194: javadoc -link doesn't take module path into consideration -->
-  <property name="java.docroot.url"   value="${java10.docroot.url}"/>
+  <!-- Default jdk doc location (latest stable LTS release seems best) -->
+  <property name="java.docroot.url"   value="${java11.docroot.url}"/>
 
   <!-- Canonical location of jdk API docs, to use with javadoc link attribute -->
   <property name="java5.api.url"      value="${java5.docroot.url}/api/"/>
@@ -393,11 +391,17 @@
   <!-- Default values: may seem strange ... -->
   <!-- At runtime, target latest LTS, i.e. jdk11 -->
   <!-- But at build time, target jdk9, for maximal binary portability -->
-  <!-- Use javadoc12, so we can use override-methods=summary, and JDK-8202628 -->
-  <property name="build.main.java.version" value="11"/>
+  <!-- Use javadoc12 (but -link to jdk11 api docs!), to get:
+    o override-methods=summary
+    o {@systemProperty ...}
+    o 8211194: issues linking to external documentation (was: missing package-list for JDK10 / JDK11 documentation)
+    o 8202628: javadoc generates bad links in TestModules.java
+    -->
+  <property name="java.runtime.target" value="11"/>
   <property name="build.main.java" value="${java11}"/>
   <property name="build.main.javac" value="${javac9}"/>
   <property name="build.main.javadoc" value="${javadoc12}"/>
+  <property name="build.main.javadoc.source" value="${java.runtime.target}"/>
 
   <target name="dists"
           depends="dist, 4jdk8dist"
@@ -471,17 +475,17 @@
 <!-- TODO: <arg line="- -module-source-path ${jdk9.home}/src.zip"/> -->
     <javadoc destdir="${docs.dir}"
              packagenames="none"
-             link="${java11.api.url}"
+             link="${java.api.url}"
              overview="${src.dir}/intro.html"
              access="${build.javadoc.access}"
              sourcepath="${src.dir}"
              classpath=""
-             source="11"
+             source="${build.main.javadoc.source}"
              executable="${build.main.javadoc}">
       <fileset dir="${src.dir}" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
-      <arg line="-Xdocrootparent ${java10.docroot.url}"/>
+      <arg line="-Xdocrootparent ${java.docroot.url}"/>
       <arg line="-Xmaxerrs 1000 -Xmaxwarns 1000"/>
       <arg value="-XDignore.symbol.file=true"/>
       <arg value="-html5"/>
@@ -533,7 +537,7 @@
           description="Runs tck tests for src/main directly">
 
     <run-tck-tests
-      target="${build.main.java.version}"
+      target="${java.runtime.target}"
       workdir="${build.dir}"
       classes="${product.jar}">
       <javac-elements>
@@ -567,7 +571,7 @@
 	  depends="jar"
           description="Runs jtreg tests for src/main using the jtreg ant task">
     <run-jtreg-tests
-       target="${build.main.java.version}"
+       target="${java.runtime.target}"
        workdir="${build.dir}"
        classes="${product.jar}"/>
   </target>
@@ -583,20 +587,22 @@
   <target name="test9">
     <antcall target="clean"/>
     <antcall>
-      <param name="build.main.java.version" value="9"/>
-      <param name="build.main.java" value="${java9}"/>
+      <param name="java.runtime.target" value="9"/>
       <param name="build.main.javac" value="${javac9}"/>
+      <param name="build.main.javadoc" value="${javadoc12}"/>
+      <param name="build.main.javadoc.source" value="9"/>
       <target name="test"/>
+      <target name="docs"/>
     </antcall>
   </target>
 
   <target name="test10">
     <antcall target="clean"/>
     <antcall>
-      <param name="build.main.java.version" value="10"/>
-      <param name="build.main.java" value="${java10}"/>
+      <param name="java.runtime.target" value="10"/>
       <param name="build.main.javac" value="${javac10}"/>
-      <param name="build.main.javadoc" value="${javadoc10}"/>
+      <param name="build.main.javadoc" value="${javadoc12}"/>
+      <param name="build.main.javadoc.source" value="10"/>
       <target name="test"/>
       <target name="docs"/>
     </antcall>
@@ -605,10 +611,10 @@
   <target name="test11">
     <antcall target="clean"/>
     <antcall>
-      <param name="build.main.java.version" value="11"/>
-      <param name="build.main.java" value="${java11}"/>
+      <param name="java.runtime.target" value="11"/>
       <param name="build.main.javac" value="${javac11}"/>
-      <param name="build.main.javadoc" value="${javadoc11}"/>
+      <param name="build.main.javadoc" value="${javadoc12}"/>
+      <param name="build.main.javadoc.source" value="11"/>
       <target name="test"/>
       <target name="docs"/>
     </antcall>
@@ -617,10 +623,10 @@
   <target name="test12">
     <antcall target="clean"/>
     <antcall>
-      <param name="build.main.java.version" value="12"/>
-      <param name="build.main.java" value="${java12}"/>
+      <param name="java.runtime.target" value="12"/>
       <param name="build.main.javac" value="${javac12}"/>
       <param name="build.main.javadoc" value="${javadoc12}"/>
+      <param name="build.main.javadoc.source" value="12"/>
       <target name="test"/>
       <target name="docs"/>
     </antcall>
@@ -629,10 +635,10 @@
   <target name="test9-11">
     <antcall target="clean"/>
     <antcall>
-      <param name="build.main.java.version" value="11"/>
-      <param name="build.main.java" value="${java11}"/>
+      <param name="java.runtime.target" value="11"/>
       <param name="build.main.javac" value="${javac9}"/>
-      <param name="build.main.javadoc" value="${javadoc11}"/>
+      <param name="build.main.javadoc" value="${javadoc12}"/>
+      <param name="build.main.javadoc.source" value="9"/>
       <target name="test"/>
       <target name="docs"/>
     </antcall>
@@ -641,10 +647,10 @@
   <target name="test9-12">
     <antcall target="clean"/>
     <antcall>
-      <param name="build.main.java.version" value="12"/>
-      <param name="build.main.java" value="${java12}"/>
+      <param name="java.runtime.target" value="12"/>
       <param name="build.main.javac" value="${javac9}"/>
       <param name="build.main.javadoc" value="${javadoc12}"/>
+      <param name="build.main.javadoc.source" value="9"/>
       <target name="test"/>
       <target name="docs"/>
     </antcall>
@@ -1452,7 +1458,7 @@
     </jar>
 
     <run-tck-tests
-      target="${build.main.java.version}"
+      target="${java.runtime.target}"
       workdir="${build.dir}"
       classes="${product.jar}">
       <javac-elements>
@@ -1475,7 +1481,7 @@
           description="Run errorprone over jtreg tests (experimental)">
 
     <run-jtreg-tests
-       target="${build.main.java.version}"
+       target="${java.runtime.target}"
        workdir="${build.dir}"
        classes="${product.jar}"
        verbose="all">
