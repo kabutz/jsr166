@@ -482,6 +482,7 @@
              classpath=""
              source="${build.main.javadoc.source}"
              executable="${build.main.javadoc}">
+<!-- TODO: JDK-8214571 failonerror = "true" -->
       <fileset dir="${src.dir}" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
