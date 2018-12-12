@@ -550,6 +550,7 @@ public class JSR166TestCase extends TestCase {
                 "HashMapTest",
                 "LinkedBlockingDeque8Test",
                 "LinkedBlockingQueue8Test",
+                "LinkedHashMapTest",
                 "LongAccumulatorTest",
                 "LongAdderTest",
                 "SplittableRandomTest",
