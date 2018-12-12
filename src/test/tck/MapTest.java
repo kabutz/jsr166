@@ -139,6 +139,20 @@ public class MapTest extends JSR166TestCase {
         assertEquals(1, m.size());
     }
 
+    /**
+     * "Missing" test found while investigating JDK-8210280.
+     * See discussion on mailing list.
+     * TODO: randomize
+     */
+    public void testBug8210280() {
+        Map m = impl.emptyMap();
+        for (int i = 0; i < 4; i++) m.put(7 + i * 16, 0);
+        Map more = impl.emptyMap();
+        for (int i = 0; i < 128; i++) more.put(-i, 42);
+        m.putAll(more);
+        for (int i = 0; i < 4; i++) assertEquals(0, m.get(7 + i * 16));
+    }
+
 //     public void testFailsIntentionallyForDebugging() {
 //         fail(impl.klazz().getSimpleName());
 //     }
