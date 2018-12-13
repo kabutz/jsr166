@@ -24,18 +24,20 @@
   $HOME/jdk/jdk10
   $HOME/jdk/jdk11
   $HOME/jdk/jdk12
+  $HOME/jdk/jdk13
   where each of the above is a JDK or a symlink to same, and
   $HOME/jdk/src/jdk8
   $HOME/jdk/src/jdk9
   $HOME/jdk/src/jdk10
   $HOME/jdk/src/jdk11
   $HOME/jdk/src/jdk12
+  $HOME/jdk/src/jdk13
   where each of the above is a complete JDK source tree
   (e.g. mercurial forest) or a symlink to same.
 
   Alternatively, define ant variables thus:
   ant -Djdk$N.home=... -Djdk$N.src.home=...
-  for $N in 8 9 10 ...
+  for $N in 8 .. 13 ...
 
   As of 2016-03, the sources in src/main are for jdk9+ only.
 ------------------------------------------------------------------------------
