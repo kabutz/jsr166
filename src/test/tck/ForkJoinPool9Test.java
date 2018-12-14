@@ -41,6 +41,10 @@ public class ForkJoinPool9Test extends JSR166TestCase {
         ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
         boolean haveSecurityManager = (System.getSecurityManager() != null);
         CountDownLatch taskStarted = new CountDownLatch(1);
+        ClassLoader classLoaderDistinctFromSystemClassLoader
+            = ClassLoader.getPlatformClassLoader();
+        assertNotSame(classLoaderDistinctFromSystemClassLoader,
+                      systemClassLoader);
         Runnable runInCommonPool = () -> {
             taskStarted.countDown();
             assertTrue(ForkJoinTask.inForkJoinPool());
@@ -54,7 +58,8 @@ public class ForkJoinPool9Test extends JSR166TestCase {
                 assertThrows(
                     SecurityException.class,
                     () -> System.getProperty("foo"),
-                    () -> Thread.currentThread().setContextClassLoader(null));
+                    () -> Thread.currentThread().setContextClassLoader(
+                        classLoaderDistinctFromSystemClassLoader));
             // TODO ?
 //          if (haveSecurityManager
 //              && Thread.currentThread().getClass().getSimpleName()
