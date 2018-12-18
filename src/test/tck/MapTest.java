@@ -141,16 +141,36 @@ public class MapTest extends JSR166TestCase {
 
     /**
      * "Missing" test found while investigating JDK-8210280.
-     * See discussion on mailing list.
-     * TODO: randomize
+     * ant -Djsr166.tckTestClass=HashMapTest -Djsr166.methodFilter=testBug8210280 -Djsr166.runsPerTest=1000000 tck
      */
     public void testBug8210280() {
-        Map m = impl.emptyMap();
-        for (int i = 0; i < 4; i++) m.put(7 + i * 16, 0);
-        Map more = impl.emptyMap();
-        for (int i = 0; i < 128; i++) more.put(-i, 42);
-        m.putAll(more);
-        for (int i = 0; i < 4; i++) assertEquals(0, m.get(7 + i * 16));
+        final ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        final int size1 = rnd.nextInt(32);
+        final int size2 = rnd.nextInt(128);
+
+        final Map m1 = impl.emptyMap();
+        for (int i = 0; i < size1; i++) {
+            int elt = rnd.nextInt(1024 * i, 1024 * (i + 1));
+            assertNull(m1.put(impl.makeKey(elt), impl.makeValue(elt)));
+        }
+
+        final Map m2 = impl.emptyMap();
+        for (int i = 0; i < size2; i++) {
+            int elt = rnd.nextInt(Integer.MIN_VALUE + 1024 * i,
+                                  Integer.MIN_VALUE + 1024 * (i + 1));
+            assertNull(m2.put(impl.makeKey(elt), impl.makeValue(-elt)));
+        }
+
+        final Map m1Copy = impl.emptyMap();
+        m1Copy.putAll(m1);
+
+        m1.putAll(m2);
+
+        for (Object elt : m2.keySet())
+            assertEquals(m2.get(elt), m1.get(elt));
+        for (Object elt : m1Copy.keySet())
+            assertSame(m1Copy.get(elt), m1.get(elt));
+        assertEquals(size1 + size2, m1.size());
     }
 
 //     public void testFailsIntentionallyForDebugging() {
