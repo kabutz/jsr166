@@ -27,7 +27,11 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toMap;
@@ -42,6 +46,7 @@ import static org.testng.Assert.assertNull;
  * @run testng WhiteBoxResizeTest
  */
 public class WhiteBoxResizeTest {
+    final ThreadLocalRandom rnd = ThreadLocalRandom.current();
     final MethodHandle TABLE_SIZE_FOR;
     final VarHandle THRESHOLD;
     final VarHandle TABLE;
@@ -91,14 +96,36 @@ public class WhiteBoxResizeTest {
     }
 
     @Test
-    public void capacityTest() {
-        HashMap<Integer, Integer> map = new HashMap<>();
+    public void capacityTestDefaultConstructor() {
+        capacityTestDefaultConstructor(new HashMap<>());
+        capacityTestDefaultConstructor(new LinkedHashMap<>());
+    }
+
+    void capacityTestDefaultConstructor(HashMap<Integer, Integer> map) {
         assertNull(table(map));
 
         map.put(1, 1);
-        assertEquals(capacity(map), 16);
+        assertEquals(capacity(map), 16); // default initial capacity
 
         map.putAll(IntStream.range(0, 64).boxed().collect(toMap(i -> i, i -> i)));
         assertEquals(capacity(map), 128);
+    }
+
+    @Test
+    public void capacityTestInitialCapacity() {
+        int initialCapacity = rnd.nextInt(1, 256);
+        List<Supplier<HashMap<Integer, Integer>>> suppliers = List.of(
+            () -> new HashMap<>(initialCapacity),
+            () -> new HashMap<>(initialCapacity, 0.75f),
+            () -> new LinkedHashMap<>(initialCapacity),
+            () -> new LinkedHashMap<>(initialCapacity, 0.75f));
+
+        for (Supplier<HashMap<Integer, Integer>> supplier : suppliers) {
+            HashMap<Integer, Integer> map = supplier.get();
+            assertNull(table(map));
+
+            map.put(1, 1);
+            assertEquals(capacity(map), tableSizeFor(initialCapacity));
+        }
     }
 }
