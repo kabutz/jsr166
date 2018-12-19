@@ -114,7 +114,7 @@ public class WhiteBoxResizeTest {
 
     @Test
     public void capacityTestInitialCapacity() {
-        int initialCapacity = rnd.nextInt(1, 256);
+        int initialCapacity = rnd.nextInt(2, 128);
         List<Supplier<HashMap<Integer, Integer>>> suppliers = List.of(
             () -> new HashMap<>(initialCapacity),
             () -> new HashMap<>(initialCapacity, 0.75f),
