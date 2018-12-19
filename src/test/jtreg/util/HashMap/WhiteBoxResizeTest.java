@@ -44,6 +44,7 @@ import static org.testng.Assert.assertNull;
  * @modules java.base/java.util:open
  * @summary White box tests for HashMap internals around table resize
  * @run testng WhiteBoxResizeTest
+ * @key randomness
  */
 public class WhiteBoxResizeTest {
     final ThreadLocalRandom rnd = ThreadLocalRandom.current();
