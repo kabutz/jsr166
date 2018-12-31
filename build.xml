@@ -140,6 +140,7 @@
   <defjdklocations v="10"/>
   <defjdklocations v="11"/>
   <defjdklocations v="12"/>
+  <defjdklocations v="13"/>
 
   <!-- Source locations -->
   <property name="src.dir"              location="${basedir}/src/main"/>
@@ -152,6 +153,7 @@
   <property name="jtreg10.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg11.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg12.src.dir"      location="${test.src.dir}/jtreg"/>
+  <property name="jtreg13.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg.src.dir"        location="${jtreg9.src.dir}"/>
   <property name="lib.dir"              location="${basedir}/lib"/>
   <property name="dist.dir"             location="${basedir}/dist"/>
@@ -204,6 +206,7 @@
   <!-- <property name="java10.docroot.url" value="http://download.java.net/java/jdk10/docs"/> -->
   <!-- <property name="java11.docroot.url" value="http://download.java.net/java/jdk11/docs"/> -->
   <property name="java12.docroot.url" value="https://download.java.net/java/jdk12/docs"/>
+  <property name="java13.docroot.url" value="https://download.java.net/java/early_access/jdk13/docs"/>
   <!-- Default jdk doc location (latest stable LTS release seems best) -->
   <property name="java.docroot.url"   value="${java11.docroot.url}"/>
 
@@ -216,6 +219,7 @@
   <property name="java10.api.url"     value="${java10.docroot.url}/api/"/>
   <property name="java11.api.url"     value="${java11.docroot.url}/api/"/>
   <property name="java12.api.url"     value="${java12.docroot.url}/api/"/>
+  <property name="java13.api.url"     value="${java13.docroot.url}/api/"/>
   <property name="java.api.url"       value="${java.docroot.url}/api/"/>
 
   <!-- Define the "jtreg" task -->
@@ -329,6 +333,7 @@
     </sequential>
   </macrodef>
 
+  <defjtregtests v="13"/>
   <defjtregtests v="12"/>
   <defjtregtests v="11"/>
   <defjtregtests v="10"/>
@@ -584,7 +589,7 @@
           description="Runs tck and jtreg tests for src/main"/>
 
   <target name="test-version-permutations"
-	  depends="test9, test10, test11, test12, test9-11, test9-12, clean, test, docs">
+	  depends="test9, test10, test11, test12, test13, test9-11, test9-12, test9-13, clean, test, docs">
   </target>
 
   <target name="test9">
@@ -635,6 +640,18 @@
     </antcall>
   </target>
 
+  <target name="test13">
+    <antcall target="clean"/>
+    <antcall>
+      <param name="java.runtime.target" value="13"/>
+      <param name="build.main.javac" value="${javac13}"/>
+      <param name="build.main.javadoc" value="${javadoc13}"/>
+      <param name="build.main.javadoc.source" value="13"/>
+      <target name="test"/>
+      <target name="docs"/>
+    </antcall>
+  </target>
+
   <target name="test9-11">
     <antcall target="clean"/>
     <antcall>
@@ -653,6 +670,18 @@
       <param name="java.runtime.target" value="12"/>
       <param name="build.main.javac" value="${javac9}"/>
       <param name="build.main.javadoc" value="${javadoc12}"/>
+      <param name="build.main.javadoc.source" value="9"/>
+      <target name="test"/>
+      <target name="docs"/>
+    </antcall>
+  </target>
+
+  <target name="test9-13">
+    <antcall target="clean"/>
+    <antcall>
+      <param name="java.runtime.target" value="13"/>
+      <param name="build.main.javac" value="${javac9}"/>
+      <param name="build.main.javadoc" value="${javadoc13}"/>
       <param name="build.main.javadoc.source" value="9"/>
       <target name="test"/>
       <target name="docs"/>
