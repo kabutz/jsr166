@@ -304,6 +304,7 @@ public class IteratorMicroBenchmark {
                 makeSubList(new LinkedList<>(al)),
                 new PriorityQueue<>(al),
                 new Vector<>(al),
+                List.of(al.toArray(new Integer[0])),
                 makeSubList(new Vector<>(al)),
                 new CopyOnWriteArrayList<>(al),
                 makeSubList(new CopyOnWriteArrayList<>(al)),
@@ -329,9 +330,18 @@ public class IteratorMicroBenchmark {
         return Stream.of(streams).flatMap(s -> s);
     }
 
+    boolean isMutable(Collection<Integer> x) {
+        return !goodClassName(x.getClass()).equals("ListN");
+    }
+
     Stream<Job> jobs(Collection<Integer> x) {
+        final String klazz = goodClassName(x.getClass());
         return concatStreams(
             collectionJobs(x),
+
+            (isMutable(x))
+            ? mutableCollectionJobs(x)
+            : Stream.empty(),
 
             (x instanceof Deque)
             ? dequeJobs((Deque<Integer>)x)
@@ -339,6 +349,10 @@ public class IteratorMicroBenchmark {
 
             (x instanceof List)
             ? listJobs((List<Integer>)x)
+            : Stream.empty(),
+
+            (x instanceof List && isMutable(x))
+            ? mutableListJobs((List<Integer>)x)
             : Stream.empty());
     }
 
@@ -381,14 +395,6 @@ public class IteratorMicroBenchmark {
                         sum[0] = 0;
                         x.spliterator().forEachRemaining(n -> sum[0] += n);
                         check.sum(sum[0]);}}},
-            new Job(klazz + " removeIf") {
-                public void work() throws Throwable {
-                    int[] sum = new int[1];
-                    for (int i = 0; i < iterations; i++) {
-                        sum[0] = 0;
-                        if (x.removeIf(n -> { sum[0] += n; return false; }))
-                            throw new AssertionError();
-                        check.sum(sum[0]);}}},
             new Job(klazz + " contains") {
                 public void work() throws Throwable {
                     int[] sum = new int[1];
@@ -406,14 +412,6 @@ public class IteratorMicroBenchmark {
                         sum[0] = 0;
                         if (x.containsAll(sneakyAdderCollection))
                             throw new AssertionError();
-                        check.sum(sum[0]);}}},
-            new Job(klazz + " remove(Object)") {
-                public void work() throws Throwable {
-                    int[] sum = new int[1];
-                    Object sneakyAdder = sneakyAdder(sum);
-                    for (int i = 0; i < iterations; i++) {
-                        sum[0] = 0;
-                        if (x.remove(sneakyAdder)) throw new AssertionError();
                         check.sum(sum[0]);}}},
             new Job(klazz + " forEach") {
                 public void work() throws Throwable {
@@ -498,6 +496,27 @@ public class IteratorMicroBenchmark {
                         check.sum(sum[0]);}}});
     }
 
+    Stream<Job> mutableCollectionJobs(Collection<Integer> x) {
+        final String klazz = goodClassName(x.getClass());
+        return Stream.of(
+            new Job(klazz + " removeIf") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        if (x.removeIf(n -> { sum[0] += n; return false; }))
+                            throw new AssertionError();
+                        check.sum(sum[0]);}}},
+            new Job(klazz + " remove(Object)") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    Object sneakyAdder = sneakyAdder(sum);
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        if (x.remove(sneakyAdder)) throw new AssertionError();
+                        check.sum(sum[0]);}}});
+    }
+
     Stream<Job> dequeJobs(Deque<Integer> x) {
         String klazz = goodClassName(x.getClass());
         return Stream.of(
@@ -555,15 +574,6 @@ public class IteratorMicroBenchmark {
                         if (x.lastIndexOf(sneakyAdder) != -1)
                             throw new AssertionError();
                         check.sum(sum[0]);}}},
-            new Job(klazz + " replaceAll") {
-                public void work() throws Throwable {
-                    int[] sum = new int[1];
-                    UnaryOperator<Integer> sneakyAdder =
-                        x -> { sum[0] += x; return x; };
-                    for (int i = 0; i < iterations; i++) {
-                        sum[0] = 0;
-                        x.replaceAll(sneakyAdder);
-                        check.sum(sum[0]);}}},
             new Job(klazz + " equals") {
                 public void work() throws Throwable {
                     ArrayList<Integer> copy = new ArrayList<>(x);
@@ -576,5 +586,19 @@ public class IteratorMicroBenchmark {
                     for (int i = 0; i < iterations; i++) {
                         if (x.hashCode() != hashCode)
                             throw new AssertionError();}}});
+    }
+
+    Stream<Job> mutableListJobs(List<Integer> x) {
+        final String klazz = goodClassName(x.getClass());
+        return Stream.of(
+            new Job(klazz + " replaceAll") {
+                public void work() throws Throwable {
+                    int[] sum = new int[1];
+                    UnaryOperator<Integer> sneakyAdder =
+                        x -> { sum[0] += x; return x; };
+                    for (int i = 0; i < iterations; i++) {
+                        sum[0] = 0;
+                        x.replaceAll(sneakyAdder);
+                        check.sum(sum[0]);}}});
     }
 }
