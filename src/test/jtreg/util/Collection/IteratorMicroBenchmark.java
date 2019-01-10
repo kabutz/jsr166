@@ -69,8 +69,6 @@ import java.util.stream.Stream;
  * Be patient; this program runs for a very long time.
  * For faster runs, restrict execution using command line args.
  *
- * This is an interface based version of ArrayList/IteratorMicroBenchmark
- *
  * @author Martin Buchholz
  */
 public class IteratorMicroBenchmark {
@@ -115,7 +113,9 @@ public class IteratorMicroBenchmark {
         CountDownLatch finalized = new CountDownLatch(1);
         ReferenceQueue<Object> queue = new ReferenceQueue<>();
         WeakReference<Object> ref = new WeakReference<>(
-            new Object() { protected void finalize() { finalized.countDown(); }},
+            new Object() {
+                @SuppressWarnings("deprecation")
+                protected void finalize() { finalized.countDown(); }},
             queue);
         try {
             for (int tries = 3; tries--> 0; ) {
@@ -267,16 +267,22 @@ public class IteratorMicroBenchmark {
             });
     }
 
-    static List<Integer> makeSubList(List<Integer> list) {
+    String goodClassName(Object x) {
+        return goodClassName(x.getClass());
+    }
+
+    static List<Integer> makeSubList(
+        List<Integer> elements,
+        UnaryOperator<List<Integer>> copyConstructor) {
+        final ArrayList<Integer> padded = new ArrayList<>();
         final ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        int size = list.size();
-        if (size <= 2) return list.subList(0, size);
-        List<Integer> subList = list.subList(rnd.nextInt(0, 2),
-                                             size - rnd.nextInt(0, 2));
-        List<Integer> copy = new ArrayList<>(list);
-        subList.clear();
-        subList.addAll(copy);
-        return subList;
+        final int frontPorch = rnd.nextInt(3);
+        final int backPorch = rnd.nextInt(3);
+        for (int n = frontPorch; n--> 0; ) padded.add(rnd.nextInt());
+        padded.addAll(elements);
+        for (int n = backPorch; n--> 0; ) padded.add(rnd.nextInt());
+        return copyConstructor.apply(padded)
+            .subList(frontPorch, frontPorch + elements.size());
     }
 
     void run() throws Throwable {
@@ -297,23 +303,42 @@ public class IteratorMicroBenchmark {
             abq.add(abq.remove());
         }
 
-        ArrayList<Job> jobs = Stream.<Collection<Integer>>of(
-                al, ad, abq,
-                makeSubList(new ArrayList<>(al)),
-                new LinkedList<>(al),
-                makeSubList(new LinkedList<>(al)),
-                new PriorityQueue<>(al),
+        final Integer[] array = al.toArray(new Integer[0]);
+        final List<Integer> immutableSubList
+            = makeSubList(al, x -> List.of(x.toArray(new Integer[0])));
+
+        Stream<Collection<Integer>> collections = concatStreams(
+            Stream.of(
+                // Lists and their subLists
+                al,
+                makeSubList(al, ArrayList::new),
                 new Vector<>(al),
-                List.of(al.toArray(new Integer[0])),
-                makeSubList(new Vector<>(al)),
+                makeSubList(al, Vector::new),
+                new LinkedList<>(al),
+                makeSubList(al, LinkedList::new),
                 new CopyOnWriteArrayList<>(al),
-                makeSubList(new CopyOnWriteArrayList<>(al)),
+                makeSubList(al, CopyOnWriteArrayList::new),
+
+                ad,
+                new PriorityQueue<>(al),
                 new ConcurrentLinkedQueue<>(al),
                 new ConcurrentLinkedDeque<>(al),
+
+                // Blocking Queues
+                abq,
                 new LinkedBlockingQueue<>(al),
                 new LinkedBlockingDeque<>(al),
                 new LinkedTransferQueue<>(al),
-                new PriorityBlockingQueue<>(al))
+                new PriorityBlockingQueue<>(al),
+
+                List.of(al.toArray(new Integer[0]))),
+
+            // avoid UnsupportedOperationException in jdk9 and jdk10
+            (goodClassName(immutableSubList).equals("RandomAccessSubList"))
+            ? Stream.empty()
+            : Stream.of(immutableSubList));
+
+        ArrayList<Job> jobs = collections
             .flatMap(x -> jobs(x))
             .filter(job ->
                 nameFilter == null || nameFilter.matcher(job.name()).find())
@@ -331,11 +356,11 @@ public class IteratorMicroBenchmark {
     }
 
     boolean isMutable(Collection<Integer> x) {
-        return !goodClassName(x.getClass()).equals("ListN");
+        return !(x.getClass().getName().contains("ImmutableCollections$"));
     }
 
     Stream<Job> jobs(Collection<Integer> x) {
-        final String klazz = goodClassName(x.getClass());
+        final String klazz = goodClassName(x);
         return concatStreams(
             collectionJobs(x),
 
@@ -364,7 +389,7 @@ public class IteratorMicroBenchmark {
     }
 
     Stream<Job> collectionJobs(Collection<Integer> x) {
-        final String klazz = goodClassName(x.getClass());
+        final String klazz = goodClassName(x);
         return Stream.of(
             new Job(klazz + " iterate for loop") {
                 public void work() throws Throwable {
@@ -497,7 +522,7 @@ public class IteratorMicroBenchmark {
     }
 
     Stream<Job> mutableCollectionJobs(Collection<Integer> x) {
-        final String klazz = goodClassName(x.getClass());
+        final String klazz = goodClassName(x);
         return Stream.of(
             new Job(klazz + " removeIf") {
                 public void work() throws Throwable {
@@ -518,7 +543,7 @@ public class IteratorMicroBenchmark {
     }
 
     Stream<Job> dequeJobs(Deque<Integer> x) {
-        String klazz = goodClassName(x.getClass());
+        final String klazz = goodClassName(x);
         return Stream.of(
             new Job(klazz + " descendingIterator() loop") {
                 public void work() throws Throwable {
@@ -538,7 +563,7 @@ public class IteratorMicroBenchmark {
     }
 
     Stream<Job> listJobs(List<Integer> x) {
-        final String klazz = goodClassName(x.getClass());
+        final String klazz = goodClassName(x);
         return Stream.of(
             new Job(klazz + " listIterator forward loop") {
                 public void work() throws Throwable {
@@ -589,7 +614,7 @@ public class IteratorMicroBenchmark {
     }
 
     Stream<Job> mutableListJobs(List<Integer> x) {
-        final String klazz = goodClassName(x.getClass());
+        final String klazz = goodClassName(x);
         return Stream.of(
             new Job(klazz + " replaceAll") {
                 public void work() throws Throwable {
