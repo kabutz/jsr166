@@ -185,18 +185,17 @@ public class CyclicBarrier {
 
             int index = --count;
             if (index == 0) {  // tripped
-                boolean ranAction = false;
-                try {
-                    final Runnable command = barrierCommand;
-                    if (command != null)
+                Runnable command = barrierCommand;
+                if (command != null) {
+                    try {
                         command.run();
-                    ranAction = true;
-                    nextGeneration();
-                    return 0;
-                } finally {
-                    if (!ranAction)
+                    } catch (Throwable ex) {
                         breakBarrier();
+                        throw ex;
+                    }
                 }
+                nextGeneration();
+                return 0;
             }
 
             // loop until tripped, broken, interrupted, or timed out
