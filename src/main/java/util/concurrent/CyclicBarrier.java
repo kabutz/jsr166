@@ -102,6 +102,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * corresponding {@code await()} in other threads.
  *
  * @see CountDownLatch
+ * @see Phaser
  *
  * @author Doug Lea
  * @since 1.5
