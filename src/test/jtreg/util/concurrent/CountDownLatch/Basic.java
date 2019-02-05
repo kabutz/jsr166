@@ -41,7 +41,7 @@ public class Basic {
         Awaiter getAwaiter();
     }
 
-    static abstract class Awaiter extends Thread {
+    abstract static class Awaiter extends Thread {
         private volatile Throwable result = null;
         protected void result(Throwable result) { this.result = result; }
         public Throwable result() { return this.result; }
