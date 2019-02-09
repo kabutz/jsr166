@@ -11,6 +11,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Stream;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -40,25 +42,32 @@ public class ForkJoinPool9Test extends JSR166TestCase {
             .findVarHandle(Thread.class, "contextClassLoader", ClassLoader.class);
         ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
         boolean haveSecurityManager = (System.getSecurityManager() != null);
-        CountDownLatch taskStarted = new CountDownLatch(1);
+        CountDownLatch runInCommonPoolStarted = new CountDownLatch(1);
         ClassLoader classLoaderDistinctFromSystemClassLoader
             = ClassLoader.getPlatformClassLoader();
         assertNotSame(classLoaderDistinctFromSystemClassLoader,
                       systemClassLoader);
         Runnable runInCommonPool = () -> {
-            taskStarted.countDown();
+            runInCommonPoolStarted.countDown();
             assertTrue(ForkJoinTask.inForkJoinPool());
-            assertSame(ForkJoinPool.commonPool(),
-                       ForkJoinTask.getPool());
-            assertSame(systemClassLoader,
-                       Thread.currentThread().getContextClassLoader());
-            assertSame(systemClassLoader,
-                       CCL.get(Thread.currentThread()));
+            assertSame(ForkJoinPool.commonPool(), ForkJoinTask.getPool());
+            Thread currentThread = Thread.currentThread();
+
+            Stream.of(systemClassLoader, null).forEach(cl -> {
+                if (ThreadLocalRandom.current().nextBoolean())
+                    // should always be permitted, without effect
+                    currentThread.setContextClassLoader(cl);
+                });
+
+            Stream.of(currentThread.getContextClassLoader(),
+                      (ClassLoader) CCL.get(currentThread))
+            .forEach(cl -> assertTrue(cl == systemClassLoader || cl == null));
+
             if (haveSecurityManager)
                 assertThrows(
                     SecurityException.class,
                     () -> System.getProperty("foo"),
-                    () -> Thread.currentThread().setContextClassLoader(
+                    () -> currentThread.setContextClassLoader(
                         classLoaderDistinctFromSystemClassLoader));
             // TODO ?
 //          if (haveSecurityManager
@@ -69,7 +78,7 @@ public class ForkJoinPool9Test extends JSR166TestCase {
         Future<?> f = ForkJoinPool.commonPool().submit(runInCommonPool);
         // Ensure runInCommonPool is truly running in the common pool,
         // by giving this thread no opportunity to "help" on get().
-        await(taskStarted);
+        await(runInCommonPoolStarted);
         assertNull(f.get());
     }
 
