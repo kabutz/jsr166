@@ -517,6 +517,7 @@ public class JSR166TestCase extends TestCase {
             ExecutorsTest.suite(),
             ExecutorCompletionServiceTest.suite(),
             FutureTaskTest.suite(),
+            HashtableTest.suite(),
             LinkedBlockingDequeTest.suite(),
             LinkedBlockingQueueTest.suite(),
             LinkedListTest.suite(),
