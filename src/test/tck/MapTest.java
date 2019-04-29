@@ -180,7 +180,7 @@ public class MapTest extends JSR166TestCase {
         final ThreadLocalRandom rnd = ThreadLocalRandom.current();
         final int size = rnd.nextInt(4);
         final Map map = impl.emptyMap();
-        for (int i = size; i--> 0; )
+        for (int i = 0; i < size; i++)
             map.put(impl.makeKey(i), impl.makeValue(i));
         final Map clone = cloneableClone(map);
         if (clone == null) return;      // not cloneable?
