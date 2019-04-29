@@ -500,7 +500,7 @@
       <arg value="-html5"/>
       <arg value="--patch-module=java.base=${src.dir}"/>
 <!-- old school frames via docs/index.html?overview-summary.html -->
-<!-- TODO: --frames no longer a supported option in jdk13+ -->
+<!-- TODO: - -frames no longer a supported option in jdk13+ -->
       <arg value="--frames"/>
       <arg value="--override-methods=summary"/>
       <arg value="-tag"/> <arg value="${javadoc.jls.option}"/>
