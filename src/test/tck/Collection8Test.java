@@ -928,7 +928,11 @@ public class Collection8Test extends JSR166TestCase {
         } catch (java.io.NotSerializableException acceptable) {}
     }
 
-    public void testReplaceAllIsNotStructuralModification() {
+    /**
+     * TODO: move out of limbo
+     * 8203662: remove increment of modCount from ArrayList and Vector replaceAll()
+     */
+    public void DISABLED_testReplaceAllIsNotStructuralModification() {
         Collection c = impl.emptyCollection();
         if (!(c instanceof List))
             return;
