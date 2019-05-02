@@ -1411,6 +1411,8 @@ public class Vector<E>
             es[i] = operator.apply(elementAt(es, i));
         if (modCount != expectedModCount)
             throw new ConcurrentModificationException();
+        // TODO(8203662): remove increment of modCount from ...
+        modCount++;
         // checkInvariants();
     }
 
