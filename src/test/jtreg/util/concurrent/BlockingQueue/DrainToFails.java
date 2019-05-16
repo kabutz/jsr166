@@ -26,8 +26,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import jdk.testlibrary.Utils;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class DrainToFails {
     static final long LONG_DELAY_MS = Utils.adjustTimeout(10_000);
