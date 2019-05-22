@@ -444,6 +444,7 @@
       <compilerarg value="-Xlint:all,-removal"/>
       <compilerarg line="--doclint-format html5"/>
       <compilerarg value="-Xdoclint:all/protected,reference/private"/>
+      <compilerarg value="-Xdoclint/package:java.util.*"/>
       <compilerarg value="-Werror"/>
       <compilerarg line="-Xmaxerrs 1000 -Xmaxwarns 1000"/>
       <compilerarg line="${build.args}"/>
