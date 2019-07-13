@@ -103,9 +103,8 @@ import jdk.internal.vm.annotation.ReservedStackAccess;
  *
  * <p><b>Memory Synchronization.</b> Methods with the effect of
  * successfully locking in any mode have the same memory
- * synchronization effects as a <em>Lock</em> action described in
- * <a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-17.html#jls-17.4">
- * Chapter 17 of <cite>The Java&trade; Language Specification</cite></a>.
+ * synchronization effects as a <em>Lock</em> action, as described in
+ * Chapter 17 of <cite>The Java&trade; Language Specification</cite>.
  * Methods successfully unlocking in write mode have the same memory
  * synchronization effects as an <em>Unlock</em> action.  In optimistic
  * read usages, actions prior to the most recent write mode unlock action
@@ -207,6 +206,8 @@ import jdk.internal.vm.annotation.ReservedStackAccess;
  *     }
  *   }
  * }}</pre>
+ *
+ * @jls 17.4 Memory Model
  *
  * @since 1.8
  * @author Doug Lea
