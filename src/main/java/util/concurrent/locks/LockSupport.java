@@ -116,6 +116,20 @@ public class LockSupport {
     }
 
     /**
+     * Sets the object to be returned by invocations of {@link
+     * #getBlocker getBlocker} for the current thread. This method may
+     * be used before invoking {@link #park park} from non-public
+     * objects, allowing more helpful diagnostics, or to retain
+     * compatibility with previous implementations of blocking
+     * methods.
+     *
+     * @param blocker the blocker object
+     */
+    public static void setCurrentBlocker(Object blocker) {
+        U.putObject(Thread.currentThread(), PARKBLOCKER, blocker);
+    }
+
+    /**
      * Makes available the permit for the given thread, if it
      * was not already available.  If the thread was blocked on
      * {@code park} then it will unblock.  Otherwise, its next call
@@ -365,24 +379,6 @@ public class LockSupport {
     }
 
     /**
-     * Returns the pseudo-randomly initialized or updated secondary seed.
-     * Copied from ThreadLocalRandom due to package access restrictions.
-     */
-    static final int nextSecondarySeed() {
-        int r;
-        Thread t = Thread.currentThread();
-        if ((r = U.getInt(t, SECONDARY)) != 0) {
-            r ^= r << 13;   // xorshift
-            r ^= r >>> 17;
-            r ^= r << 5;
-        }
-        else if ((r = java.util.concurrent.ThreadLocalRandom.current().nextInt()) == 0)
-            r = 1; // avoid zero
-        U.putInt(t, SECONDARY, r);
-        return r;
-    }
-
-    /**
      * Returns the thread id for the given thread.  We must access
      * this directly rather than via method Thread.getId() because
      * getId() has been known to be overridden in ways that do not
@@ -395,14 +391,11 @@ public class LockSupport {
     // Hotspot implementation via intrinsics API
     private static final Unsafe U = Unsafe.getUnsafe();
     private static final long PARKBLOCKER;
-    private static final long SECONDARY;
     private static final long TID;
     static {
         try {
             PARKBLOCKER = U.objectFieldOffset
                 (Thread.class.getDeclaredField("parkBlocker"));
-            SECONDARY = U.objectFieldOffset
-                (Thread.class.getDeclaredField("threadLocalRandomSecondarySeed"));
             TID = U.objectFieldOffset
                 (Thread.class.getDeclaredField("tid"));
 
