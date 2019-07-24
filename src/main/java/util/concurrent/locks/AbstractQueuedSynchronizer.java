@@ -285,7 +285,7 @@ public abstract class AbstractQueuedSynchronizer
      */
     protected AbstractQueuedSynchronizer() { }
 
-    /**
+    /*
      * Overview.
      *
      * The wait queue is a variant of a "CLH" (Craig, Landin, and
@@ -416,7 +416,7 @@ public abstract class AbstractQueuedSynchronizer
     static final int COND      = 2;          // in a condition wait
 
     /** CLH Nodes */
-    static abstract class Node {
+    abstract static class Node {
         volatile Node prev;       // initially attached via casTail
         volatile Node next;       // visibly nonnull when signallable
         Thread waiter;            // visibly nonnull when enqueued

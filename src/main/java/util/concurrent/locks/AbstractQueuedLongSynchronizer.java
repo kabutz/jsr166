@@ -54,7 +54,7 @@ public abstract class AbstractQueuedLongSynchronizer
     static final int COND      = 2;          // in a condition wait
 
     /** CLH Nodes */
-    static abstract class Node {
+    abstract static class Node {
         volatile Node prev;       // initially attached via casTail
         volatile Node next;       // visibly nonnull when signallable
         Thread waiter;            // visibly nonnull when enqueued
@@ -127,8 +127,7 @@ public abstract class AbstractQueuedLongSynchronizer
     private transient volatile Node head;
 
     /**
-     * Tail of the wait queue. After initialization, modified only via
-     * via casTail.
+     * Tail of the wait queue. After initialization, modified only via casTail.
      */
     private transient volatile Node tail;
 

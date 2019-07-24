@@ -306,7 +306,7 @@ public class StampedLock implements java.io.Serializable {
     static final int CANCELLED = 0x80000000; // must be negative
 
     /** CLH nodes */
-    static abstract class Node {
+    abstract static class Node {
         volatile Node prev;       // initially attached via casTail
         volatile Node next;       // visibly nonnull when signallable
         Thread waiter;            // visibly nonnull when enqueued
@@ -443,8 +443,8 @@ public class StampedLock implements java.io.Serializable {
      */
     @ReservedStackAccess
     public long writeLock() {
-        long s;
-        return (s = tryAcquireWrite()) != 0L? s : acquireWrite(false, false, 0L);
+        long s = tryAcquireWrite();
+        return (s != 0L) ? s : acquireWrite(false, false, 0L);
     }
 
     /**
