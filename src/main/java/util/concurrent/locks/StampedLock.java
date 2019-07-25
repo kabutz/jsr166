@@ -1267,10 +1267,14 @@ public class StampedLock implements java.io.Serializable {
                         node.waiter = Thread.currentThread();
                     else if (!attached) {
                         ReaderNode c = leader.cowait;
-                        node.setCowaitRelaxed(c);
-                        attached = leader.casCowait(c, node);
-                        if (!attached)
-                            node.setCowaitRelaxed(null);
+                        if (c != null && c.status < 0)
+                            cleanCowaiters(leader);  // help clean
+                        else {
+                            node.setCowaitRelaxed(c);
+                            attached = leader.casCowait(c, node);
+                            if (!attached)
+                                node.setCowaitRelaxed(null);
+                        }
                     } else if (!canPark) { // check cancellation
                         canPark = true;
                         interrupted |= Thread.interrupted();
@@ -1386,6 +1390,25 @@ public class StampedLock implements java.io.Serializable {
     }
 
     /**
+     * If leader exists, possibly repeatedly traverses cowaiters,
+     * unsplicing cancelled nodes until none are found.
+     */
+    private void cleanCowaiters(ReaderNode leader) {
+        if (leader != null) {
+            while (leader.prev != null && leader.status >= 0) {
+                for (ReaderNode p = leader, q; ; p = q) {
+                    if ((q = p.cowait) == null)
+                        return;
+                    if (q.status < 0) {
+                        p.casCowait(q, q.cowait);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * If node non-null, forces cancel status and unsplices it from
      * queue, wakes up any cowaiters, and possibly wakes up successor
      * to recheck status.
@@ -1419,22 +1442,7 @@ public class StampedLock implements java.io.Serializable {
         if (node != null) {
             node.waiter = null;
             node.status = CANCELLED;
-            if (leader != null) {
-                outer: while (leader.prev != null) {
-                    for (ReaderNode p = leader, q;;) {
-                        if ((q = p.cowait) == null || p.status < 0)
-                            break outer;
-                        ReaderNode c = q.cowait;
-                        int s = q.status;
-                        if (q == p.cowait) {
-                            if (s >= 0)
-                                p = q;
-                            else if (!p.casCowait(q, c))
-                                break; // restart
-                        }
-                    }
-                }
-            }
+            cleanCowaiters(leader);
         }
         return (interrupted || Thread.interrupted()) ? INTERRUPTED : 0L;
     }
