@@ -471,7 +471,7 @@ public abstract class AbstractQueuedSynchronizer
         /**
          * Allows Conditions to be used in ForkJoinPools without
          * risking fixed pool exhaustion. This is usable only for
-         * untimed interruptible Condition waits, not other versions.
+         * untimed Condition waits, not timed versions.
          */
         public final boolean isReleasable() {
             return status <= 1 || Thread.currentThread().isInterrupted();
@@ -489,8 +489,7 @@ public abstract class AbstractQueuedSynchronizer
     private transient volatile Node head;
 
     /**
-     * Tail of the wait queue. After initialization, modified only via
-     * via casTail.
+     * Tail of the wait queue. After initialization, modified only via casTail.
      */
     private transient volatile Node tail;
 
@@ -1479,22 +1478,26 @@ public abstract class AbstractQueuedSynchronizer
          * Adds node to condition list and releases lock.
          *
          * @param node the node
-         * @param savedState current sync state
+         * @return savedState to reacquire after wait
          */
-        private void enableWait(ConditionNode node, int savedState) {
-            ConditionNode last = lastWaiter;
-            if (last == null)
-                firstWaiter = node;
-            else
-                last.nextWaiter = node;
-            lastWaiter = node;
-            node.waiter = Thread.currentThread();
-            node.setRelaxedStatus(COND | WAITING);
-            if (!release(savedState)) {
-                node.status = CANCELLED; // inconsistent lock
-                throw new IllegalMonitorStateException();
-            } else
-                Thread.yield(); // scheduling heuristic
+        private int enableWait(ConditionNode node) {
+            if (isHeldExclusively()) {
+                node.waiter = Thread.currentThread();
+                node.setRelaxedStatus(COND | WAITING);
+                ConditionNode last = lastWaiter;
+                if (last == null)
+                    firstWaiter = node;
+                else
+                    last.nextWaiter = node;
+                lastWaiter = node;
+                int savedState = getState();
+                if (tryRelease(savedState)) {
+                    signalFirst();
+                    return savedState;
+                }
+            }
+            node.status = CANCELLED; // lock not held or inconsistent
+            throw new IllegalMonitorStateException();
         }
 
         /**
@@ -1551,18 +1554,23 @@ public abstract class AbstractQueuedSynchronizer
          * </ol>
          */
         public final void awaitUninterruptibly() {
-            if (!isHeldExclusively())
-                throw new IllegalMonitorStateException();
-            int savedState = getState();
             ConditionNode node = new ConditionNode();
-            enableWait(node, savedState);
+            int savedState = enableWait(node);
+            LockSupport.setCurrentBlocker(this); // for back-compatibility
             boolean interrupted = false;
             while (!canReacquire(node)) {
                 if (Thread.interrupted())
                     interrupted = true;
-                else
-                    LockSupport.park(this);
+                else if ((node.status & COND) != 0) {
+                    try {
+                        ForkJoinPool.managedBlock(node);
+                    } catch (InterruptedException ie) {
+                        interrupted = true;
+                    }
+                } else
+                    Thread.onSpinWait();    // awoke while enqueuing
             }
+            LockSupport.setCurrentBlocker(null);
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
             if (interrupted)
@@ -1585,22 +1593,20 @@ public abstract class AbstractQueuedSynchronizer
         public final void await() throws InterruptedException {
             if (Thread.interrupted())
                 throw new InterruptedException();
-            int savedState = getState();
-            if (!isHeldExclusively())
-                throw new IllegalMonitorStateException();
             ConditionNode node = new ConditionNode();
-            enableWait(node, savedState);
-            LockSupport.setCurrentBlocker(this);
-            ForkJoinPool.managedBlock(node); // may return before canReacquire
-            LockSupport.setCurrentBlocker(null);
+            int savedState = enableWait(node);
+            LockSupport.setCurrentBlocker(this); // for back-compatibility
             boolean interrupted = false, cancelled = false;
-            while (!canReacquire(node)) {    // finish interrupt check
+            while (!canReacquire(node)) {
                 if (interrupted |= Thread.interrupted()) {
                     if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0)
                         break;              // else interrupted after signal
-                } else
+                } else if ((node.status & COND) != 0)
+                    ForkJoinPool.managedBlock(node);
+                else
                     Thread.onSpinWait();    // awoke while enqueuing
             }
+            LockSupport.setCurrentBlocker(null);
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
             if (cancelled) {
@@ -1627,11 +1633,8 @@ public abstract class AbstractQueuedSynchronizer
                 throws InterruptedException {
             if (Thread.interrupted())
                 throw new InterruptedException();
-            int savedState = getState();
-            if (!isHeldExclusively())
-                throw new IllegalMonitorStateException();
             ConditionNode node = new ConditionNode();
-            enableWait(node, savedState);
+            int savedState = enableWait(node);
             long nanos = (nanosTimeout < 0L) ? 0L : nanosTimeout;
             long deadline = System.nanoTime() + nanos;
             boolean cancelled = false, interrupted = false;
@@ -1674,11 +1677,8 @@ public abstract class AbstractQueuedSynchronizer
             long abstime = deadline.getTime();
             if (Thread.interrupted())
                 throw new InterruptedException();
-            int savedState = getState();
-            if (!isHeldExclusively())
-                throw new IllegalMonitorStateException();
             ConditionNode node = new ConditionNode();
-            enableWait(node, savedState);
+            int savedState = enableWait(node);
             boolean cancelled = false, interrupted = false;
             while (!canReacquire(node)) {
                 if ((interrupted |= Thread.interrupted()) ||
@@ -1719,11 +1719,8 @@ public abstract class AbstractQueuedSynchronizer
             long nanosTimeout = unit.toNanos(time);
             if (Thread.interrupted())
                 throw new InterruptedException();
-            int savedState = getState();
-            if (!isHeldExclusively())
-                throw new IllegalMonitorStateException();
             ConditionNode node = new ConditionNode();
-            enableWait(node, savedState);
+            int savedState = enableWait(node);
             long nanos = (nanosTimeout < 0L) ? 0L : nanosTimeout;
             long deadline = System.nanoTime() + nanos;
             boolean cancelled = false, interrupted = false;
@@ -1821,7 +1818,6 @@ public abstract class AbstractQueuedSynchronizer
         }
     }
 
-    // VarHandle mechanics
     // Unsafe
     private static final Unsafe U = Unsafe.getUnsafe();
     private static final long STATE;
@@ -1830,7 +1826,6 @@ public abstract class AbstractQueuedSynchronizer
 
     static {
         Class<?> ensureLoaded = LockSupport.class;
-        Class<?> nodeClass = Node.class;
         Class<?> aqsClass = AbstractQueuedSynchronizer.class;
         try {
             STATE = U.objectFieldOffset
