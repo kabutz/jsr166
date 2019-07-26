@@ -1206,14 +1206,8 @@ public class StampedLock implements java.io.Serializable {
                 if (node.waiter == null)
                     node.waiter = Thread.currentThread();
                 node.status = WAITING;          // enable signal
-            } else if (!first && (node.prev != pred || pred.status < 0)) {
-                node.clearStatus();
-                cleanQueue();                   // pred cancelled
             } else {
-                if (first)
-                    spins = postSpins = (byte)((postSpins << 1) | 1);
-                else
-                    pred = null;                // lose link when parked
+                spins = postSpins = (byte)((postSpins << 1) | 1);
                 if (timed)
                     LockSupport.parkNanos(this, nanos);
                 else
@@ -1244,8 +1238,6 @@ public class StampedLock implements java.io.Serializable {
                 return nextState;
             else if (t == null)
                 tryInitializeHead();
-            else if (t.status < 0)
-                cleanQueue();  // avoid cowait with known-to-be-cancelled node
             else if (tailPred == null || !(t instanceof ReaderNode)) {
                 if (node == null)
                     node = new ReaderNode();
@@ -1259,23 +1251,27 @@ public class StampedLock implements java.io.Serializable {
                 }
             } else if ((leader = (ReaderNode)t) == tail) { // try to cowait
                 for (boolean attached = false, canPark = false;;) {
-                    if (leader.prev == null || leader.status < 0)
+                    if (leader.prev == null)
                         break;
-                    else if (node == null)
+                    if (leader.status < 0) {
+                        cleanQueue();                // help clean leader
+                        break;
+                    }
+                    if (node == null)
                         node = new ReaderNode();
                     else if (node.waiter == null)
                         node.waiter = Thread.currentThread();
                     else if (!attached) {
                         ReaderNode c = leader.cowait;
                         if (c != null && c.status < 0)
-                            cleanCowaiters(leader);  // help clean
+                            cleanCowaiters(leader);  // help clean cowaits
                         else {
                             node.setCowaitRelaxed(c);
                             attached = leader.casCowait(c, node);
                             if (!attached)
                                 node.setCowaitRelaxed(null);
                         }
-                    } else if (!canPark) { // check cancellation
+                    } else if (!canPark) {           // check cancellation
                         canPark = true;
                         interrupted |= Thread.interrupted();
                         if ((interrupted && interruptible) ||
@@ -1333,14 +1329,8 @@ public class StampedLock implements java.io.Serializable {
                 if (node.waiter == null)
                     node.waiter = Thread.currentThread();
                 node.status = WAITING;          // enable signal
-            } else if (!first && (node.prev != pred || pred.status < 0)) {
-                node.clearStatus();
-                cleanQueue();                   // pred cancelled
             } else {
-                if (first)
-                    spins = postSpins = (byte)((postSpins << 1) | 1);
-                else
-                    pred = null;                // lose link when parked
+                spins = postSpins = (byte)((postSpins << 1) | 1);
                 if (timed)
                     LockSupport.parkNanos(this, nanos);
                 else
@@ -1365,11 +1355,8 @@ public class StampedLock implements java.io.Serializable {
                 if (q.status < 0) {         // cancelled
                     if (s == null ? casTail(q, p) : s.casPrev(q, p)) {
                         p.casNext(q, s);    // OK if failed
-                        if (p.prev == null && (s = p.next) != null &&
-                            s.status > 0) { // unpark if successor now first
-                            s.getAndUnsetStatus(WAITING);
-                            LockSupport.unpark(s.waiter);
-                        }
+                        if ((s != null || (s = tail) != null) && p.prev == null)
+                            LockSupport.unpark(s.waiter); // s may now be first
                     }
                     break;                  // restart
                 } else if ((n = p.next) == null) {

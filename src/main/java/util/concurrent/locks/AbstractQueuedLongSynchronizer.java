@@ -256,7 +256,6 @@ public abstract class AbstractQueuedLongSynchronizer
          *  else if not yet enqueued, try once to enqueue
          *  else if woken from park, retry (up to postSpins times)
          *  else if WAITING status not set, check cancellation, set and retry
-         *  else if predecessor cancelled, help clean and clear WAITING status
          *  else park (with timeout if timed) and clear WAITING status
          */
 
@@ -318,14 +317,8 @@ public abstract class AbstractQueuedLongSynchronizer
                     (timed && (nanos = time - System.nanoTime()) <= 0L))
                     return cancelAcquire(node, interrupted, interruptible);
                 node.status = WAITING;          // enable signal
-            } else if (!first && (node.prev != pred || pred.status < 0)) {
-                node.clearStatus();
-                cleanQueue();                  // pred cancelled
             } else {
-                if (first)
-                    spins = postSpins = (byte)((postSpins << 1) | 1);
-                else
-                    pred = null;               // lose link when parked
+                spins = postSpins = (byte)((postSpins << 1) | 1);
                 if (timed)
                     LockSupport.parkNanos(this, nanos);
                 else
@@ -348,11 +341,8 @@ public abstract class AbstractQueuedLongSynchronizer
                 if (q.status < 0) {         // cancelled
                     if (s == null ? casTail(q, p) : s.casPrev(q, p)) {
                         p.casNext(q, s);    // OK if failed
-                        if (p.prev == null && (s = p.next) != null &&
-                            s.status > 0) { // unpark if successor now first
-                            s.getAndUnsetStatus(WAITING);
-                            LockSupport.unpark(s.waiter);
-                        }
+                        if ((s != null || (s = tail) != null) && p.prev == null)
+                            LockSupport.unpark(s.waiter); // s may now be first
                     }
                     break;                  // restart
                 } else if ((n = p.next) == null) {
