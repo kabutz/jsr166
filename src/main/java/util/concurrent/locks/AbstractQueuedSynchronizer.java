@@ -1021,7 +1021,6 @@ public abstract class AbstractQueuedSynchronizer
     public final boolean tryAcquireSharedNanos(int arg, long nanosTimeout)
             throws InterruptedException {
         if (!Thread.interrupted()) {
-            long deadline;
             if (tryAcquireShared(arg) >= 0)
                 return true;
             if (nanosTimeout <= 0L)
