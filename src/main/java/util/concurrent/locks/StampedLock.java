@@ -605,7 +605,7 @@ public class StampedLock implements java.io.Serializable {
      * since issuance of the given stamp; else false
      */
     public boolean validate(long stamp) {
-        VarHandle.acquireFence();
+        U.loadFence();
         return (stamp & SBITS) == (state & SBITS);
     }
 
@@ -748,7 +748,7 @@ public class StampedLock implements java.io.Serializable {
      */
     public long tryConvertToOptimisticRead(long stamp) {
         long a, m, s, nextState;
-        VarHandle.acquireFence();
+        U.loadFence();
         while (((s = state) & SBITS) == (stamp & SBITS)) {
             if ((a = stamp & ABITS) >= WBIT) {
                 if (s != stamp)   // write stamp
@@ -1203,9 +1203,11 @@ public class StampedLock implements java.io.Serializable {
                 if ((interrupted && interruptible) ||
                     (timed && (nanos = time - System.nanoTime()) <= 0L))
                     return cancelAcquire(node, interrupted);
-                if (node.waiter == null)
-                    node.waiter = Thread.currentThread();
-                node.status = WAITING;          // enable signal
+                else if (node.prev == pred && pred.status >= 0) {
+                    if (node.waiter == null)
+                        node.waiter = Thread.currentThread();
+                    node.status = WAITING;      // enable signal
+                }
             } else {
                 spins = postSpins = (byte)((postSpins << 1) | 1);
                 if (timed)
@@ -1326,9 +1328,11 @@ public class StampedLock implements java.io.Serializable {
                 if ((interrupted && interruptible) ||
                     (timed && (nanos = time - System.nanoTime()) <= 0L))
                     return cancelAcquire(node, interrupted);
-                if (node.waiter == null)
-                    node.waiter = Thread.currentThread();
-                node.status = WAITING;          // enable signal
+                else if (node.prev == pred && pred.status >= 0) {
+                    if (node.waiter == null)
+                        node.waiter = Thread.currentThread();
+                    node.status = WAITING;      // enable signal
+                }
             } else {
                 spins = postSpins = (byte)((postSpins << 1) | 1);
                 if (timed)
@@ -1357,8 +1361,9 @@ public class StampedLock implements java.io.Serializable {
                 if (q.status < 0) {         // cancelled
                     if (s == null ? casTail(q, p) : s.casPrev(q, p)) {
                         p.casNext(q, s);    // OK if failed
-                        if (s != null && p.prev == null)
-                            LockSupport.unpark(s.waiter); // s now first
+                        if (s != null && p.prev == null && // s now first
+                            (s.getAndUnsetStatus(WAITING) & WAITING) != 0)
+                            LockSupport.unpark(s.waiter);
                     }
                     break;                  // restart
                 }

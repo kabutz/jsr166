@@ -672,7 +672,8 @@ public abstract class AbstractQueuedSynchronizer
                 if ((interrupted && interruptible) ||
                     (timed && (nanos = time - System.nanoTime()) <= 0L))
                     return cancelAcquire(node, interrupted, interruptible);
-                node.status = WAITING;          // enable signal
+                else if (node.prev == pred && pred.status >= 0)
+                    node.status = WAITING;      // enable signal
             } else {
                 spins = postSpins = (byte)((postSpins << 1) | 1);
                 if (timed)
@@ -699,8 +700,9 @@ public abstract class AbstractQueuedSynchronizer
                 if (q.status < 0) {         // cancelled
                     if (s == null ? casTail(q, p) : s.casPrev(q, p)) {
                         p.casNext(q, s);    // OK if failed
-                        if (s != null && p.prev == null)
-                            LockSupport.unpark(s.waiter); // s now first
+                        if (s != null && p.prev == null && // s now first
+                            (s.getAndUnsetStatus(WAITING) & WAITING) != 0)
+                            LockSupport.unpark(s.waiter);
                     }
                     break;                  // restart
                 }
