@@ -6,8 +6,8 @@
 
 package java.util.concurrent.locks;
 
-import java.util.concurrent.TimeUnit;
 import java.lang.invoke.VarHandle;
+import java.util.concurrent.TimeUnit;
 import jdk.internal.misc.Unsafe;
 import jdk.internal.vm.annotation.ReservedStackAccess;
 
