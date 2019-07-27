@@ -1808,14 +1808,13 @@ public abstract class AbstractQueuedSynchronizer
 
     static {
         Class<?> ensureLoaded = LockSupport.class;
-        Class<?> aqsClass = AbstractQueuedSynchronizer.class;
         try {
             STATE = U.objectFieldOffset
-                (aqsClass.getDeclaredField("state"));
+                (AbstractQueuedSynchronizer.class.getDeclaredField("state"));
             HEAD = U.objectFieldOffset
-                (aqsClass.getDeclaredField("head"));
+                (AbstractQueuedSynchronizer.class.getDeclaredField("head"));
             TAIL = U.objectFieldOffset
-                (aqsClass.getDeclaredField("tail"));
+                (AbstractQueuedSynchronizer.class.getDeclaredField("tail"));
         } catch (ReflectiveOperationException e) {
             throw new ExceptionInInitializerError(e);
         }

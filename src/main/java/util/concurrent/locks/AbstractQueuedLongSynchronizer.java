@@ -1442,14 +1442,13 @@ public abstract class AbstractQueuedLongSynchronizer
 
     static {
         Class<?> ensureLoaded = LockSupport.class;
-        Class<?> aqsClass = AbstractQueuedLongSynchronizer.class;
         try {
             STATE = U.objectFieldOffset
-                (aqsClass.getDeclaredField("state"));
+                (AbstractQueuedLongSynchronizer.class.getDeclaredField("state"));
             HEAD = U.objectFieldOffset
-                (aqsClass.getDeclaredField("head"));
+                (AbstractQueuedLongSynchronizer.class.getDeclaredField("head"));
             TAIL = U.objectFieldOffset
-                (aqsClass.getDeclaredField("tail"));
+                (AbstractQueuedLongSynchronizer.class.getDeclaredField("tail"));
         } catch (ReflectiveOperationException e) {
             throw new ExceptionInInitializerError(e);
         }
