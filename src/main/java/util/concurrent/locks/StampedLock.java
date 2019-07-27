@@ -1439,7 +1439,6 @@ public class StampedLock implements java.io.Serializable {
 
     static {
         Class<?> ensureLoaded = LockSupport.class;
-        Class<?> nodeClass = Node.class;
         Class<?> stampedLockClass = StampedLock.class;
         try {
             STATE = U.objectFieldOffset
