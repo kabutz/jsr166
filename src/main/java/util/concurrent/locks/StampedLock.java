@@ -1439,14 +1439,13 @@ public class StampedLock implements java.io.Serializable {
 
     static {
         Class<?> ensureLoaded = LockSupport.class;
-        Class<?> stampedLockClass = StampedLock.class;
         try {
             STATE = U.objectFieldOffset
-                (stampedLockClass.getDeclaredField("state"));
+                (StampedLock.class.getDeclaredField("state"));
             HEAD = U.objectFieldOffset
-                (stampedLockClass.getDeclaredField("head"));
+                (StampedLock.class.getDeclaredField("head"));
             TAIL = U.objectFieldOffset
-                (stampedLockClass.getDeclaredField("tail"));
+                (StampedLock.class.getDeclaredField("tail"));
         } catch (ReflectiveOperationException e) {
             throw new ExceptionInInitializerError(e);
         }
