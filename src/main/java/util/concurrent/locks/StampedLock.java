@@ -1350,24 +1350,21 @@ public class StampedLock implements java.io.Serializable {
     private void cleanQueue() {
         for (;;) {                          // restart point
             for (Node q = tail, s = null, p, n;;) { // (p, q, s) triples
-                if (q == null || (p = q.prev) == null)
+                if (q == null || (p = q.prev) == null || (n = p.next) == null)
                     return;                 // end of list
+                if (s == null ? tail != q : (s.prev != q || s.status < 0))
+                    break;                  // inconsistent
                 if (q.status < 0) {         // cancelled
                     if (s == null ? casTail(q, p) : s.casPrev(q, p)) {
                         p.casNext(q, s);    // OK if failed
-                        if ((s != null || (s = tail) != null) && p.prev == null)
-                            LockSupport.unpark(s.waiter); // s may now be first
+                        if (s != null && p.prev == null)
+                            LockSupport.unpark(s.waiter); // s now first
                     }
                     break;                  // restart
-                } else if ((n = p.next) == null) {
-                    return;                 // p is now past head
-                } else if (n != q) {
+                }
+                if (n != q) {
                     if (q.prev == p)        // help finish another unsplice
                         p.casNext(n, q);
-                } else if ((s == null ? tail != q :
-                            (s.prev != q || s.status < 0)) ||
-                           q.next != s) {
-                    break;                  // inconsistent
                 } else {
                     s = q;
                     q = q.prev;

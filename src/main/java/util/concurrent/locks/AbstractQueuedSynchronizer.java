@@ -326,12 +326,11 @@ public abstract class AbstractQueuedSynchronizer
      * if necessary. Because of this, the lock algorithm is not itself
      * strictly "lock-free" because an acquiring thread may need to
      * wait for a previous acquire to make progress. When used with
-     * exclusive locks, such progress is required anyway, so nothing
-     * special is needed to ensure ordering. However Shared mode may
-     * (uncommonly) require a spin-wait before settting head field to
-     * ensure proper propagation. (Historical note: This allows some
-     * simplifications and efficiencies compared to previous versions
-     * of this class.)
+     * exclusive locks, such progress is required anyway. However
+     * Shared mode may (uncommonly) require a spin-wait before
+     * settting head field to ensure proper propagation. (Historical
+     * note: This allows some simplifications and efficiencies
+     * compared to previous versions of this class.)
      *
      * A node's predecessor can change due to cancellation while it is
      * waiting, until the node is first in queue, at which point it
@@ -376,11 +375,12 @@ public abstract class AbstractQueuedSynchronizer
      * is constructed and head and tail pointers are set upon first
      * contention.
      *
-     * Shared mode operations differ from Exclusive in that a
-     * release may indicate that successors should propagate until an
-     * Exclusive node is encountered. This is maintained as a status
-     * bit in the head node, propagated on each shared acquire, but
-     * ignored and hence dropped on exclusive acquires.
+     * Shared mode operations differ from Exclusive in that an acquire
+     * signals the next waiter to try to acquire if it is also
+     * Shared. The tryAcquireShared API allows users to indicate the
+     * degree of propagation, but it is usually more efficient to
+     * ignore this, allowing the successor to try acquiring in any
+     * case.
      *
      * Threads waiting on Conditions use nodes with an additional
      * link to maintain the (FIFO) list of conditions. Conditions only
@@ -413,9 +413,6 @@ public abstract class AbstractQueuedSynchronizer
     // Node status bits, also used as argument and return values
     static final int WAITING   = 1;          // must be 1
     static final int CANCELLED = 0x80000000; // must be negative
-
-    // Node status bits for nodes not waiting to acquire
-    static final int PROPAGATE = 2;          // for shared mode releases
     static final int COND      = 2;          // in a condition wait
 
     /** CLH Nodes */
@@ -628,11 +625,10 @@ public abstract class AbstractQueuedSynchronizer
         for (;;) {
             if (first || node == null || (pred = node.prev) == null ||
                 (first = (pred.prev == null))) {
-                int tas = 0;                // result from tryAcquireShared
                 boolean acquired;
                 try {
                     if (shared)
-                        acquired = (tas = tryAcquireShared(arg)) >= 0;
+                        acquired = (tryAcquireShared(arg) >= 0);
                     else
                         acquired = tryAcquire(arg);
                 } catch (Throwable ex) {
@@ -643,15 +639,11 @@ public abstract class AbstractQueuedSynchronizer
                     if (node != null && pred != null) {
                         node.waiter = null;
                         node.prev = null;
-                        if (shared) {
-                            while (head != pred) // ensure serialization
-                                Thread.onSpinWait();
-                            if (tas > 0 || (pred.status & PROPAGATE) != 0)
-                                tas = node.status = PROPAGATE;
-                        }
+                        while (head != pred) // ensure serialization
+                            Thread.onSpinWait();
                         head = node;
                         pred.next = null;
-                        if (tas == PROPAGATE)
+                        if (shared)
                             signalIfShared(node.next);
                         if (interrupted)
                             current.interrupt();
@@ -702,24 +694,21 @@ public abstract class AbstractQueuedSynchronizer
     private void cleanQueue() {
         for (;;) {                          // restart point
             for (Node q = tail, s = null, p, n;;) { // (p, q, s) triples
-                if (q == null || (p = q.prev) == null)
+                if (q == null || (p = q.prev) == null || (n = p.next) == null)
                     return;                 // end of list
+                if (s == null ? tail != q : (s.prev != q || s.status < 0))
+                    break;                  // inconsistent
                 if (q.status < 0) {         // cancelled
                     if (s == null ? casTail(q, p) : s.casPrev(q, p)) {
                         p.casNext(q, s);    // OK if failed
-                        if ((s != null || (s = tail) != null) && p.prev == null)
-                            LockSupport.unpark(s.waiter); // s may now be first
+                        if (s != null && p.prev == null)
+                            LockSupport.unpark(s.waiter); // s now first
                     }
                     break;                  // restart
-                } else if ((n = p.next) == null) {
-                    return;                 // p is now past head
-                } else if (n != q) {
+                }
+                if (n != q) {
                     if (q.prev == p)        // help finish another unsplice
                         p.casNext(n, q);
-                } else if ((s == null ? tail != q :
-                            (s.prev != q || s.status < 0)) ||
-                           q.next != s) {
-                    break;                  // inconsistent
                 } else {
                     s = q;
                     q = q.prev;
