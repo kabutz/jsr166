@@ -250,8 +250,8 @@ public class StampedLock implements java.io.Serializable {
      * they awaken.
      *
      * These rules apply to threads actually queued. Threads may also
-     * try to acquire locks before or in the process or enqueing
-     * regardless of preference rules, and so may "barge" their way in
+     * try to acquire locks before or in the process of enqueueing
+     * regardless of preference rules, and so may "barge" their way in.
      *
      * Nearly all of these mechanics are carried out in methods
      * acquireWrite and acquireRead, that, as typical of such code,

@@ -326,7 +326,7 @@ public abstract class AbstractQueuedSynchronizer
      * wait for a previous acquire to make progress. When used with
      * exclusive locks, such progress is required anyway. However
      * Shared mode may (uncommonly) require a spin-wait before
-     * settting head field to ensure proper propagation. (Historical
+     * setting head field to ensure proper propagation. (Historical
      * note: This allows some simplifications and efficiencies
      * compared to previous versions of this class.)
      *
@@ -335,7 +335,7 @@ public abstract class AbstractQueuedSynchronizer
      * cannot change. The acquire methods cope with this by rechecking
      * "prev" before waiting. The prev and next fields are modified
      * only via CAS by cancelled nodes in method cleanQueue. The
-     * unsplice strategy is reminsiscent of Michael-Scott queues in
+     * unsplice strategy is reminiscent of Michael-Scott queues in
      * that after a successful CAS to prev field, other threads help
      * fix next fields.  Because cancellation often occurs in bunches
      * that complicate decisions about necessary signals, each call to
@@ -357,7 +357,7 @@ public abstract class AbstractQueuedSynchronizer
      * bookkeeping steps. (Users who want spinlocks can use
      * tryAcquire.)
      *
-     * To improve garbage collectability, fields of nodes not yet on
+     * To improve garbage collectibility, fields of nodes not yet on
      * list are null. (It is not rare to create and then throw away a
      * node without using it.) Fields of nodes coming off the list are
      * nulled out as soon as possible. This accentuates the challenge
@@ -395,7 +395,7 @@ public abstract class AbstractQueuedSynchronizer
      * signalled) are always sandwiched between other atomic accesses
      * so are used in Plain mode. We use jdk.internal Unsafe versions
      * of atomic access methods rather than VarHandles to avoid
-     * potential VM boostrap issues.
+     * potential VM bootstrap issues.
      *
      * Most of the above is performed by primary internal method
      * acquire, that is invoked in some way by all exported acquire
@@ -657,7 +657,7 @@ public abstract class AbstractQueuedSynchronizer
             } else if (pred == null) {          // try to enqueue
                 node.waiter = current;
                 Node t = tail;
-                node.setRelaxedPrev(t);         // avoid unecessary fence
+                node.setRelaxedPrev(t);         // avoid unnecessary fence
                 if (t == null)
                     tryInitializeHead();
                 else if (!casTail(t, node))

@@ -292,7 +292,7 @@ public abstract class AbstractQueuedLongSynchronizer
             } else if (pred == null) {          // try to enqueue
                 node.waiter = current;
                 Node t = tail;
-                node.setRelaxedPrev(t);         // avoid unecessary fence
+                node.setRelaxedPrev(t);         // avoid unnecessary fence
                 if (t == null)
                     tryInitializeHead();
                 else if (!casTail(t, node))
