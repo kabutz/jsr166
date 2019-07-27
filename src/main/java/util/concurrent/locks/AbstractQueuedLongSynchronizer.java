@@ -6,7 +6,6 @@
 
 package java.util.concurrent.locks;
 
-import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;

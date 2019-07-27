@@ -6,13 +6,11 @@
 
 package java.util.concurrent.locks;
 
-import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinWorkerThread;
 import jdk.internal.misc.Unsafe;
 
 /**
