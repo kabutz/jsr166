@@ -518,8 +518,8 @@ public class StampedLock implements java.io.Serializable {
         long s, nextState;
         if (((s = state) & ABITS) < RFULL && casState(s, nextState = s + RUNIT))
             return nextState;
-        else
-            return acquireRead(false, false, 0L);
+         else
+             return acquireRead(false, false, 0L);
     }
 
     /**
@@ -1155,7 +1155,8 @@ public class StampedLock implements java.io.Serializable {
     }
 
     /**
-     * See above for explanation.
+     * For explanation, see above and AbstractQueuedSynchronizer
+     * internal documentation.
      *
      * @param interruptible true if should check interrupts and if so
      * return INTERRUPTED
@@ -1170,12 +1171,13 @@ public class StampedLock implements java.io.Serializable {
         WriterNode node = null;
         Node pred = null;
         for (long s, nextState;;) {
-            // try acquire if first or not yet enqueued
-            if ((first || node == null || (pred = node.prev) == null ||
-                 (first = (pred.prev == null))) &&
-                ((s = state) & ABITS) == 0L &&
+            if (!first) {
+                pred = (node == null) ? null : node.prev;
+                first = (pred != null && pred.prev == null);
+            }
+            if ((first || pred == null) && ((s = state) & ABITS) == 0L &&
                 casState(s, nextState = s | WBIT)) {
-                if (node != null && pred != null) {
+                if (first) {
                     node.waiter = null;
                     node.prev = null;
                     head = node;
@@ -1195,19 +1197,20 @@ public class StampedLock implements java.io.Serializable {
                     node.setPrevRelaxed(null);  // back out
                 else
                     t.next = node;
-            } else if (first && spins != 0) {    // reduce unfairness
+            } else if (first && spins != 0) {   // reduce unfairness
                 --spins;
                 Thread.onSpinWait();
+            } else if (!first && pred.status < 0) {
+                node.clearStatus();
+                cleanQueue();                   // help remove cancelled pred
             } else if (node.status == 0) {      // check cancel before park
                 interrupted |= Thread.interrupted();
                 if ((interrupted && interruptible) ||
                     (timed && (nanos = time - System.nanoTime()) <= 0L))
                     return cancelAcquire(node, interrupted);
-                else if (node.prev == pred && pred.status >= 0) {
-                    if (node.waiter == null)
-                        node.waiter = Thread.currentThread();
-                    node.status = WAITING;      // enable signal
-                }
+                if (node.waiter == null)
+                    node.waiter = Thread.currentThread();
+                node.status = WAITING;         // enable signal
             } else {
                 spins = postSpins = (byte)((postSpins << 1) | 1);
                 if (timed)
@@ -1304,35 +1307,34 @@ public class StampedLock implements java.io.Serializable {
         byte spins = 0, postSpins = 0;   // retries upon unpark of first thread
         boolean first = false;
         Node pred = null;
-        for (long nextState;;) {
-            if ((first || (pred = node.prev) == null ||
-                 (first = (pred.prev == null))) &&
-                (nextState = tryAcquireRead()) != 0L) {
-                if (pred != null) {
-                    node.waiter = null;
-                    node.prev = null;
-                    while (head != pred) // wait out pred
-                        Thread.onSpinWait();
-                    head = node;
-                    pred.next = null;
-                    signalCowaiters(node);
-                    if (interrupted)
-                        Thread.currentThread().interrupt();
-                }
+        for (long m, s, nextState;;) {
+            if (!first)
+                first = (pred = node.prev) != null && pred.prev == null;
+            if (first && (nextState = tryAcquireRead()) != 0L) {
+                node.waiter = null;
+                node.prev = null;
+                while (head != pred)            // ensure serialization
+                    Thread.onSpinWait();
+                head = node;
+                pred.next = null;
+                signalCowaiters(node);
+                if (interrupted)
+                    Thread.currentThread().interrupt();
                 return nextState;
             } else if (first && spins != 0) {
                 --spins;
                 Thread.onSpinWait();
+            } else if (!first && pred != null && pred.status < 0) {
+                node.clearStatus();
+                cleanQueue();                   // help remove cancelled pred
             } else if (node.status == 0) {      // check cancel before park
                 interrupted |= Thread.interrupted();
                 if ((interrupted && interruptible) ||
                     (timed && (nanos = time - System.nanoTime()) <= 0L))
                     return cancelAcquire(node, interrupted);
-                else if (node.prev == pred && pred.status >= 0) {
-                    if (node.waiter == null)
-                        node.waiter = Thread.currentThread();
-                    node.status = WAITING;      // enable signal
-                }
+                if (node.waiter == null)
+                    node.waiter = Thread.currentThread();
+                node.status = WAITING;         // enable signal
             } else {
                 spins = postSpins = (byte)((postSpins << 1) | 1);
                 if (timed)
@@ -1348,7 +1350,7 @@ public class StampedLock implements java.io.Serializable {
 
     /**
      * Possibly repeatedly traverses from tail, unsplicing cancelled
-     * nodes until none are found. Unparks nodes that may have been
+     * nodes until none are found.  Unparks nodes that may have been
      * relinked to be next eligible acquirer.
      */
     private void cleanQueue() {

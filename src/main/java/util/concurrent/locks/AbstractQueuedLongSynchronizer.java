@@ -247,6 +247,7 @@ public abstract class AbstractQueuedLongSynchronizer
 
         /*
          * Repeatedly:
+         *  Check if node now first; if so, ensure head stable
          *  if node is first or not yet enqueued, try acquiring
          *  else if node not yet created, create it
          *  else if not yet enqueued, try once to enqueue
@@ -256,8 +257,14 @@ public abstract class AbstractQueuedLongSynchronizer
          */
 
         for (;;) {
-            if (first || node == null || (pred = node.prev) == null ||
-                (first = (pred.prev == null))) {
+            if (!first) {
+                pred = (node == null) ? null : node.prev;
+                if (first = (pred != null && pred.prev == null)) {
+                    while (head != pred)            // ensure serialization
+                        Thread.onSpinWait();
+                }
+            }
+            if (first || pred == null) {
                 boolean acquired;
                 try {
                     if (shared)
@@ -269,12 +276,10 @@ public abstract class AbstractQueuedLongSynchronizer
                     throw ex;
                 }
                 if (acquired) {
-                    if (node != null && pred != null) {
-                        node.waiter = null;
+                    if (first) {
                         node.prev = null;
-                        while (head != pred) // ensure serialization
-                            Thread.onSpinWait();
                         head = node;
+                        node.waiter = null;
                         pred.next = null;
                         if (shared)
                             signalIfShared(node.next);
@@ -302,15 +307,15 @@ public abstract class AbstractQueuedLongSynchronizer
             } else if (first && spins != 0) {
                 --spins;                        // reduce unfairness on rewaits
                 Thread.onSpinWait();
+            } else if (!first && pred.status < 0) {
+                node.clearStatus();
+                cleanQueue();                   // help remove cancelled pred
             } else if (node.status == 0) {      // check cancel before park
                 interrupted |= Thread.interrupted();
                 if ((interrupted && interruptible) ||
                     (timed && (nanos = time - System.nanoTime()) <= 0L))
                     return cancelAcquire(node, interrupted, interruptible);
-                else if (node.prev != pred || pred.status < 0)
-                    cleanQueue();               // pred cancelled
-                else
-                    node.status = WAITING;      // enable signal
+                node.status = WAITING;          // enable signal
             } else {
                 spins = postSpins = (byte)((postSpins << 1) | 1);
                 if (timed)
@@ -366,7 +371,8 @@ public abstract class AbstractQueuedLongSynchronizer
         if (node != null) {
             node.waiter = null;
             node.status = CANCELLED;
-            cleanQueue();
+            if (node.prev != null)
+                cleanQueue();
         }
         if (interrupted) {
             if (interruptible)
@@ -702,8 +708,10 @@ public abstract class AbstractQueuedLongSynchronizer
      * @return {@code true} if there may be other threads waiting to acquire
      */
     public final boolean hasQueuedThreads() {
-        Node t = tail;
-        return t != null && t.prev != null;
+        for (Node p = tail, h = head; p != h && p != null; p = p.prev)
+            if (p.status >= 0)
+                return true;
+        return false;
     }
 
     /**
@@ -716,7 +724,7 @@ public abstract class AbstractQueuedLongSynchronizer
      * @return {@code true} if there has ever been contention
      */
     public final boolean hasContended() {
-        return tail != null;
+        return head != null;
     }
 
     /**
@@ -924,7 +932,6 @@ public abstract class AbstractQueuedLongSynchronizer
             + "[State = " + getState() + ", "
             + (hasQueuedThreads() ? "non" : "") + "empty queue]";
     }
-
 
     // Instrumentation methods for conditions
 
