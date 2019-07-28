@@ -401,8 +401,10 @@ public class StampedLock implements java.io.Serializable {
     }
 
     private long tryAcquireWrite() {
-        long s = state & ~ABITS, nextState = s | WBIT;
-        return casState(s, nextState) ? nextState : 0L;
+        long s, nextState;
+        if (((s = state) & ABITS) == 0L && casState(s, nextState = s | WBIT))
+            return nextState;
+        return 0L;
     }
 
     private long tryAcquireRead() {
