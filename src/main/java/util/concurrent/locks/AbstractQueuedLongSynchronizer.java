@@ -65,10 +65,10 @@ public abstract class AbstractQueuedLongSynchronizer
         final int getAndUnsetStatus(int v) {     // for signalling
             return U.getAndBitwiseAndInt(this, STATUS, ~v);
         }
-        final void setRelaxedPrev(Node p) {      // for off-queue assignment
+        final void setPrevRelaxed(Node p) {      // for off-queue assignment
             U.putObject(this, PREV, p);
         }
-        final void setRelaxedStatus(int s) {     // for off-queue assignment
+        final void setStatusRelaxed(int s) {     // for off-queue assignment
             U.putInt(this, STATUS, s);
         }
         final void clearStatus() {               // for reducing unneeded signals
@@ -185,7 +185,7 @@ public abstract class AbstractQueuedLongSynchronizer
         if (node != null) {
             for (;;) {
                 Node t = tail;
-                node.setRelaxedPrev(t);        // avoid unnecessary fence
+                node.setPrevRelaxed(t);        // avoid unnecessary fence
                 if (t == null)                 // initialize
                     tryInitializeHead();
                 else if (casTail(t, node)) {
@@ -292,11 +292,11 @@ public abstract class AbstractQueuedLongSynchronizer
             } else if (pred == null) {          // try to enqueue
                 node.waiter = current;
                 Node t = tail;
-                node.setRelaxedPrev(t);         // avoid unnecessary fence
+                node.setPrevRelaxed(t);         // avoid unnecessary fence
                 if (t == null)
                     tryInitializeHead();
                 else if (!casTail(t, node))
-                    node.setRelaxedPrev(null);  // back out
+                    node.setPrevRelaxed(null);  // back out
                 else
                     t.next = node;
             } else if (first && spins != 0) {
@@ -1101,7 +1101,7 @@ public abstract class AbstractQueuedLongSynchronizer
         private long enableWait(ConditionNode node) {
             if (isHeldExclusively()) {
                 node.waiter = Thread.currentThread();
-                node.setRelaxedStatus(COND | WAITING);
+                node.setStatusRelaxed(COND | WAITING);
                 ConditionNode last = lastWaiter;
                 if (last == null)
                     firstWaiter = node;

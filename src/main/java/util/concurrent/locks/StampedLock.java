@@ -321,10 +321,10 @@ public class StampedLock implements java.io.Serializable {
         final int getAndUnsetStatus(int v) {     // for signalling
             return U.getAndBitwiseAndInt(this, STATUS, ~v);
         }
-        final void setRelaxedPrev(Node p) {      // for off-queue assignment
+        final void setPrevRelaxed(Node p) {      // for off-queue assignment
             U.putObject(this, PREV, p);
         }
-        final void setRelaxedStatus(int s) {     // for off-queue assignment
+        final void setStatusRelaxed(int s) {     // for off-queue assignment
             U.putInt(this, STATUS, s);
         }
         final void clearStatus() {               // for reducing unneeded signals
@@ -1187,11 +1187,11 @@ public class StampedLock implements java.io.Serializable {
                 node = new WriterNode();
             } else if (pred == null) {          // try to enqueue
                 Node t = tail;
-                node.setRelaxedPrev(t);
+                node.setPrevRelaxed(t);
                 if (t == null)
                     tryInitializeHead();
                 else if (!casTail(t, node))
-                    node.setRelaxedPrev(null);  // back out
+                    node.setPrevRelaxed(null);  // back out
                 else
                     t.next = node;
             } else if (first && spins != 0) {    // reduce unfairness
@@ -1243,12 +1243,12 @@ public class StampedLock implements java.io.Serializable {
                 if (node == null)
                     node = new ReaderNode();
                 if (tail == t) {
-                    node.setRelaxedPrev(t);
+                    node.setPrevRelaxed(t);
                     if (casTail(t, node)) {
                         t.next = node;
                         break; // node is leader; wait in loop below
                     }
-                    node.setRelaxedPrev(null);
+                    node.setPrevRelaxed(null);
                 }
             } else if ((leader = (ReaderNode)t) == tail) { // try to cowait
                 for (boolean attached = false, canPark = false;;) {
