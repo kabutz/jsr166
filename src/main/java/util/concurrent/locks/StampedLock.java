@@ -407,7 +407,7 @@ public class StampedLock implements java.io.Serializable {
 
     private long tryAcquireRead() {
         for (long s, m, nextState;;) {
-            if (((m = (s = state) & ABITS)) < RFULL) {
+            if ((m = (s = state) & ABITS) < RFULL) {
                 if (casState(s, nextState = s + RUNIT))
                     return nextState;
             } else if (m != WBIT) {
