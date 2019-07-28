@@ -1042,18 +1042,19 @@ public abstract class AbstractQueuedLongSynchronizer
         // Signalling methods
 
         /**
-         * Removes and transfers node to sync queue.  Split out from
-         * public signal to avoid monitor checks for internal calls.
-         * @param first the first node on condition queue
+         * Removes and transfers one or all waiters to sync queue.
          */
-        private void doSignal(ConditionNode first) {
-            if (first != null) {
-                ConditionNode f = first.nextWaiter;
-                first.nextWaiter = null;
-                if ((firstWaiter = f) == null)
+        private void doSignal(ConditionNode first, boolean all) {
+            while (first != null) {
+                ConditionNode next = first.nextWaiter;
+                if ((firstWaiter = next) == null)
                     lastWaiter = null;
-                if ((first.getAndUnsetStatus(COND) & COND) != 0)
+                if ((first.getAndUnsetStatus(COND) & COND) != 0) {
                     enqueue(first);
+                    if (!all)
+                        break;
+                }
+                first = next;
             }
         }
 
@@ -1070,7 +1071,7 @@ public abstract class AbstractQueuedLongSynchronizer
             if (!isHeldExclusively())
                 throw new IllegalMonitorStateException();
             if (first != null)
-                doSignal(first);
+                doSignal(first, false);
         }
 
         /**
@@ -1084,20 +1085,11 @@ public abstract class AbstractQueuedLongSynchronizer
             ConditionNode first = firstWaiter;
             if (!isHeldExclusively())
                 throw new IllegalMonitorStateException();
-            if (first != null) {
-                lastWaiter = firstWaiter = null;
-                for (;;) {
-                    ConditionNode next = first.nextWaiter;
-                    first.nextWaiter = null;
-                    if ((first.getAndUnsetStatus(COND) & COND) != 0)
-                        enqueue(first);
-                    if ((first = next) == null)
-                        break;
-                }
-            }
+            if (first != null)
+                doSignal(first, true);
         }
 
-        // Support for waiting methods
+        // Waiting methods
 
         /**
          * Adds node to condition list and releases lock.
@@ -1142,30 +1134,28 @@ public abstract class AbstractQueuedLongSynchronizer
         }
 
         /**
-         * Unlinks non-waiting nodes from condition queue, and signals
-         * next waiter. Called only after a cancelled wait.
+         * Unlinks the given node and other non-waiting nodes from
+         * condition queue unless already unlinked.
          */
-        private void cleanAndSignal() {
-            ConditionNode w = firstWaiter, trail = null;
-            while (w != null) {
-                ConditionNode next = w.nextWaiter;
-                if ((w.status & COND) == 0) {
-                    w.nextWaiter = null;
-                    if (trail == null)
-                        firstWaiter = next;
-                    else
-                        trail.nextWaiter = next;
-                    if (next == null)
-                        lastWaiter = trail;
-                } else
-                    trail = w;
-                w = next;
+        private void unlinkCancelledWaiters(ConditionNode node) {
+            if (node == null || node.nextWaiter != null || node == lastWaiter) {
+                ConditionNode w = firstWaiter, trail = null;
+                while (w != null) {
+                    ConditionNode next = w.nextWaiter;
+                    if ((w.status & COND) == 0) {
+                        w.nextWaiter = null;
+                        if (trail == null)
+                            firstWaiter = next;
+                        else
+                            trail.nextWaiter = next;
+                        if (next == null)
+                            lastWaiter = trail;
+                    } else
+                        trail = w;
+                    w = next;
+                }
             }
-            if ((w = firstWaiter) != null)
-                doSignal(w);
         }
-
-        // public methods
 
         /**
          * Implements uninterruptible condition wait.
@@ -1235,7 +1225,7 @@ public abstract class AbstractQueuedLongSynchronizer
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
             if (cancelled) {
-                cleanAndSignal();
+                unlinkCancelledWaiters(node);
                 throw new InterruptedException();
             } else if (interrupted)
                 Thread.currentThread().interrupt();
@@ -1274,7 +1264,7 @@ public abstract class AbstractQueuedLongSynchronizer
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
             if (cancelled) {
-                cleanAndSignal();
+                unlinkCancelledWaiters(node);
                 if (interrupted)
                     throw new InterruptedException();
             } else if (interrupted) // interrupted after signal
@@ -1316,7 +1306,7 @@ public abstract class AbstractQueuedLongSynchronizer
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
             if (cancelled) {
-                cleanAndSignal();
+                unlinkCancelledWaiters(node);
                 if (interrupted)
                     throw new InterruptedException();
                 return false;
@@ -1360,7 +1350,7 @@ public abstract class AbstractQueuedLongSynchronizer
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
             if (cancelled) {
-                cleanAndSignal();
+                unlinkCancelledWaiters(node);
                 if (interrupted)
                     throw new InterruptedException();
                 return false; // timed out
