@@ -494,7 +494,7 @@ public abstract class AbstractQueuedSynchronizer
     /**
      * The synchronization state.
      */
-    volatile int state;
+    private volatile int state;
 
     /**
      * Returns the current value of synchronization state.
@@ -555,6 +555,8 @@ public abstract class AbstractQueuedSynchronizer
                     tryInitializeHead();
                 else if (casTail(t, node)) {
                     t.next = node;
+                    if (t.status < 0)          // clean now
+                        cleanQueue();
                     break;
                 }
             }
@@ -570,22 +572,24 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Wakes up the successor of head, if one exists, and unsets its
+     * Wakes up the successor of given node, if one exists, and unsets its
      * WAITING status to avoid park race. This may fail to wake up an
      * eligible thread when one or more have been cancelled, but
      * cancelAcquire ensures liveness.
      */
-    final void signalFirst() {
-        Node h, s;
-        if ((h = head) != null && (s = h.next) != null && s.status != 0) {
+    private static void signalNext(Node h) {
+        Node s;
+        if (h != null && (s = h.next) != null && s.status != 0) {
             s.getAndUnsetStatus(WAITING);
             LockSupport.unpark(s.waiter);
         }
     }
 
     /** Wakes up the given node if in shared mode */
-    private static void signalIfShared(Node s) {
-        if (s != null && (s instanceof SharedNode) && s.status != 0) {
+    private static void signalNextIfShared(Node h) {
+        Node s;
+        if (h != null && (s = h.next) != null &&
+            (s instanceof SharedNode) && s.status != 0) {
             s.getAndUnsetStatus(WAITING);
             LockSupport.unpark(s.waiter);
         }
@@ -623,10 +627,15 @@ public abstract class AbstractQueuedSynchronizer
 
         for (;;) {
             if (!first) {
-                pred = (node == null) ? null : node.prev;
-                if (first = (pred != null && pred.prev == null)) {
-                    while (head != pred)            // ensure serialization
-                        Thread.onSpinWait();
+                while ((pred = (node == null) ? null : node.prev) != null) {
+                    if (first = (head == pred))
+                        break;
+                    else if (pred.status < 0)
+                        cleanQueue();           // predecessor cancelled
+                    else if (pred.prev == null)
+                        Thread.onSpinWait();    // ensure serialization
+                    else
+                        break;
                 }
             }
             if (first || pred == null) {
@@ -644,10 +653,10 @@ public abstract class AbstractQueuedSynchronizer
                     if (first) {
                         node.prev = null;
                         head = node;
-                        node.waiter = null;
                         pred.next = null;
+                        node.waiter = null;
                         if (shared)
-                            signalIfShared(node.next);
+                            signalNextIfShared(node);
                         if (interrupted)
                             current.interrupt();
                     }
@@ -672,9 +681,6 @@ public abstract class AbstractQueuedSynchronizer
             } else if (first && spins != 0) {
                 --spins;                        // reduce unfairness on rewaits
                 Thread.onSpinWait();
-            } else if (!first && pred.status < 0) {
-                node.clearStatus();
-                cleanQueue();                   // help remove cancelled pred
             } else if (node.status == 0) {      // check cancel before park
                 interrupted |= Thread.interrupted();
                 if ((interrupted && interruptible) ||
@@ -698,28 +704,31 @@ public abstract class AbstractQueuedSynchronizer
      * relinked to be next eligible acquirer.
      */
     private void cleanQueue() {
-        for (;;) {                          // restart point
+        for (;;) {                               // restart point
             for (Node q = tail, s = null, p, n;;) { // (p, q, s) triples
-                if (q == null || (p = q.prev) == null || (n = p.next) == null)
-                    return;                 // end of list
+                if (q == null || (p = q.prev) == null)
+                    return;                      // end of list
                 if (s == null ? tail != q : (s.prev != q || s.status < 0))
-                    break;                  // inconsistent
-                if (q.status < 0) {         // cancelled
-                    if (s == null ? casTail(q, p) : s.casPrev(q, p)) {
-                        p.casNext(q, s);    // OK if failed
-                        if (s != null && p.prev == null && // s now first
-                            (s.getAndUnsetStatus(WAITING) & WAITING) != 0)
-                            LockSupport.unpark(s.waiter);
+                    break;                       // inconsistent
+                if (q.status < 0) {              // cancelled
+                    if ((s == null ? casTail(q, p) : s.casPrev(q, p)) &&
+                        q.prev == p) {
+                        p.casNext(q, s);         // OK if fails
+                        if (p.prev == null)
+                            signalNext(p);
                     }
-                    break;                  // restart
+                    break;
                 }
-                if (n != q) {
-                    if (q.prev == p)        // help finish another unsplice
+                if ((n = p.next) != q) {         // help finish
+                    if (n != null && q.prev == p) {
                         p.casNext(n, q);
-                } else {
-                    s = q;
-                    q = q.prev;
+                        if (p.prev == null)
+                            signalNext(p);
+                    }
+                    break;
                 }
+                s = q;
+                q = q.prev;
             }
         }
     }
@@ -969,7 +978,7 @@ public abstract class AbstractQueuedSynchronizer
      */
     public final boolean release(int arg) {
         if (tryRelease(arg)) {
-            signalFirst();
+            signalNext(head);
             return true;
         }
         return false;
@@ -1056,7 +1065,7 @@ public abstract class AbstractQueuedSynchronizer
      */
     public final boolean releaseShared(int arg) {
         if (tryReleaseShared(arg)) {
-            signalFirst();
+            signalNext(head);
             return true;
         }
         return false;
@@ -1473,10 +1482,8 @@ public abstract class AbstractQueuedSynchronizer
                     last.nextWaiter = node;
                 lastWaiter = node;
                 int savedState = getState();
-                if (tryRelease(savedState)) {
-                    signalFirst();
+                if (release(savedState))
                     return savedState;
-                }
             }
             node.status = CANCELLED; // lock not held or inconsistent
             throw new IllegalMonitorStateException();
@@ -1489,13 +1496,8 @@ public abstract class AbstractQueuedSynchronizer
          * @return true if is reacquiring
          */
         private boolean canReacquire(ConditionNode node) {
-            Node p; // check links, not status to avoid enqueue race
-            if (node == null || (p = node.prev) == null)
-                return false;
-            else if (p.next == node) // is bidirectionally attached
-                return true;
-            else
-                return isEnqueued(node);
+            // check links, not status to avoid enqueue race
+            return node != null && node.prev != null && isEnqueued(node);
         }
 
         /**
@@ -1587,13 +1589,14 @@ public abstract class AbstractQueuedSynchronizer
                     Thread.onSpinWait();    // awoke while enqueuing
             }
             LockSupport.setCurrentBlocker(null);
+            if (interrupted && !cancelled)
+                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
             if (cancelled) {
                 unlinkCancelledWaiters(node);
                 throw new InterruptedException();
-            } else if (interrupted)
-                Thread.currentThread().interrupt();
+            }
         }
 
         /**
@@ -1626,14 +1629,15 @@ public abstract class AbstractQueuedSynchronizer
                 } else
                     LockSupport.parkNanos(this, nanos);
             }
+            if (interrupted && !cancelled)
+                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
             if (cancelled) {
                 unlinkCancelledWaiters(node);
                 if (interrupted)
                     throw new InterruptedException();
-            } else if (interrupted) // interrupted after signal
-                Thread.currentThread().interrupt();
+            }
             long remaining = deadline - System.nanoTime(); // avoid overflow
             return (remaining <= nanosTimeout) ? remaining : Long.MIN_VALUE;
         }
@@ -1668,6 +1672,8 @@ public abstract class AbstractQueuedSynchronizer
                 } else
                     LockSupport.parkUntil(this, abstime);
             }
+            if (interrupted && !cancelled)
+                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
             if (cancelled) {
@@ -1675,8 +1681,7 @@ public abstract class AbstractQueuedSynchronizer
                 if (interrupted)
                     throw new InterruptedException();
                 return false;
-            } else if (interrupted)
-                Thread.currentThread().interrupt();
+            }
             return true;
         }
 
@@ -1712,6 +1717,8 @@ public abstract class AbstractQueuedSynchronizer
                 } else
                     LockSupport.parkNanos(this, nanos);
             }
+            if (interrupted && !cancelled)
+                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
             if (cancelled) {
@@ -1719,8 +1726,7 @@ public abstract class AbstractQueuedSynchronizer
                 if (interrupted)
                     throw new InterruptedException();
                 return false; // timed out
-            } else if (interrupted)
-                Thread.currentThread().interrupt();
+            }
             return true;
         }
 

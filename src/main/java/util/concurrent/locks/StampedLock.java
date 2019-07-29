@@ -234,19 +234,20 @@ public class StampedLock implements java.io.Serializable {
      * updates.
      *
      * Waiters use a modified form of CLH lock used in
-     * AbstractQueuedSynchronizer (see its internal documentation for
-     * a fuller account), where each node is either a ReaderNode or
-     * WriterNode. Sets of waiting readers are grouped (linked) under
-     * a common node (field cowait) so act as a single node with
-     * respect to most CLH mechanics.  By virtue of the queue
-     * structure, wait nodes need not actually carry sequence numbers;
-     * we know each is greater than its predecessor.  This simplifies
-     * the scheduling policy to a mainly-FIFO scheme that incorporates
-     * elements of Phase-Fair locks (see Brandenburg & Anderson,
-     * especially http://www.cs.unc.edu/~bbb/diss/).  Method release
-     * does not (and sometimes cannot) itself wake up cowaiters. This
-     * is done by the primary thread, but helped by other cowaiters as
-     * they awaken.
+     * AbstractQueuedSynchronizer (AQS; see its internal documentation
+     * for a fuller account), where each node is either a ReaderNode
+     * or WriterNode. Implementation of queued Writer mode is
+     * identical to AQS except for lock-state operations.  Sets of
+     * waiting readers are grouped (linked) under a common node (field
+     * cowait) so act as a single node with respect to most CLH
+     * mechanics.  By virtue of the queue structure, wait nodes need
+     * not actually carry sequence numbers; we know each is greater
+     * than its predecessor.  This simplifies the scheduling policy to
+     * a mainly-FIFO scheme that incorporates elements of Phase-Fair
+     * locks (see Brandenburg & Anderson, especially
+     * http://www.cs.unc.edu/~bbb/diss/).  Method release does not
+     * itself wake up cowaiters. This is done by the primary thread,
+     * but helped by other cowaiters as they awaken.
      *
      * These rules apply to threads actually queued. Threads may also
      * try to acquire locks before or in the process of enqueueing
@@ -263,9 +264,9 @@ public class StampedLock implements java.io.Serializable {
      * The memory layout keeps lock state and queue pointers together
      * (normally on the same cache line). This usually works well for
      * read-mostly loads. In most other cases, the natural tendency of
-     * adaptive-spin CLH locks to reduce memory contention lessens
-     * motivation to further spread out contended locations, but might
-     * be subject to future improvements.
+     * CLH locks to reduce memory contention lessens motivation to
+     * further spread out contended locations, but might be subject to
+     * future improvements.
      */
 
     private static final long serialVersionUID = -6001602636862214147L;
@@ -431,7 +432,7 @@ public class StampedLock implements java.io.Serializable {
 
     private long releaseWrite(long s) {
         long nextState = state = unlockWriteState(s);
-        signalFirst();
+        signalNext(head);
         return nextState;
     }
 
@@ -642,7 +643,7 @@ public class StampedLock implements java.io.Serializable {
                 if (m < RFULL) {
                     if (casState(s, s - RUNIT)) {
                         if (m == RUNIT)
-                            signalFirst();
+                            signalNext(head);
                         return;
                     }
                 }
@@ -720,7 +721,7 @@ public class StampedLock implements java.io.Serializable {
                 if (s != stamp) // write stamp
                     break;
                 nextState = state = unlockWriteState(s) + RUNIT;
-                signalFirst();
+                signalNext(head);
                 return nextState;
             } else if (a == 0L) { // optimistic read stamp
                 if ((s & ABITS) < RFULL) {
@@ -762,7 +763,7 @@ public class StampedLock implements java.io.Serializable {
             } else if (m < RFULL) {
                 if (casState(s, nextState = s - RUNIT)) {
                     if (m == RUNIT)
-                        signalFirst();
+                        signalNext(head);
                     return nextState & SBITS;
                 }
             } else if ((nextState = tryDecReaderOverflow(s)) != 0L)
@@ -802,7 +803,7 @@ public class StampedLock implements java.io.Serializable {
             if (m < RFULL) {
                 if (casState(s, s - RUNIT)) {
                     if (m == RUNIT)
-                        signalFirst();
+                        signalNext(head);
                     return true;
                 }
             }
@@ -1057,7 +1058,7 @@ public class StampedLock implements java.io.Serializable {
             if (m < RFULL) {
                 if (casState(s, s - RUNIT)) {
                     if (m == RUNIT)
-                        signalFirst();
+                        signalNext(head);
                     return;
                 }
             }
@@ -1120,12 +1121,14 @@ public class StampedLock implements java.io.Serializable {
     // release methods
 
     /**
-     * Wakes up the successor of head, if one currently exists and is
-     * waiting.
+     * Wakes up the successor of given node, if one exists, and unsets its
+     * WAITING status to avoid park race. This may fail to wake up an
+     * eligible thread when one or more have been cancelled, but
+     * cancelAcquire ensures liveness.
      */
-    private void signalFirst() {
-        Node h, s;
-        if ((h = head) != null && (s = h.next) != null && s.status != 0) {
+    static final void signalNext(Node h) {
+        Node s;
+        if (h != null && (s = h.next) != null && s.status > 0) {
             s.getAndUnsetStatus(WAITING);
             LockSupport.unpark(s.waiter);
         }
@@ -1173,16 +1176,24 @@ public class StampedLock implements java.io.Serializable {
         Node pred = null;
         for (long s, nextState;;) {
             if (!first) {
-                pred = (node == null) ? null : node.prev;
-                first = (pred != null && pred.prev == null);
+                while ((pred = (node == null) ? null : node.prev) != null) {
+                    if (first = (head == pred))
+                        break;
+                    else if (pred.status < 0)
+                        cleanQueue();           // predecessor cancelled
+                    else if (pred.prev == null)
+                        Thread.onSpinWait();    // ensure serialization
+                    else
+                        break;
+                }
             }
             if ((first || pred == null) && ((s = state) & ABITS) == 0L &&
                 casState(s, nextState = s | WBIT)) {
                 if (first) {
-                    node.waiter = null;
                     node.prev = null;
                     head = node;
                     pred.next = null;
+                    node.waiter = null;
                     if (interrupted)
                         Thread.currentThread().interrupt();
                 }
@@ -1201,9 +1212,6 @@ public class StampedLock implements java.io.Serializable {
             } else if (first && spins != 0) {   // reduce unfairness
                 --spins;
                 Thread.onSpinWait();
-            } else if (!first && pred.status < 0) {
-                node.clearStatus();
-                cleanQueue();                   // help remove cancelled pred
             } else if (node.status == 0) {      // check cancel before park
                 interrupted |= Thread.interrupted();
                 if ((interrupted && interruptible) ||
@@ -1269,14 +1277,10 @@ public class StampedLock implements java.io.Serializable {
                         node.waiter = Thread.currentThread();
                     else if (!attached) {
                         ReaderNode c = leader.cowait;
-                        if (c != null && c.status < 0)
-                            cleanCowaiters(leader);  // help clean cowaits
-                        else {
-                            node.setCowaitRelaxed(c);
-                            attached = leader.casCowait(c, node);
-                            if (!attached)
-                                node.setCowaitRelaxed(null);
-                        }
+                        node.setCowaitRelaxed(c);
+                        attached = leader.casCowait(c, node);
+                        if (!attached)
+                            node.setCowaitRelaxed(null);
                     } else if (!canPark) {           // check cancellation
                         canPark = true;
                         interrupted |= Thread.interrupted();
@@ -1309,15 +1313,24 @@ public class StampedLock implements java.io.Serializable {
         boolean first = false;
         Node pred = null;
         for (long m, s, nextState;;) {
-            if (!first)
-                first = (pred = node.prev) != null && pred.prev == null;
-            if (first && (nextState = tryAcquireRead()) != 0L) {
-                node.waiter = null;
-                node.prev = null;
-                while (head != pred)            // ensure serialization
+            if (!first) {
+                for (;;) {
+                    if ((pred = node.prev) != null) {
+                        if (first = (head == pred))
+                            break;
+                        else if (pred.status < 0)
+                            cleanQueue();           // predecessor cancelled
+                        else if (pred.prev != null)
+                            break;
+                    }
                     Thread.onSpinWait();
+                }
+            }
+            if (first && (nextState = tryAcquireRead()) != 0L) {
+                node.prev = null;
                 head = node;
                 pred.next = null;
+                node.waiter = null;
                 signalCowaiters(node);
                 if (interrupted)
                     Thread.currentThread().interrupt();
@@ -1325,9 +1338,6 @@ public class StampedLock implements java.io.Serializable {
             } else if (first && spins != 0) {
                 --spins;
                 Thread.onSpinWait();
-            } else if (!first && pred != null && pred.status < 0) {
-                node.clearStatus();
-                cleanQueue();                   // help remove cancelled pred
             } else if (node.status == 0) {      // check cancel before park
                 interrupted |= Thread.interrupted();
                 if ((interrupted && interruptible) ||
@@ -1351,32 +1361,35 @@ public class StampedLock implements java.io.Serializable {
 
     /**
      * Possibly repeatedly traverses from tail, unsplicing cancelled
-     * nodes until none are found.  Unparks nodes that may have been
+     * nodes until none are found. Unparks nodes that may have been
      * relinked to be next eligible acquirer.
      */
     private void cleanQueue() {
-        for (;;) {                          // restart point
+        for (;;) {                               // restart point
             for (Node q = tail, s = null, p, n;;) { // (p, q, s) triples
-                if (q == null || (p = q.prev) == null || (n = p.next) == null)
-                    return;                 // end of list
+                if (q == null || (p = q.prev) == null)
+                    return;                      // end of list
                 if (s == null ? tail != q : (s.prev != q || s.status < 0))
-                    break;                  // inconsistent
-                if (q.status < 0) {         // cancelled
-                    if (s == null ? casTail(q, p) : s.casPrev(q, p)) {
-                        p.casNext(q, s);    // OK if failed
-                        if (s != null && p.prev == null && // s now first
-                            (s.getAndUnsetStatus(WAITING) & WAITING) != 0)
-                            LockSupport.unpark(s.waiter);
+                    break;                       // inconsistent
+                if (q.status < 0) {              // cancelled
+                    if ((s == null ? casTail(q, p) : s.casPrev(q, p)) &&
+                        q.prev == p) {
+                        p.casNext(q, s);         // OK if fails
+                        if (p.prev == null)
+                            signalNext(p);
                     }
-                    break;                  // restart
+                    break;
                 }
-                if (n != q) {
-                    if (q.prev == p)        // help finish another unsplice
+                if ((n = p.next) != q) {         // help finish
+                    if (n != null && q.prev == p && q.status >= 0) {
                         p.casNext(n, q);
-                } else {
-                    s = q;
-                    q = q.prev;
+                        if (p.prev == null)
+                            signalNext(p);
+                    }
+                    break;
                 }
+                s = q;
+                q = q.prev;
             }
         }
     }
