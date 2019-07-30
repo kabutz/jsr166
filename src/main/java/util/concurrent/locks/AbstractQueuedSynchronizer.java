@@ -555,8 +555,8 @@ public abstract class AbstractQueuedSynchronizer
                     tryInitializeHead();
                 else if (casTail(t, node)) {
                     t.next = node;
-                    if (t.status < 0)          // clean now
-                        cleanQueue();
+                    if (t.status < 0)          // wake up to clean link
+                        LockSupport.unpark(node.waiter);
                     break;
                 }
             }
