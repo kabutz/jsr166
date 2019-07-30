@@ -1217,19 +1217,25 @@ public abstract class AbstractQueuedLongSynchronizer
                 if (interrupted |= Thread.interrupted()) {
                     if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0)
                         break;              // else interrupted after signal
-                } else if ((node.status & COND) != 0)
-                    ForkJoinPool.managedBlock(node);
-                else
+                } else if ((node.status & COND) != 0) {
+                    try {
+                        ForkJoinPool.managedBlock(node);
+                    } catch (InterruptedException ie) {
+                        interrupted = true;
+                    }
+                } else
                     Thread.onSpinWait();    // awoke while enqueuing
             }
             LockSupport.setCurrentBlocker(null);
-            if (interrupted && !cancelled)
-                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
-            if (cancelled) {
-                unlinkCancelledWaiters(node);
-                throw new InterruptedException();
+            if (interrupted) {
+                if (cancelled) {
+                    unlinkCancelledWaiters(node);
+                    Thread.interrupted();   // clear if reinterrupted
+                    throw new InterruptedException();
+                }
+                Thread.currentThread().interrupt();
             }
         }
 
@@ -1263,14 +1269,16 @@ public abstract class AbstractQueuedLongSynchronizer
                 } else
                     LockSupport.parkNanos(this, nanos);
             }
-            if (interrupted && !cancelled)
-                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
-            if (cancelled) {
+            if (cancelled)
                 unlinkCancelledWaiters(node);
-                if (interrupted)
+            if (interrupted) {
+                if (cancelled) {
+                    Thread.interrupted();
                     throw new InterruptedException();
+                }
+                Thread.currentThread().interrupt();
             }
             long remaining = deadline - System.nanoTime(); // avoid overflow
             return (remaining <= nanosTimeout) ? remaining : Long.MIN_VALUE;
@@ -1306,17 +1314,18 @@ public abstract class AbstractQueuedLongSynchronizer
                 } else
                     LockSupport.parkUntil(this, abstime);
             }
-            if (interrupted && !cancelled)
-                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
-            if (cancelled) {
+            if (cancelled)
                 unlinkCancelledWaiters(node);
-                if (interrupted)
+            if (interrupted) {
+                if (cancelled) {
+                    Thread.interrupted();
                     throw new InterruptedException();
-                return false;
+                }
+                Thread.currentThread().interrupt();
             }
-            return true;
+            return !cancelled;
         }
 
         /**
@@ -1351,18 +1360,18 @@ public abstract class AbstractQueuedLongSynchronizer
                 } else
                     LockSupport.parkNanos(this, nanos);
             }
-            if (interrupted && !cancelled)
-                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
-            if (cancelled) {
+            if (cancelled)
                 unlinkCancelledWaiters(node);
-                if (interrupted)
+            if (interrupted) {
+                if (cancelled) {
+                    Thread.interrupted();
                     throw new InterruptedException();
-                return false; // timed out
-            } else if (interrupted)
+                }
                 Thread.currentThread().interrupt();
-            return true;
+            }
+            return !cancelled;
         }
 
         //  support for instrumentation

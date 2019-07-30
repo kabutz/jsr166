@@ -292,7 +292,7 @@ public abstract class AbstractQueuedSynchronizer
      * including explicit ("prev" and "next") links plus a "status"
      * field that allow nodes to signal successors when releasing
      * locks, and handle cancellation due to interrupts and timeouts.
-     * The status field includes bits that track of whether a thread
+     * The status field includes bits that track whether a thread
      * needs a signal (using LockSupport.unpark). Despite these
      * additions, we maintain most CLH locality properties.
      *
@@ -376,9 +376,9 @@ public abstract class AbstractQueuedSynchronizer
      * Shared mode operations differ from Exclusive in that an acquire
      * signals the next waiter to try to acquire if it is also
      * Shared. The tryAcquireShared API allows users to indicate the
-     * degree of propagation, but it is usually more efficient to
-     * ignore this, allowing the successor to try acquiring in any
-     * case.
+     * degree of propagation, but in most applications, it is more
+     * efficient to ignore this, allowing the successor to try
+     * acquiring in any case.
      *
      * Threads waiting on Conditions use nodes with an additional
      * link to maintain the (FIFO) list of conditions. Conditions only
@@ -400,7 +400,7 @@ public abstract class AbstractQueuedSynchronizer
      * Most of the above is performed by primary internal method
      * acquire, that is invoked in some way by all exported acquire
      * methods.  (It is usually easy for compilers to optimize
-     * call-site specializations.)
+     * call-site specializations when heavily used.)
      *
      * Thanks go to Dave Dice, Mark Moir, Victor Luchangco, Bill
      * Scherer and Michael Scott, along with members of JSR-166
@@ -1583,19 +1583,25 @@ public abstract class AbstractQueuedSynchronizer
                 if (interrupted |= Thread.interrupted()) {
                     if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0)
                         break;              // else interrupted after signal
-                } else if ((node.status & COND) != 0)
-                    ForkJoinPool.managedBlock(node);
-                else
+                } else if ((node.status & COND) != 0) {
+                    try {
+                        ForkJoinPool.managedBlock(node);
+                    } catch (InterruptedException ie) {
+                        interrupted = true;
+                    }
+                } else
                     Thread.onSpinWait();    // awoke while enqueuing
             }
             LockSupport.setCurrentBlocker(null);
-            if (interrupted && !cancelled)
-                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
-            if (cancelled) {
-                unlinkCancelledWaiters(node);
-                throw new InterruptedException();
+            if (interrupted) {
+                if (cancelled) {
+                    unlinkCancelledWaiters(node);
+                    Thread.interrupted();   // clear if reinterrupted
+                    throw new InterruptedException();
+                }
+                Thread.currentThread().interrupt();
             }
         }
 
@@ -1629,14 +1635,16 @@ public abstract class AbstractQueuedSynchronizer
                 } else
                     LockSupport.parkNanos(this, nanos);
             }
-            if (interrupted && !cancelled)
-                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
-            if (cancelled) {
+            if (cancelled)
                 unlinkCancelledWaiters(node);
-                if (interrupted)
+            if (interrupted) {
+                if (cancelled) {
+                    Thread.interrupted();
                     throw new InterruptedException();
+                }
+                Thread.currentThread().interrupt();
             }
             long remaining = deadline - System.nanoTime(); // avoid overflow
             return (remaining <= nanosTimeout) ? remaining : Long.MIN_VALUE;
@@ -1672,17 +1680,18 @@ public abstract class AbstractQueuedSynchronizer
                 } else
                     LockSupport.parkUntil(this, abstime);
             }
-            if (interrupted && !cancelled)
-                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
-            if (cancelled) {
+            if (cancelled)
                 unlinkCancelledWaiters(node);
-                if (interrupted)
+            if (interrupted) {
+                if (cancelled) {
+                    Thread.interrupted();
                     throw new InterruptedException();
-                return false;
+                }
+                Thread.currentThread().interrupt();
             }
-            return true;
+            return !cancelled;
         }
 
         /**
@@ -1717,17 +1726,18 @@ public abstract class AbstractQueuedSynchronizer
                 } else
                     LockSupport.parkNanos(this, nanos);
             }
-            if (interrupted && !cancelled)
-                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
-            if (cancelled) {
+            if (cancelled)
                 unlinkCancelledWaiters(node);
-                if (interrupted)
+            if (interrupted) {
+                if (cancelled) {
+                    Thread.interrupted();
                     throw new InterruptedException();
-                return false; // timed out
+                }
+                Thread.currentThread().interrupt();
             }
-            return true;
+            return !cancelled;
         }
 
         //  support for instrumentation
