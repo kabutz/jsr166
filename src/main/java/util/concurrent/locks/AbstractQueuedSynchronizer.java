@@ -1598,7 +1598,6 @@ public abstract class AbstractQueuedSynchronizer
             if (interrupted) {
                 if (cancelled) {
                     unlinkCancelledWaiters(node);
-                    Thread.interrupted();   // clear if reinterrupted
                     throw new InterruptedException();
                 }
                 Thread.currentThread().interrupt();
@@ -1637,15 +1636,12 @@ public abstract class AbstractQueuedSynchronizer
             }
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
-            if (cancelled)
+            if (cancelled) {
                 unlinkCancelledWaiters(node);
-            if (interrupted) {
-                if (cancelled) {
-                    Thread.interrupted();
+                if (interrupted)
                     throw new InterruptedException();
-                }
+            } else if (interrupted)
                 Thread.currentThread().interrupt();
-            }
             long remaining = deadline - System.nanoTime(); // avoid overflow
             return (remaining <= nanosTimeout) ? remaining : Long.MIN_VALUE;
         }
@@ -1682,15 +1678,12 @@ public abstract class AbstractQueuedSynchronizer
             }
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
-            if (cancelled)
+            if (cancelled) {
                 unlinkCancelledWaiters(node);
-            if (interrupted) {
-                if (cancelled) {
-                    Thread.interrupted();
+                if (interrupted)
                     throw new InterruptedException();
-                }
+            } else if (interrupted)
                 Thread.currentThread().interrupt();
-            }
             return !cancelled;
         }
 
@@ -1728,15 +1721,12 @@ public abstract class AbstractQueuedSynchronizer
             }
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
-            if (cancelled)
+            if (cancelled) {
                 unlinkCancelledWaiters(node);
-            if (interrupted) {
-                if (cancelled) {
-                    Thread.interrupted();
+                if (interrupted)
                     throw new InterruptedException();
-                }
+            } else if (interrupted)
                 Thread.currentThread().interrupt();
-            }
             return !cancelled;
         }
 
