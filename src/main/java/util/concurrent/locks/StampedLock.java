@@ -403,7 +403,8 @@ public class StampedLock implements java.io.Serializable {
 
     // Used for try-forms with initial unconditional CAS
     private long tryAcquireWrite() {
-        long s = state & ~ABITS, nextState = s | WBIT;
+        long w = U.getLongOpaque(this, STATE); // weak read before confirmng CAS
+        long s = w & ~ABITS, nextState = s | WBIT;
         return casState(s, nextState) ? nextState : 0L;
     }
 
@@ -520,8 +521,8 @@ public class StampedLock implements java.io.Serializable {
         long s, nextState;
         if (((s = state) & ABITS) < RFULL && casState(s, nextState = s + RUNIT))
             return nextState;
-         else
-             return acquireRead(false, false, 0L);
+        else
+            return acquireRead(false, false, 0L);
     }
 
     /**
@@ -1396,17 +1397,17 @@ public class StampedLock implements java.io.Serializable {
 
     /**
      * If leader exists, possibly repeatedly traverses cowaiters,
-     * unsplicing cancelled nodes until none are found.
+     * unsplicing the given cancelled node until not found.
      */
-    private void cleanCowaiters(ReaderNode leader) {
+    private void unlinkCowaiter(ReaderNode node, ReaderNode leader) {
         if (leader != null) {
             while (leader.prev != null && leader.status >= 0) {
                 for (ReaderNode p = leader, q; ; p = q) {
                     if ((q = p.cowait) == null)
                         return;
-                    if (q.status < 0) {
+                    if (q == node) {
                         p.casCowait(q, q.cowait);
-                        break;
+                        break;  // recheck even if succeeded
                     }
                 }
             }
@@ -1447,7 +1448,7 @@ public class StampedLock implements java.io.Serializable {
         if (node != null) {
             node.waiter = null;
             node.status = CANCELLED;
-            cleanCowaiters(leader);
+            unlinkCowaiter(node, leader);
         }
         return (interrupted || Thread.interrupted()) ? INTERRUPTED : 0L;
     }
