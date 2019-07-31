@@ -1581,8 +1581,10 @@ public abstract class AbstractQueuedSynchronizer
             boolean interrupted = false, cancelled = false;
             while (!canReacquire(node)) {
                 if (interrupted |= Thread.interrupted()) {
-                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0)
+                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0) {
+                        enqueue(node);
                         break;              // else interrupted after signal
+                    }
                 } else if ((node.status & COND) != 0) {
                     try {
                         ForkJoinPool.managedBlock(node);
@@ -1593,13 +1595,14 @@ public abstract class AbstractQueuedSynchronizer
                     Thread.onSpinWait();    // awoke while enqueuing
             }
             LockSupport.setCurrentBlocker(null);
-            if (interrupted && !cancelled)
-                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
-            if (cancelled) {
-                unlinkCancelledWaiters(node);
-                throw new InterruptedException();
+            if (interrupted) {
+                if (cancelled) {
+                    unlinkCancelledWaiters(node);
+                    throw new InterruptedException();
+                }
+                Thread.currentThread().interrupt();
             }
         }
 
@@ -1628,20 +1631,21 @@ public abstract class AbstractQueuedSynchronizer
             while (!canReacquire(node)) {
                 if ((interrupted |= Thread.interrupted()) ||
                     (nanos = deadline - System.nanoTime()) <= 0L) {
-                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0)
+                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0) {
+                        enqueue(node);
                         break;
+                    }
                 } else
                     LockSupport.parkNanos(this, nanos);
             }
-            if (interrupted && !cancelled)
-                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
             if (cancelled) {
                 unlinkCancelledWaiters(node);
                 if (interrupted)
                     throw new InterruptedException();
-            }
+            } else if (interrupted)
+                Thread.currentThread().interrupt();
             long remaining = deadline - System.nanoTime(); // avoid overflow
             return (remaining <= nanosTimeout) ? remaining : Long.MIN_VALUE;
         }
@@ -1671,20 +1675,21 @@ public abstract class AbstractQueuedSynchronizer
             while (!canReacquire(node)) {
                 if ((interrupted |= Thread.interrupted()) ||
                     System.currentTimeMillis() >= abstime) {
-                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0)
+                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0) {
+                        enqueue(node);
                         break;
+                    }
                 } else
                     LockSupport.parkUntil(this, abstime);
             }
-            if (interrupted && !cancelled)
-                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
             if (cancelled) {
                 unlinkCancelledWaiters(node);
                 if (interrupted)
                     throw new InterruptedException();
-            }
+            } else if (interrupted)
+                Thread.currentThread().interrupt();
             return !cancelled;
         }
 
@@ -1715,20 +1720,21 @@ public abstract class AbstractQueuedSynchronizer
             while (!canReacquire(node)) {
                 if ((interrupted |= Thread.interrupted()) ||
                     (nanos = deadline - System.nanoTime()) <= 0L) {
-                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0)
+                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0) {
+                        enqueue(node);
                         break;
+                    }
                 } else
                     LockSupport.parkNanos(this, nanos);
             }
-            if (interrupted && !cancelled)
-                Thread.currentThread().interrupt();
             node.clearStatus();
             acquire(node, savedState, false, false, false, 0L);
             if (cancelled) {
                 unlinkCancelledWaiters(node);
                 if (interrupted)
                     throw new InterruptedException();
-            }
+            } else if (interrupted)
+                Thread.currentThread().interrupt();
             return !cancelled;
         }
 
