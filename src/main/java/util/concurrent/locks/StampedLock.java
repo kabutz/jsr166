@@ -251,7 +251,12 @@ public class StampedLock implements java.io.Serializable {
      *
      * These rules apply to threads actually queued. Threads may also
      * try to acquire locks before or in the process of enqueueing
-     * regardless of preference rules, and so may "barge" their way in.
+     * regardless of preference rules, and so may "barge" their way
+     * in.  Methods writeLock and readLock (but not the other variants
+     * of each) first unconditionally try to CAS state, falling back
+     * to test-and-test-and-set retries on failure, slightly shrinking
+     * race windows on initial attempts, thus making success more
+     * likely.
      *
      * Nearly all of these mechanics are carried out in methods
      * acquireWrite and acquireRead, that, as typical of such code,
@@ -281,6 +286,8 @@ public class StampedLock implements java.io.Serializable {
     private static final long RFULL = RBITS - 1L;
     private static final long ABITS = RBITS | WBIT;
     private static final long SBITS = ~RBITS; // note overlap with ABITS
+    // not writing and conseravtively non-overflowing
+    private static final long RSAFE = ~(3L << (LG_READERS - 1));
 
     /*
      * 3 stamp modes can be distinguished by examining (m = stamp & ABITS):
@@ -401,13 +408,15 @@ public class StampedLock implements java.io.Serializable {
         return U.compareAndSetLong(this, STATE, expect, update);
     }
 
-    // Used for try-forms with initial unconditional CAS
+    @ReservedStackAccess
     private long tryAcquireWrite() {
-        long w = U.getLongOpaque(this, STATE); // weak read before confirmng CAS
-        long s = w & ~ABITS, nextState = s | WBIT;
-        return casState(s, nextState) ? nextState : 0L;
+        long s, nextState;
+        if (((s = state) & ABITS) == 0L && casState(s, nextState = s | WBIT))
+            return nextState;
+        return 0L;
     }
 
+    @ReservedStackAccess
     private long tryAcquireRead() {
         for (long s, m, nextState;;) {
             if ((m = (s = state) & ABITS) < RFULL) {
@@ -445,8 +454,12 @@ public class StampedLock implements java.io.Serializable {
      */
     @ReservedStackAccess
     public long writeLock() {
-        long s = tryAcquireWrite();
-        return (s != 0L) ? s : acquireWrite(false, false, 0L);
+        // try unconditional CAS confirming weak read
+        long s = U.getLongOpaque(this, STATE) & ~ABITS, nextState = s | WBIT;
+        if (casState(s, nextState))
+            return nextState;
+        else
+            return acquireWrite(false, false, 0L);
     }
 
     /**
@@ -455,7 +468,6 @@ public class StampedLock implements java.io.Serializable {
      * @return a write stamp that can be used to unlock or convert mode,
      * or zero if the lock is not available
      */
-    @ReservedStackAccess
     public long tryWriteLock() {
         return tryAcquireWrite();
     }
@@ -499,7 +511,6 @@ public class StampedLock implements java.io.Serializable {
      * @throws InterruptedException if the current thread is interrupted
      * before acquiring the lock
      */
-    @ReservedStackAccess
     public long writeLockInterruptibly() throws InterruptedException {
         long nextState;
         if (!Thread.interrupted() &&
@@ -517,9 +528,9 @@ public class StampedLock implements java.io.Serializable {
      */
     @ReservedStackAccess
     public long readLock() {
-        // try non-overflow case once
-        long s, nextState;
-        if (((s = state) & ABITS) < RFULL && casState(s, nextState = s + RUNIT))
+        // unconditionally try non-overflow case once
+        long s = U.getLongOpaque(this, STATE), nextState = s + RUNIT;
+        if (casState(s & RSAFE, nextState))
             return nextState;
         else
             return acquireRead(false, false, 0L);
@@ -548,7 +559,6 @@ public class StampedLock implements java.io.Serializable {
      * @throws InterruptedException if the current thread is interrupted
      * before acquiring the lock
      */
-    @ReservedStackAccess
     public long tryReadLock(long time, TimeUnit unit)
         throws InterruptedException {
         long nanos = unit.toNanos(time);
@@ -575,11 +585,11 @@ public class StampedLock implements java.io.Serializable {
      * @throws InterruptedException if the current thread is interrupted
      * before acquiring the lock
      */
-    @ReservedStackAccess
     public long readLockInterruptibly() throws InterruptedException {
         long nextState;
         if (!Thread.interrupted() &&
-            (nextState = acquireRead(true, false, 0L)) != INTERRUPTED)
+            ((nextState = tryAcquireRead()) != 0L ||
+             (nextState = acquireRead(true, false, 0L)) != INTERRUPTED))
             return nextState;
         throw new InterruptedException();
     }
@@ -663,7 +673,6 @@ public class StampedLock implements java.io.Serializable {
      * @throws IllegalMonitorStateException if the stamp does
      * not match the current state of this lock
      */
-    @ReservedStackAccess
     public void unlock(long stamp) {
         if ((stamp & WBIT) != 0L)
             unlockWrite(stamp);
