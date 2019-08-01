@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import jdk.testlibrary.Utils;
@@ -306,10 +307,9 @@ public class Basic {
             private Throwable throwable;
             private boolean interrupted;
 
-            public Waiter(boolean timed,
-                          CountDownLatch doneSignal,
+            public Waiter(CountDownLatch doneSignal,
                           CyclicBarrier barrier) {
-                this.timed = timed;
+                this.timed = ThreadLocalRandom.current().nextBoolean();
                 this.doneSignal = doneSignal;
                 this.barrier = barrier;
             }
@@ -352,7 +352,7 @@ public class Basic {
                 } catch (Throwable t) { unexpected(t); }
             }};
             for (int i = 0; i < N; i++) {
-                Waiter waiter = new Waiter(i < N/2, doneSignal, barrier);
+                Waiter waiter = new Waiter(doneSignal, barrier);
                 waiter.start();
                 waiters.add(waiter);
             }
@@ -379,7 +379,7 @@ public class Basic {
             final CyclicBarrier barrier = new CyclicBarrier(N+1);
             final List<Waiter> waiters = new ArrayList<>(N);
             for (int i = 0; i < N; i++) {
-                Waiter waiter = new Waiter(i < N/2, doneSignal, barrier);
+                Waiter waiter = new Waiter(doneSignal, barrier);
                 waiter.start();
                 waiters.add(waiter);
             }
