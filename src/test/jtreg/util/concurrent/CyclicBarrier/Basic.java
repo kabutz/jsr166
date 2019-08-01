@@ -361,8 +361,6 @@ public class Basic {
             barrier.await();
             doneSignal.countDown();
             int countInterrupted = 0;
-            int countInterruptedException = 0;
-            int countBrokenBarrierException = 0;
             for (Waiter waiter : waiters) {
                 waiter.join();
                 equal(waiter.throwable(), null);
@@ -402,10 +400,10 @@ public class Basic {
                 if (waiter.interruptBit())
                     countInterrupted++;
             }
-            equal(countInterrupted, N/2-1);
             equal(countInterruptedException, 1);
             equal(countBrokenBarrierException, N-1);
             checkBroken(barrier);
+            equal(countInterrupted, N/2-1);
             reset(barrier);
         } catch (Throwable t) { unexpected(t); }
     }
