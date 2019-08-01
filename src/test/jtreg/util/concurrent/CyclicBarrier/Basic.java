@@ -320,7 +320,7 @@ public class Basic {
                 startingGate.await(LONG_DELAY_MS, MILLISECONDS);
                 try {
                     if (timed) barrier.await(LONG_DELAY_MS, MILLISECONDS);
-                    else barrier.await(); 
+                    else barrier.await();
                 }
                 catch (Throwable throwable) { this.throwable = throwable; }
 
