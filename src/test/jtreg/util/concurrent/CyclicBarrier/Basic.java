@@ -389,8 +389,8 @@ public class Basic {
             while (barrier.getNumberWaiting() < N) Thread.yield();
             for (int i = 0; i < N/2; i++) {
                 Thread waiter = waiters.get(i);
-		// Thread.State state = waiter.getState();
-		// check(state == WAITING || state == TIMED_WAITING);
+                // Thread.State state = waiter.getState();
+                // check(state == WAITING || state == TIMED_WAITING);
                 waiter.interrupt();
             }
             doneSignal.countDown();
