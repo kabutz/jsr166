@@ -302,11 +302,11 @@ public class Basic {
          * A version of Awaiter that also records interrupted state.
          */
         class Waiter extends CheckedThread {
-            private boolean timed;
-            private CyclicBarrier barrier;
-            private CountDownLatch doneSignal;
-            private Throwable throwable;
-            private boolean interrupted;
+            private final boolean timed;
+            private final CyclicBarrier barrier;
+            private final CountDownLatch doneSignal;
+            private volatile Throwable throwable;
+            private volatile boolean interrupted;
 
             public Waiter(CountDownLatch doneSignal,
                           CyclicBarrier barrier) {
@@ -389,8 +389,8 @@ public class Basic {
             while (barrier.getNumberWaiting() < N) Thread.yield();
             for (int i = 0; i < N/2; i++) {
                 Thread waiter = waiters.get(i);
-                Thread.State state = waiter.getState();
-                check(state == WAITING || state == TIMED_WAITING);
+		// Thread.State state = waiter.getState();
+		// check(state == WAITING || state == TIMED_WAITING);
                 waiter.interrupt();
             }
             doneSignal.countDown();
