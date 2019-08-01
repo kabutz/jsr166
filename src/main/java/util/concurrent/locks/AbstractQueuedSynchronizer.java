@@ -609,7 +609,6 @@ public abstract class AbstractQueuedSynchronizer
     final int acquire(Node node, int arg, boolean shared,
                       boolean interruptible, boolean timed, long time) {
         Thread current = Thread.currentThread();
-        long nanos = 0L;                 // next parkNanos argument if timed
         byte spins = 0, postSpins = 0;   // retries upon unpark of first thread
         boolean interrupted = false, first = false;
         Node pred = null;                // predecessor of node when enqueued
@@ -621,8 +620,8 @@ public abstract class AbstractQueuedSynchronizer
          *  else if node not yet created, create it
          *  else if not yet enqueued, try once to enqueue
          *  else if woken from park, retry (up to postSpins times)
-         *  else if WAITING status not set, check cancellation, set and retry
-         *  else park (with timeout if timed) and clear WAITING status
+         *  else if WAITING status not set, set and retry
+         *  else park and clear WAITING status, and check cancellation
          */
 
         for (;;) {
@@ -681,19 +680,19 @@ public abstract class AbstractQueuedSynchronizer
             } else if (first && spins != 0) {
                 --spins;                        // reduce unfairness on rewaits
                 Thread.onSpinWait();
-            } else if (node.status == 0) {      // check cancel before park
-                interrupted |= Thread.interrupted();
-                if ((interrupted && interruptible) ||
-                    (timed && (nanos = time - System.nanoTime()) <= 0L))
-                    return cancelAcquire(node, interrupted, interruptible);
-                node.status = WAITING;          // enable signal
+            } else if (node.status == 0) {
+                node.status = WAITING;          // enable signal and recheck
             } else {
                 spins = postSpins = (byte)((postSpins << 1) | 1);
-                if (timed)
-                    LockSupport.parkNanos(this, nanos);
-                else
+                long nanos = 0L;
+                if (!timed)
                     LockSupport.park(this);
+                else if ((nanos = time - System.nanoTime()) > 0L)
+                    LockSupport.parkNanos(this, nanos);
                 node.clearStatus();
+                if (((interrupted |= Thread.interrupted()) && interruptible) ||
+                    (timed && nanos <= 0L))
+                    return cancelAcquire(node, interrupted, interruptible);
             }
         }
     }
@@ -1581,10 +1580,8 @@ public abstract class AbstractQueuedSynchronizer
             boolean interrupted = false, cancelled = false;
             while (!canReacquire(node)) {
                 if (interrupted |= Thread.interrupted()) {
-                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0) {
-                        enqueue(node);
+                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0)
                         break;              // else interrupted after signal
-                    }
                 } else if ((node.status & COND) != 0) {
                     try {
                         ForkJoinPool.managedBlock(node);
@@ -1631,10 +1628,8 @@ public abstract class AbstractQueuedSynchronizer
             while (!canReacquire(node)) {
                 if ((interrupted |= Thread.interrupted()) ||
                     (nanos = deadline - System.nanoTime()) <= 0L) {
-                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0) {
-                        enqueue(node);
+                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0)
                         break;
-                    }
                 } else
                     LockSupport.parkNanos(this, nanos);
             }
@@ -1675,10 +1670,8 @@ public abstract class AbstractQueuedSynchronizer
             while (!canReacquire(node)) {
                 if ((interrupted |= Thread.interrupted()) ||
                     System.currentTimeMillis() >= abstime) {
-                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0) {
-                        enqueue(node);
+                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0)
                         break;
-                    }
                 } else
                     LockSupport.parkUntil(this, abstime);
             }
@@ -1720,10 +1713,8 @@ public abstract class AbstractQueuedSynchronizer
             while (!canReacquire(node)) {
                 if ((interrupted |= Thread.interrupted()) ||
                     (nanos = deadline - System.nanoTime()) <= 0L) {
-                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0) {
-                        enqueue(node);
+                    if (cancelled = (node.getAndUnsetStatus(COND) & COND) != 0)
                         break;
-                    }
                 } else
                     LockSupport.parkNanos(this, nanos);
             }
