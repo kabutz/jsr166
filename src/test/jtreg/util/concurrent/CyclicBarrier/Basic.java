@@ -29,6 +29,7 @@
  * @author Martin Buchholz, David Holmes
  */
 
+import static java.lang.Thread.State.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.ArrayList;
@@ -319,7 +320,8 @@ public class Basic {
                 startingGate.await(LONG_DELAY_MS, MILLISECONDS);
                 try {
                     if (timed) barrier.await(LONG_DELAY_MS, MILLISECONDS);
-                    else barrier.await(); }
+                    else barrier.await(); 
+                }
                 catch (Throwable throwable) { this.throwable = throwable; }
 
                 try { doneSignal.await(LONG_DELAY_MS, MILLISECONDS); }
@@ -385,8 +387,12 @@ public class Basic {
             }
             startingGate.await(LONG_DELAY_MS, MILLISECONDS);
             while (barrier.getNumberWaiting() < N) Thread.yield();
-            for (int i = 0; i < N/2; i++)
-                waiters.get(i).interrupt();
+            for (int i = 0; i < N/2; i++) {
+                Thread waiter = waiters.get(i);
+                Thread.State state = waiter.getState();
+                check(state == WAITING || state == TIMED_WAITING);
+                waiter.interrupt();
+            }
             doneSignal.countDown();
             int countInterrupted = 0;
             int countInterruptedException = 0;
