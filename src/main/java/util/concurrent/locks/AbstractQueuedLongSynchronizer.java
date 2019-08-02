@@ -250,7 +250,8 @@ public abstract class AbstractQueuedLongSynchronizer
 
         /*
          * Repeatedly:
-         *  Check if node now first; if so, ensure head stable
+         *  Check if node now first
+         *    if so, ensure head stable, else ensure valid predecessor
          *  if node is first or not yet enqueued, try acquiring
          *  else if node not yet created, create it
          *  else if not yet enqueued, try once to enqueue
@@ -260,16 +261,14 @@ public abstract class AbstractQueuedLongSynchronizer
          */
 
         for (;;) {
-            if (!first) {
-                while ((pred = (node == null) ? null : node.prev) != null) {
-                    if (first = (head == pred))
-                        break;
-                    else if (pred.status < 0)
-                        cleanQueue();           // predecessor cancelled
-                    else if (pred.prev == null)
-                        Thread.onSpinWait();    // ensure serialization
-                    else
-                        break;
+            if (!first && (pred = (node == null) ? null : node.prev) != null &&
+                !(first = (head == pred))) {
+                if (pred.status < 0) {
+                    cleanQueue();           // predecessor cancelled
+                    continue;
+                } else if (pred.prev == null) {
+                    Thread.onSpinWait();    // ensure serialization
+                    continue;
                 }
             }
             if (first || pred == null) {
@@ -318,18 +317,20 @@ public abstract class AbstractQueuedLongSynchronizer
             } else if (node.status == 0) {
                 node.status = WAITING;          // enable signal and recheck
             } else {
+                long nanos;
                 spins = postSpins = (byte)((postSpins << 1) | 1);
-                long nanos = 0L;
                 if (!timed)
                     LockSupport.park(this);
                 else if ((nanos = time - System.nanoTime()) > 0L)
                     LockSupport.parkNanos(this, nanos);
+                else
+                    break;
                 node.clearStatus();
-                if (((interrupted |= Thread.interrupted()) && interruptible) ||
-                    (timed && nanos <= 0L))
-                    return cancelAcquire(node, interrupted, interruptible);
+                if ((interrupted |= Thread.interrupted()) && interruptible)
+                    break;
             }
         }
+        return cancelAcquire(node, interrupted, interruptible);
     }
 
     /**
