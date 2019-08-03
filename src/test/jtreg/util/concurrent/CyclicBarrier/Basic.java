@@ -315,17 +315,24 @@ public class Basic {
                 this.barrier = barrier;
             }
             Throwable throwable() { return this.throwable; }
-            boolean interruptBit() { return this.interrupted; }
+            boolean wasInterrupted() { return this.interrupted; }
             void realRun() throws Throwable {
                 startingGate.await(LONG_DELAY_MS, MILLISECONDS);
+
                 try {
                     if (timed) barrier.await(LONG_DELAY_MS, MILLISECONDS);
                     else barrier.await();
+                } catch (Throwable throwable) {
+                    this.throwable = throwable;
                 }
-                catch (Throwable throwable) { this.throwable = throwable; }
 
-                try { doneSignal.await(LONG_DELAY_MS, MILLISECONDS); }
-                catch (InterruptedException e) { interrupted = true; }
+                try {
+                    check(doneSignal.await(LONG_DELAY_MS, MILLISECONDS));
+                    if (Thread.interrupted())
+                        interrupted = true;
+                } catch (InterruptedException e) {
+                    interrupted = true;
+                }
             }
         }
 
@@ -366,7 +373,7 @@ public class Basic {
             for (Waiter waiter : waiters) {
                 waiter.join();
                 equal(waiter.throwable(), null);
-                if (waiter.interruptBit())
+                if (waiter.wasInterrupted())
                     countInterrupted++;
             }
             equal(countInterrupted, N/2);
@@ -403,7 +410,7 @@ public class Basic {
                     countInterruptedException++;
                 if (waiter.throwable() instanceof BrokenBarrierException)
                     countBrokenBarrierException++;
-                if (waiter.interruptBit())
+                if (waiter.wasInterrupted())
                     countInterrupted++;
             }
             equal(countInterruptedException, 1);
