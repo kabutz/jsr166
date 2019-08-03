@@ -295,7 +295,7 @@ public class Basic {
      * Handling of extra interrupts while waiting - tests for bug 6366811
      */
     private static void testInterrupts() {
-        final int N = 10;
+        final int N = ThreadLocalRandom.current().nextInt(2, 10);
         final CyclicBarrier startingGate = new CyclicBarrier(N+1);
 
         /**
@@ -305,17 +305,15 @@ public class Basic {
             private final boolean timed;
             private final CyclicBarrier barrier;
             private final CountDownLatch doneSignal;
-            private volatile Throwable throwable;
-            private volatile boolean interrupted;
+            volatile Throwable throwable;
+            volatile boolean interruptStatusSetAfterAwait;
 
-            public Waiter(CountDownLatch doneSignal,
-                          CyclicBarrier barrier) {
+            public Waiter(CountDownLatch doneSignal, CyclicBarrier barrier) {
                 this.timed = ThreadLocalRandom.current().nextBoolean();
                 this.doneSignal = doneSignal;
                 this.barrier = barrier;
             }
-            Throwable throwable() { return this.throwable; }
-            boolean wasInterrupted() { return this.interrupted; }
+
             void realRun() throws Throwable {
                 startingGate.await(LONG_DELAY_MS, MILLISECONDS);
 
@@ -329,9 +327,9 @@ public class Basic {
                 try {
                     check(doneSignal.await(LONG_DELAY_MS, MILLISECONDS));
                     if (Thread.interrupted())
-                        interrupted = true;
+                        interruptStatusSetAfterAwait = true;
                 } catch (InterruptedException e) {
-                    interrupted = true;
+                    interruptStatusSetAfterAwait = true;
                 }
             }
         }
@@ -369,14 +367,14 @@ public class Basic {
             while (barrier.getNumberWaiting() < N) Thread.yield();
             barrier.await();
             doneSignal.countDown();
-            int countInterrupted = 0;
+            int countInterruptStatusSetAfterAwait = 0;
             for (Waiter waiter : waiters) {
                 waiter.join();
-                equal(waiter.throwable(), null);
-                if (waiter.wasInterrupted())
-                    countInterrupted++;
+                equal(waiter.throwable, null);
+                if (waiter.interruptStatusSetAfterAwait)
+                    countInterruptStatusSetAfterAwait++;
             }
-            equal(countInterrupted, N/2);
+            equal(countInterruptStatusSetAfterAwait, N/2);
             check(! barrier.isBroken());
         } catch (Throwable t) { unexpected(t); }
 
@@ -396,27 +394,25 @@ public class Basic {
             while (barrier.getNumberWaiting() < N) Thread.yield();
             for (int i = 0; i < N/2; i++) {
                 Thread waiter = waiters.get(i);
-                // Thread.State state = waiter.getState();
-                // check(state == WAITING || state == TIMED_WAITING);
                 waiter.interrupt();
             }
             doneSignal.countDown();
-            int countInterrupted = 0;
             int countInterruptedException = 0;
             int countBrokenBarrierException = 0;
+            int countInterruptStatusSetAfterAwait = 0;
             for (Waiter waiter : waiters) {
                 waiter.join();
-                if (waiter.throwable() instanceof InterruptedException)
+                if (waiter.throwable instanceof InterruptedException)
                     countInterruptedException++;
-                if (waiter.throwable() instanceof BrokenBarrierException)
+                if (waiter.throwable instanceof BrokenBarrierException)
                     countBrokenBarrierException++;
-                if (waiter.wasInterrupted())
-                    countInterrupted++;
+                if (waiter.interruptStatusSetAfterAwait)
+                    countInterruptStatusSetAfterAwait++;
             }
             equal(countInterruptedException, 1);
             equal(countBrokenBarrierException, N-1);
             checkBroken(barrier);
-            equal(countInterrupted, N/2-1);
+            equal(countInterruptStatusSetAfterAwait, N/2-1);
             reset(barrier);
         } catch (Throwable t) { unexpected(t); }
     }
