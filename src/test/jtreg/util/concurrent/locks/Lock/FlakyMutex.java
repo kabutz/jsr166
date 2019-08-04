@@ -52,8 +52,7 @@ public class FlakyMutex implements Lock {
 	if (!((t instanceof MyError) ||
               (t instanceof MyException) ||
               (t instanceof MyRuntimeException)))
-            throw new AssertionError(
-                    "unexpected " + t.getClass().getSimpleName(), t);
+	    unexpected(t);
     }
 
     static void realMain(String[] args) throws Throwable {
