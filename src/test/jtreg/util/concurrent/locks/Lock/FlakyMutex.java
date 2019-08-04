@@ -147,7 +147,11 @@ public class FlakyMutex implements Lock {
         if (x == null ? y == null : x.equals(y)) pass();
         else fail(x + " not equal to " + y);}
     public static void main(String[] args) throws Throwable {
-        try {realMain(args);} catch (Throwable t) {unexpected(t);}
+        int runsPerTest = Integer.getInteger("jsr166.runsPerTest", 1);
+        try {
+            for (int i = runsPerTest; i--> 0; )
+                realMain(args);
+        } catch (Throwable t) { unexpected(t); }
         System.out.printf("%nPassed = %d, failed = %d%n%n", passed, failed);
         if (failed > 0) throw new AssertionError("Some tests failed");}
     @SuppressWarnings("unchecked")
