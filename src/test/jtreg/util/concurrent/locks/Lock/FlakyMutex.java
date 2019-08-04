@@ -49,10 +49,10 @@ public class FlakyMutex implements Lock {
     static class MyRuntimeException extends RuntimeException {}
 
     static void checkThrowable(Throwable t) {
-	if (!((t instanceof MyError) ||
+        if (!((t instanceof MyError) ||
               (t instanceof MyException) ||
               (t instanceof MyRuntimeException)))
-	    unexpected(t);
+            unexpected(t);
     }
 
     static void realMain(String[] args) throws Throwable {
