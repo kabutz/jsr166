@@ -173,7 +173,11 @@ public class CountDownLatchTest extends JSR166TestCase {
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
                 assertEquals(1, l.getCount());
+
+                long startTime = System.nanoTime();
                 assertFalse(l.await(timeoutMillis(), MILLISECONDS));
+                assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
+
                 assertEquals(1, l.getCount());
             }});
 
