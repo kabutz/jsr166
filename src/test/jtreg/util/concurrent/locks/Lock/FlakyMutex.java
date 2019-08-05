@@ -63,6 +63,7 @@ public class FlakyMutex implements Lock {
         final ExecutorService es = Executors.newFixedThreadPool(nThreads);
         final Runnable task = () -> {
             try {
+                ThreadLocalRandom rnd = ThreadLocalRandom.current();
                 startingGate.await();
                 for (int i = 0; i < iterations; i++) {
                     for (;;) {
@@ -70,11 +71,19 @@ public class FlakyMutex implements Lock {
                         catch (Throwable t) { checkThrowable(t); }
                     }
 
-                    try { check(! mutex.tryLock()); }
-                    catch (Throwable t) { checkThrowable(t); }
+                    if (rnd.nextBoolean()) {
+                        try { check(! mutex.tryLock()); }
+                        catch (Throwable t) { checkThrowable(t); }
+                    }
 
-                    try { check(! mutex.tryLock(1, TimeUnit.MICROSECONDS)); }
-                    catch (Throwable t) { checkThrowable(t); }
+                    if (rnd.nextBoolean()) {
+                        try { check(! mutex.tryLock(1, TimeUnit.MICROSECONDS)); }
+                        catch (Throwable t) { checkThrowable(t); }
+                    }
+
+                    if (rnd.nextBoolean()) {
+                        check(mutex.isLocked());
+                    }
 
                     mutex.unlock();
                 }
