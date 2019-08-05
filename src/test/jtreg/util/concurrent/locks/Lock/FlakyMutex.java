@@ -56,29 +56,39 @@ public class FlakyMutex implements Lock {
     }
 
     static void realMain(String[] args) throws Throwable {
-        final int nThreads = 3;
+        final ThreadLocalRandom rndMain = ThreadLocalRandom.current();
+        final int nCpus = Runtime.getRuntime().availableProcessors();
+        final int maxThreads = Math.min(4, nCpus);
+        final int nThreads = rndMain.nextInt(1, maxThreads + 1);
         final int iterations = 10_000;
         final CyclicBarrier startingGate = new CyclicBarrier(nThreads);
-        final FlakyMutex mutex = new FlakyMutex();
         final ExecutorService es = Executors.newFixedThreadPool(nThreads);
+        final FlakyMutex mutex = new FlakyMutex();
         final Runnable task = () -> {
             try {
                 ThreadLocalRandom rnd = ThreadLocalRandom.current();
                 startingGate.await();
                 for (int i = 0; i < iterations; i++) {
                     for (;;) {
-                        try { mutex.lock(); break; }
-                        catch (Throwable t) { checkThrowable(t); }
+                        try {
+                            if (rnd.nextBoolean())
+                                mutex.lock();
+                            else
+                                mutex.lockInterruptibly();
+                            break;
+                        } catch (Throwable t) { checkThrowable(t); }
                     }
 
                     if (rnd.nextBoolean()) {
-                        try { check(! mutex.tryLock()); }
-                        catch (Throwable t) { checkThrowable(t); }
+                        try {
+                            check(! mutex.tryLock());
+                        } catch (Throwable t) { checkThrowable(t); }
                     }
 
                     if (rnd.nextInt(10) == 0) {
-                        try { check(! mutex.tryLock(1, TimeUnit.MICROSECONDS)); }
-                        catch (Throwable t) { checkThrowable(t); }
+                        try {
+                            check(! mutex.tryLock(1, TimeUnit.MICROSECONDS));
+                        } catch (Throwable t) { checkThrowable(t); }
                     }
 
                     if (rnd.nextBoolean()) {
