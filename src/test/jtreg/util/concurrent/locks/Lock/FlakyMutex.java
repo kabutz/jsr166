@@ -76,7 +76,7 @@ public class FlakyMutex implements Lock {
                         catch (Throwable t) { checkThrowable(t); }
                     }
 
-                    if (rnd.nextBoolean()) {
+                    if (rnd.nextInt(10) == 0) {
                         try { check(! mutex.tryLock(1, TimeUnit.MICROSECONDS)); }
                         catch (Throwable t) { checkThrowable(t); }
                     }
