@@ -20,16 +20,12 @@
   targets require different JDKs, we assume that users have created a
   hierarchy containing:
   $HOME/jdk/jdk8
-  $HOME/jdk/jdk9
-  $HOME/jdk/jdk10
   $HOME/jdk/jdk11
   $HOME/jdk/jdk12
   $HOME/jdk/jdk13
   $HOME/jdk/jdk14
   where each of the above is a JDK or a symlink to same, and
   $HOME/jdk/src/jdk8
-  $HOME/jdk/src/jdk9
-  $HOME/jdk/src/jdk10
   $HOME/jdk/src/jdk11
   $HOME/jdk/src/jdk12
   $HOME/jdk/src/jdk13
@@ -42,6 +38,7 @@
   for $N in 8 .. 14 ...
 
   As of 2016-03, the sources in src/main are for jdk9+ only.
+  As of 2019-08, the sources in src/main are for jdk11+ only.
 ------------------------------------------------------------------------------
   </description>
 
@@ -135,11 +132,7 @@
     </sequential>
   </macrodef>
 
-  <defjdklocations v="6"/>
-  <defjdklocations v="7"/>
   <defjdklocations v="8"/>
-  <defjdklocations v="9"/>
-  <defjdklocations v="10"/>
   <defjdklocations v="11"/>
   <defjdklocations v="12"/>
   <defjdklocations v="13"/>
@@ -150,15 +143,12 @@
   <property name="test.src.dir"         location="${basedir}/src/test"/>
   <property name="loops.src.dir"        location="${basedir}/src/loops"/>
   <property name="tck.src.dir"          location="${test.src.dir}/tck"/>
-  <property name="jtreg7.src.dir"       location="${test.src.dir}/jtreg-jdk7"/>
   <property name="jtreg8.src.dir"       location="${test.src.dir}/jtreg-jdk8"/>
-  <property name="jtreg9.src.dir"       location="${test.src.dir}/jtreg"/>
-  <property name="jtreg10.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg11.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg12.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg13.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg14.src.dir"      location="${test.src.dir}/jtreg"/>
-  <property name="jtreg.src.dir"        location="${jtreg9.src.dir}"/>
+  <property name="jtreg.src.dir"        location="${jtreg11.src.dir}"/>
   <property name="lib.dir"              location="${basedir}/lib"/>
   <property name="dist.dir"             location="${basedir}/dist"/>
   <property name="topsrc.dir"           location="${basedir}/src"/>
@@ -202,13 +192,9 @@
   <property name="java6.docroot.url"  value="https://docs.oracle.com/javase/6/docs"/>
   <property name="java7.docroot.url"  value="https://docs.oracle.com/javase/7/docs"/>
   <property name="java8.docroot.url"  value="https://docs.oracle.com/javase/8/docs"/>
-  <property name="java9.docroot.url"  value="https://docs.oracle.com/javase/9/docs"/>
-  <property name="java10.docroot.url" value="https://docs.oracle.com/javase/10/docs"/>
   <property name="java11.docroot.url" value="https://docs.oracle.com/en/java/javase/11/docs"/>
   <property name="java12.docroot.url" value="https://docs.oracle.com/en/java/javase/12/docs"/>
   <!-- The location of jdk early access docs (RIP) -->
-  <!-- <property name="java9.docroot.url" value="http://download.java.net/java/jdk9/docs"/> -->
-  <!-- <property name="java10.docroot.url" value="http://download.java.net/java/jdk10/docs"/> -->
   <!-- <property name="java11.docroot.url" value="http://download.java.net/java/jdk11/docs"/> -->
 <!--   <property name="java12.docroot.url" value="https://download.java.net/java/jdk12/docs"/> -->
   <property name="java13.docroot.url" value="https://download.java.net/java/early_access/jdk13/docs"/>
@@ -217,12 +203,7 @@
   <property name="java.docroot.url"   value="${java11.docroot.url}"/>
 
   <!-- Canonical location of jdk API docs, to use with javadoc link attribute -->
-  <property name="java5.api.url"      value="${java5.docroot.url}/api/"/>
-  <property name="java6.api.url"      value="${java6.docroot.url}/api/"/>
-  <property name="java7.api.url"      value="${java7.docroot.url}/api/"/>
   <property name="java8.api.url"      value="${java8.docroot.url}/api/"/>
-  <property name="java9.api.url"      value="${java9.docroot.url}/api/"/>
-  <property name="java10.api.url"     value="${java10.docroot.url}/api/"/>
   <property name="java11.api.url"     value="${java11.docroot.url}/api/"/>
   <property name="java12.api.url"     value="${java12.docroot.url}/api/"/>
   <property name="java13.api.url"     value="${java13.docroot.url}/api/"/>
@@ -344,10 +325,7 @@
   <defjtregtests v="13"/>
   <defjtregtests v="12"/>
   <defjtregtests v="11"/>
-  <defjtregtests v="10"/>
-  <defjtregtests v="9"/>
   <defjtregtests v="8"/>
-  <defjtregtests v="7"/>
 
   <!-- ant -Djtreg.flags=-timeoutFactor:4 -->
   <property name="jtreg.flags" value=""/>
@@ -407,6 +385,7 @@
   <!-- Default values: may seem strange ... -->
   <!-- At runtime, target latest LTS, i.e. jdk11 -->
   <!-- But at build time, target jdk9, for maximal binary portability -->
+  <!-- ButButBut as of 2019-08, target jdk11 at build time -->
   <!-- Use javadoc12 (but -link to jdk11 api docs!), to get:
     o override-methods=summary
     o {@systemProperty ...}
@@ -415,7 +394,7 @@
     -->
   <property name="java.runtime.target" value="11"/>
   <property name="build.main.java" value="${java11}"/>
-  <property name="build.main.javac" value="${javac9}"/>
+  <property name="build.main.javac" value="${javac11}"/>
   <property name="build.main.javadoc" value="${javadoc12}"/>
   <property name="build.main.javadoc.source" value="${java.runtime.target}"/>
 
@@ -600,32 +579,34 @@
           description="Runs tck and jtreg tests for src/main"/>
 
   <target name="test-version-permutations"
-	  depends="test9, test10, test11, test12, test13, test14, test9-11, test9-12, test9-13, test9-14, clean, test, docs">
+	  depends="test11, test12, test13, test14, test11-12, test11-13, test11-14, clean, test, docs">
   </target>
 
-  <target name="test9">
-    <antcall target="clean"/>
-    <antcall>
-      <param name="java.runtime.target" value="9"/>
-      <param name="build.main.javac" value="${javac9}"/>
-      <param name="build.main.javadoc" value="${javadoc12}"/>
-      <param name="build.main.javadoc.source" value="9"/>
-      <target name="test"/>
-      <target name="docs"/>
-    </antcall>
-  </target>
+  <!-- jdk9 is unsupported as of 2019-08 -->
+<!--   <target name="test9"> -->
+<!--     <antcall target="clean"/> -->
+<!--     <antcall> -->
+<!--       <param name="java.runtime.target" value="9"/> -->
+<!--       <param name="build.main.javac" value="${javac9}"/> -->
+<!--       <param name="build.main.javadoc" value="${javadoc12}"/> -->
+<!--       <param name="build.main.javadoc.source" value="9"/> -->
+<!--       <target name="test"/> -->
+<!--       <target name="docs"/> -->
+<!--     </antcall> -->
+<!--   </target> -->
 
-  <target name="test10">
-    <antcall target="clean"/>
-    <antcall>
-      <param name="java.runtime.target" value="10"/>
-      <param name="build.main.javac" value="${javac10}"/>
-      <param name="build.main.javadoc" value="${javadoc12}"/>
-      <param name="build.main.javadoc.source" value="10"/>
-      <target name="test"/>
-      <target name="docs"/>
-    </antcall>
-  </target>
+  <!-- jdk10 is unsupported as of 2019-08 -->
+<!--   <target name="test10"> -->
+<!--     <antcall target="clean"/> -->
+<!--     <antcall> -->
+<!--       <param name="java.runtime.target" value="10"/> -->
+<!--       <param name="build.main.javac" value="${javac10}"/> -->
+<!--       <param name="build.main.javadoc" value="${javadoc12}"/> -->
+<!--       <param name="build.main.javadoc.source" value="10"/> -->
+<!--       <target name="test"/> -->
+<!--       <target name="docs"/> -->
+<!--     </antcall> -->
+<!--   </target> -->
 
   <target name="test11">
     <antcall target="clean"/>
@@ -675,49 +656,37 @@
     </antcall>
   </target>
 
-  <target name="test9-11">
-    <antcall target="clean"/>
-    <antcall>
-      <param name="java.runtime.target" value="11"/>
-      <param name="build.main.javac" value="${javac9}"/>
-      <param name="build.main.javadoc" value="${javadoc12}"/>
-      <param name="build.main.javadoc.source" value="9"/>
-      <target name="test"/>
-      <target name="docs"/>
-    </antcall>
-  </target>
-
-  <target name="test9-12">
+  <target name="test11-12">
     <antcall target="clean"/>
     <antcall>
       <param name="java.runtime.target" value="12"/>
-      <param name="build.main.javac" value="${javac9}"/>
+      <param name="build.main.javac" value="${javac11}"/>
       <param name="build.main.javadoc" value="${javadoc12}"/>
-      <param name="build.main.javadoc.source" value="9"/>
+      <param name="build.main.javadoc.source" value="11"/>
       <target name="test"/>
       <target name="docs"/>
     </antcall>
   </target>
 
-  <target name="test9-13">
+  <target name="test11-13">
     <antcall target="clean"/>
     <antcall>
       <param name="java.runtime.target" value="13"/>
-      <param name="build.main.javac" value="${javac9}"/>
+      <param name="build.main.javac" value="${javac11}"/>
       <param name="build.main.javadoc" value="${javadoc13}"/>
-      <param name="build.main.javadoc.source" value="9"/>
+      <param name="build.main.javadoc.source" value="11"/>
       <target name="test"/>
       <target name="docs"/>
     </antcall>
   </target>
 
-  <target name="test9-14">
+  <target name="test11-14">
     <antcall target="clean"/>
     <antcall>
       <param name="java.runtime.target" value="14"/>
-      <param name="build.main.javac" value="${javac9}"/>
+      <param name="build.main.javac" value="${javac11}"/>
       <param name="build.main.javadoc" value="${javadoc14}"/>
-      <param name="build.main.javadoc.source" value="9"/>
+      <param name="build.main.javadoc.source" value="11"/>
       <target name="test"/>
       <target name="docs"/>
     </antcall>
