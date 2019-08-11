@@ -291,7 +291,7 @@ public class LinkedBlockingQueueTest extends JSR166TestCase {
             }});
 
         await(pleaseInterrupt);
-        assertThreadBlocks(t, Thread.State.WAITING);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         awaitTermination(t);
         assertEquals(SIZE, q.size());
@@ -333,7 +333,7 @@ public class LinkedBlockingQueueTest extends JSR166TestCase {
         assertEquals(0, q.take());
 
         await(pleaseInterrupt);
-        assertThreadBlocks(t, Thread.State.WAITING);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         awaitTermination(t);
         assertEquals(0, q.remainingCapacity());
@@ -349,28 +349,30 @@ public class LinkedBlockingQueueTest extends JSR166TestCase {
             public void realRun() throws InterruptedException {
                 q.put(new Object());
                 q.put(new Object());
-
                 long startTime = System.nanoTime();
+
                 assertFalse(q.offer(new Object(), timeoutMillis(), MILLISECONDS));
                 assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
 
                 Thread.currentThread().interrupt();
                 try {
-                    q.offer(new Object(), 2 * LONG_DELAY_MS, MILLISECONDS);
+                    q.offer(new Object(), randomTimeout(), randomTimeUnit());
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
 
                 pleaseInterrupt.countDown();
                 try {
-                    q.offer(new Object(), 2 * LONG_DELAY_MS, MILLISECONDS);
+                    q.offer(new Object(), LONG_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
+
+                assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         await(pleaseInterrupt);
-        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
     }
@@ -411,7 +413,7 @@ public class LinkedBlockingQueueTest extends JSR166TestCase {
             }});
 
         await(pleaseInterrupt);
-        assertThreadBlocks(t, Thread.State.WAITING);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         awaitTermination(t);
     }
@@ -469,7 +471,7 @@ public class LinkedBlockingQueueTest extends JSR166TestCase {
 
                 Thread.currentThread().interrupt();
                 try {
-                    q.poll(LONG_DELAY_MS, MILLISECONDS);
+                    q.poll(randomTimeout(), randomTimeUnit());
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
@@ -485,7 +487,7 @@ public class LinkedBlockingQueueTest extends JSR166TestCase {
             }});
 
         await(pleaseInterrupt);
-        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
         checkEmpty(q);

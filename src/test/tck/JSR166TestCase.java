@@ -685,6 +685,13 @@ public class JSR166TestCase extends TestCase {
     static TimeUnit randomTimeUnit() { return RANDOM_TIMEUNIT; }
 
     /**
+     * Returns a random boolean; a "coin flip".
+     */
+    static boolean randomBoolean() {
+        return ThreadLocalRandom.current().nextBoolean();
+    }
+
+    /**
      * Returns the shortest timed delay. This can be scaled up for
      * slow machines using the jsr166.delay.factor system property,
      * or via jtreg's -timeoutFactor: flag.

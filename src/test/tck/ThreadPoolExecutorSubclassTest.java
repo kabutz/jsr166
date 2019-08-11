@@ -1642,7 +1642,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             l.add(latchAwaitingStringTask(latch));
             l.add(null);
             try {
-                e.invokeAny(l, randomTimeout(), MILLISECONDS);
+                e.invokeAny(l, randomTimeout(), randomTimeUnit());
                 shouldThrow();
             } catch (NullPointerException success) {}
             latch.countDown();

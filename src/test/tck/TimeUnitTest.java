@@ -467,14 +467,21 @@ public class TimeUnitTest extends JSR166TestCase {
      * toString returns name of unit
      */
     public void testToString() {
+        assertEquals("NANOSECONDS", NANOSECONDS.toString());
+        assertEquals("MICROSECONDS", MICROSECONDS.toString());
+        assertEquals("MILLISECONDS", MILLISECONDS.toString());
         assertEquals("SECONDS", SECONDS.toString());
+        assertEquals("MINUTES", MINUTES.toString());
+        assertEquals("HOURS", HOURS.toString());
+        assertEquals("DAYS", DAYS.toString());
     }
 
     /**
      * name returns name of unit
      */
     public void testName() {
-        assertEquals("SECONDS", SECONDS.name());
+        for (TimeUnit x : TimeUnit.values())
+            assertEquals(x.toString(), x.name());
     }
 
     /**
@@ -484,13 +491,15 @@ public class TimeUnitTest extends JSR166TestCase {
     public void testTimedWait_IllegalMonitorException() {
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
+                long startTime = System.nanoTime();
                 Object o = new Object();
-                TimeUnit tu = MILLISECONDS;
 
                 try {
-                    tu.timedWait(o, LONG_DELAY_MS);
+                    MILLISECONDS.timedWait(o, LONG_DELAY_MS);
                     threadShouldThrow();
                 } catch (IllegalMonitorStateException success) {}
+
+                assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         awaitTermination(t);
@@ -503,13 +512,13 @@ public class TimeUnitTest extends JSR166TestCase {
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
+                long startTime = System.nanoTime();
                 Object o = new Object();
-                TimeUnit tu = MILLISECONDS;
 
                 Thread.currentThread().interrupt();
                 try {
                     synchronized (o) {
-                        tu.timedWait(o, LONG_DELAY_MS);
+                        MILLISECONDS.timedWait(o, LONG_DELAY_MS);
                     }
                     shouldThrow();
                 } catch (InterruptedException success) {}
@@ -518,15 +527,17 @@ public class TimeUnitTest extends JSR166TestCase {
                 pleaseInterrupt.countDown();
                 try {
                     synchronized (o) {
-                        tu.timedWait(o, LONG_DELAY_MS);
+                        MILLISECONDS.timedWait(o, LONG_DELAY_MS);
                     }
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
+
+                assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         await(pleaseInterrupt);
-        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
     }
@@ -542,24 +553,27 @@ public class TimeUnitTest extends JSR166TestCase {
             }});
         final Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
-                TimeUnit tu = MILLISECONDS;
+                long startTime = System.nanoTime();
+
                 Thread.currentThread().interrupt();
                 try {
-                    tu.timedJoin(s, LONG_DELAY_MS);
+                    MILLISECONDS.timedJoin(s, LONG_DELAY_MS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
 
                 pleaseInterrupt.countDown();
                 try {
-                    tu.timedJoin(s, LONG_DELAY_MS);
+                    MILLISECONDS.timedJoin(s, LONG_DELAY_MS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
+
+                assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         await(pleaseInterrupt);
-        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
         s.interrupt();
@@ -573,24 +587,27 @@ public class TimeUnitTest extends JSR166TestCase {
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
-                TimeUnit tu = MILLISECONDS;
+                long startTime = System.nanoTime();
+
                 Thread.currentThread().interrupt();
                 try {
-                    tu.sleep(LONG_DELAY_MS);
+                    MILLISECONDS.sleep(LONG_DELAY_MS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
 
                 pleaseInterrupt.countDown();
                 try {
-                    tu.sleep(LONG_DELAY_MS);
+                    MILLISECONDS.sleep(LONG_DELAY_MS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
+
+                assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         await(pleaseInterrupt);
-        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
     }

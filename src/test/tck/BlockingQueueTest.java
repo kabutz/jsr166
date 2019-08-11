@@ -226,7 +226,7 @@ public abstract class BlockingQueueTest extends JSR166TestCase {
 
                 Thread.currentThread().interrupt();
                 try {
-                    q.poll(LONG_DELAY_MS, MILLISECONDS);
+                    q.poll(randomTimeout(), randomTimeUnit());
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
@@ -247,7 +247,7 @@ public abstract class BlockingQueueTest extends JSR166TestCase {
         assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
 
         barrier.await();
-        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
     }
@@ -269,7 +269,7 @@ public abstract class BlockingQueueTest extends JSR166TestCase {
             }});
 
         await(threadStarted);
-        assertThreadBlocks(t, Thread.State.WAITING);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         awaitTermination(t);
     }
@@ -302,15 +302,19 @@ public abstract class BlockingQueueTest extends JSR166TestCase {
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
                 threadStarted.countDown();
+                long startTime = System.nanoTime();
+
                 try {
-                    q.poll(2 * LONG_DELAY_MS, MILLISECONDS);
+                    q.poll(LONG_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
+
+                assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         await(threadStarted);
-        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
+        if (randomBoolean())  assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
     }
@@ -323,12 +327,16 @@ public abstract class BlockingQueueTest extends JSR166TestCase {
         final BlockingQueue q = emptyCollection();
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
+                long startTime = System.nanoTime();
+
                 Thread.currentThread().interrupt();
                 try {
-                    q.poll(2 * LONG_DELAY_MS, MILLISECONDS);
+                    q.poll(LONG_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
+
+                assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         awaitTermination(t);

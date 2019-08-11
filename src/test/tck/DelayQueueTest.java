@@ -357,7 +357,7 @@ public class DelayQueueTest extends JSR166TestCase {
             }});
 
         await(pleaseInterrupt);
-        assertThreadBlocks(t, Thread.State.WAITING);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         awaitTermination(t);
     }
@@ -416,7 +416,7 @@ public class DelayQueueTest extends JSR166TestCase {
 
                 Thread.currentThread().interrupt();
                 try {
-                    q.poll(LONG_DELAY_MS, MILLISECONDS);
+                    q.poll(randomTimeout(), randomTimeUnit());
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
@@ -432,7 +432,7 @@ public class DelayQueueTest extends JSR166TestCase {
             }});
 
         await(pleaseInterrupt);
-        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
         checkEmpty(q);

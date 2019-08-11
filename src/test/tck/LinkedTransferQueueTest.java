@@ -227,7 +227,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
             }});
 
         await(pleaseInterrupt);
-        assertThreadBlocks(t, Thread.State.WAITING);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.WAITING);
         t.interrupt();
         awaitTermination(t);
     }
@@ -287,7 +287,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
 
                 Thread.currentThread().interrupt();
                 try {
-                    q.poll(LONG_DELAY_MS, MILLISECONDS);
+                    q.poll(randomTimeout(), randomTimeUnit());
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
@@ -303,7 +303,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
             }});
 
         await(pleaseInterrupt);
-        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
         checkEmpty(q);
@@ -320,9 +320,9 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
                 long startTime = System.nanoTime();
                 Thread.currentThread().interrupt();
                 for (int i = 0; i < SIZE; ++i)
-                    assertEquals(i, (int) q.poll(LONG_DELAY_MS, MILLISECONDS));
+                    assertEquals(i, (int) q.poll(randomTimeout(), randomTimeUnit()));
                 try {
-                    q.poll(LONG_DELAY_MS, MILLISECONDS);
+                    q.poll(randomTimeout(), randomTimeUnit());
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
@@ -958,7 +958,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
                 long startTime = System.nanoTime();
                 Thread.currentThread().interrupt();
                 try {
-                    q.tryTransfer(new Object(), LONG_DELAY_MS, MILLISECONDS);
+                    q.tryTransfer(new Object(), randomTimeout(), randomTimeUnit());
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
@@ -969,11 +969,12 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
+
                 assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         await(pleaseInterrupt);
-        assertThreadBlocks(t, Thread.State.TIMED_WAITING);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
         checkEmpty(q);

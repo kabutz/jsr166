@@ -476,19 +476,23 @@ public class PhaserTest extends JSR166TestCase {
 
         Thread t2 = newStartedThread(new CheckedRunnable() {
             public void realRun() throws TimeoutException {
+                long startTime = System.nanoTime();
+
                 Thread.currentThread().interrupt();
                 try {
-                    phaser.awaitAdvanceInterruptibly(0, 2*LONG_DELAY_MS, MILLISECONDS);
+                    phaser.awaitAdvanceInterruptibly(0, randomTimeout(), randomTimeUnit());
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
 
                 pleaseInterrupt.countDown();
                 try {
-                    phaser.awaitAdvanceInterruptibly(0, 2*LONG_DELAY_MS, MILLISECONDS);
+                    phaser.awaitAdvanceInterruptibly(0, LONG_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
+
+                assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         await(pleaseInterrupt);
