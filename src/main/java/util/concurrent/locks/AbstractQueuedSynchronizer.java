@@ -447,22 +447,12 @@ public abstract class AbstractQueuedSynchronizer
             U.putIntOpaque(this, STATUS, 0);
         }
 
-        private static final Unsafe U = Unsafe.getUnsafe();
-        private static final long STATUS;
-        private static final long NEXT;
-        private static final long PREV;
-        static {
-            try {
-                PREV = U.objectFieldOffset
-                    (Node.class.getDeclaredField("prev"));
-                NEXT = U.objectFieldOffset
-                    (Node.class.getDeclaredField("next"));
-                STATUS = U.objectFieldOffset
-                    (Node.class.getDeclaredField("status"));
-            } catch (ReflectiveOperationException e) {
-                throw new ExceptionInInitializerError(e);
-            }
-        }
+        private static final long STATUS = U.objectFieldOffset(
+            Node.class, "status");
+        private static final long NEXT = U.objectFieldOffset(
+            Node.class, "next");
+        private static final long PREV= U.objectFieldOffset(
+            Node.class, "prev");
     }
 
     // Concrete classes tagged by type
@@ -1813,21 +1803,14 @@ public abstract class AbstractQueuedSynchronizer
 
     // Unsafe
     private static final Unsafe U = Unsafe.getUnsafe();
-    private static final long STATE;
-    private static final long HEAD;
-    private static final long TAIL;
+    private static final long STATE = U.objectFieldOffset(
+        AbstractQueuedSynchronizer.class, "state");
+    private static final long HEAD = U.objectFieldOffset(
+        AbstractQueuedSynchronizer.class, "head");
+    private static final long TAIL = U.objectFieldOffset(
+        AbstractQueuedSynchronizer.class, "tail");
 
     static {
         Class<?> ensureLoaded = LockSupport.class;
-        try {
-            STATE = U.objectFieldOffset
-                (AbstractQueuedSynchronizer.class.getDeclaredField("state"));
-            HEAD = U.objectFieldOffset
-                (AbstractQueuedSynchronizer.class.getDeclaredField("head"));
-            TAIL = U.objectFieldOffset
-                (AbstractQueuedSynchronizer.class.getDeclaredField("tail"));
-        } catch (ReflectiveOperationException e) {
-            throw new ExceptionInInitializerError(e);
-        }
     }
 }

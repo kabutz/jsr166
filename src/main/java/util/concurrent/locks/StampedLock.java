@@ -340,22 +340,12 @@ public class StampedLock implements java.io.Serializable {
             U.putIntOpaque(this, STATUS, 0);
         }
 
-        private static final Unsafe U = Unsafe.getUnsafe();
-        private static final long STATUS;
-        private static final long NEXT;
-        private static final long PREV;
-        static {
-            try {
-                PREV = U.objectFieldOffset
-                    (Node.class.getDeclaredField("prev"));
-                NEXT = U.objectFieldOffset
-                    (Node.class.getDeclaredField("next"));
-                STATUS = U.objectFieldOffset
-                    (Node.class.getDeclaredField("status"));
-            } catch (ReflectiveOperationException e) {
-                throw new ExceptionInInitializerError(e);
-            }
-        }
+        private static final long STATUS = U.objectFieldOffset(
+            Node.class, "status");
+        private static final long NEXT = U.objectFieldOffset(
+            Node.class, "next");
+        private static final long PREV= U.objectFieldOffset(
+            Node.class, "prev");
     }
 
     static final class WriterNode extends Node { // node for writers
@@ -369,16 +359,8 @@ public class StampedLock implements java.io.Serializable {
         final void setCowaitRelaxed(ReaderNode p) {
             U.putObject(this, COWAIT, p);
         }
-        private static final Unsafe U = Unsafe.getUnsafe();
-        private static final long COWAIT;
-        static {
-            try {
-                COWAIT = U.objectFieldOffset
-                    (ReaderNode.class.getDeclaredField("cowait"));
-            } catch (ReflectiveOperationException e) {
-                throw new ExceptionInInitializerError(e);
-            }
-        }
+        private static final long COWAIT = U.objectFieldOffset(
+            ReaderNode.class, "cowait");
     }
 
     /** Head of CLH queue */
@@ -1465,21 +1447,14 @@ public class StampedLock implements java.io.Serializable {
 
     // Unsafe
     private static final Unsafe U = Unsafe.getUnsafe();
-    private static final long STATE;
-    private static final long HEAD;
-    private static final long TAIL;
+    private static final long STATE = U.objectFieldOffset(
+        StampedLock.class, "state");
+    private static final long HEAD = U.objectFieldOffset(
+        StampedLock.class, "head");
+    private static final long TAIL = U.objectFieldOffset(
+        StampedLock.class, "tail");
 
     static {
         Class<?> ensureLoaded = LockSupport.class;
-        try {
-            STATE = U.objectFieldOffset
-                (StampedLock.class.getDeclaredField("state"));
-            HEAD = U.objectFieldOffset
-                (StampedLock.class.getDeclaredField("head"));
-            TAIL = U.objectFieldOffset
-                (StampedLock.class.getDeclaredField("tail"));
-        } catch (ReflectiveOperationException e) {
-            throw new ExceptionInInitializerError(e);
-        }
     }
 }

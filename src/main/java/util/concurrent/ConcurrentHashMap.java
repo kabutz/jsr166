@@ -3257,9 +3257,8 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
             return true;
         }
 
-        private static final Unsafe U = Unsafe.getUnsafe();
-        private static final long LOCKSTATE
-                = U.objectFieldOffset(TreeBin.class, "lockState");
+        private static final long LOCKSTATE = U.objectFieldOffset(
+            TreeBin.class, "lockState");
     }
 
     /* ----------------Table Traversal -------------- */
@@ -6316,28 +6315,20 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
 
     // Unsafe mechanics
     private static final Unsafe U = Unsafe.getUnsafe();
-    private static final long SIZECTL;
-    private static final long TRANSFERINDEX;
-    private static final long BASECOUNT;
-    private static final long CELLSBUSY;
-    private static final long CELLVALUE;
-    private static final int ABASE;
+    private static final long SIZECTL = U.objectFieldOffset(
+        ConcurrentHashMap.class, "sizeCtl");
+    private static final long TRANSFERINDEX = U.objectFieldOffset(
+        ConcurrentHashMap.class, "transferIndex");
+    private static final long BASECOUNT = U.objectFieldOffset(
+        ConcurrentHashMap.class, "baseCount");
+    private static final long CELLSBUSY = U.objectFieldOffset(
+        ConcurrentHashMap.class, "cellsBusy");
+    private static final long CELLVALUE = U.objectFieldOffset(
+        CounterCell.class, "value");
+    private static final int ABASE = U.arrayBaseOffset(Node[].class);
     private static final int ASHIFT;
 
     static {
-        SIZECTL = U.objectFieldOffset
-            (ConcurrentHashMap.class, "sizeCtl");
-        TRANSFERINDEX = U.objectFieldOffset
-            (ConcurrentHashMap.class, "transferIndex");
-        BASECOUNT = U.objectFieldOffset
-            (ConcurrentHashMap.class, "baseCount");
-        CELLSBUSY = U.objectFieldOffset
-            (ConcurrentHashMap.class, "cellsBusy");
-
-        CELLVALUE = U.objectFieldOffset
-            (CounterCell.class, "value");
-
-        ABASE = U.arrayBaseOffset(Node[].class);
         int scale = U.arrayIndexScale(Node[].class);
         if ((scale & (scale - 1)) != 0)
             throw new ExceptionInInitializerError("array index scale not a power of two");
