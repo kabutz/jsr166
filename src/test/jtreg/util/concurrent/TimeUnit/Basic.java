@@ -24,6 +24,7 @@
 /* @test
  * @bug 5057341 6363898
  * @summary Basic tests for TimeUnit
+ * @library /lib/testlibrary/
  * @author Martin Buchholz
  */
 
@@ -43,8 +44,11 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import jdk.testlibrary.Utils;
 
 public class Basic {
+    static final long LONG_DELAY_MS = Utils.adjustTimeout(10_000);
+
     private static void realMain(String[] args) throws Throwable {
 
         for (TimeUnit u : TimeUnit.values()) {
@@ -76,8 +80,9 @@ public class Basic {
         long elapsedMillis = (System.nanoTime() - t0)/(1000L * 1000L);
         System.out.printf("elapsed=%d%n", elapsedMillis);
         check(elapsedMillis >= 0);
-        /* Might not sleep on windows: check(elapsedMillis >= 3); */
-        check(elapsedMillis < 1000);
+        // See JDK-6313903: Thread.sleep(3) might wake up immediately on windows
+        // check(elapsedMillis >= 3);
+        check(elapsedMillis < LONG_DELAY_MS);
 
         //----------------------------------------------------------------
         // Tests for serialized form compatibility with previous release
