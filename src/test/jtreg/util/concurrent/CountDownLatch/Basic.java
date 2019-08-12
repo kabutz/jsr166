@@ -23,7 +23,7 @@
 
 /*
  * @test
- * @bug 6332435
+ * @bug 6332435 8221168
  * @summary Basic tests for CountDownLatch
  * @library /lib/testlibrary/
  * @author Seetharam Avadhanam, Martin Buchholz
@@ -32,60 +32,45 @@
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import jdk.testlibrary.Utils;
 
 public class Basic {
     static final long LONG_DELAY_MS = Utils.adjustTimeout(10_000);
 
-    interface AwaiterFactory {
-        Awaiter getAwaiter();
-    }
-
     abstract static class Awaiter extends Thread {
-        private volatile Throwable result = null;
-        protected void result(Throwable result) { this.result = result; }
-        public Throwable result() { return this.result; }
-    }
-
-    private void toTheStartingGate(CountDownLatch gate) {
-        try {
-            gate.await();
+        volatile Throwable exception;
+        protected void setException(Throwable exception) {
+            this.exception = exception;
         }
-        catch (Throwable t) { fail(t); }
     }
 
-    private Awaiter awaiter(final CountDownLatch latch,
-                            final CountDownLatch gate) {
+    static Awaiter awaiter(CountDownLatch latch,
+                           CountDownLatch gate) {
         return new Awaiter() { public void run() {
-            System.out.println("without millis: " + latch.toString());
             gate.countDown();
-
             try {
                 latch.await();
-                System.out.println("without millis - ComingOut");
-            }
-            catch (Throwable result) { result(result); }}};
+            } catch (Throwable ex) { setException(ex); }}};
     }
 
-    private Awaiter awaiter(final CountDownLatch latch,
-                            final CountDownLatch gate,
-                            final long millis) {
+    static Awaiter awaiter(CountDownLatch latch,
+                           CountDownLatch gate,
+                           long millis) {
         return new Awaiter() { public void run() {
-            System.out.println("with millis: "+latch.toString());
             gate.countDown();
-
             try {
                 latch.await(millis, TimeUnit.MILLISECONDS);
-                System.out.println("with millis - ComingOut");
-            }
-            catch (Throwable result) { result(result); }}};
+            } catch (Throwable ex) { setException(ex); }}};
     }
 
-    AwaiterFactory awaiterFactory(CountDownLatch latch, CountDownLatch gate) {
+    static Supplier<Awaiter> awaiterSupplier(
+            CountDownLatch latch, CountDownLatch gate) {
         return () -> awaiter(latch, gate);
     }
 
-    AwaiterFactory timedAwaiterFactory(CountDownLatch latch, CountDownLatch gate) {
+    static Supplier<Awaiter> timedAwaiterSupplier(
+            CountDownLatch latch, CountDownLatch gate) {
         return () -> awaiter(latch, gate, LONG_DELAY_MS);
     }
 
@@ -94,28 +79,25 @@ public class Basic {
     //----------------------------------------------------------------
     public static void normalUse() throws Throwable {
         int count = 0;
-        Basic test = new Basic();
         CountDownLatch latch = new CountDownLatch(3);
         Awaiter[] a = new Awaiter[12];
 
         for (int i = 0; i < 3; i++) {
             CountDownLatch gate = new CountDownLatch(4);
-            AwaiterFactory factory1 = test.awaiterFactory(latch, gate);
-            AwaiterFactory factory2 = test.timedAwaiterFactory(latch, gate);
-            a[count] = factory1.getAwaiter(); a[count++].start();
-            a[count] = factory1.getAwaiter(); a[count++].start();
-            a[count] = factory2.getAwaiter(); a[count++].start();
-            a[count] = factory2.getAwaiter(); a[count++].start();
-            test.toTheStartingGate(gate);
-            System.out.println("Main Thread: " + latch.toString());
+            Supplier<Awaiter> s1 = awaiterSupplier(latch, gate);
+            Supplier<Awaiter> s2 = timedAwaiterSupplier(latch, gate);
+            a[count] = s1.get(); a[count++].start();
+            a[count] = s1.get(); a[count++].start();
+            a[count] = s2.get(); a[count++].start();
+            a[count] = s2.get(); a[count++].start();
+            gate.await();
             latch.countDown();
             checkCount(latch, 2-i);
         }
-        for (int i = 0; i < 12; i++)
-            a[i].join();
-
-        for (int i = 0; i < 12; i++)
-            checkResult(a[i], null);
+        for (Awaiter awaiter : a)
+            awaiter.join();
+        for (Awaiter awaiter : a)
+            checkException(awaiter, null);
     }
 
     //----------------------------------------------------------------
@@ -123,38 +105,42 @@ public class Basic {
     //----------------------------------------------------------------
     public static void threadInterrupted() throws Throwable {
         int count = 0;
-        Basic test = new Basic();
         CountDownLatch latch = new CountDownLatch(3);
         Awaiter[] a = new Awaiter[12];
 
         for (int i = 0; i < 3; i++) {
             CountDownLatch gate = new CountDownLatch(4);
-            AwaiterFactory factory1 = test.awaiterFactory(latch, gate);
-            AwaiterFactory factory2 = test.timedAwaiterFactory(latch, gate);
-            a[count] = factory1.getAwaiter(); a[count++].start();
-            a[count] = factory1.getAwaiter(); a[count++].start();
-            a[count] = factory2.getAwaiter(); a[count++].start();
-            a[count] = factory2.getAwaiter(); a[count++].start();
+            Supplier<Awaiter> s1 = awaiterSupplier(latch, gate);
+            Supplier<Awaiter> s2 = timedAwaiterSupplier(latch, gate);
+            a[count] = s1.get(); a[count++].start();
+            a[count] = s1.get(); a[count++].start();
+            a[count] = s2.get(); a[count++].start();
+            a[count] = s2.get(); a[count++].start();
             a[count-1].interrupt();
-            test.toTheStartingGate(gate);
-            System.out.println("Main Thread: " + latch.toString());
+            gate.await();
             latch.countDown();
             checkCount(latch, 2-i);
         }
-        for (int i = 0; i < 12; i++)
-            a[i].join();
-
-        for (int i = 0; i < 12; i++)
-            checkResult(a[i],
-                        (i % 4) == 3 ? InterruptedException.class : null);
+        for (Awaiter awaiter : a)
+            awaiter.join();
+        for (int i = 0; i < a.length; i++) {
+            Awaiter awaiter = a[i];
+            Throwable ex = awaiter.exception;
+            if ((i % 4) == 3)
+                checkException(awaiter,
+                               (awaiter.isInterrupted())
+                               ? null
+                               : InterruptedException.class);
+            else
+                checkException(awaiter, null);
+        }
     }
 
     //----------------------------------------------------------------
     // One thread timed out
     //----------------------------------------------------------------
     public static void timeOut() throws Throwable {
-        int count =0;
-        Basic test = new Basic();
+        int count = 0;
         CountDownLatch latch = new CountDownLatch(3);
         Awaiter[] a = new Awaiter[12];
 
@@ -162,54 +148,57 @@ public class Basic {
 
         for (int i = 0; i < 3; i++) {
             CountDownLatch gate = new CountDownLatch(4);
-            AwaiterFactory factory1 = test.awaiterFactory(latch, gate);
-            AwaiterFactory factory2 = test.timedAwaiterFactory(latch, gate);
-            a[count] = test.awaiter(latch, gate, timeout[i]); a[count++].start();
-            a[count] = factory1.getAwaiter(); a[count++].start();
-            a[count] = factory2.getAwaiter(); a[count++].start();
-            a[count] = factory2.getAwaiter(); a[count++].start();
-            test.toTheStartingGate(gate);
-            System.out.println("Main Thread: " + latch.toString());
+            Supplier<Awaiter> s1 = awaiterSupplier(latch, gate);
+            Supplier<Awaiter> s2 = timedAwaiterSupplier(latch, gate);
+            a[count] = awaiter(latch, gate, timeout[i]); a[count++].start();
+            a[count] = s1.get(); a[count++].start();
+            a[count] = s2.get(); a[count++].start();
+            a[count] = s2.get(); a[count++].start();
+            gate.await();
             latch.countDown();
             checkCount(latch, 2-i);
         }
-        for (int i = 0; i < 12; i++)
-            a[i].join();
-
-        for (int i = 0; i < 12; i++)
-            checkResult(a[i], null);
+        for (Awaiter awaiter : a)
+            awaiter.join();
+        for (Awaiter awaiter : a)
+            checkException(awaiter, null);
     }
 
     public static void main(String[] args) throws Throwable {
-        normalUse();
-        threadInterrupted();
-        timeOut();
+        try {
+            normalUse();
+        } catch (Throwable ex) { fail(ex); }
+        try {
+            threadInterrupted();
+        } catch (Throwable ex) { fail(ex); }
+        try {
+            timeOut();
+        } catch (Throwable ex) { fail(ex); }
+
         if (failures.get() > 0L)
             throw new AssertionError(failures.get() + " failures");
     }
 
-    private static final AtomicInteger failures = new AtomicInteger(0);
+    static final AtomicInteger failures = new AtomicInteger(0);
 
-    private static void fail(String msg) {
+    static void fail(String msg) {
         fail(new AssertionError(msg));
     }
 
-    private static void fail(Throwable t) {
+    static void fail(Throwable t) {
         t.printStackTrace();
         failures.getAndIncrement();
     }
 
-    private static void checkCount(CountDownLatch b, int expected) {
+    static void checkCount(CountDownLatch b, int expected) {
         if (b.getCount() != expected)
             fail("Count = " + b.getCount() +
                  ", expected = " + expected);
     }
 
-    private static void checkResult(Awaiter a, Class c) {
-        Throwable t = a.result();
-        if (! ((t == null && c == null) || c.isInstance(t))) {
-            System.out.println("Mismatch: " + t + ", " + c.getName());
-            failures.getAndIncrement();
-        }
+    static void checkException(Awaiter a, Class c) {
+        Throwable ex = a.exception;
+        if (! ((ex == null && c == null) || c.isInstance(ex)))
+            fail("Mismatch: " + ex + ", " + c.getName());
     }
 }
