@@ -116,8 +116,8 @@ public class Basic {
             a[count] = s1.get(); a[count++].start();
             a[count] = s2.get(); a[count++].start();
             a[count] = s2.get(); a[count++].start();
-            a[count-1].interrupt();
             gate.await();
+            a[count-1].interrupt();
             latch.countDown();
             checkCount(latch, 2-i);
         }
