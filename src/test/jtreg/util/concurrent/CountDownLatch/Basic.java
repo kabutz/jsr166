@@ -126,11 +126,8 @@ public class Basic {
         for (int i = 0; i < a.length; i++) {
             Awaiter awaiter = a[i];
             Throwable ex = awaiter.exception;
-            if ((i % 4) == 3)
-                checkException(awaiter,
-                               (awaiter.isInterrupted())
-                               ? null
-                               : InterruptedException.class);
+            if ((i % 4) == 3 && !awaiter.isInterrupted())
+                checkException(awaiter, InterruptedException.class);
             else
                 checkException(awaiter, null);
         }
@@ -196,9 +193,9 @@ public class Basic {
                  ", expected = " + expected);
     }
 
-    static void checkException(Awaiter a, Class c) {
-        Throwable ex = a.exception;
+    static void checkException(Awaiter awaiter, Class<? extends Throwable> c) {
+        Throwable ex = awaiter.exception;
         if (! ((ex == null && c == null) || c.isInstance(ex)))
-            fail("Mismatch: " + ex + ", " + c.getName());
+            fail("Expected: " + c + ", got: " + ex);
     }
 }
