@@ -30,6 +30,7 @@
  */
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -40,38 +41,39 @@ public class Basic {
 
     abstract static class Awaiter extends Thread {
         volatile Throwable exception;
-        protected void setException(Throwable exception) {
-            this.exception = exception;
-        }
+        volatile boolean interrupted;
+        abstract void realRun() throws Exception;
+        public final void run() {
+            try { realRun(); }
+            catch (Throwable ex) { exception = ex; }
+            interrupted = Thread.interrupted();
+        };
     }
 
     static Awaiter awaiter(CountDownLatch latch,
                            CountDownLatch gate) {
-        return new Awaiter() { public void run() {
-            gate.countDown();
-            try {
+        return new Awaiter() {
+            public void realRun() throws InterruptedException {
+                gate.countDown();
                 latch.await();
-            } catch (Throwable ex) { setException(ex); }}};
+            }};
     }
 
     static Awaiter awaiter(CountDownLatch latch,
                            CountDownLatch gate,
-                           long millis) {
-        return new Awaiter() { public void run() {
-            gate.countDown();
-            try {
-                latch.await(millis, TimeUnit.MILLISECONDS);
-            } catch (Throwable ex) { setException(ex); }}};
+                           long timeoutMillis) {
+        return new Awaiter() {
+            public void realRun() throws InterruptedException {
+                gate.countDown();
+                latch.await(timeoutMillis, TimeUnit.MILLISECONDS);
+            }};
     }
 
-    static Supplier<Awaiter> awaiterSupplier(
+    static Supplier<Awaiter> randomAwaiterSupplier(
             CountDownLatch latch, CountDownLatch gate) {
-        return () -> awaiter(latch, gate);
-    }
-
-    static Supplier<Awaiter> timedAwaiterSupplier(
-            CountDownLatch latch, CountDownLatch gate) {
-        return () -> awaiter(latch, gate, LONG_DELAY_MS);
+        return () -> (ThreadLocalRandom.current().nextBoolean())
+            ? awaiter(latch, gate)
+            : awaiter(latch, gate, LONG_DELAY_MS);
     }
 
     //----------------------------------------------------------------
@@ -84,12 +86,11 @@ public class Basic {
 
         for (int i = 0; i < 3; i++) {
             CountDownLatch gate = new CountDownLatch(4);
-            Supplier<Awaiter> s1 = awaiterSupplier(latch, gate);
-            Supplier<Awaiter> s2 = timedAwaiterSupplier(latch, gate);
-            a[count] = s1.get(); a[count++].start();
-            a[count] = s1.get(); a[count++].start();
-            a[count] = s2.get(); a[count++].start();
-            a[count] = s2.get(); a[count++].start();
+            Supplier<Awaiter> s = randomAwaiterSupplier(latch, gate);
+            a[count] = s.get(); a[count++].start();
+            a[count] = s.get(); a[count++].start();
+            a[count] = s.get(); a[count++].start();
+            a[count] = s.get(); a[count++].start();
             gate.await();
             latch.countDown();
             checkCount(latch, 2-i);
@@ -110,12 +111,11 @@ public class Basic {
 
         for (int i = 0; i < 3; i++) {
             CountDownLatch gate = new CountDownLatch(4);
-            Supplier<Awaiter> s1 = awaiterSupplier(latch, gate);
-            Supplier<Awaiter> s2 = timedAwaiterSupplier(latch, gate);
-            a[count] = s1.get(); a[count++].start();
-            a[count] = s1.get(); a[count++].start();
-            a[count] = s2.get(); a[count++].start();
-            a[count] = s2.get(); a[count++].start();
+            Supplier<Awaiter> s = randomAwaiterSupplier(latch, gate);
+            a[count] = s.get(); a[count++].start();
+            a[count] = s.get(); a[count++].start();
+            a[count] = s.get(); a[count++].start();
+            a[count] = s.get(); a[count++].start();
             gate.await();
             a[count-1].interrupt();
             latch.countDown();
@@ -126,7 +126,7 @@ public class Basic {
         for (int i = 0; i < a.length; i++) {
             Awaiter awaiter = a[i];
             Throwable ex = awaiter.exception;
-            if ((i % 4) == 3 && !awaiter.isInterrupted())
+            if ((i % 4) == 3 && !awaiter.interrupted)
                 checkException(awaiter, InterruptedException.class);
             else
                 checkException(awaiter, null);
@@ -145,12 +145,11 @@ public class Basic {
 
         for (int i = 0; i < 3; i++) {
             CountDownLatch gate = new CountDownLatch(4);
-            Supplier<Awaiter> s1 = awaiterSupplier(latch, gate);
-            Supplier<Awaiter> s2 = timedAwaiterSupplier(latch, gate);
+            Supplier<Awaiter> s = randomAwaiterSupplier(latch, gate);
             a[count] = awaiter(latch, gate, timeout[i]); a[count++].start();
-            a[count] = s1.get(); a[count++].start();
-            a[count] = s2.get(); a[count++].start();
-            a[count] = s2.get(); a[count++].start();
+            a[count] = s.get(); a[count++].start();
+            a[count] = s.get(); a[count++].start();
+            a[count] = s.get(); a[count++].start();
             gate.await();
             latch.countDown();
             checkCount(latch, 2-i);
