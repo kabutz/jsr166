@@ -11,7 +11,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.ThreadLocalRandom;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
