@@ -1265,7 +1265,7 @@ public class AbstractQueuedLongSynchronizerTest extends JSR166TestCase {
 
         // A synchronizer only offering a choice of failure modes
         class Sync extends AbstractQueuedLongSynchronizer {
-            boolean pleaseThrow;
+            volatile boolean pleaseThrow;
             @Override protected boolean tryAcquire(long ignored) {
                 if (pleaseThrow) throw ex;
                 return false;

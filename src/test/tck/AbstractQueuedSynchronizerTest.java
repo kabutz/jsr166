@@ -1316,7 +1316,7 @@ public class AbstractQueuedSynchronizerTest extends JSR166TestCase {
 
         // A synchronizer only offering a choice of failure modes
         class Sync extends AbstractQueuedSynchronizer {
-            boolean pleaseThrow;
+            volatile boolean pleaseThrow;
             @Override protected boolean tryAcquire(int ignored) {
                 if (pleaseThrow) throw ex;
                 return false;
