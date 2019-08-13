@@ -12,7 +12,6 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.AbstractQueuedLongSynchronizer;
 import java.util.concurrent.locks.AbstractQueuedLongSynchronizer.ConditionObject;
 
