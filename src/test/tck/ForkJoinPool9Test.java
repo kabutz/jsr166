@@ -54,7 +54,7 @@ public class ForkJoinPool9Test extends JSR166TestCase {
             Thread currentThread = Thread.currentThread();
 
             Stream.of(systemClassLoader, null).forEach(cl -> {
-                if (ThreadLocalRandom.current().nextBoolean())
+                if (randomBoolean())
                     // should always be permitted, without effect
                     currentThread.setContextClassLoader(cl);
                 });

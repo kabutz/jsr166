@@ -190,7 +190,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
      * timed offer times out if elements not taken
      */
     public void testTimedOffer() {
-        final boolean fair = ThreadLocalRandom.current().nextBoolean();
+        final boolean fair = randomBoolean();
         final SynchronousQueue q = new SynchronousQueue(fair);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
@@ -248,7 +248,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
      * timed poll with nonzero timeout times out if no active putter
      */
     public void testTimedPoll() {
-        final boolean fair = ThreadLocalRandom.current().nextBoolean();
+        final boolean fair = randomBoolean();
         final SynchronousQueue q = new SynchronousQueue(fair);
         final long startTime = System.nanoTime();
         try { assertNull(q.poll(timeoutMillis(), MILLISECONDS)); }
@@ -261,7 +261,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
      * after offer succeeds; on interruption throws
      */
     public void testTimedPollWithOffer() {
-        final boolean fair = ThreadLocalRandom.current().nextBoolean();
+        final boolean fair = randomBoolean();
         final SynchronousQueue q = new SynchronousQueue(fair);
         final CountDownLatch pleaseOffer = new CountDownLatch(1);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);

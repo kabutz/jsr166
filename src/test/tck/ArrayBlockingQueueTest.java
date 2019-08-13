@@ -34,7 +34,7 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
         class Implementation implements CollectionImplementation {
             public Class<?> klazz() { return ArrayBlockingQueue.class; }
             public Collection emptyCollection() {
-                boolean fair = ThreadLocalRandom.current().nextBoolean();
+                boolean fair = randomBoolean();
                 return populatedQueue(0, SIZE, 2 * SIZE, fair);
             }
             public Object makeElement(int i) { return i; }

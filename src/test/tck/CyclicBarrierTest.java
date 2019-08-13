@@ -478,7 +478,7 @@ public class CyclicBarrierTest extends JSR166TestCase {
         final ExecutorService e = Executors.newFixedThreadPool(nTasks);
         final Runnable awaiter = () -> {
             try {
-                if (ThreadLocalRandom.current().nextBoolean())
+                if (randomBoolean())
                     barrier.await();
                 else
                     barrier.await(LONG_DELAY_MS, MILLISECONDS);

@@ -1287,7 +1287,7 @@ public class AbstractQueuedLongSynchronizerTest extends JSR166TestCase {
         final Thread thread = newStartedThread(new CheckedRunnable() {
             public void realRun() {
                 try {
-                    if (ThreadLocalRandom.current().nextBoolean())
+                    if (randomBoolean())
                         s.acquire(1);
                     else
                         s.acquireShared(1);
