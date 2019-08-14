@@ -6,6 +6,7 @@
 
 /*
  * @test
+ * @library /lib/testlibrary/
  * @run main DoneTimedGetLoops 300
  * @summary isDone returning true guarantees that subsequent timed get
  * will never throw TimeoutException.
@@ -15,10 +16,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import jdk.testlibrary.Utils;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class DoneTimedGetLoops {
-    final long testDurationMillisDefault = 10L * 1000L;
+    static final long LONG_DELAY_MS = Utils.adjustTimeout(10_000);
+    final long testDurationMillisDefault = 10_000L;
     final long testDurationMillis;
 
     static class PublicFutureTask extends FutureTask<Boolean> {
@@ -36,7 +39,6 @@ public class DoneTimedGetLoops {
     void test(String[] args) throws Throwable {
         final long testDurationNanos = testDurationMillis * 1000L * 1000L;
         final long quittingTimeNanos = System.nanoTime() + testDurationNanos;
-        final long timeoutMillis = 10L * 1000L;
 
         final AtomicReference<PublicFutureTask> normalRef
             = new AtomicReference<>();
@@ -109,13 +111,13 @@ public class DoneTimedGetLoops {
                  setterException,
                  doneTimedGetNormal,
                  doneTimedGetAbnormal }) {
-            thread.join(timeoutMillis + testDurationMillis);
+            thread.join(LONG_DELAY_MS + testDurationMillis);
             if (thread.isAlive()) {
                 System.err.printf("Hung thread: %s%n", thread.getName());
                 failed++;
                 for (StackTraceElement e : thread.getStackTrace())
                     System.err.println(e);
-                thread.join(timeoutMillis);
+                thread.join(LONG_DELAY_MS);
             }
         }
     }
