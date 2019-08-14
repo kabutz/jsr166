@@ -26,7 +26,7 @@ import jdk.testlibrary.Utils;
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class OfferDrainToLoops {
     static final long LONG_DELAY_MS = Utils.adjustTimeout(10_000);
-    final long testDurationMillisDefault = 10_1000L;
+    final long testDurationMillisDefault = 10_000L;
     final long testDurationMillis;
 
     OfferDrainToLoops(String[] args) {
