@@ -49,8 +49,7 @@ import jdk.testlibrary.Utils;
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class OfferRemoveLoops {
     static final long LONG_DELAY_MS = Utils.adjustTimeout(10_000);
-    final long timeoutMillis = Utils.adjustTimeout(10_000);
-    final long testDurationMillisDefault = 10L * 1000L;
+    final long testDurationMillisDefault = 10_000L;
     final long testDurationMillis;
 
     OfferRemoveLoops(String[] args) {
