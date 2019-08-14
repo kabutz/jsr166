@@ -7,6 +7,7 @@
 /*
  * @test
  * @bug 6805775 6815766
+ * @library /lib/testlibrary/
  * @run main OfferDrainToLoops 100
  * @summary Test concurrent offer vs. drainTo
  */
@@ -20,10 +21,12 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.atomic.AtomicLong;
+import jdk.testlibrary.Utils;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class OfferDrainToLoops {
-    final long testDurationMillisDefault = 10L * 1000L;
+    static final long LONG_DELAY_MS = Utils.adjustTimeout(10_000);
+    final long testDurationMillisDefault = 10_1000L;
     final long testDurationMillis;
 
     OfferDrainToLoops(String[] args) {
@@ -49,7 +52,6 @@ public class OfferDrainToLoops {
         System.out.println(q.getClass().getSimpleName());
         final long testDurationNanos = testDurationMillis * 1000L * 1000L;
         final long quittingTimeNanos = System.nanoTime() + testDurationNanos;
-        final long timeoutMillis = 10L * 1000L;
         final SplittableRandom rnd = new SplittableRandom();
 
         // Poor man's bounded buffer.
@@ -128,13 +130,13 @@ public class OfferDrainToLoops {
                 }}};
 
         for (Thread thread : new Thread[] { offerer, drainer, scanner }) {
-            thread.join(timeoutMillis + testDurationMillis);
+            thread.join(LONG_DELAY_MS + testDurationMillis);
             if (thread.isAlive()) {
                 System.err.printf("Hung thread: %s%n", thread.getName());
                 failed++;
                 for (StackTraceElement e : thread.getStackTrace())
                     System.err.println(e);
-                thread.join(timeoutMillis);
+                thread.join(LONG_DELAY_MS);
             }
         }
     }
