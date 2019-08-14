@@ -692,6 +692,13 @@ public class JSR166TestCase extends TestCase {
     }
 
     /**
+     * Returns a random element from given choices.
+     */
+    <T> T chooseRandomly(T... choices) {
+        return choices[ThreadLocalRandom.current().nextInt(choices.length)];
+    }
+
+    /**
      * Returns the shortest timed delay. This can be scaled up for
      * slow machines using the jsr166.delay.factor system property,
      * or via jtreg's -timeoutFactor: flag.
@@ -1371,6 +1378,20 @@ public class JSR166TestCase extends TestCase {
     void waitForThreadToEnterWaitState(Thread thread,
                                        Callable<Boolean> waitingForGodot) {
         waitForThreadToEnterWaitState(thread, LONG_DELAY_MS, waitingForGodot);
+    }
+
+    /**
+     * Spin-waits up to LONG_DELAY_MS milliseconds for the current thread to
+     * be interrupted.  Clears the interrupt status before returning.
+     */
+    void awaitInterrupted() {
+        for (long startTime = 0L; !Thread.interrupted(); ) {
+            if (startTime == 0L)
+                startTime = System.nanoTime();
+            else if (millisElapsedSince(startTime) > LONG_DELAY_MS)
+                fail("timed out waiting for thread interrupt");
+            Thread.yield();
+        }
     }
 
     /**

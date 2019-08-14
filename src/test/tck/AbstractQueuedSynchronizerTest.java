@@ -1309,8 +1309,9 @@ public class AbstractQueuedSynchronizerTest extends JSR166TestCase {
     /**
      * Tests scenario for
      * JDK-8191937: Lost interrupt in AbstractQueuedSynchronizer when tryAcquire methods throw
+     * ant -Djsr166.tckTestClass=AbstractQueuedSynchronizerTest -Djsr166.methodFilter=testInterruptedFailingAcquire -Djsr166.runsPerTest=10000 tck
      */
-    public void testInterruptedFailingAcquire() throws InterruptedException {
+    public void testInterruptedFailingAcquire() throws Throwable {
         final RuntimeException ex = new RuntimeException();
 
         // A synchronizer only offering a choice of failure modes
@@ -1333,29 +1334,65 @@ public class AbstractQueuedSynchronizerTest extends JSR166TestCase {
         }
 
         final Sync s = new Sync();
+        final Action[] uninterruptibleAcquireMethods = {
+            () -> s.acquire(1),
+            () -> s.acquireShared(1),
+            // TODO: test interruptible acquire methods
+        };
+        final Action[] releaseMethods = {
+            () -> s.release(1),
+            () -> s.releaseShared(1),
+        };
+        final Action acquireMethod
+            = chooseRandomly(uninterruptibleAcquireMethods);
+        final Action releaseMethod
+            = chooseRandomly(releaseMethods);
 
+        // From os_posix.cpp:
+        //
+        // NOTE that since there is no "lock" around the interrupt and
+        // is_interrupted operations, there is the possibility that the
+        // interrupted flag (in osThread) will be "false" but that the
+        // low-level events will be in the signaled state. This is
+        // intentional. The effect of this is that Object.wait() and
+        // LockSupport.park() will appear to have a spurious wakeup, which
+        // is allowed and not harmful, and the possibility is so rare that
+        // it is not worth the added complexity to add yet another lock.
         final Thread thread = newStartedThread(new CheckedRunnable() {
             public void realRun() {
                 try {
-                    if (randomBoolean())
-                        s.acquire(1);
-                    else
-                        s.acquireShared(1);
+                    acquireMethod.run();
                     shouldThrow();
                 } catch (Throwable t) {
                     assertSame(ex, t);
-                    assertTrue(Thread.interrupted());
+                    awaitInterrupted();
                 }
             }});
-        waitForThreadToEnterWaitState(thread);
-        assertSame(thread, s.getFirstQueuedThread());
-        assertTrue(s.hasQueuedPredecessors());
-        assertTrue(s.hasQueuedThreads());
-        assertEquals(1, s.getQueueLength());
+        for (long startTime = 0L;; ) {
+            waitForThreadToEnterWaitState(thread);
+            if (s.getFirstQueuedThread() == thread
+                && s.hasQueuedPredecessors()
+                && s.hasQueuedThreads()
+                && s.getQueueLength() == 1)
+                break;
+            if (startTime == 0L)
+                startTime = System.nanoTime();
+            else if (millisElapsedSince(startTime) > LONG_DELAY_MS)
+                fail("timed out waiting for AQS state: "
+                     + "thread state=" + thread.getState()
+                     + ", queued threads=" + s.getQueuedThreads());
+            Thread.yield();
+        }
 
         s.pleaseThrow = true;
-        thread.interrupt();
-        s.release(1);
+        // release and interrupt, in random order
+        if (randomBoolean()) {
+            thread.interrupt();
+            releaseMethod.run();
+        } else {
+            releaseMethod.run();
+            thread.interrupt();
+        }
         awaitTermination(thread);
     }
 

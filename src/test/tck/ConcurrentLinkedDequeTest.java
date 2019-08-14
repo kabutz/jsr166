@@ -976,10 +976,6 @@ public class ConcurrentLinkedDequeTest extends JSR166TestCase {
         }
     }
 
-    <T> T chooseRandomly(T... choices) {
-        return choices[ThreadLocalRandom.current().nextInt(choices.length)];
-    }
-
     /**
      * Non-traversing Deque operations (that return null) are linearizable.
      * Don't return null when the deque is observably never empty.
