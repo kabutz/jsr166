@@ -1333,7 +1333,8 @@ public class AbstractQueuedLongSynchronizerTest extends JSR166TestCase {
             if (s.getFirstQueuedThread() == thread
                 && s.hasQueuedPredecessors()
                 && s.hasQueuedThreads()
-                && s.getQueueLength() == 1)
+                && s.getQueueLength() == 1
+                && s.hasContended())
                 break;
             if (startTime == 0L)
                 startTime = System.nanoTime();
@@ -1360,6 +1361,7 @@ public class AbstractQueuedLongSynchronizerTest extends JSR166TestCase {
         assertFalse(s.hasQueuedThreads());
         assertEquals(0, s.getQueueLength());
         assertTrue(s.getQueuedThreads().isEmpty());
+        assertTrue(s.hasContended());
     }
 
 }
