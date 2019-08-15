@@ -1343,6 +1343,12 @@ public class AbstractQueuedLongSynchronizerTest extends JSR166TestCase {
             thread.interrupt();
         }
         awaitTermination(thread);
+
+        assertNull(s.getFirstQueuedThread());
+        assertFalse(s.hasQueuedPredecessors());
+        assertFalse(s.hasQueuedThreads());
+        assertEquals(0, s.getQueueLength());
+        assertTrue(s.getQueuedThreads().isEmpty());
     }
 
 }
