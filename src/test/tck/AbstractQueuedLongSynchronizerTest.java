@@ -1261,7 +1261,8 @@ public class AbstractQueuedLongSynchronizerTest extends JSR166TestCase {
      * ant -Djsr166.tckTestClass=AbstractQueuedLongSynchronizerTest -Djsr166.methodFilter=testInterruptedFailingAcquire -Djsr166.runsPerTest=10000 tck
      */
     public void testInterruptedFailingAcquire() throws Throwable {
-        final RuntimeException ex = new RuntimeException();
+        class PleaseThrow extends RuntimeException {}
+        final PleaseThrow ex = new PleaseThrow();
 
         // A synchronizer only offering a choice of failure modes
         class Sync extends AbstractQueuedLongSynchronizer {
@@ -1283,19 +1284,27 @@ public class AbstractQueuedLongSynchronizerTest extends JSR166TestCase {
         }
 
         final Sync s = new Sync();
-        final Action[] uninterruptibleAcquireMethods = {
+        final boolean acquireInterruptibly = randomBoolean();
+        final Action[] uninterruptibleAcquireActions = {
             () -> s.acquire(1),
             () -> s.acquireShared(1),
-            // TODO: test interruptible acquire methods
         };
-        final Action[] releaseMethods = {
+        final long nanosTimeout = MILLISECONDS.toNanos(2 * LONG_DELAY_MS);
+        final Action[] interruptibleAcquireActions = {
+            () -> s.acquireInterruptibly(1),
+            () -> s.acquireSharedInterruptibly(1),
+            () -> s.tryAcquireNanos(1, nanosTimeout),
+            () -> s.tryAcquireSharedNanos(1, nanosTimeout),
+        };
+        final Action[] releaseActions = {
             () -> s.release(1),
             () -> s.releaseShared(1),
         };
-        final Action acquireMethod
-            = chooseRandomly(uninterruptibleAcquireMethods);
-        final Action releaseMethod
-            = chooseRandomly(releaseMethods);
+        final Action acquireAction = acquireInterruptibly
+            ? chooseRandomly(interruptibleAcquireActions)
+            : chooseRandomly(uninterruptibleAcquireActions);
+        final Action releaseAction
+            = chooseRandomly(releaseActions);
 
         // From os_posix.cpp:
         //
@@ -1308,12 +1317,14 @@ public class AbstractQueuedLongSynchronizerTest extends JSR166TestCase {
         // is allowed and not harmful, and the possibility is so rare that
         // it is not worth the added complexity to add yet another lock.
         final Thread thread = newStartedThread(new CheckedRunnable() {
-            public void realRun() {
+            public void realRun() throws Throwable {
                 try {
-                    acquireMethod.run();
+                    acquireAction.run();
                     shouldThrow();
-                } catch (Throwable t) {
-                    assertSame(ex, t);
+                } catch (InterruptedException possible) {
+                    assertTrue(acquireInterruptibly);
+                    assertFalse(Thread.interrupted());
+                } catch (PleaseThrow possible) {
                     awaitInterrupted();
                 }
             }});
@@ -1337,9 +1348,9 @@ public class AbstractQueuedLongSynchronizerTest extends JSR166TestCase {
         // release and interrupt, in random order
         if (randomBoolean()) {
             thread.interrupt();
-            releaseMethod.run();
+            releaseAction.run();
         } else {
-            releaseMethod.run();
+            releaseAction.run();
             thread.interrupt();
         }
         awaitTermination(thread);
