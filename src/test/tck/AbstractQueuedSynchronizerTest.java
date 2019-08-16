@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer.ConditionObject;
 
@@ -1314,16 +1315,26 @@ public class AbstractQueuedSynchronizerTest extends JSR166TestCase {
     public void testInterruptedFailingAcquire() throws Throwable {
         class PleaseThrow extends RuntimeException {}
         final PleaseThrow ex = new PleaseThrow();
+        final AtomicBoolean thrown = new AtomicBoolean();
 
         // A synchronizer only offering a choice of failure modes
         class Sync extends AbstractQueuedSynchronizer {
             volatile boolean pleaseThrow;
+            void maybeThrow() {
+                if (pleaseThrow) {
+                    // assert: tryAcquire methods can throw at most once
+                    if (! thrown.compareAndSet(false, true))
+                        throw new AssertionError();
+                    throw ex;
+                }
+            }
+
             @Override protected boolean tryAcquire(int ignored) {
-                if (pleaseThrow) throw ex;
+                maybeThrow();
                 return false;
             }
             @Override protected int tryAcquireShared(int ignored) {
-                if (pleaseThrow) throw ex;
+                maybeThrow();
                 return -1;
             }
             @Override protected boolean tryRelease(int ignored) {
@@ -1406,6 +1417,9 @@ public class AbstractQueuedSynchronizerTest extends JSR166TestCase {
             thread.interrupt();
         }
         awaitTermination(thread);
+
+        if (! acquireInterruptibly)
+            assertTrue(thrown.get());
 
         assertNull(s.getFirstQueuedThread());
         assertFalse(s.hasQueuedPredecessors());

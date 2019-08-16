@@ -12,6 +12,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.AbstractQueuedLongSynchronizer;
 import java.util.concurrent.locks.AbstractQueuedLongSynchronizer.ConditionObject;
 
@@ -1263,16 +1264,26 @@ public class AbstractQueuedLongSynchronizerTest extends JSR166TestCase {
     public void testInterruptedFailingAcquire() throws Throwable {
         class PleaseThrow extends RuntimeException {}
         final PleaseThrow ex = new PleaseThrow();
+        final AtomicBoolean thrown = new AtomicBoolean();
 
         // A synchronizer only offering a choice of failure modes
         class Sync extends AbstractQueuedLongSynchronizer {
             volatile boolean pleaseThrow;
+            void maybeThrow() {
+                if (pleaseThrow) {
+                    // assert: tryAcquire methods can throw at most once
+                    if (! thrown.compareAndSet(false, true))
+                        throw new AssertionError();
+                    throw ex;
+                }
+            }
+
             @Override protected boolean tryAcquire(long ignored) {
-                if (pleaseThrow) throw ex;
+                maybeThrow();
                 return false;
             }
             @Override protected long tryAcquireShared(long ignored) {
-                if (pleaseThrow) throw ex;
+                maybeThrow();
                 return -1;
             }
             @Override protected boolean tryRelease(long ignored) {
@@ -1355,6 +1366,9 @@ public class AbstractQueuedLongSynchronizerTest extends JSR166TestCase {
             thread.interrupt();
         }
         awaitTermination(thread);
+
+        if (! acquireInterruptibly)
+            assertTrue(thrown.get());
 
         assertNull(s.getFirstQueuedThread());
         assertFalse(s.hasQueuedPredecessors());
