@@ -240,10 +240,8 @@ public class StampedLock implements java.io.Serializable {
      * identical to AQS except for lock-state operations.  Sets of
      * waiting readers are grouped (linked) under a common node (field
      * cowait) so act as a single node with respect to most CLH
-     * mechanics.  By virtue of the queue structure, wait nodes need
-     * not actually carry sequence numbers; we know each is greater
-     * than its predecessor.  This simplifies the scheduling policy to
-     * a mainly-FIFO scheme that incorporates elements of Phase-Fair
+     * mechanics.  This simplifies the scheduling policy to a
+     * mainly-FIFO scheme that incorporates elements of Phase-Fair
      * locks (see Brandenburg & Anderson, especially
      * http://www.cs.unc.edu/~bbb/diss/).  Method release does not
      * itself wake up cowaiters. This is done by the primary thread,
