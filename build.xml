@@ -428,6 +428,7 @@
       <compilerarg value="--patch-module=java.base=${src.dir}"/>
       <compilerarg value="-Xprefer:source"/>
       <compilerarg value="-XDignore.symbol.file=true"/>
+<!--   Xlint:-removal for jdk12 Unsafe Object -> Reference renaming -->
       <compilerarg value="-Xlint:all,-removal"/>
       <compilerarg line="--doclint-format html5"/>
       <compilerarg value="-Xdoclint:all/protected,reference/private"/>
