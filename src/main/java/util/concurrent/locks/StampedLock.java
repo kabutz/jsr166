@@ -9,6 +9,7 @@ package java.util.concurrent.locks;
 import java.util.concurrent.TimeUnit;
 import jdk.internal.misc.Unsafe;
 import jdk.internal.vm.annotation.ReservedStackAccess;
+import java.lang.invoke.VarHandle;
 
 /**
  * A capability-based lock with three modes for controlling read/write
@@ -263,7 +264,12 @@ public class StampedLock implements java.io.Serializable {
      * of locally cached reads.
      *
      * For an explanation of the use of acquireFence, see
-     * http://gee.cs.oswego.edu/dl/html/j9mm.html
+     * http://gee.cs.oswego.edu/dl/html/j9mm.html as well as Boehm's
+     * paper (above). Note that sequence validation (mainly method
+     * validate()) requires stricter ordering rules than apply to
+     * normal volatile reads (of "state").  To ensure that writeLock
+     * acquisitions strictly precede subsequent writes in cases where
+     * this is not already forced, we use a storeStoreFence.
      *
      * The memory layout keeps lock state and queue pointers together
      * (normally on the same cache line). This usually works well for
@@ -392,8 +398,10 @@ public class StampedLock implements java.io.Serializable {
     @ReservedStackAccess
     private long tryAcquireWrite() {
         long s, nextState;
-        if (((s = state) & ABITS) == 0L && casState(s, nextState = s | WBIT))
+        if (((s = state) & ABITS) == 0L && casState(s, nextState = s | WBIT)) {
+            VarHandle.storeStoreFence();
             return nextState;
+        }
         return 0L;
     }
 
@@ -423,6 +431,7 @@ public class StampedLock implements java.io.Serializable {
 
     private long releaseWrite(long s) {
         long nextState = state = unlockWriteState(s);
+        VarHandle.storeStoreFence();
         signalNext(head);
         return nextState;
     }
@@ -437,10 +446,11 @@ public class StampedLock implements java.io.Serializable {
     public long writeLock() {
         // try unconditional CAS confirming weak read
         long s = U.getLongOpaque(this, STATE) & ~ABITS, nextState = s | WBIT;
-        if (casState(s, nextState))
+        if (casState(s, nextState)) {
+            VarHandle.storeStoreFence();
             return nextState;
-        else
-            return acquireWrite(false, false, 0L);
+        }
+        return acquireWrite(false, false, 0L);
     }
 
     /**
@@ -679,8 +689,10 @@ public class StampedLock implements java.io.Serializable {
             if ((m = s & ABITS) == 0L) {
                 if (a != 0L)
                     break;
-                if (casState(s, nextState = s | WBIT))
+                if (casState(s, nextState = s | WBIT)) {
+                    VarHandle.storeStoreFence();
                     return nextState;
+                }
             } else if (m == WBIT) {
                 if (a != m)
                     break;
@@ -1185,6 +1197,7 @@ public class StampedLock implements java.io.Serializable {
                     if (interrupted)
                         Thread.currentThread().interrupt();
                 }
+                VarHandle.storeStoreFence();
                 return nextState;
             } else if (node == null) {          // retry before enqueuing
                 node = new WriterNode();
