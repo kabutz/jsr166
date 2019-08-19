@@ -430,7 +430,6 @@ public class StampedLock implements java.io.Serializable {
 
     private long releaseWrite(long s) {
         long nextState = state = unlockWriteState(s);
-        U.storeStoreFence();
         signalNext(head);
         return nextState;
     }
