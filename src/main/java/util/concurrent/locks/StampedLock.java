@@ -410,11 +410,11 @@ public class StampedLock implements java.io.Serializable {
             if ((m = (s = state) & ABITS) < RFULL) {
                 if (casState(s, nextState = s + RUNIT))
                     return nextState;
-            } else if (m != WBIT) {
-                if ((nextState = tryIncReaderOverflow(s)) != 0L)
-                    return nextState;
-            } else
+            }
+            else if (m == WBIT)
                 return 0L;
+            else if ((nextState = tryIncReaderOverflow(s)) != 0L)
+                return nextState;
         }
     }
 
