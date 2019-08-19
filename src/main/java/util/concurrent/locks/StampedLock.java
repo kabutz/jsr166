@@ -9,7 +9,6 @@ package java.util.concurrent.locks;
 import java.util.concurrent.TimeUnit;
 import jdk.internal.misc.Unsafe;
 import jdk.internal.vm.annotation.ReservedStackAccess;
-import java.lang.invoke.VarHandle;
 
 /**
  * A capability-based lock with three modes for controlling read/write
@@ -399,7 +398,7 @@ public class StampedLock implements java.io.Serializable {
     private long tryAcquireWrite() {
         long s, nextState;
         if (((s = state) & ABITS) == 0L && casState(s, nextState = s | WBIT)) {
-            VarHandle.storeStoreFence();
+            U.storeStoreFence();
             return nextState;
         }
         return 0L;
@@ -431,7 +430,7 @@ public class StampedLock implements java.io.Serializable {
 
     private long releaseWrite(long s) {
         long nextState = state = unlockWriteState(s);
-        VarHandle.storeStoreFence();
+        U.storeStoreFence();
         signalNext(head);
         return nextState;
     }
@@ -447,7 +446,7 @@ public class StampedLock implements java.io.Serializable {
         // try unconditional CAS confirming weak read
         long s = U.getLongOpaque(this, STATE) & ~ABITS, nextState = s | WBIT;
         if (casState(s, nextState)) {
-            VarHandle.storeStoreFence();
+            U.storeStoreFence();
             return nextState;
         }
         return acquireWrite(false, false, 0L);
@@ -690,7 +689,7 @@ public class StampedLock implements java.io.Serializable {
                 if (a != 0L)
                     break;
                 if (casState(s, nextState = s | WBIT)) {
-                    VarHandle.storeStoreFence();
+                    U.storeStoreFence();
                     return nextState;
                 }
             } else if (m == WBIT) {
@@ -1197,7 +1196,7 @@ public class StampedLock implements java.io.Serializable {
                     if (interrupted)
                         Thread.currentThread().interrupt();
                 }
-                VarHandle.storeStoreFence();
+                U.storeStoreFence();
                 return nextState;
             } else if (node == null) {          // retry before enqueuing
                 node = new WriterNode();
