@@ -111,8 +111,7 @@ public class LockSupport {
     private LockSupport() {} // Cannot be instantiated.
 
     private static void setBlocker(Thread t, Object arg) {
-        // Even though volatile, hotspot doesn't need a write barrier here.
-        U.putObject(t, PARKBLOCKER, arg);
+        U.putObjectOpaque(t, PARKBLOCKER, arg);
     }
 
     /**
@@ -126,7 +125,7 @@ public class LockSupport {
      * @param blocker the blocker object
      */
     public static void setCurrentBlocker(Object blocker) {
-        U.putObject(Thread.currentThread(), PARKBLOCKER, blocker);
+        U.putObjectOpaque(Thread.currentThread(), PARKBLOCKER, blocker);
     }
 
     /**
@@ -277,7 +276,7 @@ public class LockSupport {
     public static Object getBlocker(Thread t) {
         if (t == null)
             throw new NullPointerException();
-        return U.getObjectVolatile(t, PARKBLOCKER);
+        return U.getObjectOpaque(t, PARKBLOCKER);
     }
 
     /**
