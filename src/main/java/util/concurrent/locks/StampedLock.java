@@ -444,8 +444,8 @@ public class StampedLock implements java.io.Serializable {
     @ReservedStackAccess
     public long writeLock() {
         // try unconditional CAS confirming weak read
-        long s = U.getLongOpaque(this, STATE) & ~ABITS, nextState = s | WBIT;
-        if (casState(s, nextState)) {
+        long s = U.getLongOpaque(this, STATE) & ~ABITS, nextState;
+        if (casState(s, nextState = s | WBIT)) {
             U.storeStoreFence();
             return nextState;
         }
