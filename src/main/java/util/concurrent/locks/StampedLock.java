@@ -1187,6 +1187,7 @@ public class StampedLock implements java.io.Serializable {
             }
             if ((first || pred == null) && ((s = state) & ABITS) == 0L &&
                 casState(s, nextState = s | WBIT)) {
+                U.storeStoreFence();
                 if (first) {
                     node.prev = null;
                     head = node;
@@ -1195,7 +1196,6 @@ public class StampedLock implements java.io.Serializable {
                     if (interrupted)
                         Thread.currentThread().interrupt();
                 }
-                U.storeStoreFence();
                 return nextState;
             } else if (node == null) {          // retry before enqueuing
                 node = new WriterNode();
