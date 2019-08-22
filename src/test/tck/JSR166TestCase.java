@@ -1456,11 +1456,11 @@ public class JSR166TestCase extends TestCase {
         } catch (InterruptedException fail) {
             threadUnexpectedException(fail);
         }
-	Thread.State state;
-	if ((state = t.getState()) != Thread.State.TERMINATED) {
-	    t.interrupt();
-	    threadFail("timed out waiting for thread to terminate; "
-		       + "state=" + state);
+        Thread.State state;
+        if ((state = t.getState()) != Thread.State.TERMINATED) {
+            t.interrupt();
+            threadFail("timed out waiting for thread to terminate; "
+                       + "state=" + state);
         }
     }
 
