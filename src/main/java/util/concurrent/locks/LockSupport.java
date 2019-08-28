@@ -117,10 +117,12 @@ public class LockSupport {
     /**
      * Sets the object to be returned by invocations of {@link
      * #getBlocker getBlocker} for the current thread. This method may
-     * be used before invoking {@link #park park} from non-public
-     * objects, allowing more helpful diagnostics, or to retain
-     * compatibility with previous implementations of blocking
-     * methods.
+     * be used before invoking the no-argument version of {@link
+     * LockSupport#park() park()} from non-public objects, allowing
+     * more helpful diagnostics, or retaining compatibility with
+     * previous implementations of blocking methods. To obtain the
+     * effects of {@code park(b}}, use {@code setCurrentBlocker(b);
+     * park(); setCurrentBlocker(null);}
      *
      * @param blocker the blocker object
      * @since 14
