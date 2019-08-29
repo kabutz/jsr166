@@ -87,7 +87,7 @@ public class Basic {
         //----------------------------------------------------------------
         // Tests for serialized form compatibility with previous release
         //----------------------------------------------------------------
-        byte[] serializedForm = /* Generated using tiger */
+        byte[] serializedForm = /* Generated using JDK 5 */
             {-84, -19, 0, 5, '~', 'r', 0, 29, 'j', 'a', 'v', 'a', '.',
              'u', 't', 'i', 'l', '.', 'c', 'o', 'n', 'c', 'u', 'r', 'r', 'e',
              'n', 't', '.', 'T', 'i', 'm', 'e', 'U', 'n', 'i', 't', 0, 0,
