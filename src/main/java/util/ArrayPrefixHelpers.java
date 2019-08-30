@@ -222,6 +222,7 @@ class ArrayPrefixHelpers {
                 }
             }
         }
+        // OPENJDK @java.io.Serial
         private static final long serialVersionUID = 5293554502939613543L;
     }
 
@@ -372,6 +373,7 @@ class ArrayPrefixHelpers {
                 }
             }
         }
+        // OPENJDK @java.io.Serial
         private static final long serialVersionUID = -5074099945909284273L;
     }
 
@@ -522,6 +524,7 @@ class ArrayPrefixHelpers {
                 }
             }
         }
+        // OPENJDK @java.io.Serial
         private static final long serialVersionUID = -586947823794232033L;
     }
 
@@ -672,6 +675,7 @@ class ArrayPrefixHelpers {
                 }
             }
         }
+        // OPENJDK @java.io.Serial
         private static final long serialVersionUID = 3731755594596840961L;
     }
 }
