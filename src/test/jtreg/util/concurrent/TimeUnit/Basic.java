@@ -40,10 +40,15 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import jdk.testlibrary.Utils;
 
 public class Basic {
@@ -75,14 +80,28 @@ public class Basic {
         equal(1000L, MILLISECONDS.toMicros(1));
         equal(1000L, MICROSECONDS.toNanos(1));
 
-        long t0 = System.nanoTime();
-        MILLISECONDS.sleep(3); /* See windows bug 6313903, might not sleep */
-        long elapsedMillis = (System.nanoTime() - t0)/(1000L * 1000L);
-        System.out.printf("elapsed=%d%n", elapsedMillis);
-        check(elapsedMillis >= 0);
-        // See JDK-6313903: Thread.sleep(3) might wake up immediately on windows
-        // check(elapsedMillis >= 3);
-        check(elapsedMillis < LONG_DELAY_MS);
+        //----------------------------------------------------------------
+        // TimeUnit.sleep sleeps for at least the specified time.
+        // TimeUnit.sleep(x, unit) for x <= 0 does not sleep at all.
+        //----------------------------------------------------------------
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        int maxTimeoutMillis = rnd.nextInt(1, 12);
+        List<CompletableFuture<?>> workers =
+            IntStream.range(-1, maxTimeoutMillis + 1)
+            .mapToObj(timeoutMillis -> (Runnable) () -> {
+                try {
+                    long startTime = System.nanoTime();
+                    MILLISECONDS.sleep(timeoutMillis);
+                    long elapsedNanos = System.nanoTime() - startTime;
+                    long timeoutNanos = MILLISECONDS.toNanos(timeoutMillis);
+                    check(elapsedNanos >= timeoutNanos);
+                } catch (InterruptedException fail) {
+                    throw new AssertionError(fail);
+                }})
+            .map(CompletableFuture::runAsync)
+            .collect(Collectors.toList());
+
+        workers.forEach(CompletableFuture<?>::join);
 
         //----------------------------------------------------------------
         // Tests for serialized form compatibility with previous release
