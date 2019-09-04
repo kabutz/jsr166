@@ -581,7 +581,7 @@ public class TimeUnitTest extends JSR166TestCase {
     }
 
     /**
-     * timedSleep throws InterruptedException when interrupted
+     * timeUnit.sleep throws InterruptedException when interrupted
      */
     public void testTimedSleep_Interruptible() {
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
@@ -610,6 +610,19 @@ public class TimeUnitTest extends JSR166TestCase {
         if (randomBoolean()) assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
+    }
+
+    /**
+     * timeUnit.sleep(x) for x <= 0 does not sleep at all.
+     */
+    public void testTimedSleep_nonPositive() throws InterruptedException {
+	long startTime = System.nanoTime();
+	boolean interrupt = randomBoolean();
+	if (interrupt) Thread.currentThread().interrupt();
+	randomTimeUnit().sleep(0L);
+	randomTimeUnit().sleep(-1L);
+	randomTimeUnit().sleep(Long.MIN_VALUE);
+	if (interrupt) assertTrue(Thread.interrupted());
     }
 
     /**
