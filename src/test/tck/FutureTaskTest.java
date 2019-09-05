@@ -754,8 +754,6 @@ public class FutureTaskTest extends JSR166TestCase {
         final FutureTask task = new FutureTask(new NoOpCallable());
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws Exception {
-                long startTime = System.nanoTime();
-
                 Thread.currentThread().interrupt();
                 try {
                     task.get(randomTimeout(), randomTimeUnit());
@@ -765,15 +763,14 @@ public class FutureTaskTest extends JSR166TestCase {
 
                 pleaseInterrupt.countDown();
                 try {
-                    task.get(LONG_DELAY_MS, MILLISECONDS);
+                    task.get(LONGER_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
-
-                assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         await(pleaseInterrupt);
+        if (randomBoolean()) assertThreadBlocks(t, Thread.State.TIMED_WAITING);
         t.interrupt();
         awaitTermination(t);
         checkNotDone(task);
