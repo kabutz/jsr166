@@ -919,12 +919,10 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
 
                 pleaseInterrupt.countDown();
                 try {
-                    q.offerFirst(new Object(), LONG_DELAY_MS, MILLISECONDS);
+                    q.offerFirst(new Object(), LONGER_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
-
-                assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         await(pleaseInterrupt);
@@ -1283,11 +1281,9 @@ public class LinkedBlockingDequeTest extends JSR166TestCase {
 
                 pleaseInterrupt.countDown();
                 try {
-                    q.offerLast(new Object(), LONG_DELAY_MS, MILLISECONDS);
+                    q.offerLast(new Object(), LONGER_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
-
-                assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         await(pleaseInterrupt);
