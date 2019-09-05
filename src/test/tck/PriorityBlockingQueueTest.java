@@ -319,7 +319,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
     }
 
     /**
-     * timed offer does not time out
+     * Queue is unbounded, so timed offer never times out
      */
     public void testTimedOffer() {
         final PriorityBlockingQueue q = new PriorityBlockingQueue(2);
