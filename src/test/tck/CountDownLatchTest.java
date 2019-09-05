@@ -144,8 +144,6 @@ public class CountDownLatchTest extends JSR166TestCase {
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
-                long startTime = System.nanoTime();
-
                 Thread.currentThread().interrupt();
                 try {
                     l.await(randomTimeout(), randomTimeUnit());
@@ -155,13 +153,12 @@ public class CountDownLatchTest extends JSR166TestCase {
 
                 pleaseInterrupt.countDown();
                 try {
-                    l.await(LONG_DELAY_MS, MILLISECONDS);
+                    l.await(LONGER_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
 
                 assertEquals(initialCount, l.getCount());
-                assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         await(pleaseInterrupt);
