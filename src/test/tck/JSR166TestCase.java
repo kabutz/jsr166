@@ -754,8 +754,8 @@ public class JSR166TestCase extends TestCase {
      */
     public void threadRecordFailure(Throwable t) {
         System.err.println(t);
-        dumpTestThreads();
-        threadFailure.compareAndSet(null, t);
+        if (threadFailure.compareAndSet(null, t))
+            dumpTestThreads();
     }
 
     public void setUp() {
