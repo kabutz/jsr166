@@ -1410,19 +1410,6 @@ public class JSR166TestCase extends TestCase {
         return NANOSECONDS.toMillis(System.nanoTime() - startNanoTime);
     }
 
-//     void assertTerminatesPromptly(long timeoutMillis, Runnable r) {
-//         long startTime = System.nanoTime();
-//         try {
-//             r.run();
-//         } catch (Throwable fail) { threadUnexpectedException(fail); }
-//         if (millisElapsedSince(startTime) > timeoutMillis/2)
-//             throw new AssertionError("did not return promptly");
-//     }
-
-//     void assertTerminatesPromptly(Runnable r) {
-//         assertTerminatesPromptly(LONG_DELAY_MS/2, r);
-//     }
-
     /**
      * Checks that timed f.get() returns the expected value, and does not
      * wait for the timeout to elapse before returning.
