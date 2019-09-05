@@ -1470,7 +1470,7 @@ public class JSR166TestCase extends TestCase {
             try {
                 threadFail(detail);
             } finally {
-		// Interrupt thread __after__ having reported its stack trace
+                // Interrupt thread __after__ having reported its stack trace
                 thread.interrupt();
             }
         }
