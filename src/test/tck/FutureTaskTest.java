@@ -720,7 +720,7 @@ public class FutureTaskTest extends JSR166TestCase {
     /**
      * get is interruptible
      */
-    public void testGet_interruptible() {
+    public void testGet_Interruptible() {
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         final FutureTask task = new FutureTask(new NoOpCallable());
         Thread t = newStartedThread(new CheckedRunnable() {
@@ -749,7 +749,7 @@ public class FutureTaskTest extends JSR166TestCase {
     /**
      * timed get is interruptible
      */
-    public void testTimedGet_interruptible() {
+    public void testTimedGet_Interruptible() {
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         final FutureTask task = new FutureTask(new NoOpCallable());
         Thread t = newStartedThread(new CheckedRunnable() {

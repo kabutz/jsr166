@@ -453,7 +453,7 @@ public class PhaserTest extends JSR166TestCase {
     /**
      * awaitAdvanceInterruptibly blocks interruptibly
      */
-    public void testAwaitAdvanceInterruptibly_interruptible() throws InterruptedException {
+    public void testAwaitAdvanceInterruptibly_Interruptible() throws InterruptedException {
         final Phaser phaser = new Phaser(1);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(2);
 
