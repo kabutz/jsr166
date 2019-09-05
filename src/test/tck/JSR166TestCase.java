@@ -657,6 +657,12 @@ public class JSR166TestCase extends TestCase {
     public static long MEDIUM_DELAY_MS;
     public static long LONG_DELAY_MS;
 
+    /**
+     * A delay significantly longer than LONG_DELAY_MS.
+     * Use this in a thread that is waited for via awaitTermination(Thread).
+     */
+    public static long LONGER_DELAY_MS;
+
     private static final long RANDOM_TIMEOUT;
     private static final long RANDOM_EXPIRED_TIMEOUT;
     private static final TimeUnit RANDOM_TIMEUNIT;
@@ -716,6 +722,7 @@ public class JSR166TestCase extends TestCase {
         SMALL_DELAY_MS  = SHORT_DELAY_MS * 5;
         MEDIUM_DELAY_MS = SHORT_DELAY_MS * 10;
         LONG_DELAY_MS   = SHORT_DELAY_MS * 200;
+        LONGER_DELAY_MS = 2 * LONG_DELAY_MS;
     }
 
     private static final long TIMEOUT_DELAY_MS
@@ -1450,17 +1457,22 @@ public class JSR166TestCase extends TestCase {
      * to terminate (using {@link Thread#join(long)}), else interrupts
      * the thread (in the hope that it may terminate later) and fails.
      */
-    void awaitTermination(Thread t, long timeoutMillis) {
+    void awaitTermination(Thread thread, long timeoutMillis) {
         try {
-            t.join(timeoutMillis);
+            thread.join(timeoutMillis);
         } catch (InterruptedException fail) {
             threadUnexpectedException(fail);
         }
-        Thread.State state;
-        if ((state = t.getState()) != Thread.State.TERMINATED) {
-            t.interrupt();
-            threadFail("timed out waiting for thread to terminate; "
-                       + "state=" + state);
+        if (thread.getState() != Thread.State.TERMINATED) {
+            String detail = String.format(
+                    "timed out waiting for thread to terminate, thread=%s, state=%s" ,
+                    thread, thread.getState());
+            try {
+                threadFail(detail);
+            } finally {
+		// Interrupt thread __after__ having reported its stack trace
+                thread.interrupt();
+            }
         }
     }
 
