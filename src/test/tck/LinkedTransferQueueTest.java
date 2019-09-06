@@ -314,7 +314,6 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
         final BlockingQueue<Integer> q = populatedQueue(SIZE);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
-                long startTime = System.nanoTime();
                 Thread.currentThread().interrupt();
                 for (int i = 0; i < SIZE; ++i)
                     assertEquals(i, (int) q.poll(randomTimeout(), randomTimeUnit()));
@@ -323,7 +322,6 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
-                assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         awaitTermination(t);
