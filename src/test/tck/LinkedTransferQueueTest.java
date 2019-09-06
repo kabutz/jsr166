@@ -950,7 +950,6 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
 
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
-                long startTime = System.nanoTime();
                 Thread.currentThread().interrupt();
                 try {
                     q.tryTransfer(new Object(), randomTimeout(), randomTimeUnit());
@@ -960,12 +959,10 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
 
                 pleaseInterrupt.countDown();
                 try {
-                    q.tryTransfer(new Object(), LONG_DELAY_MS, MILLISECONDS);
+                    q.tryTransfer(new Object(), LONGER_DELAY_MS, MILLISECONDS);
                     shouldThrow();
                 } catch (InterruptedException success) {}
                 assertFalse(Thread.interrupted());
-
-                assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         await(pleaseInterrupt);
