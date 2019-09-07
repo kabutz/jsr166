@@ -1083,6 +1083,39 @@ public class JSR166TestCase extends TestCase {
         }
     }
 
+    /** Returns true if thread info might be useful in a thread dump. */
+    static boolean threadOfInterest(ThreadInfo info) {
+        final String name = info.getThreadName();
+        String lockName;
+        if (name == null)
+            return true;
+        if (name.equals("Signal Dispatcher")
+            || name.equals("WedgedTestDetector"))
+            return false;
+        if (name.equals("Reference Handler")) {
+            // Reference Handler stacktrace changed in JDK-8156500
+            StackTraceElement[] stackTrace; String methodName;
+            if ((stackTrace = info.getStackTrace()) != null
+                && stackTrace.length > 0
+                && (methodName = stackTrace[0].getMethodName()) != null
+                && methodName.equals("waitForReferencePendingList"))
+                return false;
+            // jdk8 Reference Handler stacktrace
+            if ((lockName = info.getLockName()) != null
+                && lockName.startsWith("java.lang.ref"))
+                return false;
+        }
+        if ((name.equals("Finalizer") || name.equals("Common-Cleaner"))
+            && (lockName = info.getLockName()) != null
+            && lockName.startsWith("java.lang.ref"))
+            return false;
+        if (name.startsWith("ForkJoinPool.commonPool-worker")
+            && (lockName = info.getLockName()) != null
+            && lockName.startsWith("java.util.concurrent.ForkJoinPool"))
+            return false;
+        return true;
+    }
+
     /**
      * A debugging tool to print stack traces of most threads, as jstack does.
      * Uninteresting threads are filtered out.
@@ -1099,23 +1132,9 @@ public class JSR166TestCase extends TestCase {
 
         ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
         System.err.println("------ stacktrace dump start ------");
-        for (ThreadInfo info : threadMXBean.dumpAllThreads(true, true)) {
-            final String name = info.getThreadName();
-            String lockName;
-            if ("Signal Dispatcher".equals(name))
-                continue;
-            if ("Reference Handler".equals(name)
-                && (lockName = info.getLockName()) != null
-                && lockName.startsWith("java.lang.ref"))
-                continue;
-            if (("Finalizer".equals(name) || "Common-Cleaner".equals(name))
-                && (lockName = info.getLockName()) != null
-                && lockName.startsWith("java.lang.ref"))
-                continue;
-            if ("WedgedTestDetector".equals(name))
-                continue;
-            System.err.print(info);
-        }
+        for (ThreadInfo info : threadMXBean.dumpAllThreads(true, true))
+            if (threadOfInterest(info))
+                System.err.print(info);
         System.err.println("------ stacktrace dump end ------");
 
         if (sm != null) System.setSecurityManager(sm);
