@@ -1108,9 +1108,9 @@ public class JSR166TestCase extends TestCase {
                 && (lockName = info.getLockName()) != null
                 && lockName.startsWith("java.lang.ref.Reference$Lock"))
                 continue;
-            if ("Finalizer".equals(name)
+            if (("Finalizer".equals(name) || "Common-Cleaner".equals(name))
                 && (lockName = info.getLockName()) != null
-                && lockName.startsWith("java.lang.ref.ReferenceQueue$Lock"))
+                && lockName.startsWith("java.lang.ref"))
                 continue;
             if ("checkForWedgedTest".equals(name))
                 continue;
