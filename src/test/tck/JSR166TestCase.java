@@ -284,7 +284,7 @@ public class JSR166TestCase extends TestCase {
     static volatile TestCase currentTestCase;
     // static volatile int currentRun = 0;
     static {
-        Runnable checkForWedgedTest = new Runnable() { public void run() {
+        Runnable wedgedTestDetector = new Runnable() { public void run() {
             // Avoid spurious reports with enormous runsPerTest.
             // A single test case run should never take more than 1 second.
             // But let's cap it at the high end too ...
@@ -310,7 +310,7 @@ public class JSR166TestCase extends TestCase {
                 }
                 lastTestCase = currentTestCase;
             }}};
-        Thread thread = new Thread(checkForWedgedTest, "checkForWedgedTest");
+        Thread thread = new Thread(wedgedTestDetector, "WedgedTestDetector");
         thread.setDaemon(true);
         thread.start();
     }
@@ -1106,13 +1106,13 @@ public class JSR166TestCase extends TestCase {
                 continue;
             if ("Reference Handler".equals(name)
                 && (lockName = info.getLockName()) != null
-                && lockName.startsWith("java.lang.ref.Reference$Lock"))
+                && lockName.startsWith("java.lang.ref"))
                 continue;
             if (("Finalizer".equals(name) || "Common-Cleaner".equals(name))
                 && (lockName = info.getLockName()) != null
                 && lockName.startsWith("java.lang.ref"))
                 continue;
-            if ("checkForWedgedTest".equals(name))
+            if ("WedgedTestDetector".equals(name))
                 continue;
             System.err.print(info);
         }
