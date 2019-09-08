@@ -517,9 +517,9 @@ public class StampedLock implements java.io.Serializable {
      */
     @ReservedStackAccess
     public long readLock() {
-        // unconditionally try non-overflow case once
-        long s = U.getLongOpaque(this, STATE), nextState = s + RUNIT;
-        if (casState(s & RSAFE, nextState))
+        // unconditionally optimistically try non-overflow case once
+        long s = U.getLongOpaque(this, STATE) & RSAFE, nextState;
+        if (casState(s, nextState = s + RUNIT))
             return nextState;
         else
             return acquireRead(false, false, 0L);
