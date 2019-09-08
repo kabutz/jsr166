@@ -343,12 +343,12 @@ public class StampedLock implements java.io.Serializable {
             U.putIntOpaque(this, STATUS, 0);
         }
 
-        private static final long STATUS = U.objectFieldOffset(
-            Node.class, "status");
-        private static final long NEXT = U.objectFieldOffset(
-            Node.class, "next");
-        private static final long PREV= U.objectFieldOffset(
-            Node.class, "prev");
+        private static final long STATUS
+            = U.objectFieldOffset(Node.class, "status");
+        private static final long NEXT
+            = U.objectFieldOffset(Node.class, "next");
+        private static final long PREV
+            = U.objectFieldOffset(Node.class, "prev");
     }
 
     static final class WriterNode extends Node { // node for writers
@@ -362,8 +362,8 @@ public class StampedLock implements java.io.Serializable {
         final void setCowaitRelaxed(ReaderNode p) {
             U.putObject(this, COWAIT, p);
         }
-        private static final long COWAIT = U.objectFieldOffset(
-            ReaderNode.class, "cowait");
+        private static final long COWAIT
+            = U.objectFieldOffset(ReaderNode.class, "cowait");
     }
 
     /** Head of CLH queue */
@@ -1456,12 +1456,12 @@ public class StampedLock implements java.io.Serializable {
 
     // Unsafe
     private static final Unsafe U = Unsafe.getUnsafe();
-    private static final long STATE = U.objectFieldOffset(
-        StampedLock.class, "state");
-    private static final long HEAD = U.objectFieldOffset(
-        StampedLock.class, "head");
-    private static final long TAIL = U.objectFieldOffset(
-        StampedLock.class, "tail");
+    private static final long STATE
+        = U.objectFieldOffset(StampedLock.class, "state");
+    private static final long HEAD
+        = U.objectFieldOffset(StampedLock.class, "head");
+    private static final long TAIL
+        = U.objectFieldOffset(StampedLock.class, "tail");
 
     static {
         Class<?> ensureLoaded = LockSupport.class;

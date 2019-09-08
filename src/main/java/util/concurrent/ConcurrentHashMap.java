@@ -3257,8 +3257,8 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
             return true;
         }
 
-        private static final long LOCKSTATE = U.objectFieldOffset(
-            TreeBin.class, "lockState");
+        private static final long LOCKSTATE
+            = U.objectFieldOffset(TreeBin.class, "lockState");
     }
 
     /* ----------------Table Traversal -------------- */
@@ -6315,16 +6315,16 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
 
     // Unsafe mechanics
     private static final Unsafe U = Unsafe.getUnsafe();
-    private static final long SIZECTL = U.objectFieldOffset(
-        ConcurrentHashMap.class, "sizeCtl");
-    private static final long TRANSFERINDEX = U.objectFieldOffset(
-        ConcurrentHashMap.class, "transferIndex");
-    private static final long BASECOUNT = U.objectFieldOffset(
-        ConcurrentHashMap.class, "baseCount");
-    private static final long CELLSBUSY = U.objectFieldOffset(
-        ConcurrentHashMap.class, "cellsBusy");
-    private static final long CELLVALUE = U.objectFieldOffset(
-        CounterCell.class, "value");
+    private static final long SIZECTL
+        = U.objectFieldOffset(ConcurrentHashMap.class, "sizeCtl");
+    private static final long TRANSFERINDEX
+        = U.objectFieldOffset(ConcurrentHashMap.class, "transferIndex");
+    private static final long BASECOUNT
+        = U.objectFieldOffset(ConcurrentHashMap.class, "baseCount");
+    private static final long CELLSBUSY
+        = U.objectFieldOffset(ConcurrentHashMap.class, "cellsBusy");
+    private static final long CELLVALUE
+        = U.objectFieldOffset(CounterCell.class, "value");
     private static final int ABASE = U.arrayBaseOffset(Node[].class);
     private static final int ASHIFT;
 

@@ -393,9 +393,9 @@ public class LockSupport {
 
     // Hotspot implementation via intrinsics API
     private static final Unsafe U = Unsafe.getUnsafe();
-    private static final long PARKBLOCKER = U.objectFieldOffset(
-        Thread.class, "parkBlocker");
-    private static final long TID = U.objectFieldOffset(
-        Thread.class, "tid");
+    private static final long PARKBLOCKER
+        = U.objectFieldOffset(Thread.class, "parkBlocker");
+    private static final long TID
+        = U.objectFieldOffset(Thread.class, "tid");
 
 }
