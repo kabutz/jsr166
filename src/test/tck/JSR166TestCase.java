@@ -354,7 +354,7 @@ public class JSR166TestCase extends TestCase {
             // Never report first run of any test; treat it as a
             // warmup run, notably to trigger all needed classloading,
             if (i > 0)
-                System.out.printf("%n%s: %d%n", toString(), elapsedMillis);
+                System.out.printf("%s: %d%n", toString(), elapsedMillis);
         }
     }
 
