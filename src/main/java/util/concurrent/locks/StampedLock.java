@@ -239,7 +239,7 @@ public class StampedLock implements java.io.Serializable {
      * or WriterNode. Implementation of queued Writer mode is
      * identical to AQS except for lock-state operations.  Sets of
      * waiting readers are grouped (linked) under a common node (field
-     * cowait) so act as a single node with respect to most CLH
+     * cowaiters) so act as a single node with respect to most CLH
      * mechanics.  This simplifies the scheduling policy to a
      * mainly-FIFO scheme that incorporates elements of Phase-Fair
      * locks (see Brandenburg & Anderson, especially
@@ -355,15 +355,15 @@ public class StampedLock implements java.io.Serializable {
     }
 
     static final class ReaderNode extends Node { // node for readers
-        volatile ReaderNode cowait;              // list of linked readers
-        final boolean casCowait(ReaderNode c, ReaderNode v) {
-            return U.weakCompareAndSetObject(this, COWAIT, c, v);
+        volatile ReaderNode cowaiters;           // list of linked readers
+        final boolean casCowaiters(ReaderNode c, ReaderNode v) {
+            return U.weakCompareAndSetObject(this, COWAITERS, c, v);
         }
-        final void setCowaitRelaxed(ReaderNode p) {
-            U.putObject(this, COWAIT, p);
+        final void setCowaitersRelaxed(ReaderNode p) {
+            U.putObject(this, COWAITERS, p);
         }
-        private static final long COWAIT
-            = U.objectFieldOffset(ReaderNode.class, "cowait");
+        private static final long COWAITERS
+            = U.objectFieldOffset(ReaderNode.class, "cowaiters");
     }
 
     /** Head of CLH queue */
@@ -1140,8 +1140,8 @@ public class StampedLock implements java.io.Serializable {
      */
     private static void signalCowaiters(ReaderNode node) {
         if (node != null) {
-            for (ReaderNode c; (c = node.cowait) != null; ) {
-                if (node.casCowait(c, c.cowait))
+            for (ReaderNode c; (c = node.cowaiters) != null; ) {
+                if (node.casCowaiters(c, c.cowaiters))
                     LockSupport.unpark(c.waiter);
             }
         }
@@ -1278,11 +1278,11 @@ public class StampedLock implements java.io.Serializable {
                     else if (node.waiter == null)
                         node.waiter = Thread.currentThread();
                     else if (!attached) {
-                        ReaderNode c = leader.cowait;
-                        node.setCowaitRelaxed(c);
-                        attached = leader.casCowait(c, node);
+                        ReaderNode c = leader.cowaiters;
+                        node.setCowaitersRelaxed(c);
+                        attached = leader.casCowaiters(c, node);
                         if (!attached)
-                            node.setCowaitRelaxed(null);
+                            node.setCowaitersRelaxed(null);
                     } else {
                         long nanos = 0L;
                         if (!timed)
@@ -1404,10 +1404,10 @@ public class StampedLock implements java.io.Serializable {
         if (leader != null) {
             while (leader.prev != null && leader.status >= 0) {
                 for (ReaderNode p = leader, q; ; p = q) {
-                    if ((q = p.cowait) == null)
+                    if ((q = p.cowaiters) == null)
                         return;
                     if (q == node) {
-                        p.casCowait(q, q.cowait);
+                        p.casCowaiters(q, q.cowaiters);
                         break;  // recheck even if succeeded
                     }
                 }
@@ -1437,10 +1437,10 @@ public class StampedLock implements java.io.Serializable {
 
     /**
      * If node non-null, forces cancel status and unsplices from
-     * leader's cowait list unless/until it is also cancelled.
+     * leader's cowaiters list unless/until it is also cancelled.
      *
      * @param node if non-null, the waiter
-     * @param leader if non-null, the node heading cowait list
+     * @param leader if non-null, the node heading cowaiters list
      * @param interrupted if already interrupted
      * @return INTERRUPTED if interrupted or Thread.interrupted, else zero
      */
