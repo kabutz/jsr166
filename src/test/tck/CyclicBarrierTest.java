@@ -296,34 +296,6 @@ public class CyclicBarrierTest extends JSR166TestCase {
     }
 
     /**
-     * All threads block while a barrier is broken.
-     */
-    public void testReset_Leakage() throws InterruptedException {
-        final CyclicBarrier c = new CyclicBarrier(2);
-        final AtomicBoolean done = new AtomicBoolean();
-        Thread t = newStartedThread(new CheckedRunnable() {
-            public void realRun() {
-                while (!done.get()) {
-                    try {
-                        while (c.isBroken())
-                            c.reset();
-
-                        c.await();
-                        shouldThrow();
-                    }
-                    catch (BrokenBarrierException | InterruptedException ok) {}
-                }}});
-
-        for (int i = 0; i < 4; i++) {
-            delay(timeoutMillis());
-            t.interrupt();
-        }
-        done.set(true);
-        t.interrupt();
-        awaitTermination(t);
-    }
-
-    /**
      * Reset of a non-broken barrier does not break barrier
      */
     public void testResetWithoutBreakage() throws Exception {
