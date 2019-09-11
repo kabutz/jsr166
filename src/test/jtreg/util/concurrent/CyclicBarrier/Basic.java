@@ -29,7 +29,6 @@
  * @author Martin Buchholz, David Holmes
  */
 
-import static java.lang.Thread.State.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.ArrayList;
