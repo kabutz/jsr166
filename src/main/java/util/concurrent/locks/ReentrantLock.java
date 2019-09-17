@@ -118,13 +118,11 @@ public class ReentrantLock implements Lock, java.io.Serializable {
          */
         abstract boolean initialTryLock();
 
-        @ReservedStackAccess
         final void lock() {
             if (!initialTryLock())
                 acquire(1);
         }
 
-        @ReservedStackAccess
         final void lockInterruptibly() throws InterruptedException {
             if (Thread.interrupted())
                 throw new InterruptedException();
@@ -132,7 +130,6 @@ public class ReentrantLock implements Lock, java.io.Serializable {
                 acquireInterruptibly(1);
         }
 
-        @ReservedStackAccess
         final boolean tryLockNanos(long nanos) throws InterruptedException {
             if (Thread.interrupted())
                 throw new InterruptedException();
@@ -191,6 +188,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
     static final class NonfairSync extends Sync {
         private static final long serialVersionUID = 7316153563782823691L;
 
+        @ReservedStackAccess
         final boolean initialTryLock() {
             Thread current = Thread.currentThread();
             if (compareAndSetState(0, 1)) { // first attempt is unguarded
@@ -209,6 +207,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
         /**
          * Acquire for non-reentrant cases after initialTryLock prescreen
          */
+        @ReservedStackAccess
         protected final boolean tryAcquire(int acquires) {
             if (getState() == 0 && compareAndSetState(0, acquires)) {
                 setExclusiveOwnerThread(Thread.currentThread());
@@ -227,6 +226,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
         /**
          * Acquires only if reentrant or queue is empty.
          */
+        @ReservedStackAccess
         final boolean initialTryLock() {
             Thread current = Thread.currentThread();
             int c = getState();
@@ -247,6 +247,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
         /**
          * Acquires only if thread is first waiter or empty
          */
+        @ReservedStackAccess
         protected final boolean tryAcquire(int acquires) {
             if (getState() == 0 && !hasQueuedPredecessors() &&
                 compareAndSetState(0, acquires)) {
