@@ -101,7 +101,7 @@ public abstract class AbstractQueuedLongSynchronizer
         }
 
         public final boolean block() {
-            while (!isReleasable()) LockSupport.park(this);
+            while (!isReleasable()) LockSupport.park();
             return true;
         }
     }
