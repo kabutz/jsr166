@@ -1224,14 +1224,14 @@ public class ReentrantLockTest extends JSR166TestCase {
         lock.lock();
         final Thread thread = newStartedThread((Action) () -> {
             if (timedAcquire)
-		lock.tryLock(LONGER_DELAY_MS, MILLISECONDS);
-	    else
-		lock.lock();
-	    while (!conditionSatisfied.get())
-		if (timedAwait)
-		    condition.await(LONGER_DELAY_MS, MILLISECONDS);
-		else
-		    condition.await();
+                lock.tryLock(LONGER_DELAY_MS, MILLISECONDS);
+            else
+                lock.lock();
+            while (!conditionSatisfied.get())
+                if (timedAwait)
+                    condition.await(LONGER_DELAY_MS, MILLISECONDS);
+                else
+                    condition.await();
         });
         Callable<Boolean> waitingForLock = () -> {
             String className;
