@@ -372,7 +372,7 @@
   <target name="docs"
           description="Builds javadocs for src/main to dist dir">
 
-    <delete dir="${docs.dir}"/>
+    <delete dir="${docs.dir}" quiet="true"/>
     <mkdir dir="${docs.dir}"/>
 
     <!-- old school frames via docs/index.html?overview-summary.html -->
@@ -405,6 +405,7 @@
       </fileset>
       <arg line="-Xdocrootparent ${java.docroot.url}"/>
       <arg line="-Xmaxerrs 1000 -Xmaxwarns 1000"/>
+      <arg value="-quiet"/>
       <arg value="-XDignore.symbol.file=true"/>
       <arg value="-html5"/>
       <arg value="--patch-module=java.base=${src.dir}"/>
