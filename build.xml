@@ -375,6 +375,13 @@
     <delete dir="${docs.dir}"/>
     <mkdir dir="${docs.dir}"/>
 
+    <!-- old school frames via docs/index.html?overview-summary.html -->
+    <!-- dash-dash-frames no longer a supported option in jdk13+ -->
+    <local name="use-frames"/>
+    <condition property="use-frames">
+      <equals arg1="${build.main.javadoc}" arg2="${javadoc12}"/>
+    </condition>
+
     <!-- the packagenames="none" hack below prevents scanning the -->
     <!-- sourcepath for packages -->
 
@@ -401,9 +408,7 @@
       <arg value="-XDignore.symbol.file=true"/>
       <arg value="-html5"/>
       <arg value="--patch-module=java.base=${src.dir}"/>
-<!-- old school frames via docs/index.html?overview-summary.html -->
-<!-- TODO: - -frames no longer a supported option in jdk13+ -->
-      <arg value="--frames"/>
+      <arg value="--frames" if:set="use-frames"/>
       <arg value="--override-methods=summary"/>
       <arg value="-tag"/> <arg value="${javadoc.jls.option}"/>
       <arg value="-tag"/> <arg value="implSpec:a:Implementation Requirements:"/>
