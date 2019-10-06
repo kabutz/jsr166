@@ -502,84 +502,84 @@
   </target>
 
   <target name="test11">
-    <antcall target="clean"/>
     <antcall>
       <param name="java.runtime.target" value="11"/>
       <param name="build.main.javac" value="${javac11}"/>
       <param name="build.main.javadoc" value="${javadoc12}"/>
       <param name="build.main.javadoc.source" value="11"/>
+      <target name="clean"/>
       <target name="test"/>
       <target name="docs"/>
     </antcall>
   </target>
 
   <target name="test12">
-    <antcall target="clean"/>
     <antcall>
       <param name="java.runtime.target" value="12"/>
       <param name="build.main.javac" value="${javac12}"/>
       <param name="build.main.javadoc" value="${javadoc12}"/>
       <param name="build.main.javadoc.source" value="12"/>
+      <target name="clean"/>
       <target name="test"/>
       <target name="docs"/>
     </antcall>
   </target>
 
   <target name="test13">
-    <antcall target="clean"/>
     <antcall>
       <param name="java.runtime.target" value="13"/>
       <param name="build.main.javac" value="${javac13}"/>
       <param name="build.main.javadoc" value="${javadoc13}"/>
       <param name="build.main.javadoc.source" value="13"/>
+      <target name="clean"/>
       <target name="test"/>
       <target name="docs"/>
     </antcall>
   </target>
 
   <target name="test14">
-    <antcall target="clean"/>
     <antcall>
       <param name="java.runtime.target" value="14"/>
       <param name="build.main.javac" value="${javac14}"/>
       <param name="build.main.javadoc" value="${javadoc14}"/>
       <param name="build.main.javadoc.source" value="14"/>
+      <target name="clean"/>
       <target name="test"/>
       <target name="docs"/>
     </antcall>
   </target>
 
   <target name="test11-12">
-    <antcall target="clean"/>
     <antcall>
       <param name="java.runtime.target" value="12"/>
       <param name="build.main.javac" value="${javac11}"/>
       <param name="build.main.javadoc" value="${javadoc12}"/>
       <param name="build.main.javadoc.source" value="11"/>
+      <target name="clean"/>
       <target name="test"/>
       <target name="docs"/>
     </antcall>
   </target>
 
   <target name="test11-13">
-    <antcall target="clean"/>
     <antcall>
       <param name="java.runtime.target" value="13"/>
       <param name="build.main.javac" value="${javac11}"/>
       <param name="build.main.javadoc" value="${javadoc13}"/>
       <param name="build.main.javadoc.source" value="11"/>
+      <target name="clean"/>
       <target name="test"/>
       <target name="docs"/>
     </antcall>
   </target>
 
   <target name="test11-14">
-    <antcall target="clean"/>
     <antcall>
       <param name="java.runtime.target" value="14"/>
       <param name="build.main.javac" value="${javac11}"/>
       <param name="build.main.javadoc" value="${javadoc14}"/>
       <param name="build.main.javadoc.source" value="11"/>
+      <target name="clean"/>
       <target name="test"/>
       <target name="docs"/>
     </antcall>
