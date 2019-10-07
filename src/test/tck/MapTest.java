@@ -5,8 +5,6 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
