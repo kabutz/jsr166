@@ -74,10 +74,14 @@ class ArrayPrefixHelpers {
     static final int MIN_PARTITION = 16;
 
     static final class CumulateTask<T> extends CountedCompleter<Void> {
+        @SuppressWarnings("serial") // Not statically typed as Serializable
         final T[] array;
         final BinaryOperator<T> function;
         CumulateTask<T> left, right;
-        T in, out;
+        @SuppressWarnings("serial") // Not statically typed as Serializable
+        T in;
+        @SuppressWarnings("serial") // Not statically typed as Serializable
+        T out;
         final int lo, hi, origin, fence, threshold;
 
         /** Root task constructor */
@@ -228,6 +232,7 @@ class ArrayPrefixHelpers {
 
     static final class LongCumulateTask extends CountedCompleter<Void> {
         final long[] array;
+        @SuppressWarnings("serial") // Not statically typed as Serializable
         final LongBinaryOperator function;
         LongCumulateTask left, right;
         long in, out;
@@ -379,6 +384,7 @@ class ArrayPrefixHelpers {
 
     static final class DoubleCumulateTask extends CountedCompleter<Void> {
         final double[] array;
+        @SuppressWarnings("serial") // Not statically typed as Serializable
         final DoubleBinaryOperator function;
         DoubleCumulateTask left, right;
         double in, out;
@@ -530,6 +536,7 @@ class ArrayPrefixHelpers {
 
     static final class IntCumulateTask extends CountedCompleter<Void> {
         final int[] array;
+        @SuppressWarnings("serial") // Not statically typed as Serializable
         final IntBinaryOperator function;
         IntCumulateTask left, right;
         int in, out;
