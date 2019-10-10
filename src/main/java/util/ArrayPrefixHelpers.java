@@ -76,6 +76,7 @@ class ArrayPrefixHelpers {
     static final class CumulateTask<T> extends CountedCompleter<Void> {
         @SuppressWarnings("serial") // Not statically typed as Serializable
         final T[] array;
+        @SuppressWarnings("serial") // Not statically typed as Serializable
         final BinaryOperator<T> function;
         CumulateTask<T> left, right;
         @SuppressWarnings("serial") // Not statically typed as Serializable
