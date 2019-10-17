@@ -31,6 +31,7 @@ public class AtomicReference<V> implements java.io.Serializable {
         }
     }
 
+    @SuppressWarnings("serial") // Conditionally serializable
     private volatile V value;
 
     /**

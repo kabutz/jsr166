@@ -55,6 +55,7 @@ import java.util.function.DoubleBinaryOperator;
 public class DoubleAccumulator extends Striped64 implements Serializable {
     private static final long serialVersionUID = 7249069246863182397L;
 
+    @SuppressWarnings("serial") // Not statically typed as Serializable
     private final DoubleBinaryOperator function;
     private final long identity; // use long representation
 
@@ -216,6 +217,7 @@ public class DoubleAccumulator extends Striped64 implements Serializable {
          * The function used for updates.
          * @serial
          */
+        @SuppressWarnings("serial") // Not statically typed as Serializable
         private final DoubleBinaryOperator function;
 
         /**
