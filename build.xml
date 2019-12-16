@@ -664,10 +664,11 @@
   https://github.com/google/error-prone/issues/1143
 =================================================================== -->
   <path id="errorprone.processorpath.path">
-    <pathelement location="${lib.dir}/error_prone_core-2.3.2-with-dependencies.jar"/>
+    <pathelement location="${lib.dir}/error_prone_core-2.3.4-with-dependencies.jar"/>
     <pathelement location="${lib.dir}/dataflow-2.5.7.jar"/>
     <pathelement location="${lib.dir}/javacutil-2.5.7.jar"/>
     <pathelement location="${lib.dir}/jFormatString-3.0.0.jar"/>
+    <pathelement location="${lib.dir}/caffeine-2.8.0.jar"/>
   </path>
   <property name="errorprone.processorpath" refid="errorprone.processorpath.path" />
   <property name="errorprone.jsr166.user.flags" value=""/>
