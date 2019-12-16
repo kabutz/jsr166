@@ -348,7 +348,7 @@ public class ForkJoinPoolTest extends JSR166TestCase {
             p.shutdown();
             assertTrue(p.isShutdown());
             try {
-                ForkJoinTask<Integer> f = p.submit(new FibTask(8));
+                ForkJoinTask<Integer> unused = p.submit(new FibTask(8));
                 shouldThrow();
             } catch (RejectedExecutionException success) {}
         }
@@ -536,7 +536,7 @@ public class ForkJoinPoolTest extends JSR166TestCase {
         ExecutorService e = new ForkJoinPool(1);
         try (PoolCleaner cleaner = cleaner(e)) {
             try {
-                Future<?> future = e.submit((Runnable) null);
+                Future<?> unused = e.submit((Runnable) null);
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
@@ -549,7 +549,7 @@ public class ForkJoinPoolTest extends JSR166TestCase {
         ExecutorService e = new ForkJoinPool(1);
         try (PoolCleaner cleaner = cleaner(e)) {
             try {
-                Future<String> future = e.submit((Callable) null);
+                Future<String> unused = e.submit((Callable) null);
                 shouldThrow();
             } catch (NullPointerException success) {}
         }
