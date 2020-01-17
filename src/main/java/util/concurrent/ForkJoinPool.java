@@ -2656,13 +2656,17 @@ public class ForkJoinPool extends AbstractExecutorService {
     public <T> T invokeAny(Collection<? extends Callable<T>> tasks,
                            long timeout, TimeUnit unit)
         throws InterruptedException, ExecutionException, TimeoutException {
+        int par = mode & SMASK;
         BulkTask<T>[] fs; BulkTask<T> root;
         long deadline = unit.toNanos(timeout) + System.nanoTime();
         if ((fs = BulkTask.forkAll(tasks, true)) != null && fs.length > 0 &&
             (root = fs[0]) != null) {
             TimeoutException tex = null;
             try {
-                root.get(deadline, TimeUnit.NANOSECONDS);
+                if (par == 0) // if no workers, caller must execute
+                    root.get();
+                else
+                    root.get(deadline, TimeUnit.NANOSECONDS);
             } catch (TimeoutException tx) {
                 tex = tx;
             } catch (Throwable ignore) {
