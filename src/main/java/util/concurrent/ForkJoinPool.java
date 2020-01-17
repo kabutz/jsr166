@@ -1389,7 +1389,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     /**
-     * Provides a name for ForkJoinWorkerThread constructor
+     * Provides a name for ForkJoinWorkerThread constructor.
      */
     final String nextWorkerThreadName() {
         String prefix = workerNamePrefix;
