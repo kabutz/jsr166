@@ -1115,7 +1115,7 @@ public class ForkJoinPool extends AbstractExecutorService {
          * @param task root of CountedCompleter computation
          * @param owned true if owned by a ForkJoinWorkerThread
          * @param limit max runs, or zero for no limit
-         * @return ask status on exit
+         * @return task status on exit
          */
         final int helpComplete(CountedCompleter<?> task, boolean owned,
                                int limit) {
