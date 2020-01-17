@@ -1778,7 +1778,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * Version of helpJoin for CountedCompleters, also usable with
      * external submitter threads. Scans for and runs subtasks of the
      * given root task, compensating and blocking if none are found.
-
+     *
      * @param task root of CountedCompleter computation
      * @param w caller's WorkQueue
      * @return task status on exit, or ADJUST for compensated blocking
@@ -2545,7 +2545,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                     p.complete(r);
                 else
                     complete(r);
-            } catch(Throwable ex) {
+            } catch (Throwable ex) {
                 completeExceptionally(ex);
             }
         }
