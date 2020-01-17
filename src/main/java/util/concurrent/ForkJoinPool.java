@@ -275,7 +275,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * completes.  This can stall threads when required to consume
      * from a given queue (which may spin).  However, in the
      * aggregate, we ensure probabilistic non-blockingness at least
-     * until checking quiescence (which is is intrinsically blocking):
+     * until checking quiescence (which is intrinsically blocking):
      * If an attempted steal fails, a scanning thief chooses a
      * different victim target to try next. So, in order for one thief
      * to progress, it suffices for any in-progress poll or new push
@@ -287,7 +287,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * local task processing is in FIFO, not LIFO order, simply by
      * using poll rather than pop.  This can be useful in
      * message-passing frameworks in which tasks are never joined,
-     * although with increased contention among task produces and
+     * although with increased contention among task producers and
      * consumers.
      *
      * WorkQueues are also used in a similar way for tasks submitted
