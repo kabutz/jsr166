@@ -609,7 +609,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * ForkJoinPool and WorkQueues and their queue arrays. To reduce
      * false-sharing impact, the @Contended annotation isolates the
      * ForkJoinPool.ctl field as well as the most heavily written
-     * WorkQueue fields. These mainy reduce cache traffic by scanners.
+     * WorkQueue fields. These mainly reduce cache traffic by scanners.
      * WorkQueue arrays are presized large enough to avoid resizing
      * (which transiently reduces throughput) in most tree-like
      * computations, although not in some streaming usages. Initial
@@ -670,7 +670,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * * ForkJoinTask now uses field "aux" to support blocking joins
      *   and/or record exceptions, replacing reliance on builtin
      *   monitors and side tables.
-     * * Scans probe slots (vs compare indices), alonmg with related
+     * * Scans probe slots (vs compare indices), along with related
      *   changes that reduce performance differences across most
      *   garbage collectors, and reduces contention.
      * * Refactoring for better integration of special task types and
@@ -2561,7 +2561,7 @@ public class ForkJoinPool extends AbstractExecutorService {
 
         /**
          * Creates, records, and forks a BulkTask for each Callable;
-         * returns the array, with first element root task (if noneepty)
+         * returns the array, with first element root task (if nonempty)
          */
         static <T> BulkTask<T>[] forkAll(Collection<? extends Callable<T>> cs,
                                          boolean invokeAny) {

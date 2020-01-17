@@ -148,7 +148,7 @@ public class SubmissionPublisher<T> implements Publisher<T>,
      * Most mechanics are handled by BufferedSubscription. This class
      * mainly tracks subscribers and ensures sequentiality, by using
      * locks across public methods, to ensure thread-safety in the
-     * presence of multiuple sources and maintain acquire-release
+     * presence of multiple sources and maintain acquire-release
      * ordering around user operations. However, we also track whether
      * there is only a single source, and if so streamline some buffer
      * operations by avoiding some atomics.
