@@ -2000,7 +2000,7 @@ public class ForkJoinPool extends AbstractExecutorService {
 
     /**
      * Adds the given task to an external submission queue, or throws
-     * exception if shutdown or terminating
+     * exception if shutdown or terminating.
      *
      * @param task the task. Caller must ensure non-null.
      */
