@@ -524,6 +524,11 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
         return PENDING.compareAndSet(this, expected, count);
     }
 
+    // internal-only weak version
+    final boolean weakCompareAndSetPendingCount(int expected, int count) {
+        return PENDING.weakCompareAndSet(this, expected, count);
+    }
+
     /**
      * If the pending count is nonzero, (atomically) decrements it.
      *
@@ -533,7 +538,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
     public final int decrementPendingCountUnlessZero() {
         int c;
         do {} while ((c = pending) != 0 &&
-                     !PENDING.weakCompareAndSet(this, c, c - 1));
+                     !weakCompareAndSetPendingCount(c, c - 1));
         return c;
     }
 
@@ -566,7 +571,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
                     return;
                 }
             }
-            else if (PENDING.weakCompareAndSet(a, c, c - 1))
+            else if (a.weakCompareAndSetPendingCount(c, c - 1))
                 return;
         }
     }
@@ -589,7 +594,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
                     return;
                 }
             }
-            else if (PENDING.weakCompareAndSet(a, c, c - 1))
+            else if (a.weakCompareAndSetPendingCount(c, c - 1))
                 return;
         }
     }
@@ -634,7 +639,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
         for (int c;;) {
             if ((c = pending) == 0)
                 return this;
-            else if (PENDING.weakCompareAndSet(this, c, c - 1))
+            else if (weakCompareAndSetPendingCount(c, c - 1))
                 return null;
         }
     }
@@ -689,30 +694,52 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
      *                 processed.
      */
     public final void helpComplete(int maxTasks) {
+        ForkJoinPool.WorkQueue q; Thread t; boolean owned;
+        if (owned = (t = Thread.currentThread()) instanceof ForkJoinWorkerThread)
+            q = ((ForkJoinWorkerThread)t).workQueue;
+        else
+            q = ForkJoinPool.commonQueue();
+        if (q != null && maxTasks > 0)
+            q.helpComplete(this, owned, maxTasks);
+    }
+
+    // ForkJoinTask overrides
+
+    /**
+     * Specialized helping for awaitJoin
+     */
+    @Override
+    final int awaitJoin(boolean interruptible, boolean ran) {
         Thread t; ForkJoinWorkerThread wt;
-        if (maxTasks > 0 && status >= 0) {
-            if ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread)
-                (wt = (ForkJoinWorkerThread)t).pool.
-                    helpComplete(wt.workQueue, this, maxTasks);
-            else
-                ForkJoinPool.common.externalHelpComplete(this, maxTasks);
+        ForkJoinPool p; ForkJoinPool.WorkQueue q; int s;
+        if ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread) {
+            p = (wt = (ForkJoinWorkerThread)t).pool;
+            q = wt.workQueue;
         }
+        else {
+            p = ForkJoinPool.common;
+            q = ForkJoinPool.commonQueue();
+        }
+        return ((s = (p == null ? 0 : p.helpComplete(this, q))) < 0 ? s :
+                awaitDone(interruptible, 0L, (s == ADJUST) ? p : null));
     }
 
     /**
      * Supports ForkJoinTask exception propagation.
      */
-    void internalPropagateException(Throwable ex) {
-        CountedCompleter<?> a = this, s = a;
-        while (a.onExceptionalCompletion(ex, s) &&
-               (a = (s = a).completer) != null && a.status >= 0 &&
-               isExceptionalStatus(a.recordExceptionalCompletion(ex)))
-            ;
+    @Override
+    final int trySetException(Throwable ex) {
+        CountedCompleter<?> a = this, p = a;
+        do {} while (isExceptionalStatus(a.trySetThrown(ex)) &&
+                     a.onExceptionalCompletion(ex, p) &&
+                     (a = (p = a).completer) != null && a.status >= 0);
+        return status;
     }
 
     /**
      * Implements execution conventions for CountedCompleters.
      */
+    @Override
     protected final boolean exec() {
         compute();
         return false;
@@ -727,6 +754,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
      *
      * @return the result of the computation
      */
+    @Override
     public T getRawResult() { return null; }
 
     /**
@@ -736,6 +764,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
      * overridden to update existing objects or fields, then it must
      * in general be defined to be thread-safe.
      */
+    @Override
     protected void setRawResult(T t) { }
 
     // VarHandle mechanics
