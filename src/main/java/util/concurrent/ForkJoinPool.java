@@ -2561,7 +2561,7 @@ public class ForkJoinPool extends AbstractExecutorService {
 
         /**
          * Creates, records, and forks a BulkTask for each Callable;
-         * returns the array, with first element root task (if nonempty)
+         * returns the array, with first element root task (if nonempty).
          */
         static <T> BulkTask<T>[] forkAll(Collection<? extends Callable<T>> cs,
                                          boolean invokeAny) {
