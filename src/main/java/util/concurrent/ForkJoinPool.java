@@ -249,13 +249,16 @@ public class ForkJoinPool extends AbstractExecutorService {
      * element getAndSet/CAS/setVolatile appear in any order, using
      * plain mode. But we must still preface some methods (mainly
      * those that may be accessed externally) with an acquireFence to
-     * avoid unbounded staleness. We use explicit acquiring reads
-     * (getSlot) rather than plain array access when acquire mode is
-     * required but not otherwise ensured by context. To reduce stalls
-     * by other stealers, we encourage timely writes to the base index
-     * by immediately following updates with a write of a volatile
-     * field that must be updated anyway, or an Opaque-mode write if
-     * there is no such opportunity.
+     * avoid unbounded staleness. This is equivalent to acting as if
+     * callers use an acquiring read of the reference to the pool or
+     * queue when invoking the method, even when they do not. We use
+     * explicit acquiring reads (getSlot) rather than plain array
+     * access when acquire mode is required but not otherwise ensured
+     * by context. To reduce stalls by other stealers, we encourage
+     * timely writes to the base index by immediately following
+     * updates with a write of a volatile field that must be updated
+     * anyway, or an Opaque-mode write if there is no such
+     * opportunity.
      *
      * Because indices and slot contents cannot always be consistent,
      * the emptiness check base == top is only quiescently accurate
@@ -599,8 +602,8 @@ public class ForkJoinPool extends AbstractExecutorService {
      * present. These workers have no permissions set, do not belong
      * to any user-defined ThreadGroup, and erase all ThreadLocals
      * after executing any top-level task.  The associated mechanics
-     * (mainly in ForkJoinWorkerThread) may be JVM-dependent and must
-     * access particular Thread class fields to achieve this effect.
+     * may be JVM-dependent and must access particular Thread class
+     * fields to achieve this effect.
      *
      * Memory placement
      * ================
@@ -672,7 +675,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      *   monitors and side tables.
      * * Scans probe slots (vs compare indices), along with related
      *   changes that reduce performance differences across most
-     *   garbage collectors, and reduces contention.
+     *   garbage collectors, and reduce contention.
      * * Refactoring for better integration of special task types and
      *   other capabilities that had been incrementally tacked on. Plus
      *   many minor reworkings to improve consistency.
@@ -2656,17 +2659,13 @@ public class ForkJoinPool extends AbstractExecutorService {
     public <T> T invokeAny(Collection<? extends Callable<T>> tasks,
                            long timeout, TimeUnit unit)
         throws InterruptedException, ExecutionException, TimeoutException {
-        int par = mode & SMASK;
         BulkTask<T>[] fs; BulkTask<T> root;
         long deadline = unit.toNanos(timeout) + System.nanoTime();
         if ((fs = BulkTask.forkAll(tasks, true)) != null && fs.length > 0 &&
             (root = fs[0]) != null) {
             TimeoutException tex = null;
             try {
-                if (par == 0) // if no workers, caller must execute
-                    root.get();
-                else
-                    root.get(deadline, TimeUnit.NANOSECONDS);
+                root.get(deadline, TimeUnit.NANOSECONDS);
             } catch (TimeoutException tx) {
                 tex = tx;
             } catch (Throwable ignore) {

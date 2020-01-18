@@ -170,8 +170,6 @@ import java.util.concurrent.locks.LockSupport;
  * used in extensions such as remote execution frameworks. It is
  * sensible to serialize tasks only before or after, but not during,
  * execution. Serialization is not relied on during execution itself.
- * A deserialized task that completed exceptionally in any way reports
- * a {@code CancellationException}.
  *
  * @since 1.7
  * @author Doug Lea
@@ -939,10 +937,10 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         else if ((s = status) >= 0 && nanos > 0L) {
             long d = nanos + System.nanoTime();
             long deadline = (d == 0L) ? 1L : d; // avoid 0
-            ForkJoinPool p = null; Thread t;
-            if ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread &&
-                (p = ((ForkJoinWorkerThread)t).pool) != null &&
-                p.preCompensate() == 0)
+            Thread t = Thread.currentThread();
+            ForkJoinPool p = (t instanceof ForkJoinWorkerThread) ?
+                ((ForkJoinWorkerThread)t).pool : ForkJoinPool.common;
+            if (p != null && p.preCompensate() == 0)
                 p = null;
             s = awaitDone(true, deadline, p);
         }
