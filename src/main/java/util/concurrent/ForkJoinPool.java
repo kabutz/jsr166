@@ -984,51 +984,48 @@ public class ForkJoinPool extends AbstractExecutorService {
         /**
          * Pops the given task for owner only if it is at the current top.
          */
-        final boolean tryUnpush(ForkJoinTask<?> task) {
-            int s = top - 1, cap, k; ForkJoinTask<?>[] a;
-            if ((a = array) != null && task != null && (cap = a.length) > 0 &&
-                a[k = (cap - 1) & s] == task && casSlotToNull(a, k, task)) {
-                top = s;
-                return true;
-            }
-            return false;
-        }
-
-        /**
-         * Locking version of tryUnpush.
-         */
-        final boolean externalTryUnpush(ForkJoinTask<?> task) {
+        final boolean tryUnpush(ForkJoinTask<?> task, boolean owned) {
             boolean taken = false;
             int s = top, cap, k; ForkJoinTask<?>[] a;
-            if ((a = array) != null && task != null && (cap = a.length) > 0 &&
-                a[k = (cap - 1) & (s - 1)] == task && tryLock()) {
-                if (top == s && array == a &&
-                    (taken = casSlotToNull(a, k, task)))
-                    top = s - 1;
-                source = 0; // release lock
+            if ((a = array) != null && (cap = a.length) > 0 &&
+                a[k = (cap - 1) & (s - 1)] == task) {
+                if (owned || tryLock()) {
+                    if ((owned || (top == s && array == a)) &&
+                        (taken = casSlotToNull(a, k, task)))
+                        top = s - 1;
+                    if (!owned)
+                        source = 0; // release lock
+                }
             }
             return taken;
         }
 
         /**
-         * Deep form of pop: Traverses from top and removes task if
+         * Deep form of tryUnpush: Traverses from top and removes task if
          * present, shifting others to fill gap.
          */
-        final boolean tryRemove(ForkJoinTask<?> task) {
-            int s = top, cap; ForkJoinTask<?>[] a; ForkJoinTask<?> t;
+        final boolean tryRemove(ForkJoinTask<?> task, boolean owned) {
+            boolean taken = false;
+            int p = top, cap; ForkJoinTask<?>[] a; ForkJoinTask<?> t;
             if ((a = array) != null && task != null && (cap = a.length) > 0) {
-                for (int m = cap - 1, d = s - base, i = --s, k; d > 0; --i,--d) {
+                int m = cap - 1, s = p - 1, d = p - base;
+                for (int i = s, k; d > 0; --i, --d) {
                     if ((t = a[k = i & m]) == task) {
-                        if (!casSlotToNull(a, k, t))
-                            break;
-                        for (int j = i; j != s; ) // shift down
-                            a[j & m] = getAndClearSlot(a, ++j & m);
-                        top = s;
-                        return true;
+                        if (owned || tryLock()) {
+                            if ((owned || (array == a && top == p)) &&
+                                (taken = casSlotToNull(a, k, t))) {
+                                for (int j = i; j != s; ) // shift down
+                                    a[j & m] = getAndClearSlot(a, ++j & m);
+                                top = s;
+                            }
+                            if (!owned)
+                                source = 0;
+                        }
+                        break;
                     }
                 }
             }
-            return false;
+            return taken;
         }
 
         // variants of poll
@@ -1120,8 +1117,7 @@ public class ForkJoinPool extends AbstractExecutorService {
          * @param limit max runs, or zero for no limit
          * @return task status on exit
          */
-        final int helpComplete(CountedCompleter<?> task, boolean owned,
-                               int limit) {
+        final int helpComplete(ForkJoinTask<?> task, boolean owned, int limit) {
             int status = 0, cap, k, p, s; ForkJoinTask<?>[] a; ForkJoinTask<?> t;
             while (task != null && (status = task.status) >= 0 &&
                    (a = array) != null && (cap = a.length) > 0 &&
@@ -1699,17 +1695,6 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     /**
-     * Calls tryCompensate until success; needed for ForkJoinTask timed waits.
-     *
-     * @return 0 for no compensation, else ADJUST
-     */
-    final int preCompensate() {
-        int comp;
-        do {} while ((comp = tryCompensate(ctl)) < 0);
-        return comp;
-    }
-
-    /**
      * Helps if possible until the given task is done.  Scans other
      * queues for a task produced by one of w's stealers; returning
      * compensated blocking sentinel if none are found.
@@ -1784,13 +1769,14 @@ public class ForkJoinPool extends AbstractExecutorService {
      *
      * @param task root of CountedCompleter computation
      * @param w caller's WorkQueue
+     * @param owned true if owned by a ForkJoinWorkerThread
      * @return task status on exit, or ADJUST for compensated blocking
      */
-    final int helpComplete(CountedCompleter<?> task, WorkQueue w) {
+    final int helpComplete(ForkJoinTask<?> task, WorkQueue w, boolean owned) {
         int s = 0;
         if (task != null && w != null) {
             int r = w.config;
-            boolean owned = (r & 1) != 0, scan = true, locals = true;
+            boolean scan = true, locals = true;
             long c = 0L;
             outer: for (;;) {
                 if (locals) {                     // try locals before scanning

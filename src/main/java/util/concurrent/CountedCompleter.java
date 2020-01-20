@@ -706,25 +706,6 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
     // ForkJoinTask overrides
 
     /**
-     * Specialized helping for awaitJoin
-     */
-    @Override
-    final int awaitJoin(boolean interruptible, boolean ran) {
-        Thread t; ForkJoinWorkerThread wt;
-        ForkJoinPool p; ForkJoinPool.WorkQueue q; int s;
-        if ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread) {
-            p = (wt = (ForkJoinWorkerThread)t).pool;
-            q = wt.workQueue;
-        }
-        else {
-            p = ForkJoinPool.common;
-            q = ForkJoinPool.commonQueue();
-        }
-        return ((s = (p == null ? 0 : p.helpComplete(this, q))) < 0 ? s :
-                awaitDone(interruptible, 0L, (s == ADJUST) ? p : null));
-    }
-
-    /**
      * Supports ForkJoinTask exception propagation.
      */
     @Override
