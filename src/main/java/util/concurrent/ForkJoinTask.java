@@ -448,7 +448,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         else if (cc)
             s = p.helpComplete(this, q, owned);
         else if (ran || !q.tryRemove(this, owned) || (s = doExec()) >= 0)
-            s = owned? p.helpJoin(this, q) : 0;
+            s = owned ? p.helpJoin(this, q) : 0;
         return (s < 0) ? s : awaitDone(interruptible, deadline,
                                        (s == ADJUST) ? p : null);
     }
