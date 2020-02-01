@@ -222,7 +222,7 @@ public class Invoke {
                 val = pool.invokeAny(tasks);
             check(val == 1);
 
-            pool.shutdown();
+            pool.shutdownNow(); // assumes shutdownNow interrupts threads
             check(pool.awaitTermination(timeoutSeconds, SECONDS));
 
             // Check after shutdown to avoid race

@@ -279,9 +279,12 @@ public class ExecutorsTest extends JSR166TestCase {
             Executors.newScheduledThreadPool(2),
         };
 
-        final Runnable sleeper = new CheckedInterruptedRunnable() {
+        final Runnable sleeper = new CheckedRunnable() {
             public void realRun() throws InterruptedException {
-                delay(LONG_DELAY_MS);
+                try {
+                    delay(LONG_DELAY_MS);
+                } catch(InterruptedException OK) {
+                }
             }};
 
         List<Thread> threads = new ArrayList<>();
@@ -294,6 +297,8 @@ public class ExecutorsTest extends JSR166TestCase {
         }
         for (Thread thread : threads)
             awaitTermination(thread);
+        for (ExecutorService executor : executors)
+            executor.shutdownNow(); // assumes shutdownNow interrupts threads
         for (ExecutorService executor : executors)
             joinPool(executor);
     }
