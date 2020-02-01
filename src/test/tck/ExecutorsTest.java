@@ -283,7 +283,7 @@ public class ExecutorsTest extends JSR166TestCase {
             public void realRun() throws InterruptedException {
                 try {
                     delay(LONG_DELAY_MS);
-                } catch(InterruptedException OK) {
+                } catch (InterruptedException OK) {
                 }
             }};
 
