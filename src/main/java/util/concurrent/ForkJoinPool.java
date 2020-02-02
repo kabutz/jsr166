@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Condition;
@@ -1377,7 +1378,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         Throwable ex = null;
         ForkJoinWorkerThread wt = null;
         try {
-            if (mode >= 0 && fac != null && (wt = fac.newThread(this)) != null) {
+            if (fac != null && (wt = fac.newThread(this)) != null) {
                 wt.start();
                 return true;
             }
@@ -1587,7 +1588,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     private int awaitWork(WorkQueue w) {
         if (w == null)
             return -1;                       // already terminated
-        int phase, ac, md, rc;                   // advance phase
+        int phase, ac, md, rc;               // advance phase
         w.phase = (phase = w.phase + SS_SEQ) | UNSIGNALLED;
         long prevCtl = ctl, c;               // enqueue
         do {
@@ -1617,11 +1618,11 @@ public class ForkJoinPool extends AbstractExecutorService {
                 return -1;
             else if (w.phase >= 0)
                 break;
-            else if (rc <= 0 && (md & SHUTDOWN) != 0 &&
-                     tryTerminate(false, false))
-                return -1;
             else if ((int)(ctl >> RC_SHIFT) > ac)
                 Thread.onSpinWait();         // signal in progress
+            else if (rc <= 0 && (md & SHUTDOWN) != 0 &&
+                     tryTerminate(false, false))
+                return -1;                   // trigger quiescent termination
             else {
                 if (rc <= 0)
                     LockSupport.parkUntil(deadline);
@@ -1663,9 +1664,10 @@ public class ForkJoinPool extends AbstractExecutorService {
      */
     final boolean canStop() {
         outer: for (long oldSum = 0L;;) { // repeat until stable
-            int md; WorkQueue[] qs; WorkQueue q;
+            int md; WorkQueue q;
+            WorkQueue[] qs = queues;
             long c = ctl, checkSum = c;
-            if (((md = mode) & STOP) != 0 || (qs = queues) == null)
+            if (((md = mode) & STOP) != 0 || qs == null)
                 return true;
             if ((md & SMASK) + (int)(c >> RC_SHIFT) > 0)
                 break;
@@ -1678,7 +1680,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 else
                     break outer;
             }
-            if (oldSum == (oldSum = checkSum))
+            if (oldSum == (oldSum = checkSum) && queues == qs)
                 return true;
         }
         return (mode & STOP) != 0; // recheck mode on false return
@@ -2615,7 +2617,8 @@ public class ForkJoinPool extends AbstractExecutorService {
         ArrayList<Future<T>> futures = new ArrayList<>(tasks.size());
         try {
             for (Callable<T> t : tasks) {
-                ForkJoinTask<T> f = new ForkJoinTask.AdaptedCallable<T>(t);
+                ForkJoinTask<T> f =
+                    new ForkJoinTask.AdaptedInterruptibleCallable<T>(t);
                 futures.add(f);
                 externalSubmit(f);
             }
@@ -2637,7 +2640,8 @@ public class ForkJoinPool extends AbstractExecutorService {
         ArrayList<Future<T>> futures = new ArrayList<>(tasks.size());
         try {
             for (Callable<T> t : tasks) {
-                ForkJoinTask<T> f = new ForkJoinTask.AdaptedCallable<T>(t);
+                ForkJoinTask<T> f =
+                    new ForkJoinTask.AdaptedInterruptibleCallable<T>(t);
                 futures.add(f);
                 externalSubmit(f);
             }
@@ -2664,6 +2668,119 @@ public class ForkJoinPool extends AbstractExecutorService {
             for (Future<T> e : futures)
                 ForkJoinTask.cancelIgnoringExceptions(e);
             throw t;
+        }
+    }
+
+    // Task to hold results from InvokeAnyTasks
+    static final class InvokeAnyRoot<E> extends ForkJoinTask<E> {
+        private static final long serialVersionUID = 2838392045355241008L;
+        @SuppressWarnings("serial") // Conditionally serializable
+        volatile E result;
+        volatile Throwable exception;
+        final AtomicInteger count;              // in case all throw
+        final boolean timed;
+        InvokeAnyRoot(boolean timed, int n) {
+            this.timed = timed;
+            count = new AtomicInteger();
+        }
+        final void tryComplete(Callable<E> c) { // called by InvokeAnyTasks
+            if (c != null && !isDone()) {       // raciness OK
+                try {
+                    complete(c.call());
+                } catch (Throwable ex) {
+                    Throwable e = exception;
+                    if (e == null &&            // don't report subtask timeout
+                        (!timed || !(ex instanceof TimeoutException)))
+                        e = exception = ex;
+                    if (count.getAndDecrement() <= 1 && e != null)
+                        trySetThrown(e);
+                }
+            }
+        }
+        public final boolean exec()         { return false; } // never forked
+        public final E getRawResult()       { return result; }
+        public final void setRawResult(E v) { result = v; }
+    }
+
+    // Variant of AdaptedInterruptibleCallable with results in InvokeAnyRoot
+    static final class InvokeAnyTask<E> extends ForkJoinTask<E> {
+        private static final long serialVersionUID = 2838392045355241008L;
+        final InvokeAnyRoot<E> root;
+        @SuppressWarnings("serial") // Conditionally serializable
+        final Callable<E> callable;
+        transient volatile Thread runner;
+        InvokeAnyTask(InvokeAnyRoot<E> root, Callable<E> callable) {
+            this.root = root;
+            this.callable = callable;
+        }
+        public final boolean exec() {
+            Thread.interrupted();
+            runner = Thread.currentThread();
+            root.tryComplete(callable);
+            runner = null;
+            Thread.interrupted();
+            return true;
+        }
+        public final boolean cancel(boolean mayInterruptIfRunning) {
+            Thread t;
+            boolean stat = super.cancel(false);
+            if (mayInterruptIfRunning && (t = runner) != null) {
+                try {
+                    t.interrupt();
+                } catch (Throwable ignore) {
+                }
+            }
+            return stat;
+        }
+        public final void setRawResult(E v) {} // unused
+        public final E getRawResult()       { return null; }
+    }
+
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
+        throws InterruptedException, ExecutionException {
+        int n = tasks.size();
+        if (n <= 0)
+            throw new IllegalArgumentException();
+        InvokeAnyRoot<T> root = new InvokeAnyRoot<T>(false, n);
+        ArrayList<InvokeAnyTask<T>> fs = new ArrayList<>(n);
+        for (Callable<T> c : tasks) {
+            if (c == null)
+                throw new NullPointerException();
+            InvokeAnyTask<T> f = new InvokeAnyTask<T>(root, c);
+            fs.add(f);
+            f.fork();
+        }
+        try {
+            return root.get();
+        } finally {
+            for (InvokeAnyTask<T> f : fs)
+                f.cancel(true);
+        }
+    }
+
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks,
+                           long timeout, TimeUnit unit)
+        throws InterruptedException, ExecutionException, TimeoutException {
+        long nanos = unit.toNanos(timeout);
+        int n = tasks.size();
+        if (n <= 0)
+            throw new IllegalArgumentException();
+        InvokeAnyRoot<T> root = new InvokeAnyRoot<T>(true, n);
+        ArrayList<InvokeAnyTask<T>> fs = new ArrayList<>(n);
+        for (Callable<T> c : tasks) {
+            if (c == null)
+                throw new NullPointerException();
+            InvokeAnyTask<T> f = new InvokeAnyTask<T>(root, c);
+            fs.add(f);
+            f.fork();
+        }
+        try {
+            return root.get(nanos, TimeUnit.NANOSECONDS);
+        } finally {
+            for (InvokeAnyTask<T> f : fs)
+                f.cancel(true);
         }
     }
 

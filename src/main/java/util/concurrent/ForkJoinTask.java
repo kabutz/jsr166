@@ -513,7 +513,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     static final void cancelIgnoringExceptions(Future<?> t) {
         if (t != null) {
             try {
-                t.cancel(false);
+                t.cancel(true);
             } catch (Throwable ignore) {
             }
         }
@@ -580,6 +580,21 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     private void reportException(int s) {
         ForkJoinTask.<RuntimeException>uncheckedThrow(
             (s & THROWN) != 0 ? getThrowableException() : null);
+    }
+
+    /**
+     * Throws exception for (timed or untimed) get, wrapping if
+     * necessary in an ExecutionException.
+     */
+    private void reportExceptionForGet(int s) {
+        Throwable ex = null;
+        if (s == ABNORMAL)
+            ex = new InterruptedException();
+        else if (s >= 0)
+            ex = new TimeoutException();
+        else if ((s & THROWN) != 0 && (ex = getThrowableException()) != null)
+            ex = new ExecutionException(ex);
+        ForkJoinTask.<RuntimeException>uncheckedThrow(ex);
     }
 
     /**
@@ -952,15 +967,12 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      * member of a ForkJoinPool and was interrupted while waiting
      */
     public final V get() throws InterruptedException, ExecutionException {
-        int s; Throwable ex;
-        if ((s = status) >= 0 && (s = awaitGet(false, 0L)) >= 0)
-            throw new InterruptedException();
-        else if ((s & ABNORMAL) == 0)
-            return getRawResult();
-        else if ((s & THROWN) == 0 || (ex = getThrowableException()) == null)
-            throw new CancellationException();
-        else
-            throw new ExecutionException(ex);
+        int s;
+        if ((s = status) >= 0)
+            s = awaitGet(false, 0L);
+        if ((s & ABNORMAL) != 0)
+            reportExceptionForGet(s);
+        return getRawResult();
     }
 
     /**
@@ -979,20 +991,13 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      */
     public final V get(long timeout, TimeUnit unit)
         throws InterruptedException, ExecutionException, TimeoutException {
-        int s; Throwable ex;
+        int s;
         long nanos = unit.toNanos(timeout);
-        if ((s = status) >= 0 && (s = awaitGet(true, nanos)) >= 0) {
-            if (s == ABNORMAL)
-                throw new InterruptedException();
-            else
-                throw new TimeoutException();
-        }
-        else if ((s & ABNORMAL) == 0)
-            return getRawResult();
-        else if ((s & THROWN) == 0 || (ex = getThrowableException()) == null)
-            throw new CancellationException();
-        else
-            throw new ExecutionException(ex);
+        if ((s = status) >= 0)
+            s = awaitGet(true, nanos);
+        if (s >= 0 || (s & ABNORMAL) != 0)
+            reportExceptionForGet(s);
+        return getRawResult();
     }
 
     /**
@@ -1399,6 +1404,52 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         private static final long serialVersionUID = 2838392045355241008L;
     }
 
+    static final class AdaptedInterruptibleCallable<T> extends ForkJoinTask<T>
+        implements RunnableFuture<T> {
+        @SuppressWarnings("serial") // Conditionally serializable
+        final Callable<? extends T> callable;
+        @SuppressWarnings("serial") // Conditionally serializable
+        transient volatile Thread runner;
+        T result;
+        AdaptedInterruptibleCallable(Callable<? extends T> callable) {
+            if (callable == null) throw new NullPointerException();
+            this.callable = callable;
+        }
+        public final T getRawResult() { return result; }
+        public final void setRawResult(T v) { result = v; }
+        public final boolean exec() {
+            Thread.interrupted();
+            runner = Thread.currentThread();
+            try {
+                result = callable.call();
+                return true;
+            } catch (RuntimeException rex) {
+                throw rex;
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            } finally {
+                runner = null;
+                Thread.interrupted();
+            }
+        }
+        public final void run() { invoke(); }
+        public final boolean cancel(boolean mayInterruptIfRunning) {
+            Thread t;
+            boolean stat = super.cancel(false);
+            if (mayInterruptIfRunning && (t = runner) != null) {
+                try {
+                    t.interrupt();
+                } catch (Throwable ignore) {
+                }
+            }
+            return stat;
+        }
+        public String toString() {
+            return super.toString() + "[Wrapped task = " + callable + "]";
+        }
+        private static final long serialVersionUID = 2838392045355241008L;
+    }
+
     /**
      * Returns a new {@code ForkJoinTask} that performs the {@code run}
      * method of the given {@code Runnable} as its action, and returns
@@ -1437,6 +1488,25 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      */
     public static <T> ForkJoinTask<T> adapt(Callable<? extends T> callable) {
         return new AdaptedCallable<T>(callable);
+    }
+
+    /**
+     * Returns a new {@code ForkJoinTask} that performs the {@code
+     * call} method of the given {@code Callable} as its action, and
+     * returns its result upon {@link #join}, translating any checked
+     * exceptions encountered into {@code
+     * RuntimeException}. Additionally, invocations of {@code cancel}
+     * with {@code mayInterruptIfRunning true} will attempt to
+     * interrupt the thread performing the task.
+     *
+     * @param callable the callable action
+     * @param <T> the type of the callable's result
+     * @return the task
+     *
+     * @since 1.15
+     */
+    public static <T> ForkJoinTask<T> adaptInterruptible(Callable<? extends T> callable) {
+        return new AdaptedInterruptibleCallable<T>(callable);
     }
 
     // Serialization support
