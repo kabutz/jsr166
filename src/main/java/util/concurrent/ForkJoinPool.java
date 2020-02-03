@@ -1608,7 +1608,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 if ((q = qs[i]) != null && (a = q.array) != null &&
                     (cap = a.length) > 0 && a[(cap - 1) & q.base] != null) {
                     if (ctl == c && compareAndSetCtl(c, prevCtl))
-                        w.phase = phase;     // self-signal
+                        w.phase &= ~UNSIGNALLED; // self-signal
                     break;
                 }
             }
@@ -1616,8 +1616,10 @@ public class ForkJoinPool extends AbstractExecutorService {
         for (;;) {                           // await activation or termination
             if ((md = mode) < 0)
                 return -1;
-            else if (w.phase >= 0)
-                break;
+            else if (w.phase >= 0) {
+                LockSupport.setCurrentBlocker(null);
+                return 0;
+            }
             else if ((int)(ctl >> RC_SHIFT) > ac)
                 Thread.onSpinWait();         // signal in progress
             else if (rc <= 0 && (md & SHUTDOWN) != 0 &&
@@ -1638,8 +1640,6 @@ public class ForkJoinPool extends AbstractExecutorService {
                 }
             }
         }
-        LockSupport.setCurrentBlocker(null);
-        return 0;
     }
 
     // Utilities used by ForkJoinTask

@@ -111,6 +111,17 @@ import java.util.concurrent.locks.LockSupport;
  * #getException} will return either the encountered exception or
  * {@link CancellationException}.
  *
+ * <p>By default, method {@link #cancel} ignores its {@code
+ * mayInterruptIfRunning} argument, to separate task cancellation from
+ * thread status. However, the method is overridable.  An adaptor
+ * (@link #adaptInterruptible) for Callables does so by tracking and
+ * interrupting the running thread upon {@code cancel(true)}. Usage
+ * requires care.  A late interrupt issued by another thread after the
+ * task has completed may (inadvertently) interrupt some future task.
+ * When using interruptible tasks, method bodies of all task code
+ * should ignore stray interrupts. When applicable, {@code
+ * isCancelled} or {@code isDone} can be used to distinguish cases.
+ *
  * <p>The ForkJoinTask class is not usually directly subclassed.
  * Instead, you subclass one of the abstract classes that support a
  * particular style of fork/join processing, typically {@link
