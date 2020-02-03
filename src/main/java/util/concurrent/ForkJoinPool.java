@@ -2751,7 +2751,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             return root.get();
         } finally {
             for (InvokeAnyTask<T> f : fs)
-                f.cancel(true);
+                ForkJoinTask.cancelIgnoringExceptions(f);
         }
     }
 
@@ -2781,7 +2781,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             return root.get(nanos, TimeUnit.NANOSECONDS);
         } finally {
             for (InvokeAnyTask<T> f : fs)
-                f.cancel(true);
+                ForkJoinTask.cancelIgnoringExceptions(f);
         }
     }
 
