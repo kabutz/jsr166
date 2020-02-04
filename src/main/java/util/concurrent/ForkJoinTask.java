@@ -117,7 +117,7 @@ import java.util.concurrent.locks.LockSupport;
  * method is overridable to accommodate cases in which running tasks
  * must be cancelled using interrupts. This may arise when adapting
  * Callables that cannot check {@code isCancelled()} task status.
- * Tasks constructed with the (@link #adaptInterruptible) adaptor
+ * Tasks constructed with the {@link #adaptInterruptible} adaptor
  * track and interrupt the running thread upon {@code
  * cancel(true)}. Reliable usage requires awareness of potential
  * consequences: Method bodies should ignore stray interrupts to cope
