@@ -112,15 +112,20 @@ import java.util.concurrent.locks.LockSupport;
  * {@link CancellationException}.
  *
  * <p>By default, method {@link #cancel} ignores its {@code
- * mayInterruptIfRunning} argument, to separate task cancellation from
- * thread status. However, the method is overridable.  An adaptor
- * (@link #adaptInterruptible) for Callables does so by tracking and
- * interrupting the running thread upon {@code cancel(true)}. Usage
- * requires care.  A late interrupt issued by another thread after the
- * task has completed may (inadvertently) interrupt some future task.
- * When using interruptible tasks, method bodies of all task code
- * should ignore stray interrupts. When applicable, {@code
- * isCancelled} or {@code isDone} can be used to distinguish cases.
+ * mayInterruptIfRunning} argument, separating task cancellation from
+ * the interruption status of threads running tasks. However, the
+ * method is overridable to accommodate cases in which running tasks
+ * must be cancelled using interrupts. This may arise when adapting
+ * Callables that cannot check {@code isCancelled()} task status.
+ * Tasks constructed with the (@link #adaptInterruptible) adaptor
+ * track and interrupt the running thread upon {@code
+ * cancel(true)}. Reliable usage requires awareness of potential
+ * consequences: Method bodies should ignore stray interrupts to cope
+ * with the inherent possibility that a late interrupt issued by
+ * another thread after a given task has completed may (inadvertently)
+ * interrupt some future task. Further, interruptible tasks should not
+ * in general create subtasks, because an interrupt intended for a
+ * given task may be consumed by one of its subtasks, or vice versa.
  *
  * <p>The ForkJoinTask class is not usually directly subclassed.
  * Instead, you subclass one of the abstract classes that support a

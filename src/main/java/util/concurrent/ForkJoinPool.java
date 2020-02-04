@@ -267,10 +267,9 @@ public class ForkJoinPool extends AbstractExecutorService {
      * side of possibly making the queue appear nonempty when a push,
      * pop, or poll have not fully committed, or making it appear
      * empty when an update of top or base has not yet been seen.
-     * Method isEmpty() provides a more accurate test by checking both
-     * indices and slots.  Similarly, the check in push for the queue
-     * array being full may trigger when not completely full, causing
-     * a resize earlier than required.
+     * Similarly, the check in push for the queue array being full may
+     * trigger when not completely full, causing a resize earlier than
+     * required.
      *
      * Mainly because of these potential inconsistencies among slots
      * vs indices, the poll operation, considered individually, is not
@@ -1588,8 +1587,8 @@ public class ForkJoinPool extends AbstractExecutorService {
     private int awaitWork(WorkQueue w) {
         if (w == null)
             return -1;                       // already terminated
-        int phase, ac, md, rc;               // advance phase
-        w.phase = (phase = w.phase + SS_SEQ) | UNSIGNALLED;
+        int phase = (w.phase + SS_SEQ) & ~UNSIGNALLED;
+        w.phase = phase | UNSIGNALLED;       // advance phase
         long prevCtl = ctl, c;               // enqueue
         do {
             w.stackPred = (int)prevCtl;
@@ -1597,8 +1596,9 @@ public class ForkJoinPool extends AbstractExecutorService {
         } while (prevCtl != (prevCtl = compareAndExchangeCtl(prevCtl, c)));
 
         LockSupport.setCurrentBlocker(this); // prepare to block (exit also OK)
-        long deadline = 0L;                  // use timed wait if nonzero
-        if ((rc = (ac = (int)(c >> RC_SHIFT)) + ((md = mode) & SMASK)) <= 0) {
+        long deadline = 0L;                  // nonzero if possibly quiescent
+        int ac, md;
+        if ((ac = (int)(c >> RC_SHIFT)) + ((md = mode) & SMASK) <= 0) {
             if ((deadline = System.currentTimeMillis() + keepAlive) == 0L)
                 deadline = 1L;               // avoid zero
             WorkQueue[] qs = queues;         // check for racing submission
@@ -1608,7 +1608,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 if ((q = qs[i]) != null && (a = q.array) != null &&
                     (cap = a.length) > 0 && a[(cap - 1) & q.base] != null) {
                     if (ctl == c && compareAndSetCtl(c, prevCtl))
-                        w.phase &= ~UNSIGNALLED; // self-signal
+                        w.phase = phase;    // self-signal
                     break;
                 }
             }
@@ -1622,16 +1622,16 @@ public class ForkJoinPool extends AbstractExecutorService {
             }
             else if ((int)(ctl >> RC_SHIFT) > ac)
                 Thread.onSpinWait();         // signal in progress
-            else if (rc <= 0 && (md & SHUTDOWN) != 0 &&
+            else if ((md & SHUTDOWN) != 0 && deadline != 0L &&
                      tryTerminate(false, false))
                 return -1;                   // trigger quiescent termination
             else {
-                if (rc <= 0)
+                if (deadline != 0L)
                     LockSupport.parkUntil(deadline);
                 else
                     LockSupport.park();
                 if ((int)(ctl >> RC_SHIFT) <= ac &&
-                    !Thread.interrupted() && rc <= 0 &&
+                    !Thread.interrupted() && deadline != 0L &&
                     deadline - System.currentTimeMillis() <= TIMEOUT_SLOP &&
                     compareAndSetCtl(c, ((UC_MASK & (c - TC_UNIT)) |
                                          (w.stackPred & SP_MASK)))) {
