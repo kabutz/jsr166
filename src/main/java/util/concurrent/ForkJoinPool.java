@@ -613,6 +613,23 @@ public class ForkJoinPool extends AbstractExecutorService {
      * may be JVM-dependent and must access particular Thread class
      * fields to achieve this effect.
      *
+     * Interrupt handling
+     * ==================
+     *
+     * The framework is designed to manage task cancellation
+     * (ForkJoinTask.cancel) independently from the interrupt status
+     * of threads running tasks. (See the public ForkJoinTask
+     * documentation for rationale.)  Interrupts are issued only in
+     * tryTerminate, when workers should be terminating and tasks
+     * should be cancelled anyway. Interrupts are cleared only when
+     * necessary to ensure that calls to LockSupport.park do not loop
+     * indefinitely (park returns immediately if the current thread is
+     * interrupted). If so, interruption is reinstated after blocking
+     * if status could be visible during the scope of any task.  For
+     * cases in which task bodies are specified or desired to
+     * interrupt upon cancellation, ForkJoinTask.cancel can be
+     * overridden to do so (as is done for invoke{Any,All}).
+     *
      * Memory placement
      * ================
      *
@@ -1597,47 +1614,54 @@ public class ForkJoinPool extends AbstractExecutorService {
 
         LockSupport.setCurrentBlocker(this); // prepare to block (exit also OK)
         long deadline = 0L;                  // nonzero if possibly quiescent
-        int ac, md;
-        if ((ac = (int)(c >> RC_SHIFT)) + ((md = mode) & SMASK) <= 0) {
+        int ac = (int)(c >> RC_SHIFT), md;
+        if ((md = mode) < 0)                 // pool is terminating
+            return -1;
+        else if ((md & SMASK) + ac <= 0) {
+            boolean checkTermination = (md & SHUTDOWN) != 0;
             if ((deadline = System.currentTimeMillis() + keepAlive) == 0L)
                 deadline = 1L;               // avoid zero
             WorkQueue[] qs = queues;         // check for racing submission
-            int n = (qs == null || ctl != c) ? 0 : qs.length;
+            int n = (qs == null) ? 0 : qs.length;
             for (int i = 0; i < n; i += 2) {
-                WorkQueue q; ForkJoinTask<?>[] a; int cap;
-                if ((q = qs[i]) != null && (a = q.array) != null &&
-                    (cap = a.length) > 0 && a[(cap - 1) & q.base] != null) {
-                    if (ctl == c && compareAndSetCtl(c, prevCtl))
-                        w.phase = phase;    // self-signal
+                WorkQueue q; ForkJoinTask<?>[] a; int cap, b;
+                if (ctl != c) {              // already signalled
+                    checkTermination = false;
+                    break;
+                }
+                else if ((q = qs[i]) != null &&
+                         (a = q.array) != null && (cap = a.length) > 0 &&
+                         ((b = q.base) != q.top || a[(cap - 1) & b] != null ||
+                          q.source != 0)) {
+                    if (compareAndSetCtl(c, prevCtl))
+                        w.phase = phase;     // self-signal
+                    checkTermination = false;
                     break;
                 }
             }
+            if (checkTermination && tryTerminate(false, false))
+                return -1;                   // trigger quiescent termination
         }
+
         for (;;) {                           // await activation or termination
-            if ((md = mode) < 0)
-                return -1;
-            else if (w.phase >= 0) {
+            if (w.phase >= 0) {
                 LockSupport.setCurrentBlocker(null);
                 return 0;
             }
-            else if ((int)(ctl >> RC_SHIFT) > ac)
-                Thread.onSpinWait();         // signal in progress
-            else if ((md & SHUTDOWN) != 0 && deadline != 0L &&
-                     tryTerminate(false, false))
-                return -1;                   // trigger quiescent termination
-            else {
+            else if (mode < 0)
+                return -1;
+            else if (deadline != 0L &&
+                     deadline - System.currentTimeMillis() <= TIMEOUT_SLOP &&
+                     compareAndSetCtl(c, ((UC_MASK & (c - TC_UNIT)) |
+                                          (w.stackPred & SP_MASK)))) {
+                w.phase = QUIET;
+                return -1;                   // drop on timeout
+            }
+            else if (!Thread.interrupted() && (int)(ctl >> RC_SHIFT) <= ac) {
                 if (deadline != 0L)
                     LockSupport.parkUntil(deadline);
                 else
                     LockSupport.park();
-                if ((int)(ctl >> RC_SHIFT) <= ac &&
-                    !Thread.interrupted() && deadline != 0L &&
-                    deadline - System.currentTimeMillis() <= TIMEOUT_SLOP &&
-                    compareAndSetCtl(c, ((UC_MASK & (c - TC_UNIT)) |
-                                         (w.stackPred & SP_MASK)))) {
-                    w.phase = QUIET;
-                    return -1;               // drop on timeout
-                }
             }
         }
     }
@@ -1664,18 +1688,21 @@ public class ForkJoinPool extends AbstractExecutorService {
      */
     final boolean canStop() {
         outer: for (long oldSum = 0L;;) { // repeat until stable
-            int md; WorkQueue q;
+            int md;
             WorkQueue[] qs = queues;
             long c = ctl, checkSum = c;
             if (((md = mode) & STOP) != 0 || qs == null)
                 return true;
             if ((md & SMASK) + (int)(c >> RC_SHIFT) > 0)
                 break;
-            for (int i = 1, s; i < qs.length; i += 2) { // scan submitters
+            for (int i = 1; i < qs.length; i += 2) { // scan submitters
+                WorkQueue q; ForkJoinTask<?>[] a; int s, cap;
                 long u = ((long)i) << 32;
-                if ((q = qs[i]) == null)
+                if ((q = qs[i]) == null || (a = q.array) == null ||
+                    (cap = a.length) <= 0)
                     checkSum += u;
-                else if (q.source == 0 && (s = q.top) == q.base)
+                else if ((s = q.top) == q.base && a[(cap - 1) & s] == null &&
+                         q.source == 0)
                     checkSum += u + s;
                 else
                     break outer;
@@ -1763,10 +1790,10 @@ public class ForkJoinPool extends AbstractExecutorService {
             outer: for (;;) {
                 if ((s = task.status) < 0)
                     break;
-                else if (mode < 0)
-                    ForkJoinTask.cancelIgnoringExceptions(task);
                 else if (!scan && c == (c = ctl)) {
-                    if ((s = tryCompensate(c)) >= 0)
+                    if (mode < 0)
+                        ForkJoinTask.cancelIgnoringExceptions(task);
+                    else if ((s = tryCompensate(c)) >= 0)
                         break;                    // block
                 }
                 else {                            // scan for subtasks
@@ -1838,8 +1865,6 @@ public class ForkJoinPool extends AbstractExecutorService {
                     break;
                 else if (!scan && c == (c = ctl))
                     break;
-                else if (mode < 0)
-                    ForkJoinTask.cancelIgnoringExceptions(task);
                 else {                            // scan for subtasks
                     scan = false;
                     WorkQueue[] qs = queues;

@@ -318,7 +318,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
                     interrupted = true;
                 }
                 else if (pool != null && pool.isStopping())
-                    casStatus(s, s | (DONE | ABNORMAL)); // help cancel
+                    cancelIgnoringExceptions(this);
                 else if (deadline != 0L &&
                          (nanos = deadline - System.nanoTime()) <= 0L)
                     break;               // timeout
@@ -1437,7 +1437,8 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             Thread.interrupted();
             runner = Thread.currentThread();
             try {
-                result = callable.call();
+                if (!isDone()) // recheck
+                    result = callable.call();
                 return true;
             } catch (RuntimeException rex) {
                 throw rex;
