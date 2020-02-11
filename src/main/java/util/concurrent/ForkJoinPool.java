@@ -819,7 +819,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     static final int SHUTDOWN     = 1 << 24;
     static final int TERMINATED   = 1 << 25;
     static final int STOP         = 1 << 31;       // must be negative
-    static final int ADJUST       = 1 << 16;       // tryCompensate return
+    static final int UNCOMPENSATE = 1 << 16;       // tryCompensate return
 
     /**
      * Initial capacity of work-stealing queue array.  Must be a power
@@ -1002,18 +1002,28 @@ public class ForkJoinPool extends AbstractExecutorService {
         /**
          * Pops the given task for owner only if it is at the current top.
          */
-        final boolean tryUnpush(ForkJoinTask<?> task, boolean owned) {
+        final boolean tryUnpush(ForkJoinTask<?> task) {
+            int s = top, cap, k; ForkJoinTask<?>[] a;
+            if ((a = array) != null && (cap = a.length) > 0 && base != s-- &&
+                casSlotToNull(a, (cap - 1) & s, task)) {
+                top = s;
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Locking version of tryUnpush.
+         */
+        final boolean externalTryUnpush(ForkJoinTask<?> task) {
             boolean taken = false;
             int s = top, cap, k; ForkJoinTask<?>[] a;
             if ((a = array) != null && (cap = a.length) > 0 &&
-                a[k = (cap - 1) & (s - 1)] == task) {
-                if (owned || tryLock()) {
-                    if ((owned || (top == s && array == a)) &&
-                        (taken = casSlotToNull(a, k, task)))
-                        top = s - 1;
-                    if (!owned)
-                        source = 0; // release lock
-                }
+                a[k = (cap - 1) & (s - 1)] == task && tryLock()) {
+                if (top == s && array == a &&
+                    (taken = casSlotToNull(a, k, task)))
+                    top = s - 1;
+                source = 0; // release lock
             }
             return taken;
         }
@@ -1209,7 +1219,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
 
         /**
-         * Returns true if owned and not known to be blocked.
+         * Returns true if owned by a worker thread and not known to be blocked.
          */
         final boolean isApparentlyUnblocked() {
             Thread wt; Thread.State s;
@@ -1612,6 +1622,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             c = ((prevCtl - RC_UNIT) & UC_MASK) | (phase & SP_MASK);
         } while (prevCtl != (prevCtl = compareAndExchangeCtl(prevCtl, c)));
 
+        Thread.interrupted();                // clear status
         LockSupport.setCurrentBlocker(this); // prepare to block (exit also OK)
         long deadline = 0L;                  // nonzero if possibly quiescent
         int ac = (int)(c >> RC_SHIFT), md;
@@ -1643,27 +1654,29 @@ public class ForkJoinPool extends AbstractExecutorService {
                 return -1;                   // trigger quiescent termination
         }
 
-        for (;;) {                           // await activation or termination
-            if (w.phase >= 0) {
-                LockSupport.setCurrentBlocker(null);
-                return 0;
-            }
+        for (boolean alt = false;;) {        // await activation or termination
+            if (w.phase >= 0)
+                break;
             else if (mode < 0)
                 return -1;
-            else if (deadline != 0L &&
-                     deadline - System.currentTimeMillis() <= TIMEOUT_SLOP &&
-                     compareAndSetCtl(c, ((UC_MASK & (c - TC_UNIT)) |
-                                          (w.stackPred & SP_MASK)))) {
-                w.phase = QUIET;
-                return -1;                   // drop on timeout
+            else if ((int)(ctl >> RC_SHIFT) > ac)
+                Thread.onSpinWait();         // signal in progess
+            else if (!(alt = !alt)) {        // check between park calls
+                if (!Thread.interrupted() && deadline != 0L &&
+                    deadline - System.currentTimeMillis() <= TIMEOUT_SLOP &&
+                    compareAndSetCtl(c, ((UC_MASK & (c - TC_UNIT)) |
+                                         (w.stackPred & SP_MASK)))) {
+                    w.phase = QUIET;
+                    return -1;               // drop on timeout
+                }
             }
-            else if (!Thread.interrupted() && (int)(ctl >> RC_SHIFT) <= ac) {
-                if (deadline != 0L)
-                    LockSupport.parkUntil(deadline);
-                else
-                    LockSupport.park();
-            }
+            else if (deadline != 0L)
+                LockSupport.parkUntil(deadline);
+            else
+                LockSupport.park();
         }
+        LockSupport.setCurrentBlocker(null);
+        return 0;
     }
 
     // Utilities used by ForkJoinTask
@@ -1688,24 +1701,20 @@ public class ForkJoinPool extends AbstractExecutorService {
      */
     final boolean canStop() {
         outer: for (long oldSum = 0L;;) { // repeat until stable
-            int md;
-            WorkQueue[] qs = queues;
-            long c = ctl, checkSum = c;
-            if (((md = mode) & STOP) != 0 || qs == null)
+            int md; WorkQueue[] qs;  long c;
+            if ((qs = queues) == null || ((md = mode) & STOP) != 0)
                 return true;
-            if ((md & SMASK) + (int)(c >> RC_SHIFT) > 0)
+            if ((md & SMASK) + (int)((c = ctl) >> RC_SHIFT) > 0)
                 break;
+            long checkSum = c;
             for (int i = 1; i < qs.length; i += 2) { // scan submitters
-                WorkQueue q; ForkJoinTask<?>[] a; int s, cap;
-                long u = ((long)i) << 32;
-                if ((q = qs[i]) == null || (a = q.array) == null ||
-                    (cap = a.length) <= 0)
-                    checkSum += u;
-                else if ((s = q.top) == q.base && a[(cap - 1) & s] == null &&
-                         q.source == 0)
-                    checkSum += u + s;
-                else
+                WorkQueue q; ForkJoinTask<?>[] a; int s = 0, cap;
+                if ((q = qs[i]) != null && (a = q.array) != null &&
+                    (cap = a.length) > 0 &&
+                    ((s = q.top) != q.base || a[(cap - 1) & s] != null ||
+                     q.source != 0))
                     break outer;
+                checkSum += (((long)i) << 32) ^ s;
             }
             if (oldSum == (oldSum = checkSum) && queues == qs)
                 return true;
@@ -1722,7 +1731,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * unblocked.
      *
      * @param c incoming ctl value
-     * @return ADJUST: block then adjust, 0: block without adjust, -1 : retry
+     * @return UNCOMPENSATE: block then adjust, 0: block, -1 : retry
      */
     private int tryCompensate(long c) {
         Predicate<? super ForkJoinPool> sat;
@@ -1742,19 +1751,20 @@ public class ForkJoinPool extends AbstractExecutorService {
                     if (compareAndSetCtl(c, nc)) {
                         v.phase = sp;
                         LockSupport.unpark(vt);
-                        return ADJUST;
+                        return UNCOMPENSATE;
                     }
                 }
                 return -1;                        // retry
             }
             else if (active > minActive) {        // reduce parallelism
                 long nc = ((RC_MASK & (c - RC_UNIT)) | (~RC_MASK & c));
-                return compareAndSetCtl(c, nc) ? ADJUST : -1;
+                return compareAndSetCtl(c, nc) ? UNCOMPENSATE : -1;
             }
         }
         if (total < maxTotal) {                   // expand pool
             long nc = ((c + TC_UNIT) & TC_MASK) | (c & ~TC_MASK);
-            return !compareAndSetCtl(c, nc) ? -1 : !createWorker() ? 0 : ADJUST;
+            return (!compareAndSetCtl(c, nc) ? -1 :
+                    !createWorker() ? 0 : UNCOMPENSATE);
         }
         else if (!compareAndSetCtl(c, c))         // validate
             return -1;
@@ -1779,7 +1789,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      *
      * @param task the task
      * @param w caller's WorkQueue
-     * @return task status on exit, or ADJUST for compensated blocking
+     * @return task status on exit, or UNCOMPENSATE for compensated blocking
      */
     final int helpJoin(ForkJoinTask<?> task, WorkQueue w) {
         int s = 0;
