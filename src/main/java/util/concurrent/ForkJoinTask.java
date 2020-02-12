@@ -1079,11 +1079,11 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      */
     public boolean tryUnfork() {
         Thread t; ForkJoinPool.WorkQueue q;
-        return (((t = Thread.currentThread()) instanceof ForkJoinWorkerThread) ?
-                (q = ((ForkJoinWorkerThread)t).workQueue) != null &&
-                q.tryUnpush(this) :
-                (q = ForkJoinPool.commonQueue()) != null &&
-                q.externalTryUnpush(this));
+        return ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread)
+            ? (q = ((ForkJoinWorkerThread)t).workQueue) != null
+               && q.tryUnpush(this)
+            : (q = ForkJoinPool.commonQueue()) != null
+               && q.externalTryUnpush(this);
     }
 
     /**
