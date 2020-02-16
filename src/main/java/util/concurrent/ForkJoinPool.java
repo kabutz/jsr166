@@ -1690,13 +1690,6 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     /**
-     * Returns true if terminated or terminating
-     */
-    final boolean isStopping() {
-        return mode < 0;
-    }
-
-    /**
      * Returns true if can start terminating if enabled, or already terminated
      */
     final boolean canStop() {
@@ -3210,13 +3203,13 @@ public class ForkJoinPool extends AbstractExecutorService {
             if (q < 0)
                 throw new InterruptedException();
         }
-        else if (!(terminated = isTerminated()) &&
+        else if (!(terminated = tryTerminate(false, false)) &&
                  (lock = registrationLock) != null) {
             lock.lock();
             try {
                 if ((cond = termination) == null)
                     termination = cond = lock.newCondition();
-                while (!(terminated = isTerminated()) && nanos > 0L)
+                while (!(terminated = ((mode & TERMINATED) != 0)) && nanos > 0L)
                     nanos = cond.awaitNanos(nanos);
             } finally {
                 lock.unlock();
