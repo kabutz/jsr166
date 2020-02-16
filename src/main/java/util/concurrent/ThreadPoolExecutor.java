@@ -192,13 +192,18 @@ import java.util.concurrent.locks.ReentrantLock;
  * simple feedback control mechanism that will slow down the rate that
  * new tasks are submitted.
  *
- * <li>In {@link ThreadPoolExecutor.DiscardPolicy}, a task that
- * cannot be executed is simply dropped.
+ * <li>In {@link ThreadPoolExecutor.DiscardPolicy}, a task that cannot
+ * be executed is simply dropped. This policy is designed only for
+ * those rare cases in which task completion is never relied upon.
  *
  * <li>In {@link ThreadPoolExecutor.DiscardOldestPolicy}, if the
  * executor is not shut down, the task at the head of the work queue
  * is dropped, and then execution is retried (which can fail again,
- * causing this to be repeated.)
+ * causing this to be repeated.) This policy is rarely acceptable.  In
+ * nearly all cases, you should also cancel the task to cause an
+ * exception in any component waiting for its completion, and/or log
+ * the failure, as illustrated in {@link
+ * ThreadPoolExecutor.DiscardOldestPolicy} documentation.
  *
  * </ol>
  *
@@ -2052,7 +2057,18 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     /**
      * A handler for rejected tasks that discards the oldest unhandled
      * request and then retries {@code execute}, unless the executor
-     * is shut down, in which case the task is discarded.
+     * is shut down, in which case the task is discarded. This policy is
+     * rarely useful in cases where other threads may be waiting for
+     * tasks to terminate, or failures must be recorded. Instead consider
+     * using a handler of the form:
+     * <pre> {@code
+     * new RejectedExecutionHandler() {
+     *   public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
+     *     Future<?> dropped = e.getQueue().poll();
+     *     if (dropped != null)
+     *        dropped.cancel(false); // also consider logging the failure
+     *     e.execute(r);             // retry
+     * }}}</pre>
      */
     public static class DiscardOldestPolicy implements RejectedExecutionHandler {
         /**
