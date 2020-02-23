@@ -1793,14 +1793,13 @@ public class ForkJoinPool extends AbstractExecutorService {
             outer: for (;;) {
                 if ((s = task.status) < 0)
                     break;
-                else if (!scan && c == (c = ctl)) {
+                else if (scan = !scan) {          // previous scan was empty
                     if (mode < 0)
                         ForkJoinTask.cancelIgnoringExceptions(task);
-                    else if ((s = tryCompensate(c)) >= 0)
+                    else if (c == (c = ctl) && (s = tryCompensate(c)) >= 0)
                         break;                    // block
                 }
                 else {                            // scan for subtasks
-                    scan = false;
                     WorkQueue[] qs = queues;
                     int n = (qs == null) ? 0 : qs.length, m = n - 1;
                     for (int i = n; i > 0; i -= 2, r += 2) {
@@ -1866,10 +1865,11 @@ public class ForkJoinPool extends AbstractExecutorService {
                 }
                 else if ((s = task.status) < 0)
                     break;
-                else if (!scan && c == (c = ctl))
-                    break;
+                else if (scan = !scan) {
+                    if (c == (c = ctl))
+                        break;
+                }
                 else {                            // scan for subtasks
-                    scan = false;
                     WorkQueue[] qs = queues;
                     int n = (qs == null) ? 0 : qs.length;
                     for (int i = n; i > 0; --i, ++r) {
@@ -3203,7 +3203,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             if (q < 0)
                 throw new InterruptedException();
         }
-        else if (!(terminated = tryTerminate(false, false)) &&
+        else if (!(terminated = ((mode & TERMINATED) != 0)) &&
                  (lock = registrationLock) != null) {
             lock.lock();
             try {
