@@ -507,8 +507,8 @@
           description="Runs tck and jtreg tests for src/main"/>
 
   <target name="test-version-permutations"
-          depends="test11, test12, test13, test14, test15, test11-12, test11-13, test11-14, test11-15, clean, test, docs">
-  </target>
+          depends="test11, test12, test13, test14, test15, test11-12, test11-13, test11-14, test11-15, clean, test, docs"
+          description="Runs tck and jtreg tests for various build-time and runtime java versions"/>
 
   <target name="test11">
     <antcall>
