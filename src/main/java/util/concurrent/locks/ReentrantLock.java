@@ -55,7 +55,7 @@ import jdk.internal.vm.annotation.ReservedStackAccess;
  *     try {
  *       // ... method body
  *     } finally {
- *       lock.unlock()
+ *       lock.unlock();
  *     }
  *   }
  * }}</pre>
