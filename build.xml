@@ -352,8 +352,11 @@
 <!--   Xlint:-removal for jdk12 Unsafe Object -> Reference renaming -->
       <compilerarg value="-Xlint:all,-removal"/>
       <compilerarg line="--doclint-format html5"/>
-<!--  Temporarily disable doclint, due to https://bugs.openjdk.java.net/browse/JDK-8214571 -->
+<!--  Temporarily disable doclint for private elements, due to -->
+<!--  https://bugs.openjdk.java.net/browse/JDK-8214571 -->
+<!--  which is expected to be fixed in openjdk 11.0.8 -->
 <!--  <compilerarg value="-Xdoclint:all/protected,reference/private"/> -->
+      <compilerarg value="-Xdoclint:all/protected"/>
       <compilerarg value="-Xdoclint/package:java.util.*"/>
       <compilerarg value="-Werror"/>
       <compilerarg line="-Xmaxerrs 1000 -Xmaxwarns 1000"/>
