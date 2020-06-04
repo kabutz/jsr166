@@ -1474,13 +1474,12 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     }
 
     /**
-     * Returns a new {@code ForkJoinTask} that performs the {@code
-     * call} method of the given {@code Callable} as its action, and
-     * returns its result upon {@link #join}, translating any checked
-     * exceptions encountered into {@code
-     * RuntimeException}. Additionally, invocations of {@code cancel}
-     * with {@code mayInterruptIfRunning true} will attempt to
-     * interrupt the thread performing the task.
+     * Returns a new {@code ForkJoinTask} that performs the {@code call}
+     * method of the given {@code Callable} as its action, and returns
+     * its result upon {@link #join}, translating any checked exceptions
+     * encountered into {@code RuntimeException}.  Additionally,
+     * invocations of {@code cancel} with {@code mayInterruptIfRunning
+     * true} will attempt to interrupt the thread performing the task.
      *
      * @param callable the callable action
      * @param <T> the type of the callable's result
