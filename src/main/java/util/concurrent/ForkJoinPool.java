@@ -1660,7 +1660,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             else if (mode < 0)
                 return -1;
             else if ((int)(ctl >> RC_SHIFT) > ac)
-                Thread.onSpinWait();         // signal in progess
+                Thread.onSpinWait();         // signal in progress
             else if (!(alt = !alt)) {        // check between park calls
                 if (!Thread.interrupted() && deadline != 0L &&
                     deadline - System.currentTimeMillis() <= TIMEOUT_SLOP &&
