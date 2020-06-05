@@ -413,7 +413,7 @@
              executable="${build.main.javadoc}">
 <!-- TODO: JDK-8214571 failonerror = "true" -->
       <fileset dir="${src.dir}" defaultexcludes="yes">
-        <include name="**/*.java"/>
+        <include name="java/**/*.java"/>
       </fileset>
       <arg line="-Xdocrootparent ${java.docroot.url}"/>
       <arg line="-Xmaxerrs 1000 -Xmaxwarns 1000"/>
