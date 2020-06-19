@@ -24,17 +24,19 @@
   $HOME/jdk/jdk13
   $HOME/jdk/jdk14
   $HOME/jdk/jdk15
+  $HOME/jdk/jdk16
   where each of the above is a JDK or a symlink to same, and
   $HOME/jdk/src/jdk11
   $HOME/jdk/src/jdk12
   $HOME/jdk/src/jdk13
   $HOME/jdk/src/jdk14
   $HOME/jdk/src/jdk15
+  $HOME/jdk/src/jdk16
   where each of the above is a JDK source tree or a symlink to same.
 
   Alternatively, define ant variables thus:
   ant -Djdk$N.home=... -Djdk$N.src.home=...
-  for $N in 11 .. 15 ...
+  for $N in 11 .. 16 ...
 
   As of 2016-03, the sources in src/main are for jdk9+ only.
   As of 2019-08, the sources in src/main are for jdk11+ only.
@@ -99,6 +101,7 @@
   <defjdklocations v="13"/>
   <defjdklocations v="14"/>
   <defjdklocations v="15"/>
+  <defjdklocations v="16"/>
 
   <!-- Source locations -->
   <property name="src.dir"              location="${basedir}/src/main"/>
@@ -110,6 +113,7 @@
   <property name="jtreg13.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg14.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg15.src.dir"      location="${test.src.dir}/jtreg"/>
+  <property name="jtreg16.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg.src.dir"        location="${jtreg11.src.dir}"/>
   <property name="lib.dir"              location="${basedir}/lib"/>
   <property name="dist.dir"             location="${basedir}/dist"/>
@@ -138,6 +142,7 @@
   <property name="java13.docroot.url" value="https://docs.oracle.com/en/java/javase/13/docs"/>
   <property name="java14.docroot.url" value="https://docs.oracle.com/en/java/javase/14/docs"/>
   <property name="java15.docroot.url" value="https://download.java.net/java/early_access/jdk15/docs"/>
+  <property name="java16.docroot.url" value="https://download.java.net/java/early_access/jdk16/docs"/>
   <!-- Default jdk doc location (latest stable LTS release seems best) -->
   <property name="java.docroot.url"   value="${java11.docroot.url}"/>
 
@@ -147,6 +152,7 @@
   <property name="java13.api.url"     value="${java13.docroot.url}/api/"/>
   <property name="java14.api.url"     value="${java14.docroot.url}/api/"/>
   <property name="java15.api.url"     value="${java15.docroot.url}/api/"/>
+  <property name="java16.api.url"     value="${java15.docroot.url}/api/"/>
   <property name="java.api.url"       value="${java.docroot.url}/api/"/>
 
   <!-- Define the "jtreg" task -->
@@ -248,6 +254,7 @@
     </sequential>
   </macrodef>
 
+  <defjtregtests v="16"/>
   <defjtregtests v="15"/>
   <defjtregtests v="14"/>
   <defjtregtests v="13"/>
@@ -511,7 +518,9 @@
           description="Runs tck and jtreg tests for src/main"/>
 
   <target name="test-version-permutations"
-          depends="test11, test12, test13, test14, test15, test11-12, test11-13, test11-14, test11-15, clean, test, docs"
+          depends="test11, test12, test13, test14, test15, test16,
+          test11-12, test11-13, test11-14, test11-15, test11-16,
+          clean, test, docs"
           description="Runs tck and jtreg tests for various build-time and runtime java versions"/>
 
   <target name="test11">
@@ -574,6 +583,18 @@
     </antcall>
   </target>
 
+  <target name="test16">
+    <antcall>
+      <param name="java.runtime.target" value="16"/>
+      <param name="build.main.javac" value="${javac16}"/>
+      <param name="build.main.javadoc" value="${javadoc16}"/>
+      <param name="build.main.javadoc.source" value="16"/>
+      <target name="clean"/>
+      <target name="test"/>
+      <target name="docs"/>
+    </antcall>
+  </target>
+
   <target name="test11-12">
     <antcall>
       <param name="java.runtime.target" value="12"/>
@@ -615,6 +636,18 @@
       <param name="java.runtime.target" value="15"/>
       <param name="build.main.javac" value="${javac11}"/>
       <param name="build.main.javadoc" value="${javadoc15}"/>
+      <param name="build.main.javadoc.source" value="11"/>
+      <target name="clean"/>
+      <target name="test"/>
+      <target name="docs"/>
+    </antcall>
+  </target>
+
+  <target name="test11-16">
+    <antcall>
+      <param name="java.runtime.target" value="16"/>
+      <param name="build.main.javac" value="${javac11}"/>
+      <param name="build.main.javadoc" value="${javadoc16}"/>
       <param name="build.main.javadoc.source" value="11"/>
       <target name="clean"/>
       <target name="test"/>
