@@ -427,6 +427,7 @@
       <arg value="-quiet"/>
       <arg value="-XDignore.symbol.file=true"/>
       <arg value="-html5"/>
+      <arg value="-Xdoclint:all,-missing"/>
       <arg value="--patch-module=java.base=${src.dir}"/>
       <arg value="--frames" if:set="use-frames"/>
       <arg value="--override-methods=summary"/>
@@ -651,6 +652,17 @@
       <param name="build.main.javadoc.source" value="11"/>
       <target name="clean"/>
       <target name="test"/>
+      <target name="docs"/>
+    </antcall>
+  </target>
+
+  <target name="docs16">
+    <antcall>
+      <param name="java.runtime.target" value="16"/>
+      <param name="build.main.javac" value="${javac16}"/>
+      <param name="build.main.javadoc" value="${javadoc16}"/>
+      <param name="build.main.javadoc.source" value="16"/>
+      <target name="clean"/>
       <target name="docs"/>
     </antcall>
   </target>
