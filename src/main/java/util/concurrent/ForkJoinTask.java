@@ -418,6 +418,11 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         return trySetThrown(ex);
     }
 
+    /**
+     * Constructor for subclasses to call.
+     */
+    public ForkJoinTask() {}
+
     static boolean isExceptionalStatus(int s) {  // needed by subclasses
         return (s & THROWN) != 0;
     }
