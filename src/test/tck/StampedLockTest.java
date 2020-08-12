@@ -343,7 +343,7 @@ public class StampedLockTest extends JSR166TestCase {
      */
     public void testInterruptibleOperationsThrowInterruptedExceptionWriteLockedInterrupted() {
         final StampedLock lock = new StampedLock();
-        long s = lock.writeLock();
+        long stamp = lock.writeLock();
 
         Action[] interruptibleLockBlockingActions = {
             () -> lock.writeLockInterruptibly(),
@@ -358,6 +358,8 @@ public class StampedLockTest extends JSR166TestCase {
         shuffle(interruptibleLockBlockingActions);
 
         assertThrowInterruptedExceptionWhenInterrupted(interruptibleLockBlockingActions);
+
+        releaseWriteLock(lock, stamp);
     }
 
     /**
@@ -365,7 +367,7 @@ public class StampedLockTest extends JSR166TestCase {
      */
     public void testInterruptibleOperationsThrowInterruptedExceptionReadLockedInterrupted() {
         final StampedLock lock = new StampedLock();
-        long s = lock.readLock();
+        long stamp = lock.readLock();
 
         Action[] interruptibleLockBlockingActions = {
             () -> lock.writeLockInterruptibly(),
@@ -376,6 +378,8 @@ public class StampedLockTest extends JSR166TestCase {
         shuffle(interruptibleLockBlockingActions);
 
         assertThrowInterruptedExceptionWhenInterrupted(interruptibleLockBlockingActions);
+
+        releaseReadLock(lock, stamp);
     }
 
     /**
