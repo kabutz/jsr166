@@ -812,7 +812,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             }
         }
         if (ex != null) {
-            for (int i = 1, s; i <= last; ++i)
+            for (int i = 1; i <= last; ++i)
                 cancelIgnoringExceptions(ts.get(i));
             rethrow(ex);
         }
