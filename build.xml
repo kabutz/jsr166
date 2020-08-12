@@ -774,6 +774,7 @@
   <property name="errorprone.jsr166.test.flags"
             value="-Xep:StringSplitter:OFF
                    -Xep:BoxedPrimitiveConstructor:OFF
+                   -Xep:UnnecessaryParentheses:OFF
                    -Xep:ModifyingCollectionWithItself:OFF"/>
   <!-- ant -emacs errorprone |& grep -EA1 '(warning|error):|warnings' -->
   <target name="errorprone"
