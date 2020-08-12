@@ -8,7 +8,6 @@ package java.util.concurrent;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.security.ProtectionDomain;
 
 /**
  * A thread managed by a {@link ForkJoinPool}, which executes
