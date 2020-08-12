@@ -703,6 +703,7 @@ public class StampedLockTest extends JSR166TestCase {
         lock.unlockWrite(s);
         s = lock.readLock();
         assertTrue(lock.toString().contains("Read-locks"));
+        releaseReadLock(lock, s);
     }
 
     /**
