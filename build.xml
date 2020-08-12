@@ -754,6 +754,7 @@
   <property name="errorprone.jsr166.user.flags" value=""/>
   <property name="errorprone.jsr166.flags"
             value="-Xep:HashtableContains:OFF
+                   -Xep:PreferJavaTimeOverload:OFF
                    -Xep:JdkObsolete:OFF
                    -Xep:MissingOverride:OFF
                    -Xep:MissingFail:OFF
