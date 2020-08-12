@@ -724,13 +724,14 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     public static void invokeAll(ForkJoinTask<?>... tasks) {
         Throwable ex = null;
         int last = tasks.length - 1;
-        for (int i = last, s; i >= 0; --i) {
+        for (int i = last; i >= 0; --i) {
             ForkJoinTask<?> t;
             if ((t = tasks[i]) == null) {
                 ex = new NullPointerException();
                 break;
             }
             if (i == 0) {
+                int s;
                 if ((s = t.doExec()) >= 0)
                     s = t.awaitJoin(true, false, false, 0L);
                 if ((s & ABNORMAL) != 0)
@@ -740,9 +741,10 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             t.fork();
         }
         if (ex == null) {
-            for (int i = 1, s; i <= last; ++i) {
+            for (int i = 1; i <= last; ++i) {
                 ForkJoinTask<?> t;
                 if ((t = tasks[i]) != null) {
+                    int s;
                     if ((s = t.status) >= 0)
                         s = t.awaitJoin(false, false, false, 0L);
                     if ((s & ABNORMAL) != 0 && (ex = t.getException(s)) != null)
@@ -785,13 +787,14 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             (List<? extends ForkJoinTask<?>>) tasks;
         Throwable ex = null;
         int last = ts.size() - 1;  // nearly same as array version
-        for (int i = last, s; i >= 0; --i) {
+        for (int i = last; i >= 0; --i) {
             ForkJoinTask<?> t;
             if ((t = ts.get(i)) == null) {
                 ex = new NullPointerException();
                 break;
             }
             if (i == 0) {
+                int s;
                 if ((s = t.doExec()) >= 0)
                     s = t.awaitJoin(true, false, false, 0L);
                 if ((s & ABNORMAL) != 0)
@@ -801,9 +804,10 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             t.fork();
         }
         if (ex == null) {
-            for (int i = 1, s; i <= last; ++i) {
+            for (int i = 1; i <= last; ++i) {
                 ForkJoinTask<?> t;
                 if ((t = ts.get(i)) != null) {
+                    int s;
                     if ((s = t.status) >= 0)
                         s = t.awaitJoin(false, false, false, 0L);
                     if ((s & ABNORMAL) != 0 && (ex = t.getException(s)) != null)
