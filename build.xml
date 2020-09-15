@@ -141,7 +141,7 @@
   <property name="java12.docroot.url" value="https://docs.oracle.com/en/java/javase/12/docs"/>
   <property name="java13.docroot.url" value="https://docs.oracle.com/en/java/javase/13/docs"/>
   <property name="java14.docroot.url" value="https://docs.oracle.com/en/java/javase/14/docs"/>
-  <property name="java15.docroot.url" value="https://download.java.net/java/early_access/jdk15/docs"/>
+  <property name="java15.docroot.url" value="https://docs.oracle.com/en/java/javase/15/docs"/>
   <property name="java16.docroot.url" value="https://download.java.net/java/early_access/jdk16/docs"/>
   <!-- Default jdk doc location (latest stable LTS release seems best) -->
   <property name="java.docroot.url"   value="${java11.docroot.url}"/>
