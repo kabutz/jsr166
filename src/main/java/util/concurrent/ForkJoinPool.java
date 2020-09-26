@@ -16,6 +16,8 @@ import java.security.Permissions;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -767,7 +769,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             return AccessController.doPrivileged(
                 new PrivilegedAction<>() {
                     public ForkJoinWorkerThread run() {
-                        return new ForkJoinWorkerThread(null, pool, true, false);
+                        return new ForkJoinWorkerThread(null, pool, true, true);
                     }},
                 ACC);
         }
@@ -1001,7 +1003,7 @@ public class ForkJoinPool extends AbstractExecutorService {
          * Pops the given task for owner only if it is at the current top.
          */
         final boolean tryUnpush(ForkJoinTask<?> task) {
-            int s = top, cap; ForkJoinTask<?>[] a;
+            int s = top, cap, k; ForkJoinTask<?>[] a;
             if ((a = array) != null && (cap = a.length) > 0 && base != s-- &&
                 casSlotToNull(a, (cap - 1) & s, task)) {
                 top = s;
