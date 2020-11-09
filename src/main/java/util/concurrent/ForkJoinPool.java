@@ -1757,7 +1757,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 }
                 return -1;                        // retry
             }
-            else if (active - minActive > 1) {    // reduce parallelism
+            else if (active > minActive) {        // reduce parallelism
                 long nc = ((RC_MASK & (c - RC_UNIT)) | (~RC_MASK & c));
                 return compareAndSetCtl(c, nc) ? UNCOMPENSATE : -1;
             }
