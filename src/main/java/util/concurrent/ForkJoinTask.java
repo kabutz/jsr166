@@ -1349,13 +1349,13 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         int trySetException(Throwable ex) { // if a handler, invoke it
             int s; Thread t; java.lang.Thread.UncaughtExceptionHandler h;
             if (isExceptionalStatus(s = trySetThrown(ex)) &&
-		(h = ((t = Thread.currentThread()).
-		      getUncaughtExceptionHandler())) != null) {
-		try {
-		    h.uncaughtException(t, ex);
-		} catch (Throwable ignore) {
-		}
-	    }
+                (h = ((t = Thread.currentThread()).
+                      getUncaughtExceptionHandler())) != null) {
+                try {
+                    h.uncaughtException(t, ex);
+                } catch (Throwable ignore) {
+                }
+            }
             return s;
         }
         private static final long serialVersionUID = 5232453952276885070L;
