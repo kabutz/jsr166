@@ -1661,18 +1661,21 @@ public class ForkJoinPool extends AbstractExecutorService {
                 return -1;
             else if ((int)(ctl >> RC_SHIFT) > ac)
                 Thread.onSpinWait();         // signal in progress
-            else if (!(alt = !alt)) {        // check between park calls
-                if (!Thread.interrupted() && deadline != 0L &&
-                    deadline - System.currentTimeMillis() <= TIMEOUT_SLOP &&
-                    compareAndSetCtl(c, ((UC_MASK & (c - TC_UNIT)) |
-                                         (w.stackPred & SP_MASK)))) {
-                    w.phase = QUIET;
-                    return -1;               // drop on timeout
-                }
-            }
+	    else if (deadline != 0L &&
+		     deadline - System.currentTimeMillis() <= TIMEOUT_SLOP) {
+                if (c != (c = ctl))          // ensure consistent
+                    ac = (int)(c >> RC_SHIFT);
+                else if (compareAndSetCtl(c, ((UC_MASK & (c - TC_UNIT)) |
+                                              (w.stackPred & SP_MASK)))) {
+		    w.phase = QUIET;
+		    return -1;               // drop on timeout
+		}
+	    }
+            else if (!(alt = !alt))          // check between park calls
+                Thread.interrupted();
             else if (deadline != 0L)
                 LockSupport.parkUntil(deadline);
-            else
+	    else
                 LockSupport.park();
         }
         LockSupport.setCurrentBlocker(null);
