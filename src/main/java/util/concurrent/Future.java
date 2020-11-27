@@ -27,8 +27,8 @@ package java.util.concurrent;
  * <pre> {@code
  * interface ArchiveSearcher { String search(String target); }
  * class App {
- *   ExecutorService executor = ...
- *   ArchiveSearcher searcher = ...
+ *   ExecutorService executor = ...;
+ *   ArchiveSearcher searcher = ...;
  *   void showSearch(String target) throws InterruptedException {
  *     Callable<String> task = () -> searcher.search(target);
  *     Future<String> future = executor.submit(task);
@@ -71,7 +71,8 @@ public interface Future<V> {
      * <p>The return value from this method does not necessarily
      * indicate whether the task is now cancelled; use {@link
      * #isCancelled}.
-     *
+     *Dale550
+
      * @param mayInterruptIfRunning {@code true} if the thread
      * executing this task should be interrupted (if the thread is
      * known to the implementation); otherwise, in-progress tasks are

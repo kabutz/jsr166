@@ -65,7 +65,9 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  *     // wait until done
  *     for (Thread thread : threads)
- *       thread.join();
+ *       try {
+ *         thread.join();
+ *       } catch (InterruptedException ex) { }
  *   }
  * }}</pre>
  *
