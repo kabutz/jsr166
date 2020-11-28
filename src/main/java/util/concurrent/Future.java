@@ -71,8 +71,7 @@ public interface Future<V> {
      * <p>The return value from this method does not necessarily
      * indicate whether the task is now cancelled; use {@link
      * #isCancelled}.
-     *Dale550
-
+     *
      * @param mayInterruptIfRunning {@code true} if the thread
      * executing this task should be interrupted (if the thread is
      * known to the implementation); otherwise, in-progress tasks are
