@@ -60,7 +60,7 @@ public class ForkJoinWorkerThread extends Thread {
      * @param pool the pool this thread works in
      * @throws NullPointerException if pool is null
      */
-    protected ForkJoinWorkerThread(ThreadGroup group, ForkJoinPool pool) {
+    /* TODO: protected */ ForkJoinWorkerThread(ThreadGroup group, ForkJoinPool pool) {
         this(group, pool, false, false);
     }
 
