@@ -1522,13 +1522,11 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             // As a heuristic, prestart enough new workers (up to new
             // core size) to handle the current number of tasks in
             // queue, but stop if queue becomes empty while doing so.
-            /*
             int k = Math.min(delta, workQueue.size());
             while (k-- > 0 && addWorker(null, true)) {
                 if (workQueue.isEmpty())
                     break;
             }
-            */
         }
     }
 
