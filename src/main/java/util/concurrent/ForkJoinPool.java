@@ -773,11 +773,11 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     /**
-     * Factory for CommonPool unless overridded by System
-     * property. Creates InnocuousForkJoinWorkerThreads if a security
-     * manager is present at time of invocation. Support requires that
-     * we break quite a lot of encapsulation (some via helper methods
-     * in ThreadLocalRandom) to access and set Thread fields.
+     * Factory for CommonPool unless overridden by System property.
+     * Creates InnocuousForkJoinWorkerThreads if a security manager is
+     * present at time of invocation.  Support requires that we break
+     * quite a lot of encapsulation (some via helper methods in
+     * ThreadLocalRandom) to access and set Thread fields.
      */
     static final class DefaultCommonPoolForkJoinWorkerThreadFactory
         implements ForkJoinWorkerThreadFactory {
