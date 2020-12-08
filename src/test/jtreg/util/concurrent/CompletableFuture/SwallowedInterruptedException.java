@@ -23,76 +23,68 @@
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
+/*
  * @test
  * @bug 8254350
  * @run main SwallowedInterruptedException
+ * @key randomness
  */
 
-// TODO: Rewrite for readability and test execution speed
-
 public class SwallowedInterruptedException {
-    static final int MAX_RUNS = 100; // 1000 more likely to repro
-    static final AtomicReference<Throwable> fail = new AtomicReference<>();
+    static final int ITERATIONS = 100;
 
     public static void main(String[] args) throws Throwable {
-        for (int i = 1; i <= MAX_RUNS; i++) {
-            long sleepMillis = ThreadLocalRandom.current().nextLong(10);
-            final String sleepString = sleepMillis == 0 ? "--------" : String.format("sleep(%d)", sleepMillis);
-            final String prefix = String.format("%4d/%d interrupt-%s-complete", i, MAX_RUNS, sleepString);
+        for (int i = 1; i <= ITERATIONS; i++) {
+            System.out.format("Iteration %d%n", i);
 
             CompletableFuture<Void> future = new CompletableFuture<>();
+            CountDownLatch running = new CountDownLatch(1);
+            AtomicReference<String> failed = new AtomicReference<>();
 
-            CountDownLatch waitingFutureLatch = new CountDownLatch(1);
+            Thread thread = new Thread(() -> {
+                // signal main thread that child is running
+                running.countDown();
 
-            Thread futureGetThread = new Thread(() -> {
+                // invoke Future.get, it complete with the interrupt status set or
+                // else throw InterruptedException with the interrupt status not set.
                 try {
-                    waitingFutureLatch.countDown();
                     future.get();
-                    // XXX: Test whether interrupt status was lost.
-                    if (Thread.currentThread().isInterrupted()) {
-                        System.out.format("%s: future.get completes, Thread.isInterrupted returns true\n", prefix);
-                    } else {
-                        String msg = String.format("%s: future.get completes, Thread.isInterrupted returns false\n", prefix);
-                        fail.set(new AssertionError(msg));
-                        return;
+
+                    // interrupt status should be set
+                    if (!Thread.currentThread().isInterrupted()) {
+                        failed.set("Future.get completed with interrupt status not set");
                     }
-                } catch (InterruptedException interrupted) {
-                    System.out.format("%s: future.get is interrupted.\n", prefix);
-                    try {
-                        future.get();
-                    } catch (Throwable ex) {
-                        fail.set(ex);
-                        return;
+                } catch (InterruptedException ex) {
+                    // interrupt status should be cleared
+                    if (Thread.currentThread().isInterrupted()) {
+                        failed.set("InterruptedException with interrupt status set");
                     }
                 } catch (Throwable ex) {
-                    fail.set(ex);
-                    return;
+                    failed.set("Unexpected exception " + ex);
                 }
-            }, String.format("future-get-thread-%d", i));
-            futureGetThread.setDaemon(true);
-            futureGetThread.start();
+            });
+            thread.setDaemon(true);
+            thread.start();
 
-            waitingFutureLatch.await();
-            Thread.sleep(1);
+            // wait for thread to run
+            running.await();
 
-            try {
-                futureGetThread.interrupt();
-                if (sleepMillis > 0) {
-                    Thread.sleep(sleepMillis);
-                }
-                future.complete(null);
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
+            // interrupt thread and set result after an optional (random) delay
+            thread.interrupt();
+            long sleepMillis = ThreadLocalRandom.current().nextLong(10);
+            if (sleepMillis > 0)
+                Thread.sleep(sleepMillis);
+            future.complete(null);
+
+            // wait for thread to terminate and check for failure
+            thread.join();
+            String failedReason = failed.get();
+            if (failedReason != null) {
+                throw new RuntimeException("Test failed: " + failedReason);
             }
-
-            futureGetThread.join();
-
-            if (fail.get() != null) throw fail.get();
         }
     }
 }
