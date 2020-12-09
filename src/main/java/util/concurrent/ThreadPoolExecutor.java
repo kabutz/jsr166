@@ -2068,8 +2068,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      *   public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
      *     Future<?> dropped = e.getQueue().poll();
      *     if (dropped != null)
-     *        dropped.cancel(false); // also consider logging the failure
-     *     e.execute(r);             // retry
+     *       dropped.cancel(false);  // also consider logging the failure
+     *     e.execute(r);  // retry
      * }}}</pre>
      */
     public static class DiscardOldestPolicy implements RejectedExecutionHandler {
