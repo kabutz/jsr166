@@ -2066,9 +2066,11 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * <pre> {@code
      * new RejectedExecutionHandler() {
      *   public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
-     *     Future<?> dropped = e.getQueue().poll();
-     *     if (dropped != null)
-     *       dropped.cancel(false);  // also consider logging the failure
+     *     Runnable dropped = e.getQueue().poll();
+     *     if (dropped instanceof Future<?>) {
+     *       ((Future<?>)dropped).cancel(false);
+     *       // also consider logging the failure
+     *     }
      *     e.execute(r);  // retry
      * }}}</pre>
      */
