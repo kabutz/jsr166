@@ -285,18 +285,26 @@
     <!-- ant -Djtreg.verbose=time,fail,error jtreg -->
     <property name="jtreg.verbose" value="nopass,fail,error"/>
 
-    <delete dir="@{workdir}/JTwork"   quiet="true"/>
+    <!-- concurrency > 1 mitigates slowness of some jtreg tests -->
+    <!-- BUT concurrency:auto starts "too many" VMs; just 1 free core each -->
+    <!-- In 2020 concurrency:3 seems like a sweet spot -->
+    <!-- Override using:  ant -Djtreg.concurrency="N" jtreg -->
+    <property name="jtreg.concurrency" value="3"/>
+
+    <delete dir="@{workdir}/JTwork" quiet="true"/>
     <jtreg dir="${jtreg@{target}.src.dir}"
            jdk="${jdk@{target}.home}"
            workDir="@{workdir}/JTwork">
       <patternset refid="jdk@{target}.jtreg.tests"/>
-      <arg value="-javacoptions:--patch-module=java.base=@{classes}"/>
-      <arg value="-vmoptions:--patch-module=java.base=@{classes}"/>
+      <arg value="-javacoption:--patch-module=java.base=@{classes}"/>
+      <arg value="-vmoption:--patch-module=java.base=@{classes}"/>
+      <arg value="-vmoption:-Xmx256m"/>
+      <arg value="-concurrency:${jtreg.concurrency}"/>
+      <arg value="-vmoptions:-esa -ea"/>
       <arg value="-vmoptions:${vmoptions}" if:set="vmoptions"/>
       <arg value="-agentvm"/>
       <arg value="-noreport"/>
       <arg value="-verbose:@{verbose}"/>
-      <arg value="-vmoptions:-esa -ea"/>
       <arg value="-automatic"/>
       <arg value="-k:!ignore"/>
       <arg line="@{jtregflags}"/>
