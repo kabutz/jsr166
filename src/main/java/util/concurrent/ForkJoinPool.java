@@ -1557,7 +1557,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * @param w caller's WorkQueue (may be null on failed initialization)
      */
     final void runWorker(WorkQueue w) {
-        if (w != null) {                        // skip on failed init
+        if (mode >= 0 && w != null) {           // skip on failed init
             w.config |= SRC;                    // mark as valid source
             int r = w.stackPred, src = 0;       // use seed from registerWorker
             do {
@@ -2263,10 +2263,9 @@ public class ForkJoinPool extends AbstractExecutorService {
                 return false;
             md = getAndBitwiseOrMode(STOP);
         }
-        if ((md & TERMINATED) == 0) {
+        for (int k = 0; k < 2; ++k) { // twice in case of lagging qs updates
             for (ForkJoinTask<?> t; (t = pollScan(false)) != null; )
-                ForkJoinTask.cancelIgnoringExceptions(t); // help cancel tasks
-
+                ForkJoinTask.cancelIgnoringExceptions(t); // help cancel
             WorkQueue[] qs; int n; WorkQueue q; Thread thread;
             if ((qs = queues) != null && (n = qs.length) > 0) {
                 for (int j = 1; j < n; j += 2) { // unblock other workers
@@ -2279,9 +2278,9 @@ public class ForkJoinPool extends AbstractExecutorService {
                     }
                 }
             }
-
             ReentrantLock lock; Condition cond; // signal when no workers
-            if ((md & SMASK) + (short)(ctl >>> TC_SHIFT) <= 0 &&
+            if (((md = mode) & TERMINATED) == 0 &&
+                (md & SMASK) + (short)(ctl >>> TC_SHIFT) <= 0 &&
                 (getAndBitwiseOrMode(TERMINATED) & TERMINATED) == 0 &&
                 (lock = registrationLock) != null) {
                 lock.lock();
