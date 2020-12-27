@@ -2653,12 +2653,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 ForkJoinTask<T> f =
                     new ForkJoinTask.AdaptedInterruptibleCallable<T>(t);
                 futures.add(f);
-                if (!isSaturated())
-                    externalSubmit(f);
-                else if ((mode & SHUTDOWN) == 0)
-                    f.doExec();
-                else
-                    throw new RejectedExecutionException();
+                externalSubmit(f);
             }
             for (int i = futures.size() - 1; i >= 0; --i)
                 ((ForkJoinTask<?>)futures.get(i)).quietlyJoin();
@@ -2681,12 +2676,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 ForkJoinTask<T> f =
                     new ForkJoinTask.AdaptedInterruptibleCallable<T>(t);
                 futures.add(f);
-                if (!isSaturated())
-                    externalSubmit(f);
-                else if ((mode & SHUTDOWN) == 0)
-                    f.doExec();
-                else
-                    throw new RejectedExecutionException();
+                externalSubmit(f);
             }
             long startTime = System.nanoTime(), ns = nanos;
             boolean timedOut = (ns < 0L);
@@ -2719,12 +2709,16 @@ public class ForkJoinPool extends AbstractExecutorService {
         private static final long serialVersionUID = 2838392045355241008L;
         @SuppressWarnings("serial") // Conditionally serializable
         volatile E result;
-        final AtomicInteger count;              // in case all throw
-        final ForkJoinPool pool;                // to check shutdown while collecting
-        InvokeAnyRoot(int n, ForkJoinPool p) { pool = p; count = new AtomicInteger(n); }
+        final AtomicInteger count;  // in case all throw
+        final ForkJoinPool pool;    // to check shutdown while collecting
+        InvokeAnyRoot(int n, ForkJoinPool p) {
+            pool = p;
+            count = new AtomicInteger(n);
+        }
         final void tryComplete(Callable<E> c) { // called by InvokeAnyTasks
             Throwable ex = null;
-            boolean failed = (c == null || isCancelled() || (pool != null && pool.mode < 0));
+            boolean failed = (c == null || isCancelled() ||
+                              (pool != null && pool.mode < 0));
             if (!failed && !isDone()) {
                 try {
                     complete(c.call());
@@ -2733,7 +2727,8 @@ public class ForkJoinPool extends AbstractExecutorService {
                     failed = true;
                 }
             }
-            if ((pool != null && pool.mode < 0) || (failed && count.getAndDecrement() <= 1))
+            if ((pool != null && pool.mode < 0) ||
+                (failed && count.getAndDecrement() <= 1))
                 trySetThrown(ex != null ? ex : new CancellationException());
         }
         public final boolean exec()         { return false; } // never forked
@@ -2789,12 +2784,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                     throw new NullPointerException();
                 InvokeAnyTask<T> f = new InvokeAnyTask<T>(root, c);
                 fs.add(f);
-                if (!isSaturated())
-                    externalSubmit(f);
-                else if ((mode & SHUTDOWN) == 0)
-                    f.doExec();
-                else
-                    throw new RejectedExecutionException();
+                externalSubmit(f);
                 if (root.isDone())
                     break;
             }
@@ -2821,12 +2811,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                     throw new NullPointerException();
                 InvokeAnyTask<T> f = new InvokeAnyTask<T>(root, c);
                 fs.add(f);
-                if (!isSaturated())
-                    externalSubmit(f);
-                else if ((mode & SHUTDOWN) == 0)
-                    f.doExec();
-                else
-                    throw new RejectedExecutionException();
+                externalSubmit(f);
                 if (root.isDone())
                     break;
             }
