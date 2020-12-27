@@ -1557,7 +1557,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * @param w caller's WorkQueue (may be null on failed initialization)
      */
     final void runWorker(WorkQueue w) {
-        if (mode >= 0 && w != null) {           // skip on failed init
+        if (w != null) {                        // skip on failed init
             w.config |= SRC;                    // mark as valid source
             int r = w.stackPred, src = 0;       // use seed from registerWorker
             do {
@@ -2653,10 +2653,12 @@ public class ForkJoinPool extends AbstractExecutorService {
                 ForkJoinTask<T> f =
                     new ForkJoinTask.AdaptedInterruptibleCallable<T>(t);
                 futures.add(f);
-                if (isSaturated())
+                if (!isSaturated())
+                    externalSubmit(f);
+                else if ((mode & SHUTDOWN) == 0)
                     f.doExec();
                 else
-                    externalSubmit(f);
+                    throw new RejectedExecutionException();
             }
             for (int i = futures.size() - 1; i >= 0; --i)
                 ((ForkJoinTask<?>)futures.get(i)).quietlyJoin();
@@ -2679,10 +2681,12 @@ public class ForkJoinPool extends AbstractExecutorService {
                 ForkJoinTask<T> f =
                     new ForkJoinTask.AdaptedInterruptibleCallable<T>(t);
                 futures.add(f);
-                if (isSaturated())
+                if (!isSaturated())
+                    externalSubmit(f);
+                else if ((mode & SHUTDOWN) == 0)
                     f.doExec();
                 else
-                    externalSubmit(f);
+                    throw new RejectedExecutionException();
             }
             long startTime = System.nanoTime(), ns = nanos;
             boolean timedOut = (ns < 0L);
@@ -2716,23 +2720,20 @@ public class ForkJoinPool extends AbstractExecutorService {
         @SuppressWarnings("serial") // Conditionally serializable
         volatile E result;
         final AtomicInteger count;              // in case all throw
-        InvokeAnyRoot(int n) { count = new AtomicInteger(n); }
+        final ForkJoinPool pool;                // to check shutdown while collecting
+        InvokeAnyRoot(int n, ForkJoinPool p) { pool = p; count = new AtomicInteger(n); }
         final void tryComplete(Callable<E> c) { // called by InvokeAnyTasks
             Throwable ex = null;
-            boolean failed = false;
-            if (c != null) {                    // raciness OK
-                if (isCancelled())
+            boolean failed = (c == null || isCancelled() || (pool != null && pool.mode < 0));
+            if (!failed && !isDone()) {
+                try {
+                    complete(c.call());
+                } catch (Throwable tx) {
+                    ex = tx;
                     failed = true;
-                else if (!isDone()) {
-                    try {
-                        complete(c.call());
-                    } catch (Throwable tx) {
-                        ex = tx;
-                        failed = true;
-                    }
                 }
             }
-            if (failed && count.getAndDecrement() <= 1)
+            if ((pool != null && pool.mode < 0) || (failed && count.getAndDecrement() <= 1))
                 trySetThrown(ex != null ? ex : new CancellationException());
         }
         public final boolean exec()         { return false; } // never forked
@@ -2780,21 +2781,23 @@ public class ForkJoinPool extends AbstractExecutorService {
         int n = tasks.size();
         if (n <= 0)
             throw new IllegalArgumentException();
-        InvokeAnyRoot<T> root = new InvokeAnyRoot<T>(n);
+        InvokeAnyRoot<T> root = new InvokeAnyRoot<T>(n, this);
         ArrayList<InvokeAnyTask<T>> fs = new ArrayList<>(n);
-        for (Callable<T> c : tasks) {
-            if (c == null)
-                throw new NullPointerException();
-            InvokeAnyTask<T> f = new InvokeAnyTask<T>(root, c);
-            fs.add(f);
-            if (isSaturated())
-                f.doExec();
-            else
-                externalSubmit(f);
-            if (root.isDone())
-                break;
-        }
         try {
+            for (Callable<T> c : tasks) {
+                if (c == null)
+                    throw new NullPointerException();
+                InvokeAnyTask<T> f = new InvokeAnyTask<T>(root, c);
+                fs.add(f);
+                if (!isSaturated())
+                    externalSubmit(f);
+                else if ((mode & SHUTDOWN) == 0)
+                    f.doExec();
+                else
+                    throw new RejectedExecutionException();
+                if (root.isDone())
+                    break;
+            }
             return root.get();
         } finally {
             for (InvokeAnyTask<T> f : fs)
@@ -2810,21 +2813,23 @@ public class ForkJoinPool extends AbstractExecutorService {
         int n = tasks.size();
         if (n <= 0)
             throw new IllegalArgumentException();
-        InvokeAnyRoot<T> root = new InvokeAnyRoot<T>(n);
+        InvokeAnyRoot<T> root = new InvokeAnyRoot<T>(n, this);
         ArrayList<InvokeAnyTask<T>> fs = new ArrayList<>(n);
-        for (Callable<T> c : tasks) {
-            if (c == null)
-                throw new NullPointerException();
-            InvokeAnyTask<T> f = new InvokeAnyTask<T>(root, c);
-            fs.add(f);
-            if (isSaturated())
-                f.doExec();
-            else
-                externalSubmit(f);
-            if (root.isDone())
-                break;
-        }
         try {
+            for (Callable<T> c : tasks) {
+                if (c == null)
+                    throw new NullPointerException();
+                InvokeAnyTask<T> f = new InvokeAnyTask<T>(root, c);
+                fs.add(f);
+                if (!isSaturated())
+                    externalSubmit(f);
+                else if ((mode & SHUTDOWN) == 0)
+                    f.doExec();
+                else
+                    throw new RejectedExecutionException();
+                if (root.isDone())
+                    break;
+            }
             return root.get(nanos, TimeUnit.NANOSECONDS);
         } finally {
             for (InvokeAnyTask<T> f : fs)
