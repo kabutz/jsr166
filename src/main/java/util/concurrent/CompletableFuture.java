@@ -1920,14 +1920,15 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
             if (r == null)
                 cleanStack();
         }
-        if (r == null && !interrupted)
-            throw new TimeoutException();
-        else if (r != null) {
+        if (r != null) {
             if (interrupted)
                 Thread.currentThread().interrupt();
             postComplete();
-        }
-        return r;
+            return r;
+        } else if (interrupted)
+            return null;
+        else
+            throw new TimeoutException();
     }
 
     /* ------------- public methods -------------- */
