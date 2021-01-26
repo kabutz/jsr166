@@ -850,7 +850,7 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
         } catch (IllegalStateException success) {}
     }
 
-    static private Item findValue(ConcurrentHashMap<Item, Item> map,
+    private static Item findValue(ConcurrentHashMap<Item, Item> map,
                                   Item key) {
         return (key.value % 5 == 0) ?  key :
             map.computeIfAbsent(new Item(key.value + 1), k -> new Item(findValue(map, k)));
