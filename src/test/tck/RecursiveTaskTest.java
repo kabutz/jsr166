@@ -51,7 +51,7 @@ public class RecursiveTaskTest extends JSR166TestCase {
         }
     }
 
-    void checkNotDone(RecursiveTask a) {
+    void checkNotDone(RecursiveTask<?> a) {
         assertFalse(a.isDone());
         assertFalse(a.isCompletedNormally());
         assertFalse(a.isCompletedAbnormally());
@@ -122,7 +122,7 @@ public class RecursiveTaskTest extends JSR166TestCase {
         checkCompletedNormally(a, r);
     }
 
-    void checkCancelled(RecursiveTask a) {
+    void checkCancelled(RecursiveTask<?> a) {
         assertTrue(a.isDone());
         assertTrue(a.isCancelled());
         assertFalse(a.isCompletedNormally());
@@ -149,7 +149,7 @@ public class RecursiveTaskTest extends JSR166TestCase {
         } catch (Throwable fail) { threadUnexpectedException(fail); }
     }
 
-    void checkCompletedAbnormally(RecursiveTask a, Throwable t) {
+    void checkCompletedAbnormally(RecursiveTask<?> a, Throwable t) {
         assertTrue(a.isDone());
         assertFalse(a.isCancelled());
         assertFalse(a.isCompletedNormally());
@@ -748,7 +748,7 @@ public class RecursiveTaskTest extends JSR166TestCase {
                 FibTask f = new FibTask(8);
                 FibTask g = new FibTask(9);
                 FibTask h = new FibTask(7);
-                HashSet set = new HashSet();
+                HashSet<ForkJoinTask<?>> set = new HashSet<ForkJoinTask<?>>();
                 set.add(f);
                 set.add(g);
                 set.add(h);
@@ -848,7 +848,7 @@ public class RecursiveTaskTest extends JSR166TestCase {
                 FailingFibTask f = new FailingFibTask(8);
                 FibTask g = new FibTask(9);
                 FibTask h = new FibTask(7);
-                HashSet set = new HashSet();
+                HashSet<ForkJoinTask<?>> set = new HashSet<ForkJoinTask<?>>();
                 set.add(f);
                 set.add(g);
                 set.add(h);

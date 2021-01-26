@@ -23,10 +23,10 @@ public class AtomicMarkableReferenceTest extends JSR166TestCase {
      * constructor initializes to given reference and mark
      */
     public void testConstructor() {
-        AtomicMarkableReference ai = new AtomicMarkableReference(one, false);
+        AtomicMarkableReference<Item> ai = new AtomicMarkableReference<Item>(one, false);
         assertSame(one, ai.getReference());
         assertFalse(ai.isMarked());
-        AtomicMarkableReference a2 = new AtomicMarkableReference(null, true);
+        AtomicMarkableReference<Item> a2 = new AtomicMarkableReference<Item>(null, true);
         assertNull(a2.getReference());
         assertTrue(a2.isMarked());
     }
@@ -36,7 +36,7 @@ public class AtomicMarkableReferenceTest extends JSR166TestCase {
      */
     public void testGetSet() {
         boolean[] mark = new boolean[1];
-        AtomicMarkableReference ai = new AtomicMarkableReference(one, false);
+        AtomicMarkableReference<Item> ai = new AtomicMarkableReference<Item>(one, false);
         assertSame(one, ai.getReference());
         assertFalse(ai.isMarked());
         assertSame(one, ai.get(mark));
@@ -58,7 +58,7 @@ public class AtomicMarkableReferenceTest extends JSR166TestCase {
      */
     public void testAttemptMark() {
         boolean[] mark = new boolean[1];
-        AtomicMarkableReference ai = new AtomicMarkableReference(one, false);
+        AtomicMarkableReference<Item> ai = new AtomicMarkableReference<Item>(one, false);
         assertFalse(ai.isMarked());
         assertTrue(ai.attemptMark(one, true));
         assertTrue(ai.isMarked());
@@ -72,7 +72,7 @@ public class AtomicMarkableReferenceTest extends JSR166TestCase {
      */
     public void testCompareAndSet() {
         boolean[] mark = new boolean[1];
-        AtomicMarkableReference ai = new AtomicMarkableReference(one, false);
+        AtomicMarkableReference<Item> ai = new AtomicMarkableReference<Item>(one, false);
         assertSame(one, ai.get(mark));
         assertFalse(ai.isMarked());
         assertFalse(mark[0]);
@@ -81,12 +81,12 @@ public class AtomicMarkableReferenceTest extends JSR166TestCase {
         assertSame(two, ai.get(mark));
         assertFalse(mark[0]);
 
-        assertTrue(ai.compareAndSet(two, m3, false, true));
-        assertSame(m3, ai.get(mark));
+        assertTrue(ai.compareAndSet(two, minusThree, false, true));
+        assertSame(minusThree, ai.get(mark));
         assertTrue(mark[0]);
 
-        assertFalse(ai.compareAndSet(two, m3, true, true));
-        assertSame(m3, ai.get(mark));
+        assertFalse(ai.compareAndSet(two, minusThree, true, true));
+        assertSame(minusThree, ai.get(mark));
         assertTrue(mark[0]);
     }
 
@@ -95,7 +95,7 @@ public class AtomicMarkableReferenceTest extends JSR166TestCase {
      * to succeed
      */
     public void testCompareAndSetInMultipleThreads() throws Exception {
-        final AtomicMarkableReference ai = new AtomicMarkableReference(one, false);
+        final AtomicMarkableReference<Item> ai = new AtomicMarkableReference<Item>(one, false);
         Thread t = new Thread(new CheckedRunnable() {
             public void realRun() {
                 while (!ai.compareAndSet(two, three, false, false))
@@ -115,7 +115,7 @@ public class AtomicMarkableReferenceTest extends JSR166TestCase {
      * to succeed
      */
     public void testCompareAndSetInMultipleThreads2() throws Exception {
-        final AtomicMarkableReference ai = new AtomicMarkableReference(one, false);
+        final AtomicMarkableReference<Item> ai = new AtomicMarkableReference<Item>(one, false);
         Thread t = new Thread(new CheckedRunnable() {
             public void realRun() {
                 while (!ai.compareAndSet(one, one, true, false))
@@ -136,7 +136,7 @@ public class AtomicMarkableReferenceTest extends JSR166TestCase {
      */
     public void testWeakCompareAndSet() {
         boolean[] mark = new boolean[1];
-        AtomicMarkableReference ai = new AtomicMarkableReference(one, false);
+        AtomicMarkableReference<Item> ai = new AtomicMarkableReference<Item>(one, false);
         assertSame(one, ai.get(mark));
         assertFalse(ai.isMarked());
         assertFalse(mark[0]);
@@ -145,8 +145,8 @@ public class AtomicMarkableReferenceTest extends JSR166TestCase {
         assertSame(two, ai.get(mark));
         assertFalse(mark[0]);
 
-        do {} while (!ai.weakCompareAndSet(two, m3, false, true));
-        assertSame(m3, ai.get(mark));
+        do {} while (!ai.weakCompareAndSet(two, minusThree, false, true));
+        assertSame(minusThree, ai.get(mark));
         assertTrue(mark[0]);
     }
 

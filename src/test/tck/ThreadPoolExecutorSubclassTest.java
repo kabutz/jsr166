@@ -660,7 +660,9 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                           q);
         try (PoolCleaner cleaner = cleaner(p, done)) {
             final CountDownLatch threadStarted = new CountDownLatch(1);
-            FutureTask[] tasks = new FutureTask[5];
+            FutureTask[] rtasks = new FutureTask[5];
+            @SuppressWarnings("unchecked")
+            FutureTask<Boolean>[] tasks = (FutureTask<Boolean>[])rtasks;
             for (int i = 0; i < tasks.length; i++) {
                 Callable<Boolean> task = new CheckedCallable<Boolean>() {
                     public Boolean realCall() throws InterruptedException {
@@ -669,7 +671,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                         await(done);
                         return Boolean.TRUE;
                     }};
-                tasks[i] = new FutureTask(task);
+                tasks[i] = new FutureTask<Boolean>(task);
                 p.execute(tasks[i]);
             }
             await(threadStarted);
@@ -726,7 +728,9 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                           LONG_DELAY_MS, MILLISECONDS,
                           q);
         try (PoolCleaner cleaner = cleaner(p, done)) {
-            FutureTask[] tasks = new FutureTask[5];
+            FutureTask[] rtasks = new FutureTask[5];
+            @SuppressWarnings("unchecked")
+            FutureTask<Boolean>[] tasks = (FutureTask<Boolean>[])rtasks;
             for (int i = 0; i < tasks.length; i++) {
                 Callable<Boolean> task = new CheckedCallable<Boolean>() {
                     public Boolean realCall() throws InterruptedException {
@@ -734,7 +738,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                         await(done);
                         return Boolean.TRUE;
                     }};
-                tasks[i] = new FutureTask(task);
+                tasks[i] = new FutureTask<Boolean>(task);
                 p.execute(tasks[i]);
             }
             await(threadStarted);
@@ -1828,7 +1832,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
                     p.invokeAll(tasks, timeout, MILLISECONDS);
                 assertEquals(tasks.size(), futures.size());
                 assertTrue(millisElapsedSince(startTime) >= timeout);
-                for (Future future : futures)
+                for (Future<?> future : futures)
                     assertTrue(future.isDone());
                 assertTrue(futures.get(1).isCancelled());
                 try {
@@ -1966,7 +1970,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             }
         }
     }
-
+    @SuppressWarnings("deprecation")
     public void testFinalizeMethodCallsSuperFinalize() {
         new CustomTPE(1, 1,
                       LONG_DELAY_MS, MILLISECONDS,

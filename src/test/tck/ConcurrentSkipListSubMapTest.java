@@ -27,10 +27,10 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
     }
 
     /**
-     * Returns a new map from Integers 1-5 to Strings "A"-"E".
+     * Returns a new map from Items 1-5 to Strings "A"-"E".
      */
-    private static ConcurrentNavigableMap map5() {
-        ConcurrentSkipListMap map = new ConcurrentSkipListMap();
+    private static ConcurrentNavigableMap<Item,String> map5() {
+        ConcurrentSkipListMap<Item,String>map = new ConcurrentSkipListMap<Item,String>();
         assertTrue(map.isEmpty());
         map.put(zero, "Z");
         map.put(one, "A");
@@ -40,34 +40,34 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
         map.put(four, "D");
         map.put(seven, "F");
         assertFalse(map.isEmpty());
-        assertEquals(7, map.size());
+        mustEqual(7, map.size());
         return map.subMap(one, true, seven, false);
     }
 
     /**
-     * Returns a new map from Integers -5 to -1 to Strings "A"-"E".
+     * Returns a new map from Items -5 to -1 to Strings "A"-"E".
      */
-    private static ConcurrentNavigableMap dmap5() {
-        ConcurrentSkipListMap map = new ConcurrentSkipListMap();
+    private static ConcurrentNavigableMap<Item,String> dmap5() {
+        ConcurrentSkipListMap<Item,String>map = new ConcurrentSkipListMap<Item,String>();
         assertTrue(map.isEmpty());
-        map.put(m1, "A");
-        map.put(m5, "E");
-        map.put(m3, "C");
-        map.put(m2, "B");
-        map.put(m4, "D");
+        map.put(minusOne, "A");
+        map.put(minusFive, "E");
+        map.put(minusThree, "C");
+        map.put(minusTwo, "B");
+        map.put(minusFour, "D");
         assertFalse(map.isEmpty());
-        assertEquals(5, map.size());
+        mustEqual(5, map.size());
         return map.descendingMap();
     }
 
-    private static ConcurrentNavigableMap map0() {
-        ConcurrentSkipListMap map = new ConcurrentSkipListMap();
+    private static ConcurrentNavigableMap<Item,String> map0() {
+        ConcurrentSkipListMap<Item,String>map = new ConcurrentSkipListMap<Item,String>();
         assertTrue(map.isEmpty());
         return map.tailMap(one, true);
     }
 
-    private static ConcurrentNavigableMap dmap0() {
-        ConcurrentSkipListMap map = new ConcurrentSkipListMap();
+    private static ConcurrentNavigableMap<Item,String> dmap0() {
+        ConcurrentSkipListMap<Item,String>map = new ConcurrentSkipListMap<Item,String>();
         assertTrue(map.isEmpty());
         return map;
     }
@@ -76,19 +76,19 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * clear removes all pairs
      */
     public void testClear() {
-        ConcurrentNavigableMap map = map5();
+        ConcurrentNavigableMap<Item,String> map = map5();
         map.clear();
-        assertEquals(0, map.size());
+        mustEqual(0, map.size());
     }
 
     /**
      * Maps with same contents are equal
      */
     public void testEquals() {
-        ConcurrentNavigableMap map1 = map5();
-        ConcurrentNavigableMap map2 = map5();
-        assertEquals(map1, map2);
-        assertEquals(map2, map1);
+        ConcurrentNavigableMap<Item,String> map1 = map5();
+        ConcurrentNavigableMap<Item,String> map2 = map5();
+        mustEqual(map1, map2);
+        mustEqual(map2, map1);
         map1.clear();
         assertFalse(map1.equals(map2));
         assertFalse(map2.equals(map1));
@@ -98,7 +98,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * containsKey returns true for contained key
      */
     public void testContainsKey() {
-        ConcurrentNavigableMap map = map5();
+        ConcurrentNavigableMap<Item,String> map = map5();
         assertTrue(map.containsKey(one));
         assertFalse(map.containsKey(zero));
     }
@@ -107,7 +107,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * containsValue returns true for held values
      */
     public void testContainsValue() {
-        ConcurrentNavigableMap map = map5();
+        ConcurrentNavigableMap<Item,String> map = map5();
         assertTrue(map.containsValue("A"));
         assertFalse(map.containsValue("Z"));
     }
@@ -117,9 +117,9 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * or null if not present
      */
     public void testGet() {
-        ConcurrentNavigableMap map = map5();
-        assertEquals("A", (String)map.get(one));
-        ConcurrentNavigableMap empty = map0();
+        ConcurrentNavigableMap<Item,String> map = map5();
+        mustEqual("A", map.get(one));
+        ConcurrentNavigableMap<Item,String> empty = map0();
         assertNull(empty.get(one));
     }
 
@@ -127,8 +127,8 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * isEmpty is true of empty map and false for non-empty
      */
     public void testIsEmpty() {
-        ConcurrentNavigableMap empty = map0();
-        ConcurrentNavigableMap map = map5();
+        ConcurrentNavigableMap<Item,String> empty = map0();
+        ConcurrentNavigableMap<Item,String> map = map5();
         assertTrue(empty.isEmpty());
         assertFalse(map.isEmpty());
     }
@@ -137,43 +137,43 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * firstKey returns first key
      */
     public void testFirstKey() {
-        ConcurrentNavigableMap map = map5();
-        assertEquals(one, map.firstKey());
+        ConcurrentNavigableMap<Item,String> map = map5();
+        mustEqual(one, map.firstKey());
     }
 
     /**
      * lastKey returns last key
      */
     public void testLastKey() {
-        ConcurrentNavigableMap map = map5();
-        assertEquals(five, map.lastKey());
+        ConcurrentNavigableMap<Item,String> map = map5();
+        mustEqual(five, map.lastKey());
     }
 
     /**
      * keySet returns a Set containing all the keys
      */
     public void testKeySet() {
-        ConcurrentNavigableMap map = map5();
-        Set s = map.keySet();
-        assertEquals(5, s.size());
-        assertTrue(s.contains(one));
-        assertTrue(s.contains(two));
-        assertTrue(s.contains(three));
-        assertTrue(s.contains(four));
-        assertTrue(s.contains(five));
+        ConcurrentNavigableMap<Item,String> map = map5();
+        Set<Item> s = map.keySet();
+        mustEqual(5, s.size());
+        mustContain(s, one);
+        mustContain(s, two);
+        mustContain(s, three);
+        mustContain(s, four);
+        mustContain(s, five);
     }
 
     /**
      * keySet is ordered
      */
     public void testKeySetOrder() {
-        ConcurrentNavigableMap map = map5();
-        Set s = map.keySet();
-        Iterator i = s.iterator();
-        Integer last = (Integer)i.next();
-        assertEquals(last, one);
+        ConcurrentNavigableMap<Item,String> map = map5();
+        Set<Item> s = map.keySet();
+        Iterator<? extends Item> i = s.iterator();
+        Item last = i.next();
+        mustEqual(last, one);
         while (i.hasNext()) {
-            Integer k = (Integer)i.next();
+            Item k = i.next();
             assertTrue(last.compareTo(k) < 0);
             last = k;
         }
@@ -183,9 +183,9 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * values collection contains all values
      */
     public void testValues() {
-        ConcurrentNavigableMap map = map5();
-        Collection s = map.values();
-        assertEquals(5, s.size());
+        ConcurrentNavigableMap<Item,String> map = map5();
+        Collection<String> s = map.values();
+        mustEqual(5, s.size());
         assertTrue(s.contains("A"));
         assertTrue(s.contains("B"));
         assertTrue(s.contains("C"));
@@ -197,12 +197,12 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * keySet.toArray returns contains all keys
      */
     public void testKeySetToArray() {
-        ConcurrentNavigableMap map = map5();
-        Set s = map.keySet();
+        ConcurrentNavigableMap<Item,String> map = map5();
+        Set<Item> s = map.keySet();
         Object[] ar = s.toArray();
         assertTrue(s.containsAll(Arrays.asList(ar)));
-        assertEquals(5, ar.length);
-        ar[0] = m10;
+        mustEqual(5, ar.length);
+        ar[0] = minusTen;
         assertFalse(s.containsAll(Arrays.asList(ar)));
     }
 
@@ -210,12 +210,12 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * descendingkeySet.toArray returns contains all keys
      */
     public void testDescendingKeySetToArray() {
-        ConcurrentNavigableMap map = map5();
-        Set s = map.descendingKeySet();
-        Object[] ar = s.toArray();
-        assertEquals(5, ar.length);
+        ConcurrentNavigableMap<Item,String> map = map5();
+        Set<Item> s = map.descendingKeySet();
+        Item[] ar = s.toArray(new Item[0]);
+        mustEqual(5, ar.length);
         assertTrue(s.containsAll(Arrays.asList(ar)));
-        ar[0] = m10;
+        ar[0] = minusTen;
         assertFalse(s.containsAll(Arrays.asList(ar)));
     }
 
@@ -223,11 +223,11 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * Values.toArray contains all values
      */
     public void testValuesToArray() {
-        ConcurrentNavigableMap map = map5();
-        Collection v = map.values();
-        Object[] ar = v.toArray();
-        ArrayList s = new ArrayList(Arrays.asList(ar));
-        assertEquals(5, ar.length);
+        ConcurrentNavigableMap<Item,String> map = map5();
+        Collection<String> v = map.values();
+        String[] ar = v.toArray(new String[0]);
+        ArrayList<String> s = new ArrayList<String>(Arrays.asList(ar));
+        mustEqual(5, ar.length);
         assertTrue(s.contains("A"));
         assertTrue(s.contains("B"));
         assertTrue(s.contains("C"));
@@ -239,12 +239,12 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * entrySet contains all pairs
      */
     public void testEntrySet() {
-        ConcurrentNavigableMap map = map5();
-        Set s = map.entrySet();
-        assertEquals(5, s.size());
-        Iterator it = s.iterator();
+        ConcurrentNavigableMap<Item,String> map = map5();
+        Set<Map.Entry<Item,String>> s = map.entrySet();
+        mustEqual(5, s.size());
+        Iterator<Map.Entry<Item,String>> it = s.iterator();
         while (it.hasNext()) {
-            Map.Entry e = (Map.Entry) it.next();
+            Map.Entry<Item,String> e = it.next();
             assertTrue(
                        (e.getKey().equals(one) && e.getValue().equals("A")) ||
                        (e.getKey().equals(two) && e.getValue().equals("B")) ||
@@ -258,10 +258,10 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * putAll adds all key-value pairs from the given map
      */
     public void testPutAll() {
-        ConcurrentNavigableMap empty = map0();
-        ConcurrentNavigableMap map = map5();
+        ConcurrentNavigableMap<Item,String> empty = map0();
+        ConcurrentNavigableMap<Item,String> map = map5();
         empty.putAll(map);
-        assertEquals(5, empty.size());
+        mustEqual(5, empty.size());
         assertTrue(empty.containsKey(one));
         assertTrue(empty.containsKey(two));
         assertTrue(empty.containsKey(three));
@@ -273,7 +273,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * putIfAbsent works when the given key is not present
      */
     public void testPutIfAbsent() {
-        ConcurrentNavigableMap map = map5();
+        ConcurrentNavigableMap<Item,String> map = map5();
         map.putIfAbsent(six, "Z");
         assertTrue(map.containsKey(six));
     }
@@ -282,15 +282,15 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * putIfAbsent does not add the pair if the key is already present
      */
     public void testPutIfAbsent2() {
-        ConcurrentNavigableMap map = map5();
-        assertEquals("A", map.putIfAbsent(one, "Z"));
+        ConcurrentNavigableMap<Item,String> map = map5();
+        mustEqual("A", map.putIfAbsent(one, "Z"));
     }
 
     /**
      * replace fails when the given key is not present
      */
     public void testReplace() {
-        ConcurrentNavigableMap map = map5();
+        ConcurrentNavigableMap<Item,String> map = map5();
         assertNull(map.replace(six, "Z"));
         assertFalse(map.containsKey(six));
     }
@@ -299,38 +299,38 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * replace succeeds if the key is already present
      */
     public void testReplace2() {
-        ConcurrentNavigableMap map = map5();
+        ConcurrentNavigableMap<Item,String> map = map5();
         assertNotNull(map.replace(one, "Z"));
-        assertEquals("Z", map.get(one));
+        mustEqual("Z", map.get(one));
     }
 
     /**
      * replace value fails when the given key not mapped to expected value
      */
     public void testReplaceValue() {
-        ConcurrentNavigableMap map = map5();
-        assertEquals("A", map.get(one));
+        ConcurrentNavigableMap<Item,String> map = map5();
+        mustEqual("A", map.get(one));
         assertFalse(map.replace(one, "Z", "Z"));
-        assertEquals("A", map.get(one));
+        mustEqual("A", map.get(one));
     }
 
     /**
      * replace value succeeds when the given key mapped to expected value
      */
     public void testReplaceValue2() {
-        ConcurrentNavigableMap map = map5();
-        assertEquals("A", map.get(one));
+        ConcurrentNavigableMap<Item,String> map = map5();
+        mustEqual("A", map.get(one));
         assertTrue(map.replace(one, "A", "Z"));
-        assertEquals("Z", map.get(one));
+        mustEqual("Z", map.get(one));
     }
 
     /**
      * remove removes the correct key-value pair from the map
      */
     public void testRemove() {
-        ConcurrentNavigableMap map = map5();
+        ConcurrentNavigableMap<Item,String> map = map5();
         map.remove(five);
-        assertEquals(4, map.size());
+        mustEqual(4, map.size());
         assertFalse(map.containsKey(five));
     }
 
@@ -338,14 +338,14 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * remove(key,value) removes only if pair present
      */
     public void testRemove2() {
-        ConcurrentNavigableMap map = map5();
+        ConcurrentNavigableMap<Item,String> map = map5();
         assertTrue(map.containsKey(five));
-        assertEquals("E", map.get(five));
+        mustEqual("E", map.get(five));
         map.remove(five, "E");
-        assertEquals(4, map.size());
+        mustEqual(4, map.size());
         assertFalse(map.containsKey(five));
         map.remove(four, "A");
-        assertEquals(4, map.size());
+        mustEqual(4, map.size());
         assertTrue(map.containsKey(four));
     }
 
@@ -353,17 +353,17 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * lowerEntry returns preceding entry.
      */
     public void testLowerEntry() {
-        ConcurrentNavigableMap map = map5();
-        Map.Entry e1 = map.lowerEntry(three);
-        assertEquals(two, e1.getKey());
+        ConcurrentNavigableMap<Item,String> map = map5();
+        Map.Entry<Item,String> e1 = map.lowerEntry(three);
+        mustEqual(two, e1.getKey());
 
-        Map.Entry e2 = map.lowerEntry(six);
-        assertEquals(five, e2.getKey());
+        Map.Entry<Item,String> e2 = map.lowerEntry(six);
+        mustEqual(five, e2.getKey());
 
-        Map.Entry e3 = map.lowerEntry(one);
+        Map.Entry<Item,String> e3 = map.lowerEntry(one);
         assertNull(e3);
 
-        Map.Entry e4 = map.lowerEntry(zero);
+        Map.Entry<Item,String> e4 = map.lowerEntry(zero);
         assertNull(e4);
     }
 
@@ -371,17 +371,17 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * higherEntry returns next entry.
      */
     public void testHigherEntry() {
-        ConcurrentNavigableMap map = map5();
-        Map.Entry e1 = map.higherEntry(three);
-        assertEquals(four, e1.getKey());
+        ConcurrentNavigableMap<Item,String> map = map5();
+        Map.Entry<Item,String> e1 = map.higherEntry(three);
+        mustEqual(four, e1.getKey());
 
-        Map.Entry e2 = map.higherEntry(zero);
-        assertEquals(one, e2.getKey());
+        Map.Entry<Item,String> e2 = map.higherEntry(zero);
+        mustEqual(one, e2.getKey());
 
-        Map.Entry e3 = map.higherEntry(five);
+        Map.Entry<Item,String> e3 = map.higherEntry(five);
         assertNull(e3);
 
-        Map.Entry e4 = map.higherEntry(six);
+        Map.Entry<Item,String> e4 = map.higherEntry(six);
         assertNull(e4);
     }
 
@@ -389,17 +389,17 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * floorEntry returns preceding entry.
      */
     public void testFloorEntry() {
-        ConcurrentNavigableMap map = map5();
-        Map.Entry e1 = map.floorEntry(three);
-        assertEquals(three, e1.getKey());
+        ConcurrentNavigableMap<Item,String> map = map5();
+        Map.Entry<Item,String> e1 = map.floorEntry(three);
+        mustEqual(three, e1.getKey());
 
-        Map.Entry e2 = map.floorEntry(six);
-        assertEquals(five, e2.getKey());
+        Map.Entry<Item,String> e2 = map.floorEntry(six);
+        mustEqual(five, e2.getKey());
 
-        Map.Entry e3 = map.floorEntry(one);
-        assertEquals(one, e3.getKey());
+        Map.Entry<Item,String> e3 = map.floorEntry(one);
+        mustEqual(one, e3.getKey());
 
-        Map.Entry e4 = map.floorEntry(zero);
+        Map.Entry<Item,String> e4 = map.floorEntry(zero);
         assertNull(e4);
     }
 
@@ -407,17 +407,17 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * ceilingEntry returns next entry.
      */
     public void testCeilingEntry() {
-        ConcurrentNavigableMap map = map5();
-        Map.Entry e1 = map.ceilingEntry(three);
-        assertEquals(three, e1.getKey());
+        ConcurrentNavigableMap<Item,String> map = map5();
+        Map.Entry<Item,String> e1 = map.ceilingEntry(three);
+        mustEqual(three, e1.getKey());
 
-        Map.Entry e2 = map.ceilingEntry(zero);
-        assertEquals(one, e2.getKey());
+        Map.Entry<Item,String> e2 = map.ceilingEntry(zero);
+        mustEqual(one, e2.getKey());
 
-        Map.Entry e3 = map.ceilingEntry(five);
-        assertEquals(five, e3.getKey());
+        Map.Entry<Item,String> e3 = map.ceilingEntry(five);
+        mustEqual(five, e3.getKey());
 
-        Map.Entry e4 = map.ceilingEntry(six);
+        Map.Entry<Item,String> e4 = map.ceilingEntry(six);
         assertNull(e4);
     }
 
@@ -425,21 +425,21 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * pollFirstEntry returns entries in order
      */
     public void testPollFirstEntry() {
-        ConcurrentNavigableMap map = map5();
-        Map.Entry e = map.pollFirstEntry();
-        assertEquals(one, e.getKey());
-        assertEquals("A", e.getValue());
+        ConcurrentNavigableMap<Item,String> map = map5();
+        Map.Entry<Item,String> e = map.pollFirstEntry();
+        mustEqual(one, e.getKey());
+        mustEqual("A", e.getValue());
         e = map.pollFirstEntry();
-        assertEquals(two, e.getKey());
+        mustEqual(two, e.getKey());
         map.put(one, "A");
         e = map.pollFirstEntry();
-        assertEquals(one, e.getKey());
-        assertEquals("A", e.getValue());
+        mustEqual(one, e.getKey());
+        mustEqual("A", e.getValue());
         e = map.pollFirstEntry();
-        assertEquals(three, e.getKey());
+        mustEqual(three, e.getKey());
         map.remove(four);
         e = map.pollFirstEntry();
-        assertEquals(five, e.getKey());
+        mustEqual(five, e.getKey());
         try {
             e.setValue("A");
             shouldThrow();
@@ -452,21 +452,21 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * pollLastEntry returns entries in order
      */
     public void testPollLastEntry() {
-        ConcurrentNavigableMap map = map5();
-        Map.Entry e = map.pollLastEntry();
-        assertEquals(five, e.getKey());
-        assertEquals("E", e.getValue());
+        ConcurrentNavigableMap<Item,String> map = map5();
+        Map.Entry<Item,String> e = map.pollLastEntry();
+        mustEqual(five, e.getKey());
+        mustEqual("E", e.getValue());
         e = map.pollLastEntry();
-        assertEquals(four, e.getKey());
+        mustEqual(four, e.getKey());
         map.put(five, "E");
         e = map.pollLastEntry();
-        assertEquals(five, e.getKey());
-        assertEquals("E", e.getValue());
+        mustEqual(five, e.getKey());
+        mustEqual("E", e.getValue());
         e = map.pollLastEntry();
-        assertEquals(three, e.getKey());
+        mustEqual(three, e.getKey());
         map.remove(two);
         e = map.pollLastEntry();
-        assertEquals(one, e.getKey());
+        mustEqual(one, e.getKey());
         try {
             e.setValue("E");
             shouldThrow();
@@ -479,17 +479,17 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * size returns the correct values
      */
     public void testSize() {
-        ConcurrentNavigableMap map = map5();
-        ConcurrentNavigableMap empty = map0();
-        assertEquals(0, empty.size());
-        assertEquals(5, map.size());
+        ConcurrentNavigableMap<Item,String> map = map5();
+        ConcurrentNavigableMap<Item,String> empty = map0();
+        mustEqual(0, empty.size());
+        mustEqual(5, map.size());
     }
 
     /**
      * toString contains toString of elements
      */
     public void testToString() {
-        ConcurrentNavigableMap map = map5();
+        ConcurrentNavigableMap<Item,String> map = map5();
         String s = map.toString();
         for (int i = 1; i <= 5; ++i) {
             assertTrue(s.contains(String.valueOf(i)));
@@ -503,7 +503,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testGet_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = map5();
+            ConcurrentNavigableMap<Item,String> c = map5();
             c.get(null);
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -514,7 +514,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testContainsKey_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = map5();
+            ConcurrentNavigableMap<Item,String> c = map5();
             c.containsKey(null);
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -525,7 +525,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testContainsValue_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = map0();
+            ConcurrentNavigableMap<Item,String> c = map0();
             c.containsValue(null);
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -536,7 +536,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testPut1_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = map5();
+            ConcurrentNavigableMap<Item,String> c = map5();
             c.put(null, "whatever");
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -547,7 +547,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testPutIfAbsent1_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = map5();
+            ConcurrentNavigableMap<Item,String> c = map5();
             c.putIfAbsent(null, "whatever");
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -558,8 +558,8 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testReplace_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = map5();
-            c.replace(null, "whatever");
+            ConcurrentNavigableMap<Item,String> c = map5();
+            c.replace(null, "A");
             shouldThrow();
         } catch (NullPointerException success) {}
     }
@@ -569,8 +569,8 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testReplaceValue_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = map5();
-            c.replace(null, one, "whatever");
+            ConcurrentNavigableMap<Item,String> c = map5();
+            c.replace(null, "A", "B");
             shouldThrow();
         } catch (NullPointerException success) {}
     }
@@ -580,7 +580,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testRemove1_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = map5();
+            ConcurrentNavigableMap<Item,String> c = map5();
             c.remove(null);
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -591,7 +591,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testRemove2_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = map5();
+            ConcurrentNavigableMap<Item,String> c = map5();
             c.remove(null, "whatever");
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -601,168 +601,167 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * A deserialized/reserialized map equals original
      */
     public void testSerialization() throws Exception {
-        NavigableMap x = map5();
-        NavigableMap y = serialClone(x);
+        NavigableMap<Item,String> x = map5();
+        NavigableMap<Item,String> y = serialClone(x);
 
         assertNotSame(x, y);
-        assertEquals(x.size(), y.size());
-        assertEquals(x.toString(), y.toString());
-        assertEquals(x, y);
-        assertEquals(y, x);
+        mustEqual(x.size(), y.size());
+        mustEqual(x.toString(), y.toString());
+        mustEqual(x, y);
+        mustEqual(y, x);
     }
 
     /**
      * subMap returns map with keys in requested range
      */
     public void testSubMapContents() {
-        ConcurrentNavigableMap map = map5();
-        SortedMap sm = map.subMap(two, four);
-        assertEquals(two, sm.firstKey());
-        assertEquals(three, sm.lastKey());
-        assertEquals(2, sm.size());
+        ConcurrentNavigableMap<Item,String> map = map5();
+        SortedMap<Item,String> sm = map.subMap(two, four);
+        mustEqual(two, sm.firstKey());
+        mustEqual(three, sm.lastKey());
+        mustEqual(2, sm.size());
         assertFalse(sm.containsKey(one));
         assertTrue(sm.containsKey(two));
         assertTrue(sm.containsKey(three));
         assertFalse(sm.containsKey(four));
         assertFalse(sm.containsKey(five));
-        Iterator i = sm.keySet().iterator();
-        Object k;
-        k = (Integer)(i.next());
-        assertEquals(two, k);
-        k = (Integer)(i.next());
-        assertEquals(three, k);
+        Iterator<? extends Item> i = sm.keySet().iterator();
+        Item k;
+        k = (Item)(i.next());
+        mustEqual(two, k);
+        k = (Item)(i.next());
+        mustEqual(three, k);
         assertFalse(i.hasNext());
-        Iterator j = sm.keySet().iterator();
+        Iterator<? extends Item> j = sm.keySet().iterator();
         j.next();
         j.remove();
         assertFalse(map.containsKey(two));
-        assertEquals(4, map.size());
-        assertEquals(1, sm.size());
-        assertEquals(three, sm.firstKey());
-        assertEquals(three, sm.lastKey());
-        assertEquals("C", sm.remove(three));
+        mustEqual(4, map.size());
+        mustEqual(1, sm.size());
+        mustEqual(three, sm.firstKey());
+        mustEqual(three, sm.lastKey());
+        mustEqual("C", sm.remove(three));
         assertTrue(sm.isEmpty());
-        assertEquals(3, map.size());
+        mustEqual(3, map.size());
     }
 
     public void testSubMapContents2() {
-        ConcurrentNavigableMap map = map5();
-        SortedMap sm = map.subMap(two, three);
-        assertEquals(1, sm.size());
-        assertEquals(two, sm.firstKey());
-        assertEquals(two, sm.lastKey());
+        ConcurrentNavigableMap<Item,String> map = map5();
+        SortedMap<Item,String> sm = map.subMap(two, three);
+        mustEqual(1, sm.size());
+        mustEqual(two, sm.firstKey());
+        mustEqual(two, sm.lastKey());
         assertFalse(sm.containsKey(one));
         assertTrue(sm.containsKey(two));
         assertFalse(sm.containsKey(three));
         assertFalse(sm.containsKey(four));
         assertFalse(sm.containsKey(five));
-        Iterator i = sm.keySet().iterator();
-        Object k;
-        k = (Integer)(i.next());
-        assertEquals(two, k);
+        Iterator<? extends Item> i = sm.keySet().iterator();
+        Item k;
+        k = (Item)(i.next());
+        mustEqual(two, k);
         assertFalse(i.hasNext());
-        Iterator j = sm.keySet().iterator();
+        Iterator<? extends Item> j = sm.keySet().iterator();
         j.next();
         j.remove();
         assertFalse(map.containsKey(two));
-        assertEquals(4, map.size());
-        assertEquals(0, sm.size());
+        mustEqual(4, map.size());
+        mustEqual(0, sm.size());
         assertTrue(sm.isEmpty());
         assertSame(sm.remove(three), null);
-        assertEquals(4, map.size());
+        mustEqual(4, map.size());
     }
 
     /**
      * headMap returns map with keys in requested range
      */
     public void testHeadMapContents() {
-        ConcurrentNavigableMap map = map5();
-        SortedMap sm = map.headMap(four);
+        ConcurrentNavigableMap<Item,String> map = map5();
+        SortedMap<Item,String> sm = map.headMap(four);
         assertTrue(sm.containsKey(one));
         assertTrue(sm.containsKey(two));
         assertTrue(sm.containsKey(three));
         assertFalse(sm.containsKey(four));
         assertFalse(sm.containsKey(five));
-        Iterator i = sm.keySet().iterator();
+        Iterator<? extends Item> i = sm.keySet().iterator();
         Object k;
-        k = (Integer)(i.next());
-        assertEquals(one, k);
-        k = (Integer)(i.next());
-        assertEquals(two, k);
-        k = (Integer)(i.next());
-        assertEquals(three, k);
+        k = (Item)(i.next());
+        mustEqual(one, k);
+        k = (Item)(i.next());
+        mustEqual(two, k);
+        k = (Item)(i.next());
+        mustEqual(three, k);
         assertFalse(i.hasNext());
         sm.clear();
         assertTrue(sm.isEmpty());
-        assertEquals(2, map.size());
-        assertEquals(four, map.firstKey());
+        mustEqual(2, map.size());
+        mustEqual(four, map.firstKey());
     }
 
     /**
      * headMap returns map with keys in requested range
      */
     public void testTailMapContents() {
-        ConcurrentNavigableMap map = map5();
-        SortedMap sm = map.tailMap(two);
+        ConcurrentNavigableMap<Item,String> map = map5();
+        SortedMap<Item,String> sm = map.tailMap(two);
         assertFalse(sm.containsKey(one));
         assertTrue(sm.containsKey(two));
         assertTrue(sm.containsKey(three));
         assertTrue(sm.containsKey(four));
         assertTrue(sm.containsKey(five));
-        Iterator i = sm.keySet().iterator();
-        Object k;
-        k = (Integer)(i.next());
-        assertEquals(two, k);
-        k = (Integer)(i.next());
-        assertEquals(three, k);
-        k = (Integer)(i.next());
-        assertEquals(four, k);
-        k = (Integer)(i.next());
-        assertEquals(five, k);
+        Iterator<Item> i = sm.keySet().iterator();
+        Item k = i.next();
+        mustEqual(two, k);
+        k = i.next();
+        mustEqual(three, k);
+        k = i.next();
+        mustEqual(four, k);
+        k = i.next();
+        mustEqual(five, k);
         assertFalse(i.hasNext());
 
-        Iterator ei = sm.entrySet().iterator();
-        Map.Entry e;
-        e = (Map.Entry)(ei.next());
-        assertEquals(two, e.getKey());
-        assertEquals("B", e.getValue());
-        e = (Map.Entry)(ei.next());
-        assertEquals(three, e.getKey());
-        assertEquals("C", e.getValue());
-        e = (Map.Entry)(ei.next());
-        assertEquals(four, e.getKey());
-        assertEquals("D", e.getValue());
-        e = (Map.Entry)(ei.next());
-        assertEquals(five, e.getKey());
-        assertEquals("E", e.getValue());
+        Iterator<Map.Entry<Item,String>> ei = sm.entrySet().iterator();
+        Map.Entry<Item,String> e;
+        e = (ei.next());
+        mustEqual(two, e.getKey());
+        mustEqual("B", e.getValue());
+        e = (ei.next());
+        mustEqual(three, e.getKey());
+        mustEqual("C", e.getValue());
+        e = (ei.next());
+        mustEqual(four, e.getKey());
+        mustEqual("D", e.getValue());
+        e = (ei.next());
+        mustEqual(five, e.getKey());
+        mustEqual("E", e.getValue());
         assertFalse(i.hasNext());
 
-        SortedMap ssm = sm.tailMap(four);
-        assertEquals(four, ssm.firstKey());
-        assertEquals(five, ssm.lastKey());
-        assertEquals("D", ssm.remove(four));
-        assertEquals(1, ssm.size());
-        assertEquals(3, sm.size());
-        assertEquals(4, map.size());
+        SortedMap<Item,String> ssm = sm.tailMap(four);
+        mustEqual(four, ssm.firstKey());
+        mustEqual(five, ssm.lastKey());
+        mustEqual("D", ssm.remove(four));
+        mustEqual(1, ssm.size());
+        mustEqual(3, sm.size());
+        mustEqual(4, map.size());
     }
 
     /**
      * clear removes all pairs
      */
     public void testDescendingClear() {
-        ConcurrentNavigableMap map = dmap5();
+        ConcurrentNavigableMap<Item,String> map = dmap5();
         map.clear();
-        assertEquals(0, map.size());
+        mustEqual(0, map.size());
     }
 
     /**
      * Maps with same contents are equal
      */
     public void testDescendingEquals() {
-        ConcurrentNavigableMap map1 = dmap5();
-        ConcurrentNavigableMap map2 = dmap5();
-        assertEquals(map1, map2);
-        assertEquals(map2, map1);
+        ConcurrentNavigableMap<Item,String> map1 = dmap5();
+        ConcurrentNavigableMap<Item,String> map2 = dmap5();
+        mustEqual(map1, map2);
+        mustEqual(map2, map1);
         map1.clear();
         assertFalse(map1.equals(map2));
         assertFalse(map2.equals(map1));
@@ -772,8 +771,8 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * containsKey returns true for contained key
      */
     public void testDescendingContainsKey() {
-        ConcurrentNavigableMap map = dmap5();
-        assertTrue(map.containsKey(m1));
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        assertTrue(map.containsKey(minusOne));
         assertFalse(map.containsKey(zero));
     }
 
@@ -781,7 +780,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * containsValue returns true for held values
      */
     public void testDescendingContainsValue() {
-        ConcurrentNavigableMap map = dmap5();
+        ConcurrentNavigableMap<Item,String> map = dmap5();
         assertTrue(map.containsValue("A"));
         assertFalse(map.containsValue("Z"));
     }
@@ -791,18 +790,18 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * or null if not present
      */
     public void testDescendingGet() {
-        ConcurrentNavigableMap map = dmap5();
-        assertEquals("A", (String)map.get(m1));
-        ConcurrentNavigableMap empty = dmap0();
-        assertNull(empty.get(m1));
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        mustEqual("A", map.get(minusOne));
+        ConcurrentNavigableMap<Item,String> empty = dmap0();
+        assertNull(empty.get(minusOne));
     }
 
     /**
      * isEmpty is true of empty map and false for non-empty
      */
     public void testDescendingIsEmpty() {
-        ConcurrentNavigableMap empty = dmap0();
-        ConcurrentNavigableMap map = dmap5();
+        ConcurrentNavigableMap<Item,String> empty = dmap0();
+        ConcurrentNavigableMap<Item,String> map = dmap5();
         assertTrue(empty.isEmpty());
         assertFalse(map.isEmpty());
     }
@@ -811,43 +810,43 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * firstKey returns first key
      */
     public void testDescendingFirstKey() {
-        ConcurrentNavigableMap map = dmap5();
-        assertEquals(m1, map.firstKey());
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        mustEqual(minusOne, map.firstKey());
     }
 
     /**
      * lastKey returns last key
      */
     public void testDescendingLastKey() {
-        ConcurrentNavigableMap map = dmap5();
-        assertEquals(m5, map.lastKey());
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        mustEqual(minusFive, map.lastKey());
     }
 
     /**
      * keySet returns a Set containing all the keys
      */
     public void testDescendingKeySet() {
-        ConcurrentNavigableMap map = dmap5();
-        Set s = map.keySet();
-        assertEquals(5, s.size());
-        assertTrue(s.contains(m1));
-        assertTrue(s.contains(m2));
-        assertTrue(s.contains(m3));
-        assertTrue(s.contains(m4));
-        assertTrue(s.contains(m5));
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        Set<Item> s = map.keySet();
+        mustEqual(5, s.size());
+        mustContain(s, minusOne);
+        mustContain(s, minusTwo);
+        mustContain(s, minusThree);
+        mustContain(s, minusFour);
+        mustContain(s, minusFive);
     }
 
     /**
      * keySet is ordered
      */
     public void testDescendingKeySetOrder() {
-        ConcurrentNavigableMap map = dmap5();
-        Set s = map.keySet();
-        Iterator i = s.iterator();
-        Integer last = (Integer)i.next();
-        assertEquals(last, m1);
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        Set<Item> s = map.keySet();
+        Iterator<? extends Item> i = s.iterator();
+        Item last = i.next();
+        mustEqual(last, minusOne);
         while (i.hasNext()) {
-            Integer k = (Integer)i.next();
+            Item k = i.next();
             assertTrue(last.compareTo(k) > 0);
             last = k;
         }
@@ -857,9 +856,9 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * values collection contains all values
      */
     public void testDescendingValues() {
-        ConcurrentNavigableMap map = dmap5();
-        Collection s = map.values();
-        assertEquals(5, s.size());
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        Collection<String> s = map.values();
+        mustEqual(5, s.size());
         assertTrue(s.contains("A"));
         assertTrue(s.contains("B"));
         assertTrue(s.contains("C"));
@@ -871,12 +870,12 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * keySet.toArray returns contains all keys
      */
     public void testDescendingAscendingKeySetToArray() {
-        ConcurrentNavigableMap map = dmap5();
-        Set s = map.keySet();
-        Object[] ar = s.toArray();
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        Set<Item> s = map.keySet();
+        Item[] ar = s.toArray(new Item[0]);
         assertTrue(s.containsAll(Arrays.asList(ar)));
-        assertEquals(5, ar.length);
-        ar[0] = m10;
+        mustEqual(5, ar.length);
+        ar[0] = minusTen;
         assertFalse(s.containsAll(Arrays.asList(ar)));
     }
 
@@ -884,12 +883,12 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * descendingkeySet.toArray returns contains all keys
      */
     public void testDescendingDescendingKeySetToArray() {
-        ConcurrentNavigableMap map = dmap5();
-        Set s = map.descendingKeySet();
-        Object[] ar = s.toArray();
-        assertEquals(5, ar.length);
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        Set<Item> s = map.descendingKeySet();
+        Item[] ar = s.toArray(new Item[0]);
+        mustEqual(5, ar.length);
         assertTrue(s.containsAll(Arrays.asList(ar)));
-        ar[0] = m10;
+        ar[0] = minusTen;
         assertFalse(s.containsAll(Arrays.asList(ar)));
     }
 
@@ -897,11 +896,11 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * Values.toArray contains all values
      */
     public void testDescendingValuesToArray() {
-        ConcurrentNavigableMap map = dmap5();
-        Collection v = map.values();
-        Object[] ar = v.toArray();
-        ArrayList s = new ArrayList(Arrays.asList(ar));
-        assertEquals(5, ar.length);
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        Collection<String> v = map.values();
+        String[] ar = v.toArray(new String[0]);
+        ArrayList<String> s = new ArrayList<String>(Arrays.asList(ar));
+        mustEqual(5, ar.length);
         assertTrue(s.contains("A"));
         assertTrue(s.contains("B"));
         assertTrue(s.contains("C"));
@@ -913,18 +912,18 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * entrySet contains all pairs
      */
     public void testDescendingEntrySet() {
-        ConcurrentNavigableMap map = dmap5();
-        Set s = map.entrySet();
-        assertEquals(5, s.size());
-        Iterator it = s.iterator();
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        Set<Map.Entry<Item,String>> s = map.entrySet();
+        mustEqual(5, s.size());
+        Iterator<Map.Entry<Item,String>> it = s.iterator();
         while (it.hasNext()) {
-            Map.Entry e = (Map.Entry) it.next();
+            Map.Entry<Item,String> e = it.next();
             assertTrue(
-                       (e.getKey().equals(m1) && e.getValue().equals("A")) ||
-                       (e.getKey().equals(m2) && e.getValue().equals("B")) ||
-                       (e.getKey().equals(m3) && e.getValue().equals("C")) ||
-                       (e.getKey().equals(m4) && e.getValue().equals("D")) ||
-                       (e.getKey().equals(m5) && e.getValue().equals("E")));
+                       (e.getKey().equals(minusOne) && e.getValue().equals("A")) ||
+                       (e.getKey().equals(minusTwo) && e.getValue().equals("B")) ||
+                       (e.getKey().equals(minusThree) && e.getValue().equals("C")) ||
+                       (e.getKey().equals(minusFour) && e.getValue().equals("D")) ||
+                       (e.getKey().equals(minusFive) && e.getValue().equals("E")));
         }
     }
 
@@ -932,22 +931,22 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * putAll adds all key-value pairs from the given map
      */
     public void testDescendingPutAll() {
-        ConcurrentNavigableMap empty = dmap0();
-        ConcurrentNavigableMap map = dmap5();
+        ConcurrentNavigableMap<Item,String> empty = dmap0();
+        ConcurrentNavigableMap<Item,String> map = dmap5();
         empty.putAll(map);
-        assertEquals(5, empty.size());
-        assertTrue(empty.containsKey(m1));
-        assertTrue(empty.containsKey(m2));
-        assertTrue(empty.containsKey(m3));
-        assertTrue(empty.containsKey(m4));
-        assertTrue(empty.containsKey(m5));
+        mustEqual(5, empty.size());
+        assertTrue(empty.containsKey(minusOne));
+        assertTrue(empty.containsKey(minusTwo));
+        assertTrue(empty.containsKey(minusThree));
+        assertTrue(empty.containsKey(minusFour));
+        assertTrue(empty.containsKey(minusFive));
     }
 
     /**
      * putIfAbsent works when the given key is not present
      */
     public void testDescendingPutIfAbsent() {
-        ConcurrentNavigableMap map = dmap5();
+        ConcurrentNavigableMap<Item,String> map = dmap5();
         map.putIfAbsent(six, "Z");
         assertTrue(map.containsKey(six));
     }
@@ -956,15 +955,15 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * putIfAbsent does not add the pair if the key is already present
      */
     public void testDescendingPutIfAbsent2() {
-        ConcurrentNavigableMap map = dmap5();
-        assertEquals("A", map.putIfAbsent(m1, "Z"));
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        mustEqual("A", map.putIfAbsent(minusOne, "Z"));
     }
 
     /**
      * replace fails when the given key is not present
      */
     public void testDescendingReplace() {
-        ConcurrentNavigableMap map = dmap5();
+        ConcurrentNavigableMap<Item,String> map = dmap5();
         assertNull(map.replace(six, "Z"));
         assertFalse(map.containsKey(six));
     }
@@ -973,71 +972,71 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * replace succeeds if the key is already present
      */
     public void testDescendingReplace2() {
-        ConcurrentNavigableMap map = dmap5();
-        assertNotNull(map.replace(m1, "Z"));
-        assertEquals("Z", map.get(m1));
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        assertNotNull(map.replace(minusOne, "Z"));
+        mustEqual("Z", map.get(minusOne));
     }
 
     /**
      * replace value fails when the given key not mapped to expected value
      */
     public void testDescendingReplaceValue() {
-        ConcurrentNavigableMap map = dmap5();
-        assertEquals("A", map.get(m1));
-        assertFalse(map.replace(m1, "Z", "Z"));
-        assertEquals("A", map.get(m1));
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        mustEqual("A", map.get(minusOne));
+        assertFalse(map.replace(minusOne, "Z", "Z"));
+        mustEqual("A", map.get(minusOne));
     }
 
     /**
      * replace value succeeds when the given key mapped to expected value
      */
     public void testDescendingReplaceValue2() {
-        ConcurrentNavigableMap map = dmap5();
-        assertEquals("A", map.get(m1));
-        assertTrue(map.replace(m1, "A", "Z"));
-        assertEquals("Z", map.get(m1));
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        mustEqual("A", map.get(minusOne));
+        assertTrue(map.replace(minusOne, "A", "Z"));
+        mustEqual("Z", map.get(minusOne));
     }
 
     /**
      * remove removes the correct key-value pair from the map
      */
     public void testDescendingRemove() {
-        ConcurrentNavigableMap map = dmap5();
-        map.remove(m5);
-        assertEquals(4, map.size());
-        assertFalse(map.containsKey(m5));
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        map.remove(minusFive);
+        mustEqual(4, map.size());
+        assertFalse(map.containsKey(minusFive));
     }
 
     /**
      * remove(key,value) removes only if pair present
      */
     public void testDescendingRemove2() {
-        ConcurrentNavigableMap map = dmap5();
-        assertTrue(map.containsKey(m5));
-        assertEquals("E", map.get(m5));
-        map.remove(m5, "E");
-        assertEquals(4, map.size());
-        assertFalse(map.containsKey(m5));
-        map.remove(m4, "A");
-        assertEquals(4, map.size());
-        assertTrue(map.containsKey(m4));
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        assertTrue(map.containsKey(minusFive));
+        mustEqual("E", map.get(minusFive));
+        map.remove(minusFive, "E");
+        mustEqual(4, map.size());
+        assertFalse(map.containsKey(minusFive));
+        map.remove(minusFour, "A");
+        mustEqual(4, map.size());
+        assertTrue(map.containsKey(minusFour));
     }
 
     /**
      * lowerEntry returns preceding entry.
      */
     public void testDescendingLowerEntry() {
-        ConcurrentNavigableMap map = dmap5();
-        Map.Entry e1 = map.lowerEntry(m3);
-        assertEquals(m2, e1.getKey());
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        Map.Entry<Item,String> e1 = map.lowerEntry(minusThree);
+        mustEqual(minusTwo, e1.getKey());
 
-        Map.Entry e2 = map.lowerEntry(m6);
-        assertEquals(m5, e2.getKey());
+        Map.Entry<Item,String> e2 = map.lowerEntry(minusSix);
+        mustEqual(minusFive, e2.getKey());
 
-        Map.Entry e3 = map.lowerEntry(m1);
+        Map.Entry<Item,String> e3 = map.lowerEntry(minusOne);
         assertNull(e3);
 
-        Map.Entry e4 = map.lowerEntry(zero);
+        Map.Entry<Item,String> e4 = map.lowerEntry(zero);
         assertNull(e4);
     }
 
@@ -1045,17 +1044,17 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * higherEntry returns next entry.
      */
     public void testDescendingHigherEntry() {
-        ConcurrentNavigableMap map = dmap5();
-        Map.Entry e1 = map.higherEntry(m3);
-        assertEquals(m4, e1.getKey());
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        Map.Entry<Item,String> e1 = map.higherEntry(minusThree);
+        mustEqual(minusFour, e1.getKey());
 
-        Map.Entry e2 = map.higherEntry(zero);
-        assertEquals(m1, e2.getKey());
+        Map.Entry<Item,String> e2 = map.higherEntry(zero);
+        mustEqual(minusOne, e2.getKey());
 
-        Map.Entry e3 = map.higherEntry(m5);
+        Map.Entry<Item,String> e3 = map.higherEntry(minusFive);
         assertNull(e3);
 
-        Map.Entry e4 = map.higherEntry(m6);
+        Map.Entry<Item,String> e4 = map.higherEntry(minusSix);
         assertNull(e4);
     }
 
@@ -1063,17 +1062,17 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * floorEntry returns preceding entry.
      */
     public void testDescendingFloorEntry() {
-        ConcurrentNavigableMap map = dmap5();
-        Map.Entry e1 = map.floorEntry(m3);
-        assertEquals(m3, e1.getKey());
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        Map.Entry<Item,String> e1 = map.floorEntry(minusThree);
+        mustEqual(minusThree, e1.getKey());
 
-        Map.Entry e2 = map.floorEntry(m6);
-        assertEquals(m5, e2.getKey());
+        Map.Entry<Item,String> e2 = map.floorEntry(minusSix);
+        mustEqual(minusFive, e2.getKey());
 
-        Map.Entry e3 = map.floorEntry(m1);
-        assertEquals(m1, e3.getKey());
+        Map.Entry<Item,String> e3 = map.floorEntry(minusOne);
+        mustEqual(minusOne, e3.getKey());
 
-        Map.Entry e4 = map.floorEntry(zero);
+        Map.Entry<Item,String> e4 = map.floorEntry(zero);
         assertNull(e4);
     }
 
@@ -1081,17 +1080,17 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * ceilingEntry returns next entry.
      */
     public void testDescendingCeilingEntry() {
-        ConcurrentNavigableMap map = dmap5();
-        Map.Entry e1 = map.ceilingEntry(m3);
-        assertEquals(m3, e1.getKey());
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        Map.Entry<Item,String> e1 = map.ceilingEntry(minusThree);
+        mustEqual(minusThree, e1.getKey());
 
-        Map.Entry e2 = map.ceilingEntry(zero);
-        assertEquals(m1, e2.getKey());
+        Map.Entry<Item,String> e2 = map.ceilingEntry(zero);
+        mustEqual(minusOne, e2.getKey());
 
-        Map.Entry e3 = map.ceilingEntry(m5);
-        assertEquals(m5, e3.getKey());
+        Map.Entry<Item,String> e3 = map.ceilingEntry(minusFive);
+        mustEqual(minusFive, e3.getKey());
 
-        Map.Entry e4 = map.ceilingEntry(m6);
+        Map.Entry<Item,String> e4 = map.ceilingEntry(minusSix);
         assertNull(e4);
     }
 
@@ -1099,21 +1098,21 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * pollFirstEntry returns entries in order
      */
     public void testDescendingPollFirstEntry() {
-        ConcurrentNavigableMap map = dmap5();
-        Map.Entry e = map.pollFirstEntry();
-        assertEquals(m1, e.getKey());
-        assertEquals("A", e.getValue());
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        Map.Entry<Item,String> e = map.pollFirstEntry();
+        mustEqual(minusOne, e.getKey());
+        mustEqual("A", e.getValue());
         e = map.pollFirstEntry();
-        assertEquals(m2, e.getKey());
-        map.put(m1, "A");
+        mustEqual(minusTwo, e.getKey());
+        map.put(minusOne, "A");
         e = map.pollFirstEntry();
-        assertEquals(m1, e.getKey());
-        assertEquals("A", e.getValue());
+        mustEqual(minusOne, e.getKey());
+        mustEqual("A", e.getValue());
         e = map.pollFirstEntry();
-        assertEquals(m3, e.getKey());
-        map.remove(m4);
+        mustEqual(minusThree, e.getKey());
+        map.remove(minusFour);
         e = map.pollFirstEntry();
-        assertEquals(m5, e.getKey());
+        mustEqual(minusFive, e.getKey());
         try {
             e.setValue("A");
             shouldThrow();
@@ -1126,21 +1125,21 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * pollLastEntry returns entries in order
      */
     public void testDescendingPollLastEntry() {
-        ConcurrentNavigableMap map = dmap5();
-        Map.Entry e = map.pollLastEntry();
-        assertEquals(m5, e.getKey());
-        assertEquals("E", e.getValue());
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        Map.Entry<Item,String> e = map.pollLastEntry();
+        mustEqual(minusFive, e.getKey());
+        mustEqual("E", e.getValue());
         e = map.pollLastEntry();
-        assertEquals(m4, e.getKey());
-        map.put(m5, "E");
+        mustEqual(minusFour, e.getKey());
+        map.put(minusFive, "E");
         e = map.pollLastEntry();
-        assertEquals(m5, e.getKey());
-        assertEquals("E", e.getValue());
+        mustEqual(minusFive, e.getKey());
+        mustEqual("E", e.getValue());
         e = map.pollLastEntry();
-        assertEquals(m3, e.getKey());
-        map.remove(m2);
+        mustEqual(minusThree, e.getKey());
+        map.remove(minusTwo);
         e = map.pollLastEntry();
-        assertEquals(m1, e.getKey());
+        mustEqual(minusOne, e.getKey());
         try {
             e.setValue("E");
             shouldThrow();
@@ -1153,17 +1152,17 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * size returns the correct values
      */
     public void testDescendingSize() {
-        ConcurrentNavigableMap map = dmap5();
-        ConcurrentNavigableMap empty = dmap0();
-        assertEquals(0, empty.size());
-        assertEquals(5, map.size());
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        ConcurrentNavigableMap<Item,String> empty = dmap0();
+        mustEqual(0, empty.size());
+        mustEqual(5, map.size());
     }
 
     /**
      * toString contains toString of elements
      */
     public void testDescendingToString() {
-        ConcurrentNavigableMap map = dmap5();
+        ConcurrentNavigableMap<Item,String> map = dmap5();
         String s = map.toString();
         for (int i = 1; i <= 5; ++i) {
             assertTrue(s.contains(String.valueOf(i)));
@@ -1177,7 +1176,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testDescendingGet_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = dmap5();
+            ConcurrentNavigableMap<Item,String> c = dmap5();
             c.get(null);
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -1188,7 +1187,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testDescendingContainsKey_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = dmap5();
+            ConcurrentNavigableMap<Item,String> c = dmap5();
             c.containsKey(null);
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -1199,7 +1198,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testDescendingContainsValue_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = dmap0();
+            ConcurrentNavigableMap<Item,String> c = dmap0();
             c.containsValue(null);
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -1210,7 +1209,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testDescendingPut1_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = dmap5();
+            ConcurrentNavigableMap<Item,String> c = dmap5();
             c.put(null, "whatever");
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -1221,7 +1220,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testDescendingPutIfAbsent1_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = dmap5();
+            ConcurrentNavigableMap<Item,String> c = dmap5();
             c.putIfAbsent(null, "whatever");
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -1232,7 +1231,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testDescendingReplace_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = dmap5();
+            ConcurrentNavigableMap<Item,String> c = dmap5();
             c.replace(null, "whatever");
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -1243,8 +1242,8 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testDescendingReplaceValue_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = dmap5();
-            c.replace(null, m1, "whatever");
+            ConcurrentNavigableMap<Item,String> c = dmap5();
+            c.replace(null, "A", "B");
             shouldThrow();
         } catch (NullPointerException success) {}
     }
@@ -1254,7 +1253,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testDescendingRemove1_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = dmap5();
+            ConcurrentNavigableMap<Item,String> c = dmap5();
             c.remove(null);
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -1265,7 +1264,7 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      */
     public void testDescendingRemove2_NullPointerException() {
         try {
-            ConcurrentNavigableMap c = dmap5();
+            ConcurrentNavigableMap<Item,String> c = dmap5();
             c.remove(null, "whatever");
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -1275,149 +1274,148 @@ public class ConcurrentSkipListSubMapTest extends JSR166TestCase {
      * A deserialized/reserialized map equals original
      */
     public void testDescendingSerialization() throws Exception {
-        NavigableMap x = dmap5();
-        NavigableMap y = serialClone(x);
+        NavigableMap<Item,String> x = dmap5();
+        NavigableMap<Item,String> y = serialClone(x);
 
         assertNotSame(x, y);
-        assertEquals(x.size(), y.size());
-        assertEquals(x.toString(), y.toString());
-        assertEquals(x, y);
-        assertEquals(y, x);
+        mustEqual(x.size(), y.size());
+        mustEqual(x.toString(), y.toString());
+        mustEqual(x, y);
+        mustEqual(y, x);
     }
 
     /**
      * subMap returns map with keys in requested range
      */
     public void testDescendingSubMapContents() {
-        ConcurrentNavigableMap map = dmap5();
-        SortedMap sm = map.subMap(m2, m4);
-        assertEquals(m2, sm.firstKey());
-        assertEquals(m3, sm.lastKey());
-        assertEquals(2, sm.size());
-        assertFalse(sm.containsKey(m1));
-        assertTrue(sm.containsKey(m2));
-        assertTrue(sm.containsKey(m3));
-        assertFalse(sm.containsKey(m4));
-        assertFalse(sm.containsKey(m5));
-        Iterator i = sm.keySet().iterator();
-        Object k;
-        k = (Integer)(i.next());
-        assertEquals(m2, k);
-        k = (Integer)(i.next());
-        assertEquals(m3, k);
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        SortedMap<Item,String> sm = map.subMap(minusTwo, minusFour);
+        mustEqual(minusTwo, sm.firstKey());
+        mustEqual(minusThree, sm.lastKey());
+        mustEqual(2, sm.size());
+        assertFalse(sm.containsKey(minusOne));
+        assertTrue(sm.containsKey(minusTwo));
+        assertTrue(sm.containsKey(minusThree));
+        assertFalse(sm.containsKey(minusFour));
+        assertFalse(sm.containsKey(minusFive));
+        Iterator<? extends Item> i = sm.keySet().iterator();
+        Item k;
+        k = (Item)(i.next());
+        mustEqual(minusTwo, k);
+        k = (Item)(i.next());
+        mustEqual(minusThree, k);
         assertFalse(i.hasNext());
-        Iterator j = sm.keySet().iterator();
+        Iterator<? extends Item> j = sm.keySet().iterator();
         j.next();
         j.remove();
-        assertFalse(map.containsKey(m2));
-        assertEquals(4, map.size());
-        assertEquals(1, sm.size());
-        assertEquals(m3, sm.firstKey());
-        assertEquals(m3, sm.lastKey());
-        assertEquals("C", sm.remove(m3));
+        assertFalse(map.containsKey(minusTwo));
+        mustEqual(4, map.size());
+        mustEqual(1, sm.size());
+        mustEqual(minusThree, sm.firstKey());
+        mustEqual(minusThree, sm.lastKey());
+        mustEqual("C", sm.remove(minusThree));
         assertTrue(sm.isEmpty());
-        assertEquals(3, map.size());
+        mustEqual(3, map.size());
     }
 
     public void testDescendingSubMapContents2() {
-        ConcurrentNavigableMap map = dmap5();
-        SortedMap sm = map.subMap(m2, m3);
-        assertEquals(1, sm.size());
-        assertEquals(m2, sm.firstKey());
-        assertEquals(m2, sm.lastKey());
-        assertFalse(sm.containsKey(m1));
-        assertTrue(sm.containsKey(m2));
-        assertFalse(sm.containsKey(m3));
-        assertFalse(sm.containsKey(m4));
-        assertFalse(sm.containsKey(m5));
-        Iterator i = sm.keySet().iterator();
-        Object k;
-        k = (Integer)(i.next());
-        assertEquals(m2, k);
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        SortedMap<Item,String> sm = map.subMap(minusTwo, minusThree);
+        mustEqual(1, sm.size());
+        mustEqual(minusTwo, sm.firstKey());
+        mustEqual(minusTwo, sm.lastKey());
+        assertFalse(sm.containsKey(minusOne));
+        assertTrue(sm.containsKey(minusTwo));
+        assertFalse(sm.containsKey(minusThree));
+        assertFalse(sm.containsKey(minusFour));
+        assertFalse(sm.containsKey(minusFive));
+        Iterator<? extends Item> i = sm.keySet().iterator();
+        Item k;
+        k = (Item)(i.next());
+        mustEqual(minusTwo, k);
         assertFalse(i.hasNext());
-        Iterator j = sm.keySet().iterator();
+        Iterator<? extends Item> j = sm.keySet().iterator();
         j.next();
         j.remove();
-        assertFalse(map.containsKey(m2));
-        assertEquals(4, map.size());
-        assertEquals(0, sm.size());
+        assertFalse(map.containsKey(minusTwo));
+        mustEqual(4, map.size());
+        mustEqual(0, sm.size());
         assertTrue(sm.isEmpty());
-        assertSame(sm.remove(m3), null);
-        assertEquals(4, map.size());
+        assertSame(sm.remove(minusThree), null);
+        mustEqual(4, map.size());
     }
 
     /**
      * headMap returns map with keys in requested range
      */
     public void testDescendingHeadMapContents() {
-        ConcurrentNavigableMap map = dmap5();
-        SortedMap sm = map.headMap(m4);
-        assertTrue(sm.containsKey(m1));
-        assertTrue(sm.containsKey(m2));
-        assertTrue(sm.containsKey(m3));
-        assertFalse(sm.containsKey(m4));
-        assertFalse(sm.containsKey(m5));
-        Iterator i = sm.keySet().iterator();
-        Object k;
-        k = (Integer)(i.next());
-        assertEquals(m1, k);
-        k = (Integer)(i.next());
-        assertEquals(m2, k);
-        k = (Integer)(i.next());
-        assertEquals(m3, k);
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        SortedMap<Item,String> sm = map.headMap(minusFour);
+        assertTrue(sm.containsKey(minusOne));
+        assertTrue(sm.containsKey(minusTwo));
+        assertTrue(sm.containsKey(minusThree));
+        assertFalse(sm.containsKey(minusFour));
+        assertFalse(sm.containsKey(minusFive));
+        Iterator<? extends Item> i = sm.keySet().iterator();
+        Item k;
+        k = (Item)(i.next());
+        mustEqual(minusOne, k);
+        k = (Item)(i.next());
+        mustEqual(minusTwo, k);
+        k = (Item)(i.next());
+        mustEqual(minusThree, k);
         assertFalse(i.hasNext());
         sm.clear();
         assertTrue(sm.isEmpty());
-        assertEquals(2, map.size());
-        assertEquals(m4, map.firstKey());
+        mustEqual(2, map.size());
+        mustEqual(minusFour, map.firstKey());
     }
 
     /**
      * headMap returns map with keys in requested range
      */
     public void testDescendingTailMapContents() {
-        ConcurrentNavigableMap map = dmap5();
-        SortedMap sm = map.tailMap(m2);
-        assertFalse(sm.containsKey(m1));
-        assertTrue(sm.containsKey(m2));
-        assertTrue(sm.containsKey(m3));
-        assertTrue(sm.containsKey(m4));
-        assertTrue(sm.containsKey(m5));
-        Iterator i = sm.keySet().iterator();
-        Object k;
-        k = (Integer)(i.next());
-        assertEquals(m2, k);
-        k = (Integer)(i.next());
-        assertEquals(m3, k);
-        k = (Integer)(i.next());
-        assertEquals(m4, k);
-        k = (Integer)(i.next());
-        assertEquals(m5, k);
+        ConcurrentNavigableMap<Item,String> map = dmap5();
+        SortedMap<Item,String> sm = map.tailMap(minusTwo);
+        assertFalse(sm.containsKey(minusOne));
+        assertTrue(sm.containsKey(minusTwo));
+        assertTrue(sm.containsKey(minusThree));
+        assertTrue(sm.containsKey(minusFour));
+        assertTrue(sm.containsKey(minusFive));
+        Iterator<? extends Item> i = sm.keySet().iterator();
+        Item k = i.next();
+        mustEqual(minusTwo, k);
+        k = (i.next());
+        mustEqual(minusThree, k);
+        k = (i.next());
+        mustEqual(minusFour, k);
+        k = (i.next());
+        mustEqual(minusFive, k);
         assertFalse(i.hasNext());
 
-        Iterator ei = sm.entrySet().iterator();
-        Map.Entry e;
-        e = (Map.Entry)(ei.next());
-        assertEquals(m2, e.getKey());
-        assertEquals("B", e.getValue());
-        e = (Map.Entry)(ei.next());
-        assertEquals(m3, e.getKey());
-        assertEquals("C", e.getValue());
-        e = (Map.Entry)(ei.next());
-        assertEquals(m4, e.getKey());
-        assertEquals("D", e.getValue());
-        e = (Map.Entry)(ei.next());
-        assertEquals(m5, e.getKey());
-        assertEquals("E", e.getValue());
+        Iterator<Map.Entry<Item,String>> ei = sm.entrySet().iterator();
+        Map.Entry<Item,String> e;
+        e = (ei.next());
+        mustEqual(minusTwo, e.getKey());
+        mustEqual("B", e.getValue());
+        e = (ei.next());
+        mustEqual(minusThree, e.getKey());
+        mustEqual("C", e.getValue());
+        e = (ei.next());
+        mustEqual(minusFour, e.getKey());
+        mustEqual("D", e.getValue());
+        e = (ei.next());
+        mustEqual(minusFive, e.getKey());
+        mustEqual("E", e.getValue());
         assertFalse(i.hasNext());
 
-        SortedMap ssm = sm.tailMap(m4);
-        assertEquals(m4, ssm.firstKey());
-        assertEquals(m5, ssm.lastKey());
-        assertEquals("D", ssm.remove(m4));
-        assertEquals(1, ssm.size());
-        assertEquals(3, sm.size());
-        assertEquals(4, map.size());
+        SortedMap<Item,String> ssm = sm.tailMap(minusFour);
+        mustEqual(minusFour, ssm.firstKey());
+        mustEqual(minusFive, ssm.lastKey());
+        mustEqual("D", ssm.remove(minusFour));
+        mustEqual(1, ssm.size());
+        mustEqual(3, sm.size());
+        mustEqual(4, map.size());
     }
 
 }

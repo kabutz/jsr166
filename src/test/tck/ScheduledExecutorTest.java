@@ -66,13 +66,13 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         try (PoolCleaner cleaner = cleaner(p)) {
             final long startTime = System.nanoTime();
             final CountDownLatch done = new CountDownLatch(1);
-            Callable task = new CheckedCallable<Boolean>() {
+            Callable<Boolean> task = new CheckedCallable<Boolean>() {
                 public Boolean realCall() {
                     done.countDown();
                     assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
                     return Boolean.TRUE;
                 }};
-            Future f = p.schedule(task, timeoutMillis(), MILLISECONDS);
+            Future<Boolean> f = p.schedule(task, timeoutMillis(), MILLISECONDS);
             assertSame(Boolean.TRUE, f.get());
             assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
             assertEquals(0L, done.getCount());
@@ -92,7 +92,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     done.countDown();
                     assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
                 }};
-            Future f = p.schedule(task, timeoutMillis(), MILLISECONDS);
+            Future<?> f = p.schedule(task, timeoutMillis(), MILLISECONDS);
             await(done);
             assertNull(f.get(LONG_DELAY_MS, MILLISECONDS));
             assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
@@ -112,7 +112,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     done.countDown();
                     assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
                 }};
-            ScheduledFuture f =
+            ScheduledFuture<?> f =
                 p.scheduleAtFixedRate(task, timeoutMillis(),
                                       LONG_DELAY_MS, MILLISECONDS);
             await(done);
@@ -134,7 +134,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     done.countDown();
                     assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
                 }};
-            ScheduledFuture f =
+            ScheduledFuture<?> f =
                 p.scheduleWithFixedDelay(task, timeoutMillis(),
                                          LONG_DELAY_MS, MILLISECONDS);
             await(done);
@@ -162,7 +162,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                 final CountDownLatch done = new CountDownLatch(cycles);
                 final Runnable task = new CheckedRunnable() {
                     public void realRun() { done.countDown(); }};
-                final ScheduledFuture periodicTask =
+                final ScheduledFuture<?> periodicTask =
                     p.scheduleAtFixedRate(task, 0, delay, MILLISECONDS);
                 final int totalDelayMillis = (cycles - 1) * delay;
                 await(done, totalDelayMillis + LONG_DELAY_MS);
@@ -208,7 +208,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                         previous.set(now);
                         done.countDown();
                     }};
-                final ScheduledFuture periodicTask =
+                final ScheduledFuture<?> periodicTask =
                     p.scheduleWithFixedDelay(task, 0, delay, MILLISECONDS);
                 final int totalDelayMillis = (cycles - 1) * delay;
                 await(done, totalDelayMillis + cycles * LONG_DELAY_MS);
@@ -549,7 +549,8 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         final ScheduledThreadPoolExecutor p = new ScheduledThreadPoolExecutor(1);
         try (PoolCleaner cleaner = cleaner(p, done)) {
             final CountDownLatch threadStarted = new CountDownLatch(1);
-            ScheduledFuture[] tasks = new ScheduledFuture[5];
+            @SuppressWarnings("unchecked")
+            ScheduledFuture<?>[] tasks = (ScheduledFuture<?>[])new ScheduledFuture[5];
             for (int i = 0; i < tasks.length; i++) {
                 Runnable r = new CheckedRunnable() {
                     public void realRun() throws InterruptedException {
@@ -572,7 +573,8 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         final CountDownLatch done = new CountDownLatch(1);
         final ScheduledThreadPoolExecutor p = new ScheduledThreadPoolExecutor(1);
         try (PoolCleaner cleaner = cleaner(p, done)) {
-            ScheduledFuture[] tasks = new ScheduledFuture[5];
+            @SuppressWarnings("unchecked")
+            ScheduledFuture<?>[] tasks = (ScheduledFuture<?>[])new ScheduledFuture[5];
             final CountDownLatch threadStarted = new CountDownLatch(1);
             for (int i = 0; i < tasks.length; i++) {
                 Runnable r = new CheckedRunnable() {
@@ -600,9 +602,10 @@ public class ScheduledExecutorTest extends JSR166TestCase {
      * purge eventually removes cancelled tasks from the queue
      */
     public void testPurge() throws InterruptedException {
-        final ScheduledFuture[] tasks = new ScheduledFuture[5];
+        @SuppressWarnings("unchecked")
+        ScheduledFuture<?>[] tasks = (ScheduledFuture<?>[])new ScheduledFuture[5];
         final Runnable releaser = new Runnable() { public void run() {
-            for (ScheduledFuture task : tasks)
+            for (ScheduledFuture<?> task : tasks)
                 if (task != null) task.cancel(true); }};
         final ScheduledThreadPoolExecutor p = new ScheduledThreadPoolExecutor(1);
         try (PoolCleaner cleaner = cleaner(p, releaser)) {
@@ -669,7 +672,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
      */
     public void testShutdownNow_delayedTasks() throws InterruptedException {
         final ScheduledThreadPoolExecutor p = new ScheduledThreadPoolExecutor(1);
-        List<ScheduledFuture> tasks = new ArrayList<>();
+        List<ScheduledFuture<?>> tasks = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             Runnable r = new NoOpRunnable();
             tasks.add(p.schedule(r, 9, SECONDS));
@@ -677,7 +680,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
             tasks.add(p.scheduleWithFixedDelay(r, 9, 9, SECONDS));
         }
         if (testImplementationDetails)
-            assertEquals(new HashSet(tasks), new HashSet(p.getQueue()));
+            assertEquals(new HashSet<Object>(tasks), new HashSet<Object>(p.getQueue()));
         final List<Runnable> queuedTasks;
         try {
             queuedTasks = p.shutdownNow();
@@ -687,9 +690,9 @@ public class ScheduledExecutorTest extends JSR166TestCase {
         assertTrue(p.isShutdown());
         assertTrue(p.getQueue().isEmpty());
         if (testImplementationDetails)
-            assertEquals(new HashSet(tasks), new HashSet(queuedTasks));
+            assertEquals(new HashSet<Object>(tasks), new HashSet<Object>(queuedTasks));
         assertEquals(tasks.size(), queuedTasks.size());
-        for (ScheduledFuture task : tasks) {
+        for (ScheduledFuture<?> task : tasks) {
             assertFalse(task.isDone());
             assertFalse(task.isCancelled());
         }
@@ -1288,7 +1291,7 @@ public class ScheduledExecutorTest extends JSR166TestCase {
                     p.invokeAll(tasks, timeout, MILLISECONDS);
                 assertEquals(tasks.size(), futures.size());
                 assertTrue(millisElapsedSince(startTime) >= timeout);
-                for (Future future : futures)
+                for (Future<?> future : futures)
                     assertTrue(future.isDone());
                 assertTrue(futures.get(1).isCancelled());
                 try {

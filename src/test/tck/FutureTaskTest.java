@@ -90,7 +90,7 @@ public class FutureTaskTest extends JSR166TestCase {
     void checkIsRunning(Future<?> f) {
         checkNotDone(f);
         if (f instanceof FutureTask) {
-            FutureTask ft = (FutureTask<?>) f;
+            FutureTask<?> ft = (FutureTask<?>) f;
             // Check that run methods do nothing
             ft.run();
             if (f instanceof PublicFutureTask) {
@@ -164,7 +164,7 @@ public class FutureTaskTest extends JSR166TestCase {
     /**
      * Subclass to expose protected methods
      */
-    static class PublicFutureTask extends FutureTask {
+    static class PublicFutureTask extends FutureTask<Object> {
         private final AtomicInteger runCount;
         private final AtomicInteger doneCount = new AtomicInteger(0);
         private final AtomicInteger runAndResetCount = new AtomicInteger(0);
@@ -191,12 +191,12 @@ public class FutureTaskTest extends JSR166TestCase {
                 }}, result);
             this.runCount = runCount;
         }
-        PublicFutureTask(Callable callable) {
+        PublicFutureTask(Callable<?> callable) {
             this(callable, new AtomicInteger(0));
         }
-        private PublicFutureTask(final Callable callable,
+        private PublicFutureTask(final Callable<?> callable,
                                  final AtomicInteger runCount) {
-            super(new Callable() {
+            super(new Callable<Object>() {
                 public Object call() throws Exception {
                     runCount.getAndIncrement();
                     return callable.call();
@@ -235,7 +235,7 @@ public class FutureTaskTest extends JSR166TestCase {
      */
     public void testConstructor() {
         try {
-            new FutureTask(null);
+            new FutureTask<Void>(null);
             shouldThrow();
         } catch (NullPointerException success) {}
     }
@@ -245,7 +245,7 @@ public class FutureTaskTest extends JSR166TestCase {
      */
     public void testConstructor2() {
         try {
-            new FutureTask(null, Boolean.TRUE);
+            new FutureTask<Boolean>(null, Boolean.TRUE);
             shouldThrow();
         } catch (NullPointerException success) {}
     }
@@ -677,7 +677,7 @@ public class FutureTaskTest extends JSR166TestCase {
      */
     public void testGet_ExecutionException() throws InterruptedException {
         final ArithmeticException e = new ArithmeticException();
-        final PublicFutureTask task = new PublicFutureTask(new Callable() {
+        final PublicFutureTask task = new PublicFutureTask(new Callable<Object>() {
             public Object call() {
                 throw e;
             }});
@@ -701,7 +701,7 @@ public class FutureTaskTest extends JSR166TestCase {
      */
     public void testTimedGet_ExecutionException2() throws Exception {
         final ArithmeticException e = new ArithmeticException();
-        final PublicFutureTask task = new PublicFutureTask(new Callable() {
+        final PublicFutureTask task = new PublicFutureTask(new Callable<Object>() {
             public Object call() {
                 throw e;
             }});
@@ -722,7 +722,7 @@ public class FutureTaskTest extends JSR166TestCase {
      */
     public void testGet_Interruptible() {
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
-        final FutureTask task = new FutureTask(new NoOpCallable());
+        final FutureTask<Object> task = new FutureTask<Object>(new NoOpCallable());
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws Exception {
                 Thread.currentThread().interrupt();
@@ -751,7 +751,7 @@ public class FutureTaskTest extends JSR166TestCase {
      */
     public void testTimedGet_Interruptible() {
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
-        final FutureTask task = new FutureTask(new NoOpCallable());
+        final FutureTask<Object> task = new FutureTask<Object>(new NoOpCallable());
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws Exception {
                 Thread.currentThread().interrupt();
@@ -780,7 +780,7 @@ public class FutureTaskTest extends JSR166TestCase {
      * A timed out timed get throws TimeoutException
      */
     public void testGet_TimeoutException() throws Exception {
-        FutureTask task = new FutureTask(new NoOpCallable());
+        FutureTask<Object> task = new FutureTask<Object>(new NoOpCallable());
         long startTime = System.nanoTime();
         try {
             task.get(timeoutMillis(), MILLISECONDS);
@@ -794,7 +794,7 @@ public class FutureTaskTest extends JSR166TestCase {
      * timed get with null TimeUnit throws NullPointerException
      */
     public void testGet_NullTimeUnit() throws Exception {
-        FutureTask task = new FutureTask(new NoOpCallable());
+        FutureTask<Object> task = new FutureTask<Object>(new NoOpCallable());
         long[] timeouts = { Long.MIN_VALUE, 0L, Long.MAX_VALUE };
 
         for (long timeout : timeouts) {

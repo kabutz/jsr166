@@ -59,13 +59,13 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * checkInvoke.
      */
 
-    private void checkInvoke(ForkJoinTask a) {
+    private void checkInvoke(ForkJoinTask<?> a) {
         checkNotDone(a);
         assertNull(a.invoke());
         checkCompletedNormally(a);
     }
 
-    void checkNotDone(ForkJoinTask a) {
+    void checkNotDone(ForkJoinTask<?> a) {
         assertFalse(a.isDone());
         assertFalse(a.isCompletedNormally());
         assertFalse(a.isCompletedAbnormally());
@@ -96,7 +96,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
         } catch (Throwable fail) { threadUnexpectedException(fail); }
     }
 
-    void checkCompletedNormally(ForkJoinTask a) {
+    void checkCompletedNormally(ForkJoinTask<?> a) {
         assertTrue(a.isDone());
         assertFalse(a.isCancelled());
         assertTrue(a.isCompletedNormally());
@@ -116,7 +116,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
         assertNull(v2);
     }
 
-    void checkCancelled(ForkJoinTask a) {
+    void checkCancelled(ForkJoinTask<?> a) {
         assertTrue(a.isDone());
         assertTrue(a.isCancelled());
         assertFalse(a.isCompletedNormally());
@@ -143,7 +143,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
         } catch (Throwable fail) { threadUnexpectedException(fail); }
     }
 
-    void checkCompletedAbnormally(ForkJoinTask a, Throwable t) {
+    void checkCompletedAbnormally(ForkJoinTask<?> a, Throwable t) {
         assertTrue(a.isDone());
         assertFalse(a.isCancelled());
         assertFalse(a.isCompletedNormally());
@@ -739,7 +739,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
                 FibAction f = new FibAction(8);
                 FibAction g = new FibAction(9);
                 FibAction h = new FibAction(7);
-                HashSet set = new HashSet();
+                HashSet<ForkJoinTask<?>> set = new HashSet<ForkJoinTask<?>>();
                 set.add(f);
                 set.add(g);
                 set.add(h);
@@ -837,7 +837,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
                 FailingFibAction f = new FailingFibAction(8);
                 FibAction g = new FibAction(9);
                 FibAction h = new FibAction(7);
-                HashSet set = new HashSet();
+                HashSet<ForkJoinTask<?>> set = new HashSet<ForkJoinTask<?>>();
                 set.add(f);
                 set.add(g);
                 set.add(h);
@@ -853,17 +853,17 @@ public class ForkJoinPool8Test extends JSR166TestCase {
 
     // CountedCompleter versions
 
-    abstract static class CCF extends CountedCompleter {
+    abstract static class CCF extends CountedCompleter<Void> {
         int number;
         int rnumber;
 
-        public CCF(CountedCompleter parent, int n) {
+        public CCF(CountedCompleter<?> parent, int n) {
             super(parent, 1);
             this.number = n;
         }
 
         public final void compute() {
-            CountedCompleter p;
+            CountedCompleter<?> p;
             CCF f = this;
             int n = number;
             while (n >= 2) {
@@ -880,10 +880,10 @@ public class ForkJoinPool8Test extends JSR166TestCase {
     }
 
     static final class LCCF extends CCF {
-        public LCCF(CountedCompleter parent, int n) {
+        public LCCF(CountedCompleter<?> parent, int n) {
             super(parent, n);
         }
-        public final void onCompletion(CountedCompleter caller) {
+        public final void onCompletion(CountedCompleter<?> caller) {
             CCF p = (CCF)getCompleter();
             int n = number + rnumber;
             if (p != null)
@@ -896,7 +896,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
         public RCCF(CountedCompleter parent, int n) {
             super(parent, n);
         }
-        public final void onCompletion(CountedCompleter caller) {
+        public final void onCompletion(CountedCompleter<?> caller) {
             CCF p = (CCF)getCompleter();
             int n = number + rnumber;
             if (p != null)
@@ -907,17 +907,17 @@ public class ForkJoinPool8Test extends JSR166TestCase {
     }
 
     /** Version of CCF with forced failure in left completions. */
-    abstract static class FailingCCF extends CountedCompleter {
+    abstract static class FailingCCF extends CountedCompleter<Void> {
         int number;
         int rnumber;
 
-        public FailingCCF(CountedCompleter parent, int n) {
+        public FailingCCF(CountedCompleter<?> parent, int n) {
             super(parent, 1);
             this.number = n;
         }
 
         public final void compute() {
-            CountedCompleter p;
+            CountedCompleter<?> p;
             FailingCCF f = this;
             int n = number;
             while (n >= 2) {
@@ -934,10 +934,10 @@ public class ForkJoinPool8Test extends JSR166TestCase {
     }
 
     static final class LFCCF extends FailingCCF {
-        public LFCCF(CountedCompleter parent, int n) {
+        public LFCCF(CountedCompleter<?> parent, int n) {
             super(parent, n);
         }
-        public final void onCompletion(CountedCompleter caller) {
+        public final void onCompletion(CountedCompleter<?> caller) {
             FailingCCF p = (FailingCCF)getCompleter();
             int n = number + rnumber;
             if (p != null)
@@ -947,10 +947,10 @@ public class ForkJoinPool8Test extends JSR166TestCase {
         }
     }
     static final class RFCCF extends FailingCCF {
-        public RFCCF(CountedCompleter parent, int n) {
+        public RFCCF(CountedCompleter<?> parent, int n) {
             super(parent, n);
         }
-        public final void onCompletion(CountedCompleter caller) {
+        public final void onCompletion(CountedCompleter<?> caller) {
             completeExceptionally(new FJException());
         }
     }
@@ -961,7 +961,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * completed tasks; getRawResult returns null.
      */
     public void testInvokeCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 CCF f = new LCCF(null, 8);
                 assertNull(f.invoke());
@@ -977,7 +977,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * completed tasks
      */
     public void testQuietlyInvokeCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 CCF f = new LCCF(null, 8);
                 f.quietlyInvoke();
@@ -991,7 +991,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * join of a forked task returns when task completes
      */
     public void testForkJoinCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 CCF f = new LCCF(null, 8);
                 assertSame(f, f.fork());
@@ -1006,7 +1006,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * get of a forked task returns when task completes
      */
     public void testForkGetCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() throws Exception {
                 CCF f = new LCCF(null, 8);
                 assertSame(f, f.fork());
@@ -1021,7 +1021,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * timed get of a forked task returns when task completes
      */
     public void testForkTimedGetCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() throws Exception {
                 CCF f = new LCCF(null, 8);
                 assertSame(f, f.fork());
@@ -1036,7 +1036,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * timed get with null time unit throws NPE
      */
     public void testForkTimedGetNPECC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() throws Exception {
                 CCF f = new LCCF(null, 8);
                 assertSame(f, f.fork());
@@ -1052,7 +1052,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * quietlyJoin of a forked task returns when task completes
      */
     public void testForkQuietlyJoinCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 CCF f = new LCCF(null, 8);
                 assertSame(f, f.fork());
@@ -1067,7 +1067,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * invoke task throws exception when task completes abnormally
      */
     public void testAbnormalInvokeCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 FailingCCF f = new LFCCF(null, 8);
                 try {
@@ -1084,7 +1084,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * quietlyInvoke task returns when task completes abnormally
      */
     public void testAbnormalQuietlyInvokeCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 FailingCCF f = new LFCCF(null, 8);
                 f.quietlyInvoke();
@@ -1098,7 +1098,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * join of a forked task throws exception when task completes abnormally
      */
     public void testAbnormalForkJoinCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 FailingCCF f = new LFCCF(null, 8);
                 assertSame(f, f.fork());
@@ -1116,7 +1116,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * get of a forked task throws exception when task completes abnormally
      */
     public void testAbnormalForkGetCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() throws Exception {
                 FailingCCF f = new LFCCF(null, 8);
                 assertSame(f, f.fork());
@@ -1136,7 +1136,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * timed get of a forked task throws exception when task completes abnormally
      */
     public void testAbnormalForkTimedGetCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() throws Exception {
                 FailingCCF f = new LFCCF(null, 8);
                 assertSame(f, f.fork());
@@ -1156,7 +1156,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * quietlyJoin of a forked task returns when task completes abnormally
      */
     public void testAbnormalForkQuietlyJoinCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 FailingCCF f = new LFCCF(null, 8);
                 assertSame(f, f.fork());
@@ -1171,7 +1171,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * invoke task throws exception when task cancelled
      */
     public void testCancelledInvokeCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 CCF f = new LCCF(null, 8);
                 assertTrue(f.cancel(true));
@@ -1189,7 +1189,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * join of a forked task throws exception when task cancelled
      */
     public void testCancelledForkJoinCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 CCF f = new LCCF(null, 8);
                 assertTrue(f.cancel(true));
@@ -1208,7 +1208,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * get of a forked task throws exception when task cancelled
      */
     public void testCancelledForkGetCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() throws Exception {
                 CCF f = new LCCF(null, 8);
                 assertTrue(f.cancel(true));
@@ -1227,7 +1227,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * timed get of a forked task throws exception when task cancelled
      */
     public void testCancelledForkTimedGetCC() throws Exception {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() throws Exception {
                 CCF f = new LCCF(null, 8);
                 assertTrue(f.cancel(true));
@@ -1246,7 +1246,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * quietlyJoin of a forked task returns when task cancelled
      */
     public void testCancelledForkQuietlyJoinCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 CCF f = new LCCF(null, 8);
                 assertTrue(f.cancel(true));
@@ -1261,7 +1261,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * getPool of non-FJ task returns null
      */
     public void testGetPool2CC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 assertNull(getPool());
             }};
@@ -1272,7 +1272,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * inForkJoinPool of non-FJ task returns false
      */
     public void testInForkJoinPool2CC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 assertFalse(inForkJoinPool());
             }};
@@ -1283,7 +1283,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * setRawResult(null) succeeds
      */
     public void testSetRawResultCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 setRawResult(null);
                 assertNull(getRawResult());
@@ -1295,7 +1295,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * invoke task throws exception after invoking completeExceptionally
      */
     public void testCompleteExceptionally2CC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 CCF f = new LCCF(null, 8);
                 f.completeExceptionally(new FJException());
@@ -1313,7 +1313,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * invokeAll(t1, t2) invokes all task arguments
      */
     public void testInvokeAll2CC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 CCF f = new LCCF(null, 8);
                 CCF g = new LCCF(null, 9);
@@ -1330,7 +1330,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * invokeAll(tasks) with 1 argument invokes task
      */
     public void testInvokeAll1CC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 CCF f = new LCCF(null, 8);
                 invokeAll(f);
@@ -1344,7 +1344,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * invokeAll(tasks) with > 2 argument invokes tasks
      */
     public void testInvokeAll3CC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 CCF f = new LCCF(null, 8);
                 CCF g = new LCCF(null, 9);
@@ -1364,12 +1364,12 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * invokeAll(collection) invokes all tasks in the collection
      */
     public void testInvokeAllCollectionCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 CCF f = new LCCF(null, 8);
                 CCF g = new LCCF(null, 9);
                 CCF h = new LCCF(null, 7);
-                HashSet set = new HashSet();
+                HashSet<ForkJoinTask<?>> set = new HashSet<ForkJoinTask<?>>();
                 set.add(f);
                 set.add(g);
                 set.add(h);
@@ -1388,7 +1388,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * invokeAll(tasks) with any null task throws NPE
      */
     public void testInvokeAllNPECC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 CCF f = new LCCF(null, 8);
                 CCF g = new LCCF(null, 9);
@@ -1405,7 +1405,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * invokeAll(t1, t2) throw exception if any task does
      */
     public void testAbnormalInvokeAll2CC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 CCF f = new LCCF(null, 8);
                 FailingCCF g = new LFCCF(null, 9);
@@ -1423,7 +1423,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * invokeAll(tasks) with 1 argument throws exception if task does
      */
     public void testAbnormalInvokeAll1CC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 FailingCCF g = new LFCCF(null, 9);
                 try {
@@ -1440,7 +1440,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * invokeAll(tasks) with > 2 argument throws exception if any task does
      */
     public void testAbnormalInvokeAll3CC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 CCF f = new LCCF(null, 8);
                 FailingCCF g = new LFCCF(null, 9);
@@ -1459,12 +1459,12 @@ public class ForkJoinPool8Test extends JSR166TestCase {
      * invokeAll(collection) throws exception if any task does
      */
     public void testAbnormalInvokeAllCollectionCC() {
-        ForkJoinTask a = new CheckedRecursiveAction() {
+        CheckedRecursiveAction a = new CheckedRecursiveAction() {
             protected void realCompute() {
                 FailingCCF f = new LFCCF(null, 8);
                 CCF g = new LCCF(null, 9);
                 CCF h = new LCCF(null, 7);
-                HashSet set = new HashSet();
+                HashSet<ForkJoinTask<?>> set = new HashSet<ForkJoinTask<?>>();
                 set.add(f);
                 set.add(g);
                 set.add(h);
@@ -1487,7 +1487,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
         try (PoolCleaner cleaner = cleaner(p)) {
             final long startTime = System.nanoTime();
             assertTrue(p.isQuiescent());
-            ForkJoinTask a = new CheckedRecursiveAction() {
+            CheckedRecursiveAction a = new CheckedRecursiveAction() {
                 protected void realCompute() {
                     FibAction f = new FibAction(8);
                     assertSame(f, f.fork());
@@ -1546,7 +1546,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
         try (PoolCleaner cleaner = cleaner(p)) {
             assertTrue(p.isQuiescent());
             final long startTime = System.nanoTime();
-            ForkJoinTask a = new CheckedRecursiveAction() {
+            CheckedRecursiveAction a = new CheckedRecursiveAction() {
                 protected void realCompute() {
                     FibAction f = new FibAction(8);
                     assertSame(f, f.fork());
