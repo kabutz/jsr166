@@ -181,7 +181,7 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
     public void testInterruptedSubmit() throws InterruptedException {
         final CountDownLatch submitted    = new CountDownLatch(1);
         final CountDownLatch quittingTime = new CountDownLatch(1);
-        final Callable<Void> awaiter = new CheckedCallable<Void>() {
+        final Callable<Void> awaiter = new CheckedCallable<>() {
             public Void realCall() throws InterruptedException {
                 assertTrue(quittingTime.await(2*LONG_DELAY_MS, MILLISECONDS));
                 return null;
@@ -213,7 +213,7 @@ public class AbstractExecutorServiceTest extends JSR166TestCase {
                                    60, TimeUnit.SECONDS,
                                    new ArrayBlockingQueue<Runnable>(10));
         try (PoolCleaner cleaner = cleaner(p)) {
-            Callable<Object> c = new Callable<Object>() {
+            Callable<Object> c = new Callable<>() {
                 public Object call() { throw new ArithmeticException(); }};
             try {
                 p.submit(c).get();

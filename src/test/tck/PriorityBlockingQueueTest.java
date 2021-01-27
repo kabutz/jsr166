@@ -88,8 +88,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      * Items 0 ... n - 1.
      */
     private static PriorityBlockingQueue<Item> populatedQueue(int n) {
-        PriorityBlockingQueue<Item> q =
-            new PriorityBlockingQueue<Item>(n);
+        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<>(n);
         assertTrue(q.isEmpty());
         for (int i = n - 1; i >= 0; i -= 2)
             mustOffer(q, i);
@@ -158,7 +157,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      */
     public void testConstructor6() {
         Item[] items = defaultItems;
-        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<Item>(Arrays.asList(items));
+        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<>(Arrays.asList(items));
         for (int i = 0; i < SIZE; ++i)
             mustEqual(items[i], q.poll());
     }
@@ -169,7 +168,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
     public void testConstructor7() {
         MyReverseComparator cmp = new MyReverseComparator();
         @SuppressWarnings("unchecked")
-        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<Item>(SIZE, cmp);
+        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<>(SIZE, cmp);
         mustEqual(cmp, q.comparator());
         Item[] items = defaultItems;
         q.addAll(Arrays.asList(items));
@@ -181,7 +180,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      * isEmpty is true before add, false after
      */
     public void testEmpty() {
-        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<Item>(2);
+        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<>(2);
         assertTrue(q.isEmpty());
         mustEqual(Integer.MAX_VALUE, q.remainingCapacity());
         q.add(one);
@@ -213,7 +212,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      * Offer of comparable element succeeds
      */
     public void testOffer() {
-        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<Item>(1);
+        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<>(1);
         assertTrue(q.offer(zero));
         assertTrue(q.offer(one));
     }
@@ -222,7 +221,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      * Offer of non-Comparable throws CCE
      */
     public void testOfferNonComparable() {
-        PriorityBlockingQueue<Object> q = new PriorityBlockingQueue<Object>(1);
+        PriorityBlockingQueue<Object> q = new PriorityBlockingQueue<>(1);
         try {
             q.offer(new Object());
             shouldThrow();
@@ -237,7 +236,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      * add of comparable succeeds
      */
     public void testAdd() {
-        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<Item>(SIZE);
+        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<>(SIZE);
         for (int i = 0; i < SIZE; ++i) {
             mustEqual(i, q.size());
             mustAdd(q, i);
@@ -260,7 +259,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      * possibly adding some elements
      */
     public void testAddAll3() {
-        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<Item>(SIZE);
+        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<>(SIZE);
         Item[] items = new Item[2];
         items[0] = zero;
         try {
@@ -275,7 +274,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
     public void testAddAll5() {
         Item[] empty = new Item[0];
         Item[] items = defaultItems;
-        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<Item>(SIZE);
+        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<>(SIZE);
         assertFalse(q.addAll(Arrays.asList(empty)));
         assertTrue(q.addAll(Arrays.asList(items)));
         for (int i = 0; i < SIZE; ++i)
@@ -286,7 +285,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      * all elements successfully put are contained
      */
     public void testPut() {
-        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<Item>(SIZE);
+        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<>(SIZE);
         for (int i = 0; i < SIZE; ++i) {
             Item x = itemFor(i);
             q.put(x);
@@ -299,7 +298,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      * put doesn't block waiting for take
      */
     public void testPutWithTake() throws InterruptedException {
-        final PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<Item>(2);
+        final PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<>(2);
         final int size = 4;
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
@@ -316,7 +315,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      * Queue is unbounded, so timed offer never times out
      */
     public void testTimedOffer() {
-        final PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<Item>(2);
+        final PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<>(2);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
                 q.put(one);
@@ -515,7 +514,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      */
     public void testContainsAll() {
         PriorityBlockingQueue<Item> q = populatedQueue(SIZE);
-        PriorityBlockingQueue<Item> p = new PriorityBlockingQueue<Item>(SIZE);
+        PriorityBlockingQueue<Item> p = new PriorityBlockingQueue<>(SIZE);
         for (int i = 0; i < SIZE; ++i) {
             assertTrue(q.containsAll(p));
             assertFalse(p.containsAll(q));
@@ -614,14 +613,14 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      * iterator of empty collection has no elements
      */
     public void testEmptyIterator() {
-        assertIteratorExhausted(new PriorityBlockingQueue<Item>().iterator());
+        assertIteratorExhausted(new PriorityBlockingQueue<>().iterator());
     }
 
     /**
      * iterator.remove removes current element
      */
     public void testIteratorRemove() {
-        final PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<Item>(3);
+        final PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<>(3);
         q.add(two);
         q.add(one);
         q.add(three);
@@ -651,7 +650,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      * timed poll transfers elements across Executor tasks
      */
     public void testPollInExecutor() {
-        final PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<Item>(2);
+        final PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<>(2);
         final CheckedBarrier threadsStarted = new CheckedBarrier(2);
         final ExecutorService executor = Executors.newFixedThreadPool(2);
         try (PoolCleaner cleaner = cleaner(executor)) {
@@ -692,7 +691,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      */
     public void testDrainTo() {
         PriorityBlockingQueue<Item> q = populatedQueue(SIZE);
-        ArrayList<Item> l = new ArrayList<Item>();
+        ArrayList<Item> l = new ArrayList<>();
         q.drainTo(l);
         mustEqual(0, q.size());
         mustEqual(SIZE, l.size());
@@ -721,7 +720,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
             }});
 
         t.start();
-        ArrayList<Item> l = new ArrayList<Item>();
+        ArrayList<Item> l = new ArrayList<>();
         q.drainTo(l);
         assertTrue(l.size() >= SIZE);
         for (int i = 0; i < SIZE; ++i)
@@ -734,11 +733,11 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      * drainTo(c, n) empties first min(n, size) elements of queue into c
      */
     public void testDrainToN() {
-        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<Item>(SIZE * 2);
+        PriorityBlockingQueue<Item> q = new PriorityBlockingQueue<>(SIZE * 2);
         for (int i = 0; i < SIZE + 2; ++i) {
             for (int j = 0; j < SIZE; j++)
                 mustOffer(q, j);
-            ArrayList<Item> l = new ArrayList<Item>();
+            ArrayList<Item> l = new ArrayList<>();
             q.drainTo(l, i);
             int k = (i < SIZE) ? i : SIZE;
             mustEqual(k, l.size());
@@ -754,7 +753,7 @@ public class PriorityBlockingQueueTest extends JSR166TestCase {
      */
     public void testNeverContainsNull() {
         Collection<?>[] qs = {
-            new PriorityBlockingQueue<Object>(),
+            new PriorityBlockingQueue<>(),
             populatedQueue(2),
         };
 

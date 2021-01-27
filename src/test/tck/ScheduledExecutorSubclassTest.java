@@ -123,7 +123,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
         final CustomExecutor p = new CustomExecutor(1);
         try (PoolCleaner cleaner = cleaner(p, done)) {
             final long startTime = System.nanoTime();
-            Callable<Boolean> task = new CheckedCallable<Boolean>() {
+            Callable<Boolean> task = new CheckedCallable<>() {
                 public Boolean realCall() {
                     done.countDown();
                     assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
@@ -1316,7 +1316,7 @@ public class ScheduledExecutorSubclassTest extends JSR166TestCase {
     public void testTimedInvokeAll6() throws Exception {
         for (long timeout = timeoutMillis();;) {
             final CountDownLatch done = new CountDownLatch(1);
-            final Callable<String> waiter = new CheckedCallable<String>() {
+            final Callable<String> waiter = new CheckedCallable<>() {
                 public String realCall() {
                     try { done.await(LONG_DELAY_MS, MILLISECONDS); }
                     catch (InterruptedException ok) {}

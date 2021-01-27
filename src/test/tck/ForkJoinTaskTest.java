@@ -858,7 +858,7 @@ public class ForkJoinTaskTest extends JSR166TestCase {
                 AsyncFib f = new AsyncFib(8);
                 AsyncFib g = new AsyncFib(9);
                 AsyncFib h = new AsyncFib(7);
-                HashSet<ForkJoinTask<?>> set = new HashSet<ForkJoinTask<?>>();
+                HashSet<ForkJoinTask<?>> set = new HashSet<>();
                 set.add(f);
                 set.add(g);
                 set.add(h);
@@ -1527,7 +1527,7 @@ public class ForkJoinTaskTest extends JSR166TestCase {
                 AsyncFib f = new AsyncFib(8);
                 AsyncFib g = new AsyncFib(9);
                 AsyncFib h = new AsyncFib(7);
-                HashSet<ForkJoinTask<?>> set = new HashSet<ForkJoinTask<?>>();
+                HashSet<ForkJoinTask<?>> set = new HashSet<>();
                 set.add(f);
                 set.add(g);
                 set.add(h);

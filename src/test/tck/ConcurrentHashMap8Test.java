@@ -37,7 +37,7 @@ public class ConcurrentHashMap8Test extends JSR166TestCase {
      * Returns a new map from Items 1-5 to Strings "A"-"E".
      */
     private static ConcurrentHashMap<Item,String> map5() {
-        ConcurrentHashMap<Item,String> map = new ConcurrentHashMap<Item,String>(5);
+        ConcurrentHashMap<Item,String> map = new ConcurrentHashMap<>(5);
         assertTrue(map.isEmpty());
         map.put(one, "A");
         map.put(two, "B");
@@ -556,7 +556,7 @@ public class ConcurrentHashMap8Test extends JSR166TestCase {
 
     static ConcurrentHashMap<Long, Long> longMap() {
         if (longMap == null) {
-            longMap = new ConcurrentHashMap<Long, Long>(SIZE);
+            longMap = new ConcurrentHashMap<>(SIZE);
             for (int i = 0; i < SIZE; ++i)
                 longMap.put(Long.valueOf(i), Long.valueOf(2 *i));
         }

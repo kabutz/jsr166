@@ -74,7 +74,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
      * a new list is empty
      */
     public void testConstructor() {
-        List<Item> list = new CopyOnWriteArrayList<Item>();
+        List<Item> list = new CopyOnWriteArrayList<>();
         assertTrue(list.isEmpty());
     }
 
@@ -83,7 +83,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
      */
     public void testConstructor2() {
         Item[] elts = defaultItems;
-        List<Item> list = new CopyOnWriteArrayList<Item>(elts);
+        List<Item> list = new CopyOnWriteArrayList<>(elts);
         for (int i = 0; i < SIZE; ++i)
             mustEqual(elts[i], list.get(i));
     }
@@ -93,7 +93,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
      */
     public void testConstructor3() {
         Item[] elts = defaultItems;
-        List<Item> list = new CopyOnWriteArrayList<Item>(Arrays.asList(elts));
+        List<Item> list = new CopyOnWriteArrayList<>(Arrays.asList(elts));
         for (int i = 0; i < SIZE; ++i)
             mustEqual(elts[i], list.get(i));
     }
@@ -302,7 +302,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
      * isEmpty returns true when empty, else false
      */
     public void testIsEmpty() {
-        List<Item> empty = new CopyOnWriteArrayList<Item>();
+        List<Item> empty = new CopyOnWriteArrayList<>();
         assertTrue(empty.isEmpty());
         assertTrue(empty.subList(0, 0).isEmpty());
 
@@ -317,7 +317,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
      * list in insertion order
      */
     public void testIterator() {
-        Collection<Item> empty = new CopyOnWriteArrayList<Item>();
+        Collection<Item> empty = new CopyOnWriteArrayList<>();
         assertFalse(empty.iterator().hasNext());
         try {
             empty.iterator().next();
@@ -340,7 +340,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
      * iterator of empty collection has no elements
      */
     public void testEmptyIterator() {
-        Collection<Item> c = new CopyOnWriteArrayList<Item>();
+        Collection<Item> c = new CopyOnWriteArrayList<>();
         assertIteratorExhausted(c.iterator());
     }
 
@@ -361,7 +361,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
      * toString contains toString of elements
      */
     public void testToString() {
-        mustEqual("[]", new CopyOnWriteArrayList<Item>().toString());
+        mustEqual("[]", new CopyOnWriteArrayList<>().toString());
         List<Item> list = populatedList(3);
         String s = list.toString();
         for (int i = 0; i < 3; ++i)
@@ -479,7 +479,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
             mustEqual(SIZE - 1, list.size());
             mustNotContain(list, i);
         }
-        CopyOnWriteArrayList<Item> x = new CopyOnWriteArrayList<Item>(Arrays.asList(four, five, six));
+        CopyOnWriteArrayList<Item> x = new CopyOnWriteArrayList<>(Arrays.asList(four, five, six));
         mustRemove(x, six);
         mustEqual(x, Arrays.asList(four, five));
         mustRemove(x, four);
@@ -513,7 +513,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
      * size returns the number of elements
      */
     public void testSize() {
-        List<Item> empty = new CopyOnWriteArrayList<Item>();
+        List<Item> empty = new CopyOnWriteArrayList<>();
         mustEqual(0, empty.size());
         mustEqual(0, empty.subList(0, 0).size());
 
@@ -528,7 +528,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
      * the list in insertion order
      */
     public void testToArray() {
-        Object[] a = new CopyOnWriteArrayList<Item>().toArray();
+        Object[] a = new CopyOnWriteArrayList<>().toArray();
         assertTrue(Arrays.equals(new Object[0], a));
         assertSame(Object[].class, a.getClass());
 
@@ -545,7 +545,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
      * elements from the list in insertion order
      */
     public void testToArray2() {
-        Collection<Item> empty = new CopyOnWriteArrayList<Item>();
+        Collection<Item> empty = new CopyOnWriteArrayList<>();
         Item[] a;
 
         a = new Item[0];
@@ -617,7 +617,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
      * can not store the objects inside the list
      */
     public void testToArray_ArrayStoreException() {
-        List<Item> list = new CopyOnWriteArrayList<Item>();
+        List<Item> list = new CopyOnWriteArrayList<>();
         // Items are not auto-converted to Longs
         list.add(eightysix);
         list.add(ninetynine);

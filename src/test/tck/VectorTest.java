@@ -227,7 +227,7 @@ public class VectorTest extends JSR166TestCase {
      * isEmpty returns true when empty, else false
      */
     public void testIsEmpty() {
-        List<Item> empty = new Vector<Item>();
+        List<Item> empty = new Vector<>();
         assertTrue(empty.isEmpty());
         assertTrue(empty.subList(0, 0).isEmpty());
 
@@ -241,7 +241,7 @@ public class VectorTest extends JSR166TestCase {
      * iterator of empty collection has no elements
      */
     public void testEmptyIterator() {
-        Collection<Item> c = new Vector<Item>();
+        Collection<Item> c = new Vector<>();
         assertIteratorExhausted(c.iterator());
     }
 
@@ -309,7 +309,7 @@ public class VectorTest extends JSR166TestCase {
      * size returns the number of elements
      */
     public void testSize() {
-        List<Item> empty = new Vector<Item>();
+        List<Item> empty = new Vector<>();
         mustEqual(0, empty.size());
         mustEqual(0, empty.subList(0, 0).size());
 
@@ -352,7 +352,7 @@ public class VectorTest extends JSR166TestCase {
      * can not store the objects inside the list
      */
     public void testToArray_ArrayStoreException() {
-        List<Item> list = new Vector<Item>();
+        List<Item> list = new Vector<>();
         // Items are not auto-converted to Longs
         list.add(eightysix);
         list.add(ninetynine);
@@ -441,7 +441,7 @@ public class VectorTest extends JSR166TestCase {
      * tests for setSize()
      */
     public void testSetSize() {
-        final Vector<Item> v = new Vector<Item>();
+        final Vector<Item> v = new Vector<>();
         for (int n : new int[] { 100, 5, 50 }) {
             v.setSize(n);
             mustEqual(n, v.size());

@@ -54,7 +54,7 @@ public class TreeSubSetTest extends JSR166TestCase {
      * Returns a new set of first 5 ints.
      */
     private static NavigableSet<Item> set5() {
-        TreeSet<Item> q = new TreeSet<Item>();
+        TreeSet<Item> q = new TreeSet<>();
         assertTrue(q.isEmpty());
         q.add(one);
         q.add(two);
@@ -69,7 +69,7 @@ public class TreeSubSetTest extends JSR166TestCase {
     }
 
     private static NavigableSet<Item> dset5() {
-        TreeSet<Item> q = new TreeSet<Item>();
+        TreeSet<Item> q = new TreeSet<>();
         assertTrue(q.isEmpty());
         q.add(minusOne);
         q.add(minusTwo);
@@ -82,13 +82,13 @@ public class TreeSubSetTest extends JSR166TestCase {
     }
 
     private static NavigableSet<Item> set0() {
-        TreeSet<Item> set = new TreeSet<Item>();
+        TreeSet<Item> set = new TreeSet<>();
         assertTrue(set.isEmpty());
         return set.tailSet(minusOne, false);
     }
 
     private static NavigableSet<Item> dset0() {
-        TreeSet<Item> set = new TreeSet<Item>();
+        TreeSet<Item> set = new TreeSet<>();
         assertTrue(set.isEmpty());
         return set;
     }
@@ -161,7 +161,7 @@ public class TreeSubSetTest extends JSR166TestCase {
      * Add of non-Comparable throws CCE
      */
     public void testAddNonComparable() {
-        NavigableSet<Object> q = new TreeSet<Object>();
+        NavigableSet<Object> q = new TreeSet<>();
         try {
             q.add(new Object());
             q.add(new Object());
@@ -642,7 +642,7 @@ public class TreeSubSetTest extends JSR166TestCase {
      * Add of non-Comparable throws CCE
      */
     public void testDescendingAddNonComparable() {
-        NavigableSet<Object> q = new TreeSet<Object>();
+        NavigableSet<Object> q = new TreeSet<>();
         try {
             q.add(new Object());
             q.add(new Object());
@@ -1094,7 +1094,7 @@ public class TreeSubSetTest extends JSR166TestCase {
      */
     public void testAddAll_idempotent() throws Exception {
         Set<Item> x = populatedSet(SIZE);
-        Set<Item> y = new TreeSet<Item>(x);
+        Set<Item> y = new TreeSet<>(x);
         y.addAll(x);
         mustEqual(x, y);
         mustEqual(y, x);

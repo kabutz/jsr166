@@ -57,7 +57,7 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      * ecs.submit(null) throws NullPointerException
      */
     public void testSubmitNullCallable() {
-        CompletionService<Item> cs = new ExecutorCompletionService<Item>(cachedThreadPool);
+        CompletionService<Item> cs = new ExecutorCompletionService<>(cachedThreadPool);
         try {
             cs.submit((Callable<Item>) null);
             shouldThrow();
@@ -68,7 +68,7 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      * ecs.submit(null, val) throws NullPointerException
      */
     public void testSubmitNullRunnable() {
-        CompletionService<Boolean> cs = new ExecutorCompletionService<Boolean>(cachedThreadPool);
+        CompletionService<Boolean> cs = new ExecutorCompletionService<>(cachedThreadPool);
         try {
             cs.submit((Runnable) null, Boolean.TRUE);
             shouldThrow();
@@ -79,7 +79,7 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      * A taken submitted task is completed
      */
     public void testTake() throws Exception {
-        CompletionService<String> cs = new ExecutorCompletionService<String>(cachedThreadPool);
+        CompletionService<String> cs = new ExecutorCompletionService<>(cachedThreadPool);
         cs.submit(new StringTask());
         Future<?> f = cs.take();
         assertTrue(f.isDone());
@@ -90,7 +90,7 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      * Take returns the same future object returned by submit
      */
     public void testTake2() throws InterruptedException {
-        CompletionService<String> cs = new ExecutorCompletionService<String>(cachedThreadPool);
+        CompletionService<String> cs = new ExecutorCompletionService<>(cachedThreadPool);
         Future<?> f1 = cs.submit(new StringTask());
         Future<?> f2 = cs.take();
         assertSame(f1, f2);
@@ -100,7 +100,7 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      * poll returns non-null when the returned task is completed
      */
     public void testPoll1() throws Exception {
-        CompletionService<String> cs = new ExecutorCompletionService<String>(cachedThreadPool);
+        CompletionService<String> cs = new ExecutorCompletionService<>(cachedThreadPool);
         assertNull(cs.poll());
         cs.submit(new StringTask());
 
@@ -119,7 +119,7 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      * timed poll returns non-null when the returned task is completed
      */
     public void testPoll2() throws Exception {
-        CompletionService<String> cs = new ExecutorCompletionService<String>(cachedThreadPool);
+        CompletionService<String> cs = new ExecutorCompletionService<>(cachedThreadPool);
         assertNull(cs.poll());
         cs.submit(new StringTask());
 
@@ -139,7 +139,7 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      * poll returns null before the returned task is completed
      */
     public void testPollReturnsNullBeforeCompletion() throws Exception {
-        CompletionService<String> cs = new ExecutorCompletionService<String>(cachedThreadPool);
+        CompletionService<String> cs = new ExecutorCompletionService<>(cachedThreadPool);
         final CountDownLatch proceed = new CountDownLatch(1);
         cs.submit(new Callable<String>() { public String call() throws Exception {
             await(proceed);
@@ -159,7 +159,7 @@ public class ExecutorCompletionServiceTest extends JSR166TestCase {
      * successful and failed tasks are both returned
      */
     public void testTaskAssortment() throws Exception {
-        CompletionService<String> cs = new ExecutorCompletionService<String>(cachedThreadPool);
+        CompletionService<String> cs = new ExecutorCompletionService<>(cachedThreadPool);
         ArithmeticException ex = new ArithmeticException();
         final int rounds = 2;
         for (int i = rounds; i--> 0; ) {

@@ -29,7 +29,7 @@ public class TreeSubMapTest extends JSR166TestCase {
      * Returns a new map from Items 1-5 to Strings "A"-"E".
      */
     private static NavigableMap<Item,String> map5() {
-        TreeMap<Item,String> map = new TreeMap<Item,String>();
+        TreeMap<Item,String> map = new TreeMap<>();
         assertTrue(map.isEmpty());
         map.put(zero, "Z");
         map.put(one, "A");
@@ -44,7 +44,7 @@ public class TreeSubMapTest extends JSR166TestCase {
     }
 
     private static NavigableMap<Item,String> map0() {
-        TreeMap<Item,String> map = new TreeMap<Item,String>();
+        TreeMap<Item,String> map = new TreeMap<>();
         assertTrue(map.isEmpty());
         return map.tailMap(one, true);
     }
@@ -53,7 +53,7 @@ public class TreeSubMapTest extends JSR166TestCase {
      * Returns a new map from Items -5 to -1 to Strings "A"-"E".
      */
     private static NavigableMap<Item,String> dmap5() {
-        TreeMap<Item,String> map = new TreeMap<Item,String>();
+        TreeMap<Item,String> map = new TreeMap<>();
         assertTrue(map.isEmpty());
         map.put(minusOne, "A");
         map.put(minusFive, "E");
@@ -66,7 +66,7 @@ public class TreeSubMapTest extends JSR166TestCase {
     }
 
     private static NavigableMap<Item,String> dmap0() {
-        TreeMap<Item,String> map = new TreeMap<Item,String>();
+        TreeMap<Item,String> map = new TreeMap<>();
         assertTrue(map.isEmpty());
         return map;
     }
@@ -735,7 +735,7 @@ public class TreeSubMapTest extends JSR166TestCase {
         NavigableMap<Item,String> map = dmap5();
         Collection<String> v = map.values();
         String[] ar = v.toArray(new String[0]);
-        ArrayList<String> s = new ArrayList<String>(Arrays.asList(ar));
+        ArrayList<String> s = new ArrayList<>(Arrays.asList(ar));
         mustEqual(5, ar.length);
         assertTrue(s.contains("A"));
         assertTrue(s.contains("B"));

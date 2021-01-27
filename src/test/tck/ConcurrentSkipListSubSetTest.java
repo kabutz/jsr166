@@ -53,7 +53,7 @@ public class ConcurrentSkipListSubSetTest extends JSR166TestCase {
      * Returns a new set of first 5 ints.
      */
     private static NavigableSet<Item> set5() {
-        ConcurrentSkipListSet<Item> q = new ConcurrentSkipListSet<Item>();
+        ConcurrentSkipListSet<Item> q = new ConcurrentSkipListSet<>();
         assertTrue(q.isEmpty());
         q.add(one);
         q.add(two);
@@ -71,7 +71,7 @@ public class ConcurrentSkipListSubSetTest extends JSR166TestCase {
      * Returns a new set of first 5 negative ints.
      */
     private static NavigableSet<Item> dset5() {
-        ConcurrentSkipListSet<Item> q = new ConcurrentSkipListSet<Item>();
+        ConcurrentSkipListSet<Item> q = new ConcurrentSkipListSet<>();
         assertTrue(q.isEmpty());
         q.add(minusOne);
         q.add(minusTwo);
@@ -84,13 +84,13 @@ public class ConcurrentSkipListSubSetTest extends JSR166TestCase {
     }
 
     private static NavigableSet<Item> set0() {
-        ConcurrentSkipListSet<Item> set = new ConcurrentSkipListSet<Item>();
+        ConcurrentSkipListSet<Item> set = new ConcurrentSkipListSet<>();
         assertTrue(set.isEmpty());
         return set.tailSet(minusOne, true);
     }
 
     private static NavigableSet<Item> dset0() {
-        ConcurrentSkipListSet<Item> set = new ConcurrentSkipListSet<Item>();
+        ConcurrentSkipListSet<Item> set = new ConcurrentSkipListSet<>();
         assertTrue(set.isEmpty());
         return set;
     }
@@ -163,7 +163,7 @@ public class ConcurrentSkipListSubSetTest extends JSR166TestCase {
      * Add of non-Comparable throws CCE
      */
     public void testAddNonComparable() {
-        ConcurrentSkipListSet<Object> src = new ConcurrentSkipListSet<Object>();
+        ConcurrentSkipListSet<Object> src = new ConcurrentSkipListSet<>();
         NavigableSet<Object> q = src.tailSet(minusOne, true);
         try {
             q.add(new Object());
@@ -660,7 +660,7 @@ public class ConcurrentSkipListSubSetTest extends JSR166TestCase {
      * Add of non-Comparable throws CCE
      */
     public void testDescendingAddNonComparable() {
-        NavigableSet<Object> q = new ConcurrentSkipListSet<Object>();
+        NavigableSet<Object> q = new ConcurrentSkipListSet<>();
         try {
             q.add(new Object());
             q.add(new Object());

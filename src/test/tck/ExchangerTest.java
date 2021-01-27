@@ -28,7 +28,7 @@ public class ExchangerTest extends JSR166TestCase {
      * exchange exchanges objects across two threads
      */
     public void testExchange() {
-        final Exchanger<Item> e = new Exchanger<Item>();
+        final Exchanger<Item> e = new Exchanger<>();
         Thread t1 = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
                 assertSame(one, e.exchange(two));
@@ -48,7 +48,7 @@ public class ExchangerTest extends JSR166TestCase {
      * timed exchange exchanges objects across two threads
      */
     public void testTimedExchange() {
-        final Exchanger<Item> e = new Exchanger<Item>();
+        final Exchanger<Item> e = new Exchanger<>();
         Thread t1 = newStartedThread(new CheckedRunnable() {
             public void realRun() throws Exception {
                 assertSame(one, e.exchange(two, LONG_DELAY_MS, MILLISECONDS));
@@ -68,7 +68,7 @@ public class ExchangerTest extends JSR166TestCase {
      * interrupt during wait for exchange throws InterruptedException
      */
     public void testExchange_InterruptedException() {
-        final Exchanger<Item> e = new Exchanger<Item>();
+        final Exchanger<Item> e = new Exchanger<>();
         final CountDownLatch threadStarted = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedInterruptedRunnable() {
             public void realRun() throws InterruptedException {
@@ -85,7 +85,7 @@ public class ExchangerTest extends JSR166TestCase {
      * interrupt during wait for timed exchange throws InterruptedException
      */
     public void testTimedExchange_InterruptedException() {
-        final Exchanger<Item> e = new Exchanger<Item>();
+        final Exchanger<Item> e = new Exchanger<>();
         final CountDownLatch threadStarted = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedInterruptedRunnable() {
             public void realRun() throws Exception {
@@ -102,7 +102,7 @@ public class ExchangerTest extends JSR166TestCase {
      * timeout during wait for timed exchange throws TimeoutException
      */
     public void testExchange_TimeoutException() {
-        final Exchanger<Item> e = new Exchanger<Item>();
+        final Exchanger<Item> e = new Exchanger<>();
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws Exception {
                 long startTime = System.nanoTime();
@@ -120,7 +120,7 @@ public class ExchangerTest extends JSR166TestCase {
      * If one exchanging thread is interrupted, another succeeds.
      */
     public void testReplacementAfterExchange() {
-        final Exchanger<Item> e = new Exchanger<Item>();
+        final Exchanger<Item> e = new Exchanger<>();
         final CountDownLatch exchanged = new CountDownLatch(2);
         final CountDownLatch interrupted = new CountDownLatch(1);
         Thread t1 = newStartedThread(new CheckedInterruptedRunnable() {

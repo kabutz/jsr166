@@ -664,14 +664,14 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             @SuppressWarnings("unchecked")
             FutureTask<Boolean>[] tasks = (FutureTask<Boolean>[])rtasks;
             for (int i = 0; i < tasks.length; i++) {
-                Callable<Boolean> task = new CheckedCallable<Boolean>() {
+                Callable<Boolean> task = new CheckedCallable<>() {
                     public Boolean realCall() throws InterruptedException {
                         threadStarted.countDown();
                         assertSame(q, p.getQueue());
                         await(done);
                         return Boolean.TRUE;
                     }};
-                tasks[i] = new FutureTask<Boolean>(task);
+                tasks[i] = new FutureTask<>(task);
                 p.execute(tasks[i]);
             }
             await(threadStarted);
@@ -732,13 +732,13 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             @SuppressWarnings("unchecked")
             FutureTask<Boolean>[] tasks = (FutureTask<Boolean>[])rtasks;
             for (int i = 0; i < tasks.length; i++) {
-                Callable<Boolean> task = new CheckedCallable<Boolean>() {
+                Callable<Boolean> task = new CheckedCallable<>() {
                     public Boolean realCall() throws InterruptedException {
                         threadStarted.countDown();
                         await(done);
                         return Boolean.TRUE;
                     }};
-                tasks[i] = new FutureTask<Boolean>(task);
+                tasks[i] = new FutureTask<>(task);
                 p.execute(tasks[i]);
             }
             await(threadStarted);
@@ -1813,7 +1813,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
     public void testTimedInvokeAll6() throws Exception {
         for (long timeout = timeoutMillis();;) {
             final CountDownLatch done = new CountDownLatch(1);
-            final Callable<String> waiter = new CheckedCallable<String>() {
+            final Callable<String> waiter = new CheckedCallable<>() {
                 public String realCall() {
                     try { done.await(LONG_DELAY_MS, MILLISECONDS); }
                     catch (InterruptedException ok) {}

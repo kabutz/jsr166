@@ -51,7 +51,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testEmptyFull()      { testEmptyFull(false); }
     public void testEmptyFull_fair() { testEmptyFull(true); }
     public void testEmptyFull(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         assertTrue(q.isEmpty());
         mustEqual(0, q.size());
         mustEqual(0, q.remainingCapacity());
@@ -64,7 +64,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testOffer()      { testOffer(false); }
     public void testOffer_fair() { testOffer(true); }
     public void testOffer(boolean fair) {
-        SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         assertFalse(q.offer(one));
     }
 
@@ -74,7 +74,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testAdd()      { testAdd(false); }
     public void testAdd_fair() { testAdd(true); }
     public void testAdd(boolean fair) {
-        SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         mustEqual(0, q.remainingCapacity());
         try {
             q.add(one);
@@ -88,7 +88,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testAddAll_self()      { testAddAll_self(false); }
     public void testAddAll_self_fair() { testAddAll_self(true); }
     public void testAddAll_self(boolean fair) {
-        SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         try {
             q.addAll(q);
             shouldThrow();
@@ -101,7 +101,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testAddAll_ISE()      { testAddAll_ISE(false); }
     public void testAddAll_ISE_fair() { testAddAll_ISE(true); }
     public void testAddAll_ISE(boolean fair) {
-        SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         Item[] items = seqItems(1);
         Collection<Item> coll = Arrays.asList(items);
         try {
@@ -116,7 +116,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testBlockingPut()      { testBlockingPut(false); }
     public void testBlockingPut_fair() { testBlockingPut(true); }
     public void testBlockingPut(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
@@ -148,7 +148,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testPutWithTake()      { testPutWithTake(false); }
     public void testPutWithTake_fair() { testPutWithTake(true); }
     public void testPutWithTake(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         final CountDownLatch pleaseTake = new CountDownLatch(1);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
@@ -188,7 +188,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
      */
     public void testTimedOffer() {
         final boolean fair = randomBoolean();
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
@@ -224,7 +224,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testPoll()      { testPoll(false); }
     public void testPoll_fair() { testPoll(true); }
     public void testPoll(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         assertNull(q.poll());
     }
 
@@ -234,7 +234,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testTimedPoll0()      { testTimedPoll0(false); }
     public void testTimedPoll0_fair() { testTimedPoll0(true); }
     public void testTimedPoll0(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         try { assertNull(q.poll(0, MILLISECONDS)); }
         catch (InterruptedException e) { threadUnexpectedException(e); }
     }
@@ -244,7 +244,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
      */
     public void testTimedPoll() {
         final boolean fair = randomBoolean();
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         final long startTime = System.nanoTime();
         try { assertNull(q.poll(timeoutMillis(), MILLISECONDS)); }
         catch (InterruptedException e) { threadUnexpectedException(e); }
@@ -257,7 +257,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
      */
     public void testTimedPollWithOffer() {
         final boolean fair = randomBoolean();
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         final CountDownLatch pleaseOffer = new CountDownLatch(1);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
@@ -305,7 +305,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testPeek()      { testPeek(false); }
     public void testPeek_fair() { testPeek(true); }
     public void testPeek(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         assertNull(q.peek());
     }
 
@@ -315,7 +315,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testElement()      { testElement(false); }
     public void testElement_fair() { testElement(true); }
     public void testElement(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         try {
             q.element();
             shouldThrow();
@@ -328,7 +328,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testRemove()      { testRemove(false); }
     public void testRemove_fair() { testRemove(true); }
     public void testRemove(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         try {
             q.remove();
             shouldThrow();
@@ -341,7 +341,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testContains()      { testContains(false); }
     public void testContains_fair() { testContains(true); }
     public void testContains(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         assertFalse(q.contains(zero));
     }
 
@@ -351,7 +351,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testClear()      { testClear(false); }
     public void testClear_fair() { testClear(true); }
     public void testClear(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         q.clear();
         assertTrue(q.isEmpty());
     }
@@ -362,7 +362,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testContainsAll()      { testContainsAll(false); }
     public void testContainsAll_fair() { testContainsAll(true); }
     public void testContainsAll(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         Item[] empty = new Item[0];
         assertTrue(q.containsAll(Arrays.asList(empty)));
         Item[] items = new Item[1]; items[0] = zero;
@@ -375,7 +375,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testRetainAll()      { testRetainAll(false); }
     public void testRetainAll_fair() { testRetainAll(true); }
     public void testRetainAll(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         Item[] empty = new Item[0];
         assertFalse(q.retainAll(Arrays.asList(empty)));
         Item[] items = new Item[1]; items[0] = zero;
@@ -388,7 +388,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testRemoveAll()      { testRemoveAll(false); }
     public void testRemoveAll_fair() { testRemoveAll(true); }
     public void testRemoveAll(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         Item[] empty = new Item[0];
         assertFalse(q.removeAll(Arrays.asList(empty)));
         Item[] items = new Item[1]; items[0] = zero;
@@ -401,7 +401,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testToArray()      { testToArray(false); }
     public void testToArray_fair() { testToArray(true); }
     public void testToArray(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         Object[] o = q.toArray();
         mustEqual(0, o.length);
     }
@@ -413,7 +413,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testToArray2()      { testToArray2(false); }
     public void testToArray2_fair() { testToArray2(true); }
     public void testToArray2(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         Item[] a;
 
         a = new Item[0];
@@ -433,7 +433,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testToArray_null()      { testToArray_null(false); }
     public void testToArray_null_fair() { testToArray_null(true); }
     public void testToArray_null(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         try {
             Object[] unused = q.toArray((Object[])null);
             shouldThrow();
@@ -455,7 +455,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testIteratorRemove()      { testIteratorRemove(false); }
     public void testIteratorRemove_fair() { testIteratorRemove(true); }
     public void testIteratorRemove(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         Iterator<? extends Item> it = q.iterator();
         try {
             it.remove();
@@ -469,7 +469,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testToString()      { testToString(false); }
     public void testToString_fair() { testToString(true); }
     public void testToString(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         String s = q.toString();
         assertNotNull(s);
     }
@@ -480,7 +480,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testOfferInExecutor()      { testOfferInExecutor(false); }
     public void testOfferInExecutor_fair() { testOfferInExecutor(true); }
     public void testOfferInExecutor(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         final CheckedBarrier threadsStarted = new CheckedBarrier(2);
         final ExecutorService executor = Executors.newFixedThreadPool(2);
         try (PoolCleaner cleaner = cleaner(executor)) {
@@ -507,7 +507,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testPollInExecutor()      { testPollInExecutor(false); }
     public void testPollInExecutor_fair() { testPollInExecutor(true); }
     public void testPollInExecutor(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         final CheckedBarrier threadsStarted = new CheckedBarrier(2);
         final ExecutorService executor = Executors.newFixedThreadPool(2);
         try (PoolCleaner cleaner = cleaner(executor)) {
@@ -531,9 +531,9 @@ public class SynchronousQueueTest extends JSR166TestCase {
      * a deserialized/reserialized queue is usable
      */
     public void testSerialization() {
-        final SynchronousQueue<Item> x = new SynchronousQueue<Item>();
-        final SynchronousQueue<Item> y = new SynchronousQueue<Item>(false);
-        final SynchronousQueue<Item> z = new SynchronousQueue<Item>(true);
+        final SynchronousQueue<Item> x = new SynchronousQueue<>();
+        final SynchronousQueue<Item> y = new SynchronousQueue<>(false);
+        final SynchronousQueue<Item> z = new SynchronousQueue<>(true);
         assertSerialEquals(x, y);
         assertNotSerialEquals(x, z);
         SynchronousQueue[] rqs = { x, y, z };
@@ -556,8 +556,8 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testDrainTo()      { testDrainTo(false); }
     public void testDrainTo_fair() { testDrainTo(true); }
     public void testDrainTo(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
-        ArrayList<Item> l = new ArrayList<Item>();
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
+        ArrayList<Item> l = new ArrayList<>();
         q.drainTo(l);
         mustEqual(0, q.size());
         mustEqual(0, l.size());
@@ -569,13 +569,13 @@ public class SynchronousQueueTest extends JSR166TestCase {
     public void testDrainToWithActivePut()      { testDrainToWithActivePut(false); }
     public void testDrainToWithActivePut_fair() { testDrainToWithActivePut(true); }
     public void testDrainToWithActivePut(boolean fair) {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>(fair);
+        final SynchronousQueue<Item> q = new SynchronousQueue<>(fair);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
                 q.put(one);
             }});
 
-        ArrayList<Item> l = new ArrayList<Item>();
+        ArrayList<Item> l = new ArrayList<>();
         long startTime = System.nanoTime();
         while (l.isEmpty()) {
             q.drainTo(l);
@@ -592,7 +592,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
      * drainTo(c, n) empties up to n elements of queue into c
      */
     public void testDrainToN() throws InterruptedException {
-        final SynchronousQueue<Item> q = new SynchronousQueue<Item>();
+        final SynchronousQueue<Item> q = new SynchronousQueue<>();
         Thread t1 = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
                 q.put(one);
@@ -603,7 +603,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
                 q.put(two);
             }});
 
-        ArrayList<Item> l = new ArrayList<Item>();
+        ArrayList<Item> l = new ArrayList<>();
         int drained;
         while ((drained = q.drainTo(l, 1)) == 0) Thread.yield();
         mustEqual(1, drained);
@@ -621,7 +621,7 @@ public class SynchronousQueueTest extends JSR166TestCase {
      * remove(null), contains(null) always return false
      */
     public void testNeverContainsNull() {
-        Collection<?> q = new SynchronousQueue<Item>();
+        Collection<?> q = new SynchronousQueue<>();
         assertFalse(q.contains(null));
         assertFalse(q.remove(null));
     }

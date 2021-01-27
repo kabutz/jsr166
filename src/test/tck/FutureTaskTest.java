@@ -629,8 +629,7 @@ public class FutureTaskTest extends JSR166TestCase {
     public void testTimedGet_Cancellation(final boolean mayInterruptIfRunning) {
         final CountDownLatch pleaseCancel = new CountDownLatch(3);
         final CountDownLatch cancelled = new CountDownLatch(1);
-        final Callable<Object> callable =
-            new CheckedCallable<Object>() {
+        final Callable<Object> callable = new CheckedCallable<>() {
             public Object realCall() throws InterruptedException {
                 pleaseCancel.countDown();
                 if (mayInterruptIfRunning) {
@@ -722,7 +721,7 @@ public class FutureTaskTest extends JSR166TestCase {
      */
     public void testGet_Interruptible() {
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
-        final FutureTask<Object> task = new FutureTask<Object>(new NoOpCallable());
+        final FutureTask<Object> task = new FutureTask<>(new NoOpCallable());
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws Exception {
                 Thread.currentThread().interrupt();
@@ -751,7 +750,7 @@ public class FutureTaskTest extends JSR166TestCase {
      */
     public void testTimedGet_Interruptible() {
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
-        final FutureTask<Object> task = new FutureTask<Object>(new NoOpCallable());
+        final FutureTask<Object> task = new FutureTask<>(new NoOpCallable());
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws Exception {
                 Thread.currentThread().interrupt();
@@ -780,7 +779,7 @@ public class FutureTaskTest extends JSR166TestCase {
      * A timed out timed get throws TimeoutException
      */
     public void testGet_TimeoutException() throws Exception {
-        FutureTask<Object> task = new FutureTask<Object>(new NoOpCallable());
+        FutureTask<Object> task = new FutureTask<>(new NoOpCallable());
         long startTime = System.nanoTime();
         try {
             task.get(timeoutMillis(), MILLISECONDS);
@@ -794,7 +793,7 @@ public class FutureTaskTest extends JSR166TestCase {
      * timed get with null TimeUnit throws NullPointerException
      */
     public void testGet_NullTimeUnit() throws Exception {
-        FutureTask<Object> task = new FutureTask<Object>(new NoOpCallable());
+        FutureTask<Object> task = new FutureTask<>(new NoOpCallable());
         long[] timeouts = { Long.MIN_VALUE, 0L, Long.MAX_VALUE };
 
         for (long timeout : timeouts) {

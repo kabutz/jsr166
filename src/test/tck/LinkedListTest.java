@@ -84,7 +84,7 @@ public class LinkedListTest extends JSR166TestCase {
      */
     public void testConstructor6() {
         Item[] items = defaultItems;
-        LinkedList<Item> q = new LinkedList<Item>(Arrays.asList(items));
+        LinkedList<Item> q = new LinkedList<>(Arrays.asList(items));
         for (int i = 0; i < SIZE; ++i)
             mustEqual(items[i], q.poll());
     }
@@ -93,7 +93,7 @@ public class LinkedListTest extends JSR166TestCase {
      * isEmpty is true before add, false after
      */
     public void testEmpty() {
-        LinkedList<Item> q = new LinkedList<Item>();
+        LinkedList<Item> q = new LinkedList<>();
         assertTrue(q.isEmpty());
         q.add(one);
         assertFalse(q.isEmpty());
@@ -122,7 +122,7 @@ public class LinkedListTest extends JSR166TestCase {
      * offer(null) succeeds
      */
     public void testOfferNull() {
-        LinkedList<Item> q = new LinkedList<Item>();
+        LinkedList<Item> q = new LinkedList<>();
         q.offer(null);
         assertNull(q.get(0));
         assertTrue(q.contains(null));
@@ -132,7 +132,7 @@ public class LinkedListTest extends JSR166TestCase {
      * Offer succeeds
      */
     public void testOffer() {
-        LinkedList<Item> q = new LinkedList<Item>();
+        LinkedList<Item> q = new LinkedList<>();
         mustOffer(q, zero);
         mustOffer(q, one);
     }
@@ -141,7 +141,7 @@ public class LinkedListTest extends JSR166TestCase {
      * add succeeds
      */
     public void testAdd() {
-        LinkedList<Item> q = new LinkedList<Item>();
+        LinkedList<Item> q = new LinkedList<>();
         for (int i = 0; i < SIZE; ++i) {
             mustEqual(i, q.size());
             mustAdd(q, i);
@@ -152,7 +152,7 @@ public class LinkedListTest extends JSR166TestCase {
      * addAll(null) throws NPE
      */
     public void testAddAll1() {
-        LinkedList<Item> q = new LinkedList<Item>();
+        LinkedList<Item> q = new LinkedList<>();
         try {
             q.addAll(null);
             shouldThrow();
@@ -165,7 +165,7 @@ public class LinkedListTest extends JSR166TestCase {
     public void testAddAll5() {
         Item[] empty = new Item[0];
         Item[] items = defaultItems;
-        LinkedList<Item> q = new LinkedList<Item>();
+        LinkedList<Item> q = new LinkedList<>();
         assertFalse(q.addAll(Arrays.asList(empty)));
         assertTrue(q.addAll(Arrays.asList(items)));
         for (int i = 0; i < SIZE; ++i)
@@ -176,9 +176,9 @@ public class LinkedListTest extends JSR166TestCase {
      * addAll with too large an index throws IOOBE
      */
     public void testAddAll2_IndexOutOfBoundsException() {
-        LinkedList<Item> l = new LinkedList<Item>();
+        LinkedList<Item> l = new LinkedList<>();
         l.add(zero);
-        LinkedList<Item> m = new LinkedList<Item>();
+        LinkedList<Item> m = new LinkedList<>();
         m.add(one);
         try {
             l.addAll(4,m);
@@ -190,9 +190,9 @@ public class LinkedListTest extends JSR166TestCase {
      * addAll with negative index throws IOOBE
      */
     public void testAddAll4_BadIndex() {
-        LinkedList<Item> l = new LinkedList<Item>();
+        LinkedList<Item> l = new LinkedList<>();
         l.add(zero);
-        LinkedList<Item> m = new LinkedList<Item>();
+        LinkedList<Item> m = new LinkedList<>();
         m.add(one);
         try {
             l.addAll(-1,m);
@@ -306,7 +306,7 @@ public class LinkedListTest extends JSR166TestCase {
      */
     public void testContainsAll() {
         LinkedList<Item> q = populatedQueue(SIZE);
-        LinkedList<Item> p = new LinkedList<Item>();
+        LinkedList<Item> p = new LinkedList<>();
         for (int i = 0; i < SIZE; ++i) {
             assertTrue(q.containsAll(p));
             assertFalse(p.containsAll(q));
@@ -378,7 +378,7 @@ public class LinkedListTest extends JSR166TestCase {
      * toArray(null) throws NullPointerException
      */
     public void testToArray_NullArg() {
-        LinkedList<Item> l = new LinkedList<Item>();
+        LinkedList<Item> l = new LinkedList<>();
         l.add(zero);
         try {
             l.toArray((Item[])null);
@@ -390,7 +390,7 @@ public class LinkedListTest extends JSR166TestCase {
      * toArray(incompatible array type) throws ArrayStoreException
      */
     public void testToArray1_BadArg() {
-        LinkedList<Item> l = new LinkedList<Item>();
+        LinkedList<Item> l = new LinkedList<>();
         l.add(five);
         try {
             l.toArray(new String[10]);
@@ -415,14 +415,14 @@ public class LinkedListTest extends JSR166TestCase {
      * iterator of empty collection has no elements
      */
     public void testEmptyIterator() {
-        assertIteratorExhausted(new LinkedList<Item>().iterator());
+        assertIteratorExhausted(new LinkedList<>().iterator());
     }
 
     /**
      * iterator ordering is FIFO
      */
     public void testIteratorOrdering() {
-        final LinkedList<Item> q = new LinkedList<Item>();
+        final LinkedList<Item> q = new LinkedList<>();
         q.add(one);
         q.add(two);
         q.add(three);
@@ -438,7 +438,7 @@ public class LinkedListTest extends JSR166TestCase {
      * iterator.remove removes current element
      */
     public void testIteratorRemove() {
-        final LinkedList<Item> q = new LinkedList<Item>();
+        final LinkedList<Item> q = new LinkedList<>();
         q.add(one);
         q.add(two);
         q.add(three);
@@ -474,7 +474,7 @@ public class LinkedListTest extends JSR166TestCase {
      * Descending iterator ordering is reverse FIFO
      */
     public void testDescendingIteratorOrdering() {
-        final LinkedList<Item> q = new LinkedList<Item>();
+        final LinkedList<Item> q = new LinkedList<>();
         q.add(three);
         q.add(two);
         q.add(one);
@@ -490,7 +490,7 @@ public class LinkedListTest extends JSR166TestCase {
      * descendingIterator.remove removes current element
      */
     public void testDescendingIteratorRemove() {
-        final LinkedList<Item> q = new LinkedList<Item>();
+        final LinkedList<Item> q = new LinkedList<>();
         q.add(three);
         q.add(two);
         q.add(one);
@@ -550,7 +550,7 @@ public class LinkedListTest extends JSR166TestCase {
      * OfferFirst succeeds
      */
     public void testOfferFirst() {
-        LinkedList<Item> q = new LinkedList<Item>();
+        LinkedList<Item> q = new LinkedList<>();
         assertTrue(q.offerFirst(zero));
         assertTrue(q.offerFirst(one));
     }
@@ -559,7 +559,7 @@ public class LinkedListTest extends JSR166TestCase {
      * OfferLast succeeds
      */
     public void testOfferLast() {
-        LinkedList<Item> q = new LinkedList<Item>();
+        LinkedList<Item> q = new LinkedList<>();
         assertTrue(q.offerLast(zero));
         assertTrue(q.offerLast(one));
     }

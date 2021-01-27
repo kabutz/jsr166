@@ -31,7 +31,7 @@ public class LinkedBlockingDeque8Test extends JSR166TestCase {
      * Spliterator characteristics are as advertised
      */
     public void testSpliterator_characteristics() {
-        LinkedBlockingDeque<Item> q = new LinkedBlockingDeque<Item>();
+        LinkedBlockingDeque<Item> q = new LinkedBlockingDeque<>();
         Spliterator<Item> s = q.spliterator();
         int characteristics = s.characteristics();
         int required = Spliterator.CONCURRENT

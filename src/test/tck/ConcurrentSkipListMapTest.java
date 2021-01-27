@@ -42,7 +42,7 @@ public class ConcurrentSkipListMapTest extends JSR166TestCase {
      * Returns a new map from Items 1-5 to Strings "A"-"E".
      */
     private static ConcurrentSkipListMap<Item,String> map5() {
-        ConcurrentSkipListMap<Item,String> map = new ConcurrentSkipListMap<Item,String>();
+        ConcurrentSkipListMap<Item,String> map = new ConcurrentSkipListMap<>();
         assertTrue(map.isEmpty());
         map.put(one, "A");
         map.put(five, "E");
@@ -68,7 +68,7 @@ public class ConcurrentSkipListMapTest extends JSR166TestCase {
      */
     public void testConstructFromSorted() {
         ConcurrentSkipListMap<Item,String> map = map5();
-        ConcurrentSkipListMap<Item,String> map2 = new ConcurrentSkipListMap<Item,String>(map);
+        ConcurrentSkipListMap<Item,String> map2 = new ConcurrentSkipListMap<>(map);
         mustEqual(map, map2);
     }
 
@@ -110,7 +110,7 @@ public class ConcurrentSkipListMapTest extends JSR166TestCase {
     public void testGet() {
         ConcurrentSkipListMap<Item,String> map = map5();
         mustEqual("A", map.get(one));
-        ConcurrentSkipListMap<Item,String> empty = new ConcurrentSkipListMap<Item,String>();
+        ConcurrentSkipListMap<Item,String> empty = new ConcurrentSkipListMap<>();
         assertNull(empty.get(one));
     }
 
@@ -118,7 +118,7 @@ public class ConcurrentSkipListMapTest extends JSR166TestCase {
      * isEmpty is true of empty map and false for non-empty
      */
     public void testIsEmpty() {
-        ConcurrentSkipListMap<Item,String> empty = new ConcurrentSkipListMap<Item,String>();
+        ConcurrentSkipListMap<Item,String> empty = new ConcurrentSkipListMap<>();
         ConcurrentSkipListMap<Item,String> map = map5();
         assertTrue(empty.isEmpty());
         assertFalse(map.isEmpty());
@@ -263,7 +263,7 @@ public class ConcurrentSkipListMapTest extends JSR166TestCase {
         ConcurrentSkipListMap<Item,String> map = map5();
         Collection<String> v = map.values();
         String[] ar = v.toArray(new String[0]);
-        ArrayList<String> s = new ArrayList<String>(Arrays.asList(ar));
+        ArrayList<String> s = new ArrayList<>(Arrays.asList(ar));
         mustEqual(5, ar.length);
         assertTrue(s.contains("A"));
         assertTrue(s.contains("B"));
@@ -356,7 +356,7 @@ public class ConcurrentSkipListMapTest extends JSR166TestCase {
      * putAll adds all key-value pairs from the given map
      */
     public void testPutAll() {
-        ConcurrentSkipListMap<Item,String> p = new ConcurrentSkipListMap<Item,String>();
+        ConcurrentSkipListMap<Item,String> p = new ConcurrentSkipListMap<>();
         ConcurrentSkipListMap<Item,String> map = map5();
         p.putAll(map);
         mustEqual(5, p.size());
@@ -682,7 +682,7 @@ public class ConcurrentSkipListMapTest extends JSR166TestCase {
      */
     public void testSize() {
         ConcurrentSkipListMap<Item,String> map = map5();
-        ConcurrentSkipListMap<Item,String> empty = new ConcurrentSkipListMap<Item,String>();
+        ConcurrentSkipListMap<Item,String> empty = new ConcurrentSkipListMap<>();
         mustEqual(0, empty.size());
         mustEqual(5, map.size());
     }
@@ -726,7 +726,7 @@ public class ConcurrentSkipListMapTest extends JSR166TestCase {
      * containsValue(null) throws NPE
      */
     public void testContainsValue_NullPointerException() {
-        ConcurrentSkipListMap<Item,String> c = new ConcurrentSkipListMap<Item,String>();
+        ConcurrentSkipListMap<Item,String> c = new ConcurrentSkipListMap<>();
         try {
             c.containsValue(null);
             shouldThrow();
@@ -781,7 +781,7 @@ public class ConcurrentSkipListMapTest extends JSR166TestCase {
      * remove(null) throws NPE
      */
     public void testRemove1_NullPointerException() {
-        ConcurrentSkipListMap<Item,String> c = new ConcurrentSkipListMap<Item,String>();
+        ConcurrentSkipListMap<Item,String> c = new ConcurrentSkipListMap<>();
         c.put(zero, "A");
         try {
             c.remove(null);
@@ -793,7 +793,7 @@ public class ConcurrentSkipListMapTest extends JSR166TestCase {
      * remove(null, x) throws NPE
      */
     public void testRemove2_NullPointerException() {
-        ConcurrentSkipListMap<Item,String> c = new ConcurrentSkipListMap<Item,String>();
+        ConcurrentSkipListMap<Item,String> c = new ConcurrentSkipListMap<>();
         c.put(zero, "asdads");
         try {
             c.remove(null, "whatever");
@@ -805,7 +805,7 @@ public class ConcurrentSkipListMapTest extends JSR166TestCase {
      * remove(x, null) returns false
      */
     public void testRemove3() {
-        ConcurrentSkipListMap<Item,String> c = new ConcurrentSkipListMap<Item,String>();
+        ConcurrentSkipListMap<Item,String> c = new ConcurrentSkipListMap<>();
         c.put(zero, "asdads");
         assertFalse(c.remove("sadsdf", null));
     }

@@ -122,7 +122,7 @@ public class PriorityQueueTest extends JSR166TestCase {
      */
     public void testConstructor6() {
         Item[] items = defaultItems;
-        PriorityQueue<Item> q = new PriorityQueue<Item>(Arrays.asList(items));
+        PriorityQueue<Item> q = new PriorityQueue<>(Arrays.asList(items));
         for (int i = 0; i < SIZE; ++i)
             mustEqual(items[i], q.poll());
     }
@@ -133,7 +133,7 @@ public class PriorityQueueTest extends JSR166TestCase {
     public void testConstructor7() {
         MyReverseComparator cmp = new MyReverseComparator();
         @SuppressWarnings("unchecked")
-        PriorityQueue<Item> q = new PriorityQueue<Item>(SIZE, cmp);
+        PriorityQueue<Item> q = new PriorityQueue<>(SIZE, cmp);
         assertEquals(cmp, q.comparator());
         Item[] items = seqItems(SIZE);
         q.addAll(Arrays.asList(items));
@@ -145,7 +145,7 @@ public class PriorityQueueTest extends JSR166TestCase {
      * isEmpty is true before add, false after
      */
     public void testEmpty() {
-        PriorityQueue<Item> q = new PriorityQueue<Item>(2);
+        PriorityQueue<Item> q = new PriorityQueue<>(2);
         assertTrue(q.isEmpty());
         q.add(one);
         assertFalse(q.isEmpty());
@@ -174,7 +174,7 @@ public class PriorityQueueTest extends JSR166TestCase {
      * offer(null) throws NPE
      */
     public void testOfferNull() {
-        PriorityQueue<Item> q = new PriorityQueue<Item>(1);
+        PriorityQueue<Item> q = new PriorityQueue<>(1);
         try {
             q.offer(null);
             shouldThrow();
@@ -185,7 +185,7 @@ public class PriorityQueueTest extends JSR166TestCase {
      * add(null) throws NPE
      */
     public void testAddNull() {
-        PriorityQueue<Item> q = new PriorityQueue<Item>(1);
+        PriorityQueue<Item> q = new PriorityQueue<>(1);
         try {
             q.add(null);
             shouldThrow();
@@ -196,7 +196,7 @@ public class PriorityQueueTest extends JSR166TestCase {
      * Offer of comparable element succeeds
      */
     public void testOffer() {
-        PriorityQueue<Item> q = new PriorityQueue<Item>(1);
+        PriorityQueue<Item> q = new PriorityQueue<>(1);
         assertTrue(q.offer(zero));
         assertTrue(q.offer(one));
     }
@@ -205,7 +205,7 @@ public class PriorityQueueTest extends JSR166TestCase {
      * Offer of non-Comparable throws CCE
      */
     public void testOfferNonComparable() {
-        PriorityQueue<Object> q = new PriorityQueue<Object>(1);
+        PriorityQueue<Object> q = new PriorityQueue<>(1);
         try {
             q.offer(new Object());
             shouldThrow();
@@ -220,7 +220,7 @@ public class PriorityQueueTest extends JSR166TestCase {
      * add of comparable succeeds
      */
     public void testAdd() {
-        PriorityQueue<Item> q = new PriorityQueue<Item>(SIZE);
+        PriorityQueue<Item> q = new PriorityQueue<>(SIZE);
         for (int i = 0; i < SIZE; ++i) {
             mustEqual(i, q.size());
             mustAdd(q, i);
@@ -231,7 +231,7 @@ public class PriorityQueueTest extends JSR166TestCase {
      * addAll(null) throws NPE
      */
     public void testAddAll1() {
-        PriorityQueue<Item> q = new PriorityQueue<Item>(1);
+        PriorityQueue<Item> q = new PriorityQueue<>(1);
         try {
             q.addAll(null);
             shouldThrow();
@@ -242,7 +242,7 @@ public class PriorityQueueTest extends JSR166TestCase {
      * addAll of a collection with null elements throws NPE
      */
     public void testAddAll2() {
-        PriorityQueue<Item> q = new PriorityQueue<Item>(SIZE);
+        PriorityQueue<Item> q = new PriorityQueue<>(SIZE);
         try {
             q.addAll(Arrays.asList(new Item[SIZE]));
             shouldThrow();
@@ -254,7 +254,7 @@ public class PriorityQueueTest extends JSR166TestCase {
      * possibly adding some elements
      */
     public void testAddAll3() {
-        PriorityQueue<Item> q = new PriorityQueue<Item>(SIZE);
+        PriorityQueue<Item> q = new PriorityQueue<>(SIZE);
         Item[] items = new Item[2];
         items[0] = zero;
         try {
@@ -271,7 +271,7 @@ public class PriorityQueueTest extends JSR166TestCase {
         Item[] items = new Item[SIZE];
         for (int i = 0; i < SIZE; ++i)
             items[i] = itemFor(SIZE - 1 - i);
-        PriorityQueue<Item> q = new PriorityQueue<Item>(SIZE);
+        PriorityQueue<Item> q = new PriorityQueue<>(SIZE);
         assertFalse(q.addAll(Arrays.asList(empty)));
         assertTrue(q.addAll(Arrays.asList(items)));
         for (int i = 0; i < SIZE; ++i)
@@ -384,7 +384,7 @@ public class PriorityQueueTest extends JSR166TestCase {
      */
     public void testContainsAll() {
         PriorityQueue<Item> q = populatedQueue(SIZE);
-        PriorityQueue<Item> p = new PriorityQueue<Item>(SIZE);
+        PriorityQueue<Item> p = new PriorityQueue<>(SIZE);
         for (int i = 0; i < SIZE; ++i) {
             assertTrue(q.containsAll(p));
             assertFalse(p.containsAll(q));
@@ -478,7 +478,7 @@ public class PriorityQueueTest extends JSR166TestCase {
      * iterator.remove removes current element
      */
     public void testIteratorRemove() {
-        final PriorityQueue<Item> q = new PriorityQueue<Item>(3);
+        final PriorityQueue<Item> q = new PriorityQueue<>(3);
         q.add(two);
         q.add(one);
         q.add(three);

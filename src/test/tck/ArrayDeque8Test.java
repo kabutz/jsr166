@@ -32,7 +32,7 @@ public class ArrayDeque8Test extends JSR166TestCase {
      * Spliterator characteristics are as advertised
      */
     public void testSpliterator_characteristics() {
-        ArrayDeque<Item> q = new ArrayDeque<Item>();
+        ArrayDeque<Item> q = new ArrayDeque<>();
         Spliterator<Item> s = q.spliterator();
         int characteristics = s.characteristics();
         int required = Spliterator.NONNULL
@@ -65,14 +65,14 @@ public class ArrayDeque8Test extends JSR166TestCase {
                      () -> new ArrayDeque<Item>(Integer.MAX_VALUE));
 
         {
-            ArrayDeque<Object> q = new ArrayDeque<Object>(maxArraySize - 1);
+            ArrayDeque<Object> q = new ArrayDeque<>(maxArraySize - 1);
             mustEqual(0, q.size());
             assertTrue(q.isEmpty());
             q = null;
         }
 
         {
-            ArrayDeque<Object> q = new ArrayDeque<Object>();
+            ArrayDeque<Object> q = new ArrayDeque<>();
             assertTrue(q.addAll(Collections.nCopies(maxArraySize - 3, e)));
             mustEqual(e, q.peekFirst());
             mustEqual(e, q.peekLast());
@@ -83,7 +83,7 @@ public class ArrayDeque8Test extends JSR166TestCase {
             mustEqual(one, q.peekLast());
             mustEqual(maxArraySize - 1, q.size());
 
-            ArrayDeque<Object> smallish = new ArrayDeque<Object>(
+            ArrayDeque<Object> smallish = new ArrayDeque<>(
                 Collections.nCopies(Integer.MAX_VALUE - q.size() + 1, e));
             assertThrows(
                 IllegalStateException.class,

@@ -739,7 +739,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
                 FibAction f = new FibAction(8);
                 FibAction g = new FibAction(9);
                 FibAction h = new FibAction(7);
-                HashSet<ForkJoinTask<?>> set = new HashSet<ForkJoinTask<?>>();
+                HashSet<ForkJoinTask<?>> set = new HashSet<>();
                 set.add(f);
                 set.add(g);
                 set.add(h);
@@ -837,7 +837,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
                 FailingFibAction f = new FailingFibAction(8);
                 FibAction g = new FibAction(9);
                 FibAction h = new FibAction(7);
-                HashSet<ForkJoinTask<?>> set = new HashSet<ForkJoinTask<?>>();
+                HashSet<ForkJoinTask<?>> set = new HashSet<>();
                 set.add(f);
                 set.add(g);
                 set.add(h);
@@ -1369,7 +1369,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
                 CCF f = new LCCF(null, 8);
                 CCF g = new LCCF(null, 9);
                 CCF h = new LCCF(null, 7);
-                HashSet<ForkJoinTask<?>> set = new HashSet<ForkJoinTask<?>>();
+                HashSet<ForkJoinTask<?>> set = new HashSet<>();
                 set.add(f);
                 set.add(g);
                 set.add(h);
@@ -1464,7 +1464,7 @@ public class ForkJoinPool8Test extends JSR166TestCase {
                 FailingCCF f = new LFCCF(null, 8);
                 CCF g = new LCCF(null, 9);
                 CCF h = new LCCF(null, 7);
-                HashSet<ForkJoinTask<?>> set = new HashSet<ForkJoinTask<?>>();
+                HashSet<ForkJoinTask<?>> set = new HashSet<>();
                 set.add(f);
                 set.add(g);
                 set.add(h);

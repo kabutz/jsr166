@@ -23,10 +23,10 @@ public class AtomicStampedReferenceTest extends JSR166TestCase {
      * constructor initializes to given reference and stamp
      */
     public void testConstructor() {
-        AtomicStampedReference<Item> ai = new AtomicStampedReference<Item>(one, 0);
+        AtomicStampedReference<Item> ai = new AtomicStampedReference<>(one, 0);
         assertSame(one, ai.getReference());
         assertEquals(0, ai.getStamp());
-        AtomicStampedReference<Item> a2 = new AtomicStampedReference<Item>(null, 1);
+        AtomicStampedReference<Item> a2 = new AtomicStampedReference<>(null, 1);
         assertNull(a2.getReference());
         assertEquals(1, a2.getStamp());
     }
@@ -36,7 +36,7 @@ public class AtomicStampedReferenceTest extends JSR166TestCase {
      */
     public void testGetSet() {
         int[] mark = new int[1];
-        AtomicStampedReference<Item> ai = new AtomicStampedReference<Item>(one, 0);
+        AtomicStampedReference<Item> ai = new AtomicStampedReference<>(one, 0);
         assertSame(one, ai.getReference());
         assertEquals(0, ai.getStamp());
         assertSame(one, ai.get(mark));
@@ -58,7 +58,7 @@ public class AtomicStampedReferenceTest extends JSR166TestCase {
      */
     public void testAttemptStamp() {
         int[] mark = new int[1];
-        AtomicStampedReference<Item> ai = new AtomicStampedReference<Item>(one, 0);
+        AtomicStampedReference<Item> ai = new AtomicStampedReference<>(one, 0);
         assertEquals(0, ai.getStamp());
         assertTrue(ai.attemptStamp(one, 1));
         assertEquals(1, ai.getStamp());
@@ -72,7 +72,7 @@ public class AtomicStampedReferenceTest extends JSR166TestCase {
      */
     public void testCompareAndSet() {
         int[] mark = new int[1];
-        AtomicStampedReference<Item> ai = new AtomicStampedReference<Item>(one, 0);
+        AtomicStampedReference<Item> ai = new AtomicStampedReference<>(one, 0);
         assertSame(one, ai.get(mark));
         assertEquals(0, ai.getStamp());
         assertEquals(0, mark[0]);
@@ -95,7 +95,7 @@ public class AtomicStampedReferenceTest extends JSR166TestCase {
      * to succeed
      */
     public void testCompareAndSetInMultipleThreads() throws Exception {
-        final AtomicStampedReference<Item> ai = new AtomicStampedReference<Item>(one, 0);
+        final AtomicStampedReference<Item> ai = new AtomicStampedReference<>(one, 0);
         Thread t = new Thread(new CheckedRunnable() {
             public void realRun() {
                 while (!ai.compareAndSet(two, three, 0, 0))
@@ -115,7 +115,7 @@ public class AtomicStampedReferenceTest extends JSR166TestCase {
      * to succeed
      */
     public void testCompareAndSetInMultipleThreads2() throws Exception {
-        final AtomicStampedReference<Item> ai = new AtomicStampedReference<Item>(one, 0);
+        final AtomicStampedReference<Item> ai = new AtomicStampedReference<>(one, 0);
         Thread t = new Thread(new CheckedRunnable() {
             public void realRun() {
                 while (!ai.compareAndSet(one, one, 1, 2))
@@ -136,7 +136,7 @@ public class AtomicStampedReferenceTest extends JSR166TestCase {
      */
     public void testWeakCompareAndSet() {
         int[] mark = new int[1];
-        AtomicStampedReference<Item> ai = new AtomicStampedReference<Item>(one, 0);
+        AtomicStampedReference<Item> ai = new AtomicStampedReference<>(one, 0);
         assertSame(one, ai.get(mark));
         assertEquals(0, ai.getStamp());
         assertEquals(0, mark[0]);

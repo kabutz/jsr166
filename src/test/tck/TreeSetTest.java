@@ -54,7 +54,7 @@ public class TreeSetTest extends JSR166TestCase {
      * Returns a new set of first 5 ints.
      */
     private static TreeSet<Item> set5() {
-        TreeSet<Item> q = new TreeSet<Item>();
+        TreeSet<Item> q = new TreeSet<>();
         assertTrue(q.isEmpty());
         q.add(one);
         q.add(two);
@@ -109,7 +109,7 @@ public class TreeSetTest extends JSR166TestCase {
      */
     public void testConstructor6() {
         Item[] items = defaultItems;
-        TreeSet<Item> q = new TreeSet<Item>(Arrays.asList(items));
+        TreeSet<Item> q = new TreeSet<>(Arrays.asList(items));
         for (int i = 0; i < SIZE; ++i)
             mustEqual(items[i], q.pollFirst());
     }
@@ -120,7 +120,7 @@ public class TreeSetTest extends JSR166TestCase {
     public void testConstructor7() {
         MyReverseComparator cmp = new MyReverseComparator();
         @SuppressWarnings("unchecked")
-        TreeSet<Item> q = new TreeSet<Item>(cmp);
+        TreeSet<Item> q = new TreeSet<>(cmp);
         mustEqual(cmp, q.comparator());
         Item[] items = defaultItems;
         q.addAll(Arrays.asList(items));
@@ -132,7 +132,7 @@ public class TreeSetTest extends JSR166TestCase {
      * isEmpty is true before add, false after
      */
     public void testEmpty() {
-        TreeSet<Item> q = new TreeSet<Item>();
+        TreeSet<Item> q = new TreeSet<>();
         assertTrue(q.isEmpty());
         q.add(one);
         assertFalse(q.isEmpty());
@@ -172,7 +172,7 @@ public class TreeSetTest extends JSR166TestCase {
      * Add of comparable element succeeds
      */
     public void testAdd() {
-        TreeSet<Item> q = new TreeSet<Item>();
+        TreeSet<Item> q = new TreeSet<>();
         assertTrue(q.add(zero));
         assertTrue(q.add(one));
     }
@@ -181,7 +181,7 @@ public class TreeSetTest extends JSR166TestCase {
      * Add of duplicate element fails
      */
     public void testAddDup() {
-        TreeSet<Item> q = new TreeSet<Item>();
+        TreeSet<Item> q = new TreeSet<>();
         assertTrue(q.add(zero));
         assertFalse(q.add(zero));
     }
@@ -190,7 +190,7 @@ public class TreeSetTest extends JSR166TestCase {
      * Add of non-Comparable throws CCE
      */
     public void testAddNonComparable() {
-        TreeSet<Object> q = new TreeSet<Object>();
+        TreeSet<Object> q = new TreeSet<>();
         try {
             q.add(new Object());
             q.add(new Object());
@@ -202,7 +202,7 @@ public class TreeSetTest extends JSR166TestCase {
      * addAll(null) throws NPE
      */
     public void testAddAll1() {
-        TreeSet<Item> q = new TreeSet<Item>();
+        TreeSet<Item> q = new TreeSet<>();
         try {
             q.addAll(null);
             shouldThrow();
@@ -213,7 +213,7 @@ public class TreeSetTest extends JSR166TestCase {
      * addAll of a collection with null elements throws NPE
      */
     public void testAddAll2() {
-        TreeSet<Item> q = new TreeSet<Item>();
+        TreeSet<Item> q = new TreeSet<>();
         Item[] items = new Item[2];
         try {
             q.addAll(Arrays.asList(items));
@@ -226,7 +226,7 @@ public class TreeSetTest extends JSR166TestCase {
      * possibly adding some elements
      */
     public void testAddAll3() {
-        TreeSet<Item> q = new TreeSet<Item>();
+        TreeSet<Item> q = new TreeSet<>();
         Item[] items = new Item[2];
         items[0] = zero;
         try {
@@ -241,7 +241,7 @@ public class TreeSetTest extends JSR166TestCase {
     public void testAddAll5() {
         Item[] empty = new Item[0];
         Item[] items = defaultItems;
-        TreeSet<Item> q = new TreeSet<Item>();
+        TreeSet<Item> q = new TreeSet<>();
         assertFalse(q.addAll(Arrays.asList(empty)));
         assertTrue(q.addAll(Arrays.asList(items)));
         for (int i = 0; i < SIZE; ++i)
@@ -322,7 +322,7 @@ public class TreeSetTest extends JSR166TestCase {
      */
     public void testContainsAll() {
         TreeSet<Item> q = populatedSet(SIZE);
-        TreeSet<Item> p = new TreeSet<Item>();
+        TreeSet<Item> p = new TreeSet<>();
         for (int i = 0; i < SIZE; ++i) {
             assertTrue(q.containsAll(p));
             assertFalse(p.containsAll(q));
@@ -486,7 +486,7 @@ public class TreeSetTest extends JSR166TestCase {
      * iterator.remove removes current element
      */
     public void testIteratorRemove() {
-        final TreeSet<Item> q = new TreeSet<Item>();
+        final TreeSet<Item> q = new TreeSet<>();
         q.add(two);
         q.add(one);
         q.add(three);
@@ -675,7 +675,7 @@ public class TreeSetTest extends JSR166TestCase {
      */
     public void testAddAll_idempotent() throws Exception {
         Set<Item> x = populatedSet(SIZE);
-        Set<Item> y = new TreeSet<Item>(x);
+        Set<Item> y = new TreeSet<>(x);
         y.addAll(x);
         mustEqual(x, y);
         mustEqual(y, x);

@@ -18,14 +18,14 @@ public class ThreadLocalTest extends JSR166TestCase {
         return new TestSuite(ThreadLocalTest.class);
     }
 
-    static ThreadLocal<Item> tl = new ThreadLocal<Item>() {
+    static ThreadLocal<Item> tl = new ThreadLocal<>() {
             public Item initialValue() {
                 return one;
             }
         };
 
     static InheritableThreadLocal<Item> itl =
-        new InheritableThreadLocal<Item>() {
+        new InheritableThreadLocal<>() {
             protected Item initialValue() {
                 return zero;
             }

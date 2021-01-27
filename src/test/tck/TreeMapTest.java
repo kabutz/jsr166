@@ -40,7 +40,7 @@ public class TreeMapTest extends JSR166TestCase {
      * Returns a new map from Items 1-5 to Strings "A"-"E".
      */
     private static TreeMap<Item,String> map5() {
-        TreeMap<Item,String> map = new TreeMap<Item,String>();
+        TreeMap<Item,String> map = new TreeMap<>();
         assertTrue(map.isEmpty());
         map.put(one, "A");
         map.put(five, "E");
@@ -66,7 +66,7 @@ public class TreeMapTest extends JSR166TestCase {
      */
     public void testConstructFromSorted() {
         TreeMap<Item,String> map = map5();
-        TreeMap<Item,String> map2 = new TreeMap<Item,String>(map);
+        TreeMap<Item,String> map2 = new TreeMap<>(map);
         mustEqual(map, map2);
     }
 
@@ -108,7 +108,7 @@ public class TreeMapTest extends JSR166TestCase {
     public void testGet() {
         TreeMap<Item,String> map = map5();
         mustEqual("A", map.get(one));
-        TreeMap<Item,String> empty = new TreeMap<Item,String>();
+        TreeMap<Item,String> empty = new TreeMap<>();
         assertNull(empty.get(one));
     }
 
@@ -116,7 +116,7 @@ public class TreeMapTest extends JSR166TestCase {
      * isEmpty is true of empty map and false for non-empty
      */
     public void testIsEmpty() {
-        TreeMap<Item,String> empty = new TreeMap<Item,String>();
+        TreeMap<Item,String> empty = new TreeMap<>();
         TreeMap<Item,String> map = map5();
         assertTrue(empty.isEmpty());
         assertFalse(map.isEmpty());
@@ -338,7 +338,7 @@ public class TreeMapTest extends JSR166TestCase {
      * putAll adds all key-value pairs from the given map
      */
     public void testPutAll() {
-        TreeMap<Item,String> empty = new TreeMap<Item,String>();
+        TreeMap<Item,String> empty = new TreeMap<>();
         TreeMap<Item,String> map = map5();
         empty.putAll(map);
         mustEqual(5, empty.size());
@@ -562,7 +562,7 @@ public class TreeMapTest extends JSR166TestCase {
      */
     public void testSize() {
         TreeMap<Item,String> map = map5();
-        TreeMap<Item,String> empty = new TreeMap<Item,String>();
+        TreeMap<Item,String> empty = new TreeMap<>();
         mustEqual(0, empty.size());
         mustEqual(5, map.size());
     }
@@ -606,7 +606,7 @@ public class TreeMapTest extends JSR166TestCase {
      * remove(null) throws NPE for nonempty map
      */
     public void testRemove1_NullPointerException() {
-        TreeMap<Item,String> c = new TreeMap<Item,String>();
+        TreeMap<Item,String> c = new TreeMap<>();
         c.put(one, "asdads");
         try {
             c.remove(null);

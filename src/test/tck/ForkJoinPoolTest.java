@@ -561,7 +561,7 @@ public class ForkJoinPoolTest extends JSR166TestCase {
     public void testInterruptedSubmit() throws InterruptedException {
         final CountDownLatch submitted    = new CountDownLatch(1);
         final CountDownLatch quittingTime = new CountDownLatch(1);
-        final Callable<Void> awaiter = new CheckedCallable<Void>() {
+        final Callable<Void> awaiter = new CheckedCallable<>() {
             public Void realCall() throws InterruptedException {
                 assertTrue(quittingTime.await(2*LONG_DELAY_MS, MILLISECONDS));
                 return null;

@@ -1071,7 +1071,7 @@ public class CountedCompleterTest extends JSR166TestCase {
                 CCF f = new LCCF(8);
                 CCF g = new LCCF(9);
                 CCF h = new LCCF(7);
-                HashSet<CCF> set = new HashSet<CCF>();
+                HashSet<CCF> set = new HashSet<>();
                 set.add(f);
                 set.add(g);
                 set.add(h);
@@ -1166,7 +1166,7 @@ public class CountedCompleterTest extends JSR166TestCase {
                 FailingCCF f = new LFCCF(8);
                 CCF g = new LCCF(9);
                 CCF h = new LCCF(7);
-                HashSet<ForkJoinTask<?>> set = new HashSet<ForkJoinTask<?>>();
+                HashSet<ForkJoinTask<?>> set = new HashSet<>();
                 set.add(f);
                 set.add(g);
                 set.add(h);
@@ -1736,7 +1736,7 @@ public class CountedCompleterTest extends JSR166TestCase {
                 CCF f = new LCCF(8);
                 CCF g = new LCCF(9);
                 CCF h = new LCCF(7);
-                HashSet<ForkJoinTask<?>> set = new HashSet<ForkJoinTask<?>>();
+                HashSet<ForkJoinTask<?>> set = new HashSet<>();
                 set.add(f);
                 set.add(g);
                 set.add(h);
@@ -1831,7 +1831,7 @@ public class CountedCompleterTest extends JSR166TestCase {
                 FailingCCF f = new LFCCF(8);
                 CCF g = new LCCF(9);
                 CCF h = new LCCF(7);
-                HashSet<ForkJoinTask<?>> set = new HashSet<ForkJoinTask<?>>();
+                HashSet<ForkJoinTask<?>> set = new HashSet<>();
                 set.add(f);
                 set.add(g);
                 set.add(h);
