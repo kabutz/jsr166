@@ -737,7 +737,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
             }});
 
         threadStarted.await();
-        Callable<Boolean> oneConsumer = new Callable<>() { 
+        Callable<Boolean> oneConsumer = new Callable<>() {
             public Boolean call() {
                 return q.hasWaitingConsumer()
                 && q.getWaitingConsumerCount() == 1; }};
@@ -777,7 +777,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
             }});
 
         threadStarted.await();
-        Callable<Boolean> oneElement = new Callable<>() { 
+        Callable<Boolean> oneElement = new Callable<>() {
             public Boolean call() {
                 return !q.isEmpty() && q.size() == 1; }};
         waitForThreadToEnterWaitState(t, oneElement);
