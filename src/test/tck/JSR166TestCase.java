@@ -152,7 +152,7 @@ import junit.framework.TestSuite;
  * in one spot to rerun tests on slower platforms.
  *
  * Class Item is used for elements of collections and related
- * purposes. Many tests rely on themir keys being equal to ints. To
+ * purposes. Many tests rely on their keys being equal to ints. To
  * check these, methods mustEqual, mustContain, etc adapt the JUnit
  * assert methods to intercept ints.
  *
