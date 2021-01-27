@@ -745,6 +745,7 @@ public class ArrayDequeTest extends JSR166TestCase {
     /**
      * toArray(incompatible array type) throws ArrayStoreException
      */
+    @SuppressWarnings("CollectionToArraySafeParameter")
     public void testToArray_incompatibleArrayType() {
         ArrayDeque<Item> l = new ArrayDeque<>();
         l.add(five);

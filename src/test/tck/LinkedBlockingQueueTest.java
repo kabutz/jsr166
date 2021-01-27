@@ -639,7 +639,8 @@ public class LinkedBlockingQueueTest extends JSR166TestCase {
     /**
      * toArray(incompatible array type) throws ArrayStoreException
      */
-    public void testToArray1_BadArg() {
+    @SuppressWarnings("CollectionToArraySafeParameter")
+    public void testToArray_incompatibleArrayType() {
         LinkedBlockingQueue<Item> q = populatedQueue(SIZE);
         try {
             q.toArray(new String[10]);

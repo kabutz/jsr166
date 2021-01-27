@@ -285,6 +285,7 @@ public class ConcurrentHashMapTest extends JSR166TestCase {
      * get returns the correct element at the given key,
      * or null if not present
      */
+    @SuppressWarnings("CollectionIncompatibleType")
     public void testGet() {
         ConcurrentHashMap<Item,String> map = map5();
         mustEqual("A", map.get(one));

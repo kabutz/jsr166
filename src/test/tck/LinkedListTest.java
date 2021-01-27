@@ -389,7 +389,8 @@ public class LinkedListTest extends JSR166TestCase {
     /**
      * toArray(incompatible array type) throws ArrayStoreException
      */
-    public void testToArray1_BadArg() {
+    @SuppressWarnings("CollectionToArraySafeParameter")
+    public void testToArray_incompatibleArrayType() {
         LinkedList<Item> l = new LinkedList<>();
         l.add(five);
         try {

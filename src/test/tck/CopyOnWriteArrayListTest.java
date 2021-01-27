@@ -616,6 +616,7 @@ public class CopyOnWriteArrayListTest extends JSR166TestCase {
      * toArray throws an ArrayStoreException when the given array
      * can not store the objects inside the list
      */
+    @SuppressWarnings("CollectionToArraySafeParameter")
     public void testToArray_ArrayStoreException() {
         List<Item> list = new CopyOnWriteArrayList<>();
         // Items are not auto-converted to Longs

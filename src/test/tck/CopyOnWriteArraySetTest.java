@@ -365,6 +365,7 @@ public class CopyOnWriteArraySetTest extends JSR166TestCase {
      * toArray throws an ArrayStoreException when the given array can
      * not store the objects inside the set
      */
+    @SuppressWarnings("CollectionToArraySafeParameter")
     public void testToArray_ArrayStoreException() {
         CopyOnWriteArraySet<Item> c = new CopyOnWriteArraySet<>();
         c.add(one);

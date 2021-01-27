@@ -712,6 +712,7 @@ public class ArrayBlockingQueueTest extends JSR166TestCase {
     /**
      * toArray(incompatible array type) throws ArrayStoreException
      */
+    @SuppressWarnings("CollectionToArraySafeParameter")
     public void testToArray_incompatibleArrayType() {
         ArrayBlockingQueue<Item> q = populatedQueue(SIZE);
         try {

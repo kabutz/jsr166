@@ -417,7 +417,8 @@ public class ConcurrentLinkedQueueTest extends JSR166TestCase {
     /**
      * toArray(incompatible array type) throws ArrayStoreException
      */
-    public void testToArray1_BadArg() {
+    @SuppressWarnings("CollectionToArraySafeParameter")
+    public void testToArray_incompatibleArrayType() {
         ConcurrentLinkedQueue<Item> q = populatedQueue(SIZE);
         try {
             q.toArray(new String[10]);
