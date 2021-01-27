@@ -4,10 +4,12 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-// A simple element class for collections etc
 import java.util.Comparator;
 import java.io.Serializable;
 
+/**
+ * A simple element class for collections etc
+ */
 public final class Item extends Number implements Comparable<Item>, Serializable {
     public final int value;
     public Item(int v) { value = v; }
