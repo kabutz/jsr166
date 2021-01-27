@@ -930,7 +930,7 @@ public class ConcurrentLinkedDequeTest extends JSR166TestCase {
                 else
                     throw new AssertionError(
                         String.format(
-                            "unexpected value %d after %d nulls and %d zeros",
+                            "unexpected value %s after %d nulls and %d zeros",
                             x, nulls.sum(), zeros.sum()));
             };
 
@@ -957,7 +957,7 @@ public class ConcurrentLinkedDequeTest extends JSR166TestCase {
                 else
                     throw new AssertionError(
                         String.format(
-                            "unexpected value %d after %d nulls and %d zeros",
+                            "unexpected value %s after %d nulls and %d zeros",
                             x, nulls.sum(), zeros.sum()));
             };
 
