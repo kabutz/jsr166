@@ -29,37 +29,25 @@ public final class Item extends Number implements Comparable<Item>, Serializable
         return value == b;
     }
     public int compareTo(Item x) {
-        int a = value, b = x.value;
-        return (a == b) ? 0 : (a < b) ? -1 : 1;
+        return Integer.compare(this.value, x.value);
     }
     public int compareTo(int b) {
-        int a = value;
-        return (a == b) ? 0 : (a < b) ? -1 : 1;
+        return Integer.compare(this.value, b);
     }
 
     public int hashCode() { return value; }
     public String toString() { return Integer.toString(value); }
     public static int compare(Item x, Item y) {
-        int a = x.value, b = y.value;
-        return (a == b) ? 0 : (a < b) ? -1 : 1;
+        return Integer.compare(x.value, y.value);
     }
     public static int compare(Item x, int b) {
-        int a = x.value;
-        return (a == b) ? 0 : (a < b) ? -1 : 1;
-    }
-    public static int compare(int a, Item y) {
-        int b = y.value;
-        return (a == b) ? 0 : (a < b) ? -1 : 1;
-    }
-    public static int compare(int a, int b) {
-        return (a == b) ? 0 : (a < b) ? -1 : 1;
+        return Integer.compare(x.value, b);
     }
 
     public static Comparator<Item> comparator() { return new Cpr(); }
     public static class Cpr implements Comparator<Item> {
         public int compare(Item x, Item y) {
-            int a = x.value, b = y.value;
-            return (a == b) ? 0 : (a < b) ? -1 : 1;
+            return Integer.compare(x.value, y.value);
         }
     }
 }
