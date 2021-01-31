@@ -469,7 +469,10 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             if ((!timed || p.isSaturated()) &&
                 ((this instanceof CountedCompleter) ?
                  (s = p.helpComplete(this, q, internal)) < 0 :
-                 (q.tryRemove(this, internal) && (s = doExec()) < 0)))
+                 (!ran &&
+                  (!internal && q.externalTryUnpush(this)) ||
+                  q.tryRemove(this, internal)) &&
+                 (s = doExec()) < 0))
                 return s;
             if (internal) {
                 if ((s = p.helpJoin(this, q)) < 0)

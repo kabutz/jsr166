@@ -1017,13 +1017,19 @@ public class ForkJoinPool extends AbstractExecutorService {
          */
         final boolean externalTryUnpush(ForkJoinTask<?> task) {
             boolean taken = false;
-            int s = top, cap, k; ForkJoinTask<?>[] a;
-            if ((a = array) != null && (cap = a.length) > 0 &&
-                a[k = (cap - 1) & (s - 1)] == task && tryLock()) {
-                if (top == s && array == a &&
-                    (taken = casSlotToNull(a, k, task)))
-                    top = s - 1;
-                source = 0; // release lock
+            for (;;) {
+                int s = top, cap, k; ForkJoinTask<?>[] a;
+                if ((a = array) == null || (cap = a.length) <= 0 ||
+                    a[k = (cap - 1) & (s - 1)] != task)
+                    break;
+                if (tryLock()) {
+                    if (top == s && array == a &&
+                        (taken = casSlotToNull(a, k, task)))
+                        top = s - 1;
+                    source = 0; // release lock
+                    break;
+                }
+                Thread.yield(); // trylock failure
             }
             return taken;
         }
