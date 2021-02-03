@@ -247,7 +247,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         return (int)STATUS.getAndBitwiseOr(this, v);
     }
     private boolean casStatus(int c, int v) {
-        return STATUS.weakCompareAndSet(this, c, v);
+        return STATUS.compareAndSet(this, c, v);
     }
     private boolean casAux(Aux c, Aux v) {
         return AUX.compareAndSet(this, c, v);

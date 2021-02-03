@@ -1691,12 +1691,12 @@ public class ForkJoinPool extends AbstractExecutorService {
      * Returns true if all workers are busy, possibly creating one if allowed
      */
     final boolean isSaturated() {
-        int maxTotal = bounds >>> SWIDTH;
+        int par = mode & SMASK, maxTotal = bounds >>> SWIDTH;
         for (long c;;) {
             if (((int)(c = ctl) & ~UNSIGNALLED) != 0)
                 return false;
-            if ((short)(c >>> TC_SHIFT) >= maxTotal)
-                return true;
+            if ((short)(c >>> TC_SHIFT) >= maxTotal || par == 0)
+                return true; // cannot create
             long nc = ((c + TC_UNIT) & TC_MASK) | (c & ~TC_MASK);
             if (compareAndSetCtl(c, nc))
                 return !createWorker();
@@ -1742,13 +1742,16 @@ public class ForkJoinPool extends AbstractExecutorService {
      */
     private int tryCompensate(long c) {
         Predicate<? super ForkJoinPool> sat;
-        int b = bounds; // counts are signed; centered at parallelism level == 0
+        int md = mode, b = bounds;
+        // counts are signed; centered at parallelism level == 0
         int minActive = (short)(b & SMASK),
             maxTotal  = b >>> SWIDTH,
             active    = (int)(c >> RC_SHIFT),
             total     = (short)(c >>> TC_SHIFT),
             sp        = (int)c & ~UNSIGNALLED;
-        if (total >= 0) {
+        if ((md & SMASK) == 0)
+            return 0;                  // cannot compensate if parallelism zero
+        else if (total >= 0) {
             if (sp != 0) {                        // activate idle worker
                 WorkQueue[] qs; int n; WorkQueue v;
                 if ((qs = queues) != null && (n = qs.length) > 0 &&
@@ -2517,6 +2520,8 @@ public class ForkJoinPool extends AbstractExecutorService {
         } catch (Exception ignore) {
         }
         int p = this.mode = Math.min(Math.max(parallelism, 0), MAX_CAP);
+        int maxSpares = (p == 0) ? 0 : COMMON_MAX_SPARES;
+        int bnds = ((1 - p) & SMASK) | (maxSpares << SWIDTH);
         int size = 1 << (33 - Integer.numberOfLeadingZeros(p > 0 ? p - 1 : 1));
         this.factory = (fac != null) ? fac :
             new DefaultCommonPoolForkJoinWorkerThreadFactory();
@@ -2524,7 +2529,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         this.keepAlive = DEFAULT_KEEPALIVE;
         this.saturate = null;
         this.workerNamePrefix = null;
-        this.bounds = ((1 - p) & SMASK) | (COMMON_MAX_SPARES << SWIDTH);
+        this.bounds = bnds;
         this.ctl = ((((long)(-p) << TC_SHIFT) & TC_MASK) |
                     (((long)(-p) << RC_SHIFT) & RC_MASK));
         this.queues = new WorkQueue[size];
