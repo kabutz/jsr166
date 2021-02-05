@@ -1023,11 +1023,14 @@ public class ForkJoinPool extends AbstractExecutorService {
                     a[k = (cap - 1) & (s - 1)] != task)
                     break;
                 if (tryLock()) {
-                    if (top == s && array == a &&
-                        (taken = casSlotToNull(a, k, task)))
-                        top = s - 1;
-                    source = 0; // release lock
-                    break;
+                    if (top == s && array == a) {
+                        if (taken = casSlotToNull(a, k, task)) {
+                            top = s - 1;
+                            source = 0;
+                            break;
+                        }
+                    }
+                    source = 0; // release lock for retry
                 }
                 Thread.yield(); // trylock failure
             }
@@ -1171,15 +1174,16 @@ public class ForkJoinPool extends AbstractExecutorService {
                                 top = s;
                             source = 0;
                         }
+                        if (taken)
+                            t.doExec();
+                        else if (!owned)
+                            Thread.yield(); // tryLock failure
                         break;
                     }
                     else if ((f = f.completer) == null)
                         break;
                 }
-                if (!taken)
-                    break;
-                t.doExec();
-                if (limit != 0 && --limit == 0)
+                if (taken && limit != 0 && --limit == 0)
                     break;
             }
             return status;
@@ -1563,7 +1567,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * @param w caller's WorkQueue (may be null on failed initialization)
      */
     final void runWorker(WorkQueue w) {
-        if (w != null) {                        // skip on failed init
+        if (mode >= 0 && w != null) {           // skip on failed init
             w.config |= SRC;                    // mark as valid source
             int r = w.stackPred, src = 0;       // use seed from registerWorker
             do {
@@ -2272,14 +2276,18 @@ public class ForkJoinPool extends AbstractExecutorService {
                 return false;
             md = getAndBitwiseOrMode(STOP);
         }
-        for (int k = 0; k < 2; ++k) { // twice in case of lagging qs updates
-            for (ForkJoinTask<?> t; (t = pollScan(false)) != null; )
+        for (boolean rescan = true;;) { // repeat until no changes
+            boolean changed = false;
+            for (ForkJoinTask<?> t; (t = pollScan(false)) != null; ) {
+                changed = true;
                 ForkJoinTask.cancelIgnoringExceptions(t); // help cancel
+            }
             WorkQueue[] qs; int n; WorkQueue q; Thread thread;
             if ((qs = queues) != null && (n = qs.length) > 0) {
                 for (int j = 1; j < n; j += 2) { // unblock other workers
                     if ((q = qs[j]) != null && (thread = q.owner) != null &&
                         !thread.isInterrupted()) {
+                        changed = true;
                         try {
                             thread.interrupt();
                         } catch (Throwable ignore) {
@@ -2297,6 +2305,12 @@ public class ForkJoinPool extends AbstractExecutorService {
                     cond.signalAll();
                 lock.unlock();
             }
+            if (changed)
+                rescan = true;
+            else if (rescan)
+                rescan = false;
+            else
+                break;
         }
         return true;
     }
@@ -2728,11 +2742,16 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
         final void tryComplete(Callable<E> c) { // called by InvokeAnyTasks
             Throwable ex = null;
-            boolean failed = (c == null || isCancelled() ||
-                              (pool != null && pool.mode < 0));
-            if (!failed && !isDone()) {
+            boolean failed;
+            if (c == null || Thread.interrupted() ||
+                (pool != null && pool.mode < 0))
+                failed = true;
+            else if (isDone())
+                failed = false;
+            else {
                 try {
                     complete(c.call());
+                    failed = false;
                 } catch (Throwable tx) {
                     ex = tx;
                     failed = true;
