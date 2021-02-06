@@ -2589,7 +2589,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      */
     public <T> T invoke(ForkJoinTask<T> task) {
         externalSubmit(task);
-        return task.join();
+        return task.joinForPoolInvoke(this);
     }
 
     /**
@@ -2681,7 +2681,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 externalSubmit(f);
             }
             for (int i = futures.size() - 1; i >= 0; --i)
-                ((ForkJoinTask<?>)futures.get(i)).quietlyJoin();
+                ((ForkJoinTask<?>)futures.get(i)).tryJoinForPoolInvoke(this);
             return futures;
         } catch (Throwable t) {
             for (Future<T> e : futures)
@@ -2712,7 +2712,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                         ForkJoinTask.cancelIgnoringExceptions(f);
                     else {
                         try {
-                            f.get(ns, TimeUnit.NANOSECONDS);
+                            ((ForkJoinTask<T>)f).getForPoolInvoke(this, ns);
                         } catch (CancellationException | TimeoutException |
                                  ExecutionException ok) {
                         }
@@ -2818,7 +2818,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 if (root.isDone())
                     break;
             }
-            return root.get();
+            return root.getForPoolInvoke(this);
         } finally {
             for (InvokeAnyTask<T> f : fs)
                 ForkJoinTask.cancelIgnoringExceptions(f);
@@ -2845,7 +2845,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 if (root.isDone())
                     break;
             }
-            return root.get(nanos, TimeUnit.NANOSECONDS);
+            return root.getForPoolInvoke(this, nanos);
         } finally {
             for (InvokeAnyTask<T> f : fs)
                 ForkJoinTask.cancelIgnoringExceptions(f);

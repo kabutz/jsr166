@@ -271,17 +271,20 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      *
      * @param interruptible true if wait can be cancelled by interrupt
      * @param deadline if non-zero use timed waits and possibly timeout
-     * @param pool if nonnull pool to uncompensate after unblocking
+     * @param pool current pool if known
+     * @param uncompensate if true uncompensate after unblocking
      * @return status on exit, or ABNORMAL if interrupted while waiting
      */
     private int awaitDone(boolean interruptible, long deadline,
-                          ForkJoinPool pool) {
+                          ForkJoinPool pool, boolean uncompensate) {
         int s;
-        boolean interrupted = false, queued = false, parked = false;
+        boolean interrupted = false, queued = false, parked = false, fail = false;
         Aux node = null;
         while ((s = status) >= 0) {
             Aux a; long ns;
-            if (parked && Thread.interrupted()) {
+            if (fail || (fail = (pool != null && pool.mode < 0)))
+                casStatus(s, s | (DONE | ABNORMAL)); // try to cancel
+            else if (parked && Thread.interrupted()) {
                 if (interruptible) {
                     s = ABNORMAL;
                     break;
@@ -307,12 +310,12 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             else {
                 try {
                     node = new Aux(Thread.currentThread(), null);
-                } catch (Throwable ex) {     // try to cancel if cannot create
-                    casStatus(s, s | (DONE | ABNORMAL));
+                } catch (Throwable ex) {     // cannot create
+                    fail = true;
                 }
             }
         }
-        if (pool != null)
+        if (pool != null && uncompensate)
             pool.uncompensate();
 
         if (queued) {
@@ -434,20 +437,27 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      * Helps and/or waits for completion from join, get, or invoke;
      * called from either internal or external threads.
      *
+     * @param submittedPool if nonnull, known externally submitted pool
      * @param ran true if task known to have been exec'd
      * @param interruptible true if park interruptibly when external
      * @param timed true if use timed wait
      * @param nanos if timed, timeout value
      * @return ABNORMAL if interrupted, else status on exit
      */
-    private int awaitJoin(boolean ran, boolean interruptible, boolean timed,
+    private int awaitJoin(ForkJoinPool submittedPool, boolean ran,
+                          boolean interruptible, boolean timed,
                           long nanos) {
-        boolean internal; ForkJoinPool p; ForkJoinPool.WorkQueue q; int s;
+        boolean internal; ForkJoinPool p, hostPool;
+        ForkJoinPool.WorkQueue q; int s;
         Thread t; ForkJoinWorkerThread wt;
         if (internal = ((t = Thread.currentThread())
                         instanceof ForkJoinWorkerThread)) {
             p = (wt = (ForkJoinWorkerThread)t).pool;
             q = wt.workQueue;
+            if (submittedPool == null)
+                submittedPool = p;
+            else if (submittedPool != p)
+                internal = false;
         }
         else {
             p = ForkJoinPool.common;
@@ -464,25 +474,29 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             else if ((deadline = nanos + System.nanoTime()) == 0L)
                 deadline = 1L;
         }
-        ForkJoinPool uncompensate = null;
-        if (q != null && p != null) {            // try helping
-            if ((!timed || p.isSaturated()) &&
-                ((this instanceof CountedCompleter) ?
-                 (s = p.helpComplete(this, q, internal)) < 0 :
-                 (!ran &&
-                  (!internal && q.externalTryUnpush(this)) ||
-                  q.tryRemove(this, internal)) &&
-                 (s = doExec()) < 0))
+        boolean uncompensate = false;
+        // try helping unless timed, external, and pool has workers
+        if (q != null && p != null &&
+            (internal || !timed || (p.mode & SMASK) == 0)) {
+            if (this instanceof CountedCompleter)
+                s = p.helpComplete(this, q, internal);
+            else if (!ran &&
+                     (!internal && q.externalTryUnpush(this)) ||
+                     q.tryRemove(this, internal))
+                s = doExec();
+            else
+                s = status;
+            if (s < 0)
                 return s;
-            if (internal) {
+            else if (internal) {
                 if ((s = p.helpJoin(this, q)) < 0)
                     return s;
                 if (s == UNCOMPENSATE)
-                    uncompensate = p;
+                    uncompensate = true;
                 interruptible = false;
             }
         }
-        return awaitDone(interruptible, deadline, uncompensate);
+        return awaitDone(interruptible, deadline, submittedPool, uncompensate);
     }
 
     /**
@@ -638,7 +652,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     public final V join() {
         int s;
         if ((s = status) >= 0)
-            s = awaitJoin(false, false, false, 0L);
+            s = awaitJoin(null, false, false, false, 0L);
         if ((s & ABNORMAL) != 0)
             reportException(s);
         return getRawResult();
@@ -655,7 +669,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     public final V invoke() {
         int s;
         if ((s = doExec()) >= 0)
-            s = awaitJoin(true, false, false, 0L);
+            s = awaitJoin(null, true, false, false, 0L);
         if ((s & ABNORMAL) != 0)
             reportException(s);
         return getRawResult();
@@ -684,12 +698,12 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             throw new NullPointerException();
         t2.fork();
         if ((s1 = t1.doExec()) >= 0)
-            s1 = t1.awaitJoin(true, false, false, 0L);
+            s1 = t1.awaitJoin(null, true, false, false, 0L);
         if ((s1 & ABNORMAL) != 0) {
             cancelIgnoringExceptions(t2);
             t1.reportException(s1);
         }
-        else if (((s2 = t2.awaitJoin(false, false, false, 0L)) & ABNORMAL) != 0)
+        else if (((s2 = t2.awaitJoin(null, false, false, false, 0L)) & ABNORMAL) != 0)
             t2.reportException(s2);
     }
 
@@ -720,7 +734,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             if (i == 0) {
                 int s;
                 if ((s = t.doExec()) >= 0)
-                    s = t.awaitJoin(true, false, false, 0L);
+                    s = t.awaitJoin(null, true, false, false, 0L);
                 if ((s & ABNORMAL) != 0)
                     ex = t.getException(s);
                 break;
@@ -733,7 +747,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
                 if ((t = tasks[i]) != null) {
                     int s;
                     if ((s = t.status) >= 0)
-                        s = t.awaitJoin(false, false, false, 0L);
+                        s = t.awaitJoin(null, false, false, false, 0L);
                     if ((s & ABNORMAL) != 0 && (ex = t.getException(s)) != null)
                         break;
                 }
@@ -783,7 +797,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             if (i == 0) {
                 int s;
                 if ((s = t.doExec()) >= 0)
-                    s = t.awaitJoin(true, false, false, 0L);
+                    s = t.awaitJoin(null, true, false, false, 0L);
                 if ((s & ABNORMAL) != 0)
                     ex = t.getException(s);
                 break;
@@ -796,7 +810,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
                 if ((t = ts.get(i)) != null) {
                     int s;
                     if ((s = t.status) >= 0)
-                        s = t.awaitJoin(false, false, false, 0L);
+                        s = t.awaitJoin(null, false, false, false, 0L);
                     if ((s & ABNORMAL) != 0 && (ex = t.getException(s)) != null)
                         break;
                 }
@@ -947,8 +961,8 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      * member of a ForkJoinPool and was interrupted while waiting
      */
     public final V get() throws InterruptedException, ExecutionException {
-        int s;
-        if (((s = awaitJoin(false, true, false, 0L)) & ABNORMAL) != 0)
+        int s = awaitJoin(null, false, true, false, 0L);
+        if ((s & ABNORMAL) != 0)
             reportExecutionException(s);
         return getRawResult();
     }
@@ -969,9 +983,9 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      */
     public final V get(long timeout, TimeUnit unit)
         throws InterruptedException, ExecutionException, TimeoutException {
-        int s;
-        if ((s = awaitJoin(false, true, true, unit.toNanos(timeout))) >= 0 ||
-            (s & ABNORMAL) != 0)
+        long nanos = unit.toNanos(timeout);
+        int s = awaitJoin(null, false, true, true, nanos);
+        if (s >= 0 || (s & ABNORMAL) != 0)
             reportExecutionException(s);
         return getRawResult();
     }
@@ -984,8 +998,9 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      */
     public final void quietlyJoin() {
         if (status >= 0)
-            awaitJoin(false, false, false, 0L);
+            awaitJoin(null, false, false, false, 0L);
     }
+
 
     /**
      * Commences performing this task and awaits its completion if
@@ -994,7 +1009,38 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      */
     public final void quietlyInvoke() {
         if (doExec() >= 0)
-            awaitJoin(true, false, false, 0L);
+            awaitJoin(null, true, false, false, 0L);
+    }
+
+    // Versions of join/get for pool.invoke* methods that use external,
+    // possibly-non-commonPool submits
+
+    final V joinForPoolInvoke(ForkJoinPool pool) {
+        int s;
+        if ((s = status) >= 0)
+            s = awaitJoin(pool, false, false, false, 0L);
+        if ((s & ABNORMAL) != 0)
+            reportException(s);
+        return getRawResult();
+    }
+    final void tryJoinForPoolInvoke(ForkJoinPool pool) {
+        if (status >= 0)
+            awaitJoin(pool, false, false, false, 0L);
+    }
+    final V getForPoolInvoke(ForkJoinPool pool)
+        throws InterruptedException, ExecutionException {
+        int s = awaitJoin(pool, false, true, false, 0L);
+        if ((s & ABNORMAL) != 0)
+            reportExecutionException(s);
+        return getRawResult();
+    }
+
+    final V getForPoolInvoke(ForkJoinPool pool, long nanos)
+        throws InterruptedException, ExecutionException, TimeoutException {
+        int s = awaitJoin(pool, false, true, true, nanos);
+        if (s >= 0 || (s & ABNORMAL) != 0)
+            reportExecutionException(s);
+        return getRawResult();
     }
 
     /**
