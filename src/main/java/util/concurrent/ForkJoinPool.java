@@ -1692,22 +1692,6 @@ public class ForkJoinPool extends AbstractExecutorService {
     // Utilities used by ForkJoinTask
 
     /**
-     * Returns true if all workers are busy, possibly creating one if allowed
-     */
-    final boolean isSaturated() {
-        int par = mode & SMASK, maxTotal = bounds >>> SWIDTH;
-        for (long c;;) {
-            if (((int)(c = ctl) & ~UNSIGNALLED) != 0)
-                return false;
-            if ((short)(c >>> TC_SHIFT) >= maxTotal || par == 0)
-                return true; // cannot create
-            long nc = ((c + TC_UNIT) & TC_MASK) | (c & ~TC_MASK);
-            if (compareAndSetCtl(c, nc))
-                return !createWorker();
-        }
-    }
-
-    /**
      * Returns true if can start terminating if enabled, or already terminated
      */
     final boolean canStop() {
@@ -1803,9 +1787,10 @@ public class ForkJoinPool extends AbstractExecutorService {
      *
      * @param task the task
      * @param w caller's WorkQueue
+     * @param canHelp if false, compensate only
      * @return task status on exit, or UNCOMPENSATE for compensated blocking
      */
-    final int helpJoin(ForkJoinTask<?> task, WorkQueue w) {
+    final int helpJoin(ForkJoinTask<?> task, WorkQueue w, boolean canHelp) {
         int s = 0;
         if (task != null && w != null) {
             int wsrc = w.source, wid = w.config & SMASK, r = wid + 2;
@@ -1820,7 +1805,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                     else if (c == (c = ctl) && (s = tryCompensate(c)) >= 0)
                         break;                    // block
                 }
-                else {                            // scan for subtasks
+                else if (canHelp) {               // scan for subtasks
                     WorkQueue[] qs = queues;
                     int n = (qs == null) ? 0 : qs.length, m = n - 1;
                     for (int i = n; i > 0; i -= 2, r += 2) {
@@ -2179,6 +2164,16 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     /**
+     * Returns queue for an external thread, if one exists
+     */
+    final WorkQueue externalQueue() {
+        WorkQueue[] qs;
+        int r = ThreadLocalRandom.getProbe(), n;
+        return ((qs = queues) != null && (n = qs.length) > 0 && r != 0) ?
+            qs[(n - 1) & (r << 1)] : null;
+    }
+
+    /**
      * If the given executor is a ForkJoinPool, poll and execute
      * AsynchronousCompletionTasks from worker's queue until none are
      * available or blocker is released.
@@ -2189,8 +2184,8 @@ public class ForkJoinPool extends AbstractExecutorService {
             if ((wt = (ForkJoinWorkerThread)t).pool == e)
                 w = wt.workQueue;
         }
-        else if (e == common)
-            w = commonQueue();
+        else if (e instanceof ForkJoinPool)
+            w = ((ForkJoinPool)e).externalQueue();
         if (w != null)
             w.helpAsyncBlocker(blocker);
     }
@@ -2681,7 +2676,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 externalSubmit(f);
             }
             for (int i = futures.size() - 1; i >= 0; --i)
-                ((ForkJoinTask<?>)futures.get(i)).tryJoinForPoolInvoke(this);
+                ((ForkJoinTask<?>)futures.get(i)).awaitPoolInvoke(this);
             return futures;
         } catch (Throwable t) {
             for (Future<T> e : futures)
@@ -2711,11 +2706,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                     if (timedOut)
                         ForkJoinTask.cancelIgnoringExceptions(f);
                     else {
-                        try {
-                            ((ForkJoinTask<T>)f).getForPoolInvoke(this, ns);
-                        } catch (CancellationException | TimeoutException |
-                                 ExecutionException ok) {
-                        }
+                        ((ForkJoinTask<T>)f).awaitPoolInvoke(this, ns);
                         if ((ns = nanos - (System.nanoTime() - startTime)) < 0L)
                             timedOut = true;
                     }
