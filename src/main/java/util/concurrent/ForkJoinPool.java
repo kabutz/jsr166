@@ -2113,10 +2113,10 @@ public class ForkJoinPool extends AbstractExecutorService {
                     lock.unlock();
                 }
             }
-            else if (!q.tryLock())                  // move and restart
-                id = (r = ThreadLocalRandom.advanceProbe(r)) << 1;
-            else
+            else if (q.tryLock())
                 return q;
+            else if ((md & SMASK) != 0)             // move unless no parallelism
+                id = (r = ThreadLocalRandom.advanceProbe(r)) << 1;
         }
     }
 
@@ -2528,19 +2528,23 @@ public class ForkJoinPool extends AbstractExecutorService {
                 parallelism = Integer.parseInt(pp);
         } catch (Exception ignore) {
         }
-        int p = this.mode = Math.min(Math.max(parallelism, 0), MAX_CAP);
-        int maxSpares = (p == 0) ? 0 : COMMON_MAX_SPARES;
-        int bnds = ((1 - p) & SMASK) | (maxSpares << SWIDTH);
-        int size = 1 << (33 - Integer.numberOfLeadingZeros(p > 0 ? p - 1 : 1));
-        this.factory = (fac != null) ? fac :
-            new DefaultCommonPoolForkJoinWorkerThreadFactory();
         this.ueh = handler;
         this.keepAlive = DEFAULT_KEEPALIVE;
         this.saturate = null;
         this.workerNamePrefix = null;
-        this.bounds = bnds;
-        this.ctl = ((((long)(-p) << TC_SHIFT) & TC_MASK) |
-                    (((long)(-p) << RC_SHIFT) & RC_MASK));
+        int p = Math.min(Math.max(parallelism, 0), MAX_CAP), size;
+        if (p > 0) {
+            size = 1 << (33 - Integer.numberOfLeadingZeros(p - 1));
+            this.bounds = ((1 - p) & SMASK) | (COMMON_MAX_SPARES << SWIDTH);
+            this.ctl = ((((long)(-p) << TC_SHIFT) & TC_MASK) |
+                        (((long)(-p) << RC_SHIFT) & RC_MASK));
+        } else {  // zero min, max, spare counts, 1 slot
+            size = 1;
+            this.bounds = 0;
+            this.ctl = 0L;
+        }
+        this.factory = (fac != null) ? fac :
+            new DefaultCommonPoolForkJoinWorkerThreadFactory();
         this.queues = new WorkQueue[size];
         this.registrationLock = new ReentrantLock();
     }
