@@ -864,7 +864,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
         static final boolean casSlotToNull(ForkJoinTask<?>[] a, int i,
                                           ForkJoinTask<?> c) {
-            return QA.weakCompareAndSet(a, i, c, null);
+            return QA.compareAndSet(a, i, c, null);
         }
         final boolean tryLock() {
             return SOURCE.compareAndSet(this, 0, 1);
