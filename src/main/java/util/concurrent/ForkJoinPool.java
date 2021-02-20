@@ -492,7 +492,10 @@ public class ForkJoinPool extends AbstractExecutorService {
      * terminate others by cancelling their unprocessed tasks, and
      * waking them up. Calls to non-abrupt shutdown() preface this by
      * checking isQuiescent before triggering the "STOP" phase of
-     * termination.
+     * termination. To conform to ExecutorService invoke, invokeAll,
+     * and invokeAny specs, we must track pool status while waiting,
+     * and interrupt interruptable callers on termination (see
+     * ForkJoinTask.joinForPoolInvoke etc).
      *
      * Joining Tasks
      * =============
@@ -601,6 +604,13 @@ public class ForkJoinPool extends AbstractExecutorService {
      * liberally sprinkled task status checks) in inapplicable cases
      * amounts to an odd form of limited spin-wait before blocking in
      * ForkJoinTask.join.
+     *
+     * Guarantees for common pool parallelism zero are limited to
+     * tasks that are joined by their callers in a tree-structured
+     * fashion or use CountedCompleters (as is true for jdk
+     * parallelStreams). Support infiltrates several methods,
+     * including those that retry helping steps until we are sure that
+     * none apply if there are no workers.
      *
      * As a more appropriate default in managed environments, unless
      * overridden by system properties, we use workers of subclass
@@ -2113,10 +2123,10 @@ public class ForkJoinPool extends AbstractExecutorService {
                     lock.unlock();
                 }
             }
-            else if (q.tryLock())
-                return q;
-            else if ((md & SMASK) != 0)             // move unless no parallelism
+            else if (!q.tryLock())                  // move and restart
                 id = (r = ThreadLocalRandom.advanceProbe(r)) << 1;
+            else
+                return q;
         }
     }
 
