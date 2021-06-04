@@ -36,6 +36,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -89,7 +90,7 @@ public class AsyncShutdownNowInvokeAny {
                     // execute long running tasks
                     pool.invokeAny(List.of(SLEEP_FOR_A_DAY, SLEEP_FOR_A_DAY));
                     assertTrue(false);
-                } catch (ExecutionException e) {
+                } catch (ExecutionException | RejectedExecutionException e) {
                     // expected
                 }
             } finally {
