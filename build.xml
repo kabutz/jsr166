@@ -26,6 +26,7 @@
   $HOME/jdk/jdk15
   $HOME/jdk/jdk16
   $HOME/jdk/jdk17
+  $HOME/jdk/jdk18
   where each of the above is a JDK or a symlink to same, and
   $HOME/jdk/src/jdk11
   $HOME/jdk/src/jdk12
@@ -34,11 +35,12 @@
   $HOME/jdk/src/jdk15
   $HOME/jdk/src/jdk16
   $HOME/jdk/src/jdk17
+  $HOME/jdk/src/jdk18
   where each of the above is a JDK source tree or a symlink to same.
 
   Alternatively, define ant variables thus:
   ant -Djdk$N.home=... -Djdk$N.src.home=...
-  for $N in 11 .. 17 ...
+  for $N in 11 .. 18 ...
 
   As of 2016-03, the sources in src/main are for jdk9+ only.
   As of 2019-08, the sources in src/main are for jdk11+ only.
@@ -105,6 +107,7 @@
   <defjdklocations v="15"/>
   <defjdklocations v="16"/>
   <defjdklocations v="17"/>
+  <defjdklocations v="18"/>
 
   <!-- Source locations -->
   <property name="src.dir"              location="${basedir}/src/main"/>
@@ -118,6 +121,7 @@
   <property name="jtreg15.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg16.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg17.src.dir"      location="${test.src.dir}/jtreg"/>
+  <property name="jtreg18.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg.src.dir"        location="${jtreg11.src.dir}"/>
   <property name="lib.dir"              location="${basedir}/lib"/>
   <property name="dist.dir"             location="${basedir}/dist"/>
@@ -147,9 +151,10 @@
   <property name="java14.docroot.url" value="https://docs.oracle.com/en/java/javase/14/docs"/>
   <property name="java15.docroot.url" value="https://docs.oracle.com/en/java/javase/15/docs"/>
   <property name="java16.docroot.url" value="https://docs.oracle.com/en/java/javase/16/docs"/>
-  <property name="java17.docroot.url" value="https://download.java.net/java/early_access/jdk17/docs"/>
+  <property name="java17.docroot.url" value="https://docs.oracle.com/en/java/javase/17/docs"/>
+  <property name="java18.docroot.url" value="https://download.java.net/java/early_access/jdk18/docs"/>
   <!-- Default jdk doc location (latest stable LTS release seems best) -->
-  <property name="java.docroot.url"   value="${java11.docroot.url}"/>
+  <property name="java.docroot.url"   value="${java17.docroot.url}"/>
 
   <!-- Canonical location of jdk API docs, to use with javadoc link attribute -->
   <property name="java11.api.url"     value="${java11.docroot.url}/api/"/>
@@ -159,6 +164,7 @@
   <property name="java15.api.url"     value="${java15.docroot.url}/api/"/>
   <property name="java16.api.url"     value="${java16.docroot.url}/api/"/>
   <property name="java17.api.url"     value="${java17.docroot.url}/api/"/>
+  <property name="java18.api.url"     value="${java18.docroot.url}/api/"/>
   <property name="java.api.url"       value="${java.docroot.url}/api/"/>
 
   <!-- Define the "jtreg" task -->
@@ -260,6 +266,7 @@
     </sequential>
   </macrodef>
 
+  <defjtregtests v="18"/>
   <defjtregtests v="17"/>
   <defjtregtests v="16"/>
   <defjtregtests v="15"/>
