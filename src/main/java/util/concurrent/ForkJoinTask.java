@@ -7,13 +7,12 @@
 package java.util.concurrent;
 
 import java.io.Serializable;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.List;
 import java.util.RandomAccess;
 import java.util.concurrent.locks.LockSupport;
+import jdk.internal.misc.Unsafe;
 
 /**
  * Abstract base class for tasks that run within a {@link ForkJoinPool}.
@@ -189,7 +188,10 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      *
      * Revision notes: The use of "Aux" field replaces previous
      * reliance on a table to hold exceptions and synchronized blocks
-     * and monitors to wait for completion.
+     * and monitors to wait for completion. This class uses
+     * jdk-internal Unsafe for atomics and special memory modes,
+     * rather than VarHandles, to avoid initialization dependencies in
+     * other jdk components that require early parallelism.
      */
 
     /**
@@ -206,17 +208,15 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             this.thread = thread;
             this.ex = ex;
         }
+        @SuppressWarnings("removal")
         final boolean casNext(Aux c, Aux v) { // used only in cancellation
-            return NEXT.compareAndSet(this, c, v);
+            return U.compareAndSetObject(this, NEXT, c, v);
         }
-        private static final VarHandle NEXT;
+        private static final Unsafe U;
+        private static final long NEXT;
         static {
-            try {
-                NEXT = MethodHandles.lookup()
-                    .findVarHandle(Aux.class, "next", Aux.class);
-            } catch (ReflectiveOperationException e) {
-                throw new ExceptionInInitializerError(e);
-            }
+            U = Unsafe.getUnsafe();
+            NEXT = U.objectFieldOffset(Aux.class, "next");
         }
     }
 
@@ -241,16 +241,18 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     private transient volatile Aux aux; // either waiters or thrown Exception
 
     // Support for atomic operations
-    private static final VarHandle STATUS;
-    private static final VarHandle AUX;
+    private static final Unsafe U;
+    private static final long STATUS;
+    private static final long AUX;
     private int getAndBitwiseOrStatus(int v) {
-        return (int)STATUS.getAndBitwiseOr(this, v);
+        return U.getAndBitwiseOrInt(this, STATUS, v);
     }
     private boolean casStatus(int c, int v) {
-        return STATUS.compareAndSet(this, c, v);
+        return U.compareAndSetInt(this, STATUS, c, v);
     }
+    @SuppressWarnings("removal")
     private boolean casAux(Aux c, Aux v) {
-        return AUX.compareAndSet(this, c, v);
+        return U.compareAndSetObject(this, AUX, c, v);
     }
 
     /** Removes and unparks waiters */
@@ -378,7 +380,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         }
         else {
             internal = false;
-            p = ForkJoinPool.common;
+            p = ForkJoinPool.commonPool();
             if (pool == null)
                 pool = p;
             if (pool == p && p != null)
@@ -620,7 +622,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         if ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread)
             (w = (ForkJoinWorkerThread)t).workQueue.push(this, w.pool);
         else
-            ForkJoinPool.common.externalPush(this);
+            ForkJoinPool.externalPushCommon(this);
         return this;
     }
 
@@ -1041,7 +1043,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             (p = (w = (ForkJoinWorkerThread)t).pool) != null)
             p.helpQuiescePool(w.workQueue, Long.MAX_VALUE, false);
         else
-            ForkJoinPool.common.externalHelpQuiescePool(Long.MAX_VALUE, false);
+            ForkJoinPool.commonPool().externalHelpQuiescePool(Long.MAX_VALUE, false);
     }
 
     /**
@@ -1553,13 +1555,9 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     }
 
     static {
-        try {
-            MethodHandles.Lookup l = MethodHandles.lookup();
-            STATUS = l.findVarHandle(ForkJoinTask.class, "status", int.class);
-            AUX = l.findVarHandle(ForkJoinTask.class, "aux", Aux.class);
-        } catch (ReflectiveOperationException e) {
-            throw new ExceptionInInitializerError(e);
-        }
+        U = Unsafe.getUnsafe();
+        STATUS = U.objectFieldOffset(ForkJoinTask.class, "status");
+        AUX = U.objectFieldOffset(ForkJoinTask.class, "aux");
     }
 
 }
