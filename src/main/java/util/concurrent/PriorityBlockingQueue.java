@@ -261,11 +261,17 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         if (allocationSpinLock == 0 &&
             ALLOCATIONSPINLOCK.compareAndSet(this, 0, 1)) {
             try {
-                int growth = (oldCap < 64)
-                    ? (oldCap + 2) // grow faster if small
-                    : (oldCap >> 1);
-                int newCap = ArraysSupport.newLength(oldCap, 1, growth);
-                if (queue == array)
+                int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
+                int newCap = oldCap + ((oldCap < 64) ?
+                                       (oldCap + 2) : // grow faster if small
+                                       (oldCap >> 1));
+                if (newCap - MAX_ARRAY_SIZE > 0) {    // possible overflow
+                    int minCap = oldCap + 1;
+                    if (minCap < 0 || minCap > MAX_ARRAY_SIZE)
+                        throw new OutOfMemoryError();
+                    newCap = MAX_ARRAY_SIZE;
+                }
+                if (newCap > oldCap && queue == array)
                     newArray = new Object[newCap];
             } finally {
                 allocationSpinLock = 0;

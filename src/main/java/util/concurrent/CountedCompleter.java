@@ -701,7 +701,6 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
         if (q != null && maxTasks > 0)
             q.helpComplete(this, owned, maxTasks);
     }
-
     // ForkJoinTask overrides
 
     /**
@@ -748,10 +747,10 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
     protected void setRawResult(T t) { }
 
     /*
-      This class uses
-     * jdk-internal Unsafe for atomics and special memory modes,
-     * rather than VarHandles, to avoid initialization dependencies in
-     * other jdk components that require early parallelism.
+     * This class uses jdk-internal Unsafe for atomics and special
+     * memory modes, rather than VarHandles, to avoid initialization
+     * dependencies in other jdk components that require early
+     * parallelism.
      */
     private static final Unsafe U;
     private static final long PENDING;

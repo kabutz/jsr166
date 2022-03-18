@@ -721,6 +721,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      */
     private void checkShutdownAccess() {
         // assert mainLock.isHeldByCurrentThread();
+        @SuppressWarnings("removal")
         SecurityManager security = System.getSecurityManager();
         if (security != null) {
             security.checkPermission(shutdownPerm);
@@ -1448,7 +1449,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * that shut down this executor, but in this version, finalize
      * does nothing.
      */
-    @Deprecated(since="9")
+    @Deprecated(since="9", forRemoval=true)
+    @SuppressWarnings("removal")
     protected void finalize() {}
 
     /**

@@ -360,7 +360,15 @@ public class Executors {
      * @throws AccessControlException if the current access control
      * context does not have permission to both get and set context
      * class loader
+     *
+     * @deprecated This method is only useful in conjunction with
+     *       {@linkplain SecurityManager the Security Manager}, which is
+     *       deprecated and subject to removal in a future release.
+     *       Consequently, this method is also deprecated and subject to
+     *       removal. There is no replacement for the Security Manager or this
+     *       method.
      */
+    @Deprecated(since="17", forRemoval=true)
     public static ThreadFactory privilegedThreadFactory() {
         return new PrivilegedThreadFactory();
     }
@@ -437,7 +445,15 @@ public class Executors {
      * @param <T> the type of the callable's result
      * @return a callable object
      * @throws NullPointerException if callable null
+     *
+     * @deprecated This method is only useful in conjunction with
+     *       {@linkplain SecurityManager the Security Manager}, which is
+     *       deprecated and subject to removal in a future release.
+     *       Consequently, this method is also deprecated and subject to
+     *       removal. There is no replacement for the Security Manager or this
+     *       method.
      */
+    @Deprecated(since="17", forRemoval=true)
     public static <T> Callable<T> privilegedCallable(Callable<T> callable) {
         if (callable == null)
             throw new NullPointerException();
@@ -463,7 +479,15 @@ public class Executors {
      * @throws AccessControlException if the current access control
      * context does not have permission to both set and get context
      * class loader
+     *
+     * @deprecated This method is only useful in conjunction with
+     *       {@linkplain SecurityManager the Security Manager}, which is
+     *       deprecated and subject to removal in a future release.
+     *       Consequently, this method is also deprecated and subject to
+     *       removal. There is no replacement for the Security Manager or this
+     *       method.
      */
+    @Deprecated(since="17", forRemoval=true)
     public static <T> Callable<T> privilegedCallableUsingCurrentClassLoader(Callable<T> callable) {
         if (callable == null)
             throw new NullPointerException();
@@ -496,13 +520,16 @@ public class Executors {
      */
     private static final class PrivilegedCallable<T> implements Callable<T> {
         final Callable<T> task;
+        @SuppressWarnings("removal")
         final AccessControlContext acc;
 
+        @SuppressWarnings("removal")
         PrivilegedCallable(Callable<T> task) {
             this.task = task;
             this.acc = AccessController.getContext();
         }
 
+        @SuppressWarnings("removal")
         public T call() throws Exception {
             try {
                 return AccessController.doPrivileged(
@@ -528,9 +555,11 @@ public class Executors {
     private static final class PrivilegedCallableUsingCurrentClassLoader<T>
             implements Callable<T> {
         final Callable<T> task;
+        @SuppressWarnings("removal")
         final AccessControlContext acc;
         final ClassLoader ccl;
 
+        @SuppressWarnings("removal")
         PrivilegedCallableUsingCurrentClassLoader(Callable<T> task) {
             SecurityManager sm = System.getSecurityManager();
             if (sm != null) {
@@ -548,6 +577,7 @@ public class Executors {
             this.ccl = Thread.currentThread().getContextClassLoader();
         }
 
+        @SuppressWarnings("removal")
         public T call() throws Exception {
             try {
                 return AccessController.doPrivileged(
@@ -587,6 +617,7 @@ public class Executors {
         private final String namePrefix;
 
         DefaultThreadFactory() {
+            @SuppressWarnings("removal")
             SecurityManager s = System.getSecurityManager();
             group = (s != null) ? s.getThreadGroup() :
                                   Thread.currentThread().getThreadGroup();
@@ -611,9 +642,11 @@ public class Executors {
      * Thread factory capturing access control context and class loader.
      */
     private static class PrivilegedThreadFactory extends DefaultThreadFactory {
+        @SuppressWarnings("removal")
         final AccessControlContext acc;
         final ClassLoader ccl;
 
+        @SuppressWarnings("removal")
         PrivilegedThreadFactory() {
             super();
             SecurityManager sm = System.getSecurityManager();
@@ -632,6 +665,7 @@ public class Executors {
 
         public Thread newThread(final Runnable r) {
             return super.newThread(new Runnable() {
+                @SuppressWarnings("removal")
                 public void run() {
                     AccessController.doPrivileged(new PrivilegedAction<>() {
                         public Void run() {
@@ -728,7 +762,7 @@ public class Executors {
         FinalizableDelegatedExecutorService(ExecutorService executor) {
             super(executor);
         }
-        @SuppressWarnings("deprecation")
+        @SuppressWarnings({"deprecation", "removal"})
         protected void finalize() {
             super.shutdown();
         }
