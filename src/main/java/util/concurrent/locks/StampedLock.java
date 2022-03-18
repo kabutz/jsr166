@@ -325,16 +325,16 @@ public class StampedLock implements java.io.Serializable {
 
         // methods for atomic operations
         final boolean casPrev(Node c, Node v) {  // for cleanQueue
-            return U.weakCompareAndSetObject(this, PREV, c, v);
+            return U.weakCompareAndSetReference(this, PREV, c, v);
         }
         final boolean casNext(Node c, Node v) {  // for cleanQueue
-            return U.weakCompareAndSetObject(this, NEXT, c, v);
+            return U.weakCompareAndSetReference(this, NEXT, c, v);
         }
         final int getAndUnsetStatus(int v) {     // for signalling
             return U.getAndBitwiseAndInt(this, STATUS, ~v);
         }
         final void setPrevRelaxed(Node p) {      // for off-queue assignment
-            U.putObject(this, PREV, p);
+            U.putReference(this, PREV, p);
         }
         final void setStatusRelaxed(int s) {     // for off-queue assignment
             U.putInt(this, STATUS, s);
@@ -357,10 +357,10 @@ public class StampedLock implements java.io.Serializable {
     static final class ReaderNode extends Node { // node for readers
         volatile ReaderNode cowaiters;           // list of linked readers
         final boolean casCowaiters(ReaderNode c, ReaderNode v) {
-            return U.weakCompareAndSetObject(this, COWAITERS, c, v);
+            return U.weakCompareAndSetReference(this, COWAITERS, c, v);
         }
         final void setCowaitersRelaxed(ReaderNode p) {
-            U.putObject(this, COWAITERS, p);
+            U.putReference(this, COWAITERS, p);
         }
         private static final long COWAITERS
             = U.objectFieldOffset(ReaderNode.class, "cowaiters");
@@ -1149,13 +1149,13 @@ public class StampedLock implements java.io.Serializable {
 
     // queue link methods
     private boolean casTail(Node c, Node v) {
-        return U.compareAndSetObject(this, TAIL, c, v);
+        return U.compareAndSetReference(this, TAIL, c, v);
     }
 
     /** tries once to CAS a new dummy node for head */
     private void tryInitializeHead() {
         Node h = new WriterNode();
-        if (U.compareAndSetObject(this, HEAD, null, h))
+        if (U.compareAndSetReference(this, HEAD, null, h))
             tail = h;
     }
 

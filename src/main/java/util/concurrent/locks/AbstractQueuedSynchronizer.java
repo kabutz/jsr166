@@ -430,16 +430,16 @@ public abstract class AbstractQueuedSynchronizer
 
         // methods for atomic operations
         final boolean casPrev(Node c, Node v) {  // for cleanQueue
-            return U.weakCompareAndSetObject(this, PREV, c, v);
+            return U.weakCompareAndSetReference(this, PREV, c, v);
         }
         final boolean casNext(Node c, Node v) {  // for cleanQueue
-            return U.weakCompareAndSetObject(this, NEXT, c, v);
+            return U.weakCompareAndSetReference(this, NEXT, c, v);
         }
         final int getAndUnsetStatus(int v) {     // for signalling
             return U.getAndBitwiseAndInt(this, STATUS, ~v);
         }
         final void setPrevRelaxed(Node p) {      // for off-queue assignment
-            U.putObject(this, PREV, p);
+            U.putReference(this, PREV, p);
         }
         final void setStatusRelaxed(int s) {     // for off-queue assignment
             U.putInt(this, STATUS, s);
@@ -530,13 +530,13 @@ public abstract class AbstractQueuedSynchronizer
     // Queuing utilities
 
     private boolean casTail(Node c, Node v) {
-        return U.compareAndSetObject(this, TAIL, c, v);
+        return U.compareAndSetReference(this, TAIL, c, v);
     }
 
     /** tries once to CAS a new dummy node for head */
     private void tryInitializeHead() {
         Node h = new ExclusiveNode();
-        if (U.compareAndSetObject(this, HEAD, null, h))
+        if (U.compareAndSetReference(this, HEAD, null, h))
             tail = h;
     }
 
@@ -1495,7 +1495,9 @@ public abstract class AbstractQueuedSynchronizer
          */
         private boolean canReacquire(ConditionNode node) {
             // check links, not status to avoid enqueue race
-            return node != null && node.prev != null && isEnqueued(node);
+            Node p; // traverse unless known to be bidirectionally linked
+            return node != null && (p = node.prev) != null &&
+                (p.next == node || isEnqueued(node));
         }
 
         /**
