@@ -4035,6 +4035,7 @@ public class CompletableFutureTest extends JSR166TestCase {
 
     //--- tests of implementation details; not part of official tck ---
 
+    @SuppressWarnings("removal")
     Object resultOf(CompletableFuture<?> f) {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {

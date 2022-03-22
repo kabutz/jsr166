@@ -305,6 +305,7 @@ public class ExecutorsTest extends JSR166TestCase {
      * ThreadPoolExecutor using defaultThreadFactory has
      * specified group, priority, daemon status, and name
      */
+    @SuppressWarnings("removal")
     public void testDefaultThreadFactory() throws Exception {
         final ThreadGroup egroup = Thread.currentThread().getThreadGroup();
         final CountDownLatch done = new CountDownLatch(1);
@@ -335,6 +336,7 @@ public class ExecutorsTest extends JSR166TestCase {
      * specified group, priority, daemon status, name,
      * access control context and context class loader
      */
+    @SuppressWarnings("removal")
     public void testPrivilegedThreadFactory() throws Exception {
         final CountDownLatch done = new CountDownLatch(1);
         Runnable r = new CheckedRunnable() {
@@ -368,6 +370,7 @@ public class ExecutorsTest extends JSR166TestCase {
                            new RuntimePermission("modifyThread"));
     }
 
+    @SuppressWarnings("removal")
     boolean haveCCLPermissions() {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
@@ -381,6 +384,7 @@ public class ExecutorsTest extends JSR166TestCase {
         return true;
     }
 
+    @SuppressWarnings("removal")
     void checkCCL() {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
@@ -400,6 +404,7 @@ public class ExecutorsTest extends JSR166TestCase {
      * Without class loader permissions, creating
      * privilegedCallableUsingCurrentClassLoader throws ACE
      */
+    @SuppressWarnings("removal")
     public void testCreatePrivilegedCallableUsingCCLWithNoPrivs() {
         Runnable r = new CheckedRunnable() {
             public void realRun() throws Exception {
@@ -418,6 +423,7 @@ public class ExecutorsTest extends JSR166TestCase {
      * With class loader permissions, calling
      * privilegedCallableUsingCurrentClassLoader does not throw ACE
      */
+    @SuppressWarnings("removal")
     public void testPrivilegedCallableUsingCCLWithPrivs() throws Exception {
         Runnable r = new CheckedRunnable() {
             public void realRun() throws Exception {
@@ -434,6 +440,7 @@ public class ExecutorsTest extends JSR166TestCase {
     /**
      * Without permissions, calling privilegedCallable throws ACE
      */
+    @SuppressWarnings("removal")
     public void testPrivilegedCallableWithNoPrivs() throws Exception {
         // Avoid classloader-related SecurityExceptions in swingui.TestRunner
         Executors.privilegedCallable(new CheckCCL());
@@ -506,6 +513,7 @@ public class ExecutorsTest extends JSR166TestCase {
     /**
      * With permissions, calling privilegedCallable succeeds
      */
+    @SuppressWarnings("removal")
     public void testPrivilegedCallableWithPrivs() throws Exception {
         Runnable r = new CheckedRunnable() {
             public void realRun() throws Exception {
@@ -620,6 +628,7 @@ public class ExecutorsTest extends JSR166TestCase {
     /**
      * privilegedCallable(callable).toString() contains toString of wrapped task
      */
+    @SuppressWarnings("removal")
     public void testPrivilegedCallable_toString() {
         if (testImplementationDetails) {
             Callable<String> c = () -> "";
@@ -634,6 +643,7 @@ public class ExecutorsTest extends JSR166TestCase {
      * privilegedCallableUsingCurrentClassLoader(callable).toString()
      * contains toString of wrapped task
      */
+    @SuppressWarnings("removal")
     public void testPrivilegedCallableUsingCurrentClassLoader_toString() {
         if (testImplementationDetails) {
             Callable<String> c = () -> "";

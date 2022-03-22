@@ -413,7 +413,10 @@ public class JSR166TestCase extends TestCase {
         if (useSecurityManager) {
             System.err.println("Setting a permissive security manager");
             Policy.setPolicy(permissivePolicy());
-            System.setSecurityManager(new SecurityManager());
+            try {
+                System.setSecurityManager(new SecurityManager());
+            } catch(Throwable ok) {  // failure OK during deprecation
+            }
         }
         for (int i = 0; i < suiteRuns; i++) {
             TestResult result = newPithyTestRunner().doRun(suite);
@@ -1411,9 +1414,13 @@ public class JSR166TestCase extends TestCase {
                 Policy.setPolicy(permissivePolicy());
                 System.setSecurityManager(new SecurityManager());
                 runWithSecurityManagerWithPermissions(r, permissions);
+            } catch (UnsupportedOperationException ok) {
             } finally {
-                System.setSecurityManager(null);
-                Policy.setPolicy(savedPolicy);
+                try {
+                    System.setSecurityManager(null);
+                    Policy.setPolicy(savedPolicy);
+                } catch (Exception ok) {
+                }
             }
         } else {
             Policy savedPolicy = Policy.getPolicy();

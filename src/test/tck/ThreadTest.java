@@ -48,6 +48,7 @@ public class ThreadTest extends JSR166TestCase {
      * getDefaultUncaughtExceptionHandler returns value of last
      * setDefaultUncaughtExceptionHandler.
      */
+    @SuppressWarnings("removal")
     public void testGetAndSetDefaultUncaughtExceptionHandler() {
         assertNull(Thread.getDefaultUncaughtExceptionHandler());
         // failure due to SecurityException is OK.

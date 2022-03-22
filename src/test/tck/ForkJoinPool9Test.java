@@ -28,6 +28,7 @@ public class ForkJoinPool9Test extends JSR166TestCase {
     /**
      * Check handling of common pool thread context class loader
      */
+    @SuppressWarnings("removal")
     public void testCommonPoolThreadContextClassLoader() throws Throwable {
         if (!testImplementationDetails) return;
 

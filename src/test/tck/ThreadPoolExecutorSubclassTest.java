@@ -1970,7 +1970,7 @@ public class ThreadPoolExecutorSubclassTest extends JSR166TestCase {
             }
         }
     }
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings("removal")
     public void testFinalizeMethodCallsSuperFinalize() {
         new CustomTPE(1, 1,
                       LONG_DELAY_MS, MILLISECONDS,
