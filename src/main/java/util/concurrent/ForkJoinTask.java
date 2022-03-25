@@ -596,6 +596,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     public final ForkJoinTask<V> fork() {
         Thread t; ForkJoinWorkerThread wt;
         ForkJoinPool p; ForkJoinPool.WorkQueue q;
+        U.storeFence();  // ensure safely publishable
         if ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread) {
             p = (wt = (ForkJoinWorkerThread)t).pool;
             q = wt.workQueue;
@@ -1029,6 +1030,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      * @return true if this task completed
      * @throws InterruptedException if the current thread was
      * interrupted while waiting
+     * @since 19
      */
     public final boolean quietlyJoin(long timeout, TimeUnit unit)
         throws InterruptedException {
@@ -1054,6 +1056,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      * @param timeout the maximum time to wait
      * @param unit the time unit of the timeout argument
      * @return true if this task completed
+     * @since 19
      */
     public final boolean quietlyJoinUninterruptibly(long timeout,
                                                     TimeUnit unit) {
@@ -1547,7 +1550,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      * @param <T> the type of the callable's result
      * @return the task
      *
-     * @since 17
+     * @since 19
      */
     public static <T> ForkJoinTask<T> adaptInterruptible(Callable<? extends T> callable) {
         // https://bugs.openjdk.java.net/browse/JDK-8246587

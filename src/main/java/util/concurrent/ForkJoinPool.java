@@ -2317,6 +2317,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     private <T> ForkJoinTask<T> poolSubmit(boolean signalIfEmpty,
                                            ForkJoinTask<T> task) {
         WorkQueue q; Thread t; ForkJoinWorkerThread wt;
+        U.storeFence();  // ensure safely publishable
         if (task == null) throw new NullPointerException();
         if (((t = Thread.currentThread()) instanceof ForkJoinWorkerThread) &&
             (wt = (ForkJoinWorkerThread)t).pool == this)
@@ -2867,6 +2868,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * @param task the task
      * @param <T> the type of the task's result
      * @return the task
+     * @since 19
      */
     public <T> ForkJoinTask<T> lazySubmit(ForkJoinTask<T> task) {
         return poolSubmit(false, task);
@@ -2890,6 +2892,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      *         the caller is not permitted to modify threads
      *         because it does not hold {@link
      *         java.lang.RuntimePermission}{@code ("modifyThread")}
+     * @since 19
      */
     public int setParallelism(int size) {
         if (size < 1 || size > MAX_CAP)
