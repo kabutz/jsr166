@@ -43,8 +43,8 @@ public class ForkJoinWorkerThread extends Thread {
      * Full nonpublic constructor.
      */
     ForkJoinWorkerThread(ThreadGroup group, ForkJoinPool pool,
-                         boolean useSystemClassLoader) {
-        super(group, null, pool.nextWorkerThreadName(), 0L);
+                         boolean useSystemClassLoader, boolean isInnocuous) {
+        super(group, null, pool.nextWorkerThreadName(), 0L, !isInnocuous);
         UncaughtExceptionHandler handler = (this.pool = pool).ueh;
         this.workQueue = new ForkJoinPool.WorkQueue(this, 0);
         super.setDaemon(true);
@@ -56,14 +56,18 @@ public class ForkJoinWorkerThread extends Thread {
 
     /**
      * Creates a ForkJoinWorkerThread operating in the given thread group and
-     * pool.
+     * pool, and with the given policy for preserving ThreadLocals.
      *
      * @param group if non-null, the thread group for this thread
      * @param pool the pool this thread works in
+     * @param preserveThreadLocals if true, always preserve the values of
+     * ThreadLocal variables across tasks; otherwise they may be cleared.
      * @throws NullPointerException if pool is null
+     * @since 19
      */
-    ForkJoinWorkerThread(ThreadGroup group, ForkJoinPool pool) {
-        this(group, pool, false);
+    protected ForkJoinWorkerThread(ThreadGroup group, ForkJoinPool pool,
+                                   boolean preserveThreadLocals) {
+        this(group, pool, false, !preserveThreadLocals);
     }
 
     /**
@@ -73,7 +77,7 @@ public class ForkJoinWorkerThread extends Thread {
      * @throws NullPointerException if pool is null
      */
     protected ForkJoinWorkerThread(ForkJoinPool pool) {
-        this(null, pool, false);
+        this(null, pool, false, false);
     }
 
     /**
@@ -163,7 +167,7 @@ public class ForkJoinWorkerThread extends Thread {
         @SuppressWarnings("removal")
         private static final AccessControlContext innocuousACC;
         InnocuousForkJoinWorkerThread(ForkJoinPool pool) {
-            super(innocuousThreadGroup, pool, true);
+            super(innocuousThreadGroup, pool, true, true);
         }
 
         @Override @SuppressWarnings("removal")
@@ -173,7 +177,6 @@ public class ForkJoinWorkerThread extends Thread {
                 w.setInnocuous();
             Thread t = Thread.currentThread();
             ThreadLocalRandom.setInheritedAccessControlContext(t, innocuousACC);
-            ThreadLocalRandom.eraseThreadLocals(t);
         }
 
         @Override // to silently fail
