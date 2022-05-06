@@ -211,7 +211,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * reflecting the presence or absence of other contextual sync
      * provided by atomic and/or volatile accesses. Some methods (or
      * their primary loops) begin with an acquire fence or
-     * otherwise-unnecessary valatile read that amounts to an
+     * otherwise-unnecessary volatile read that amounts to an
      * acquiring read of "this" to cover all fields (which is
      * sometimes stronger than necessary, but less brittle). Some
      * constructions are intentionally racy because they use read
@@ -309,7 +309,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * available to try, and the presence or nature of screening steps
      * when only some kinds of tasks can be taken. When alternatives
      * (or failing) is an option, they uniformly give up after
-     * boundeed numbers of stalls and/or CAS failures, which reduces
+     * bounded numbers of stalls and/or CAS failures, which reduces
      * contention when too many workers are polling too few tasks.
      * Overall, in the aggregate, we ensure probabilistic
      * non-blockingness of work-stealing at least until checking
@@ -443,7 +443,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      *
      * WorkQueue field "phase" is used by both workers and the pool to
      * manage and track whether a worker is unsignalled (possibly
-     * blocked waiting for a signal), convienently using the sign bit
+     * blocked waiting for a signal), conveniently using the sign bit
      * to check.  When a worker is enqueued its phase field is set
      * negative. Note that phase field updates lag queue CAS releases;
      * seeing a negative phase does not guarantee that the worker is
@@ -690,7 +690,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * overridden by system properties, we use workers of subclass
      * InnocuousForkJoinWorkerThread when there is a SecurityManager
      * present. These workers have no permissions set, do not belong
-     * to any user-defined ThreadGroup, and erase all ThreadLocals
+     * to any user-defined ThreadGroup, and clear all ThreadLocals
      * after executing any top-level task.  The associated mechanics
      * may be JVM-dependent and must access particular Thread class
      * fields to achieve this effect.
@@ -854,7 +854,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     // {pool, workQueue}.config bits
     static final int FIFO         = 1 << 16;       // fifo queue or access mode
     static final int SRC          = 1 << 17;       // set when stealable
-    static final int INNOCUOUS    = 1 << 18;       // set for Innocuous workers
+    static final int CLEAR_TLS    = 1 << 18;       // set for Innocuous workers
     static final int TRIMMED      = 1 << 19;       // timed out while idle
     static final int ISCOMMON     = 1 << 20;       // set for common pool
     static final int PRESET_SIZE  = 1 << 21;       // size was set by property
@@ -1284,7 +1284,7 @@ public class ForkJoinPool extends AbstractExecutorService {
             }
             nsteals += nstolen;
             source = 0;
-            if ((cfg & INNOCUOUS) != 0)
+            if ((cfg & CLEAR_TLS) != 0)
                 ThreadLocalRandom.eraseThreadLocals(Thread.currentThread());
         }
 
@@ -1420,10 +1420,10 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
 
         /**
-         * Callback from InnocuousForkJoinWorkerThread.onStart
+         * Called in constructors if ThreadLocals not preserved
          */
-        final void setInnocuous() {
-            config |= INNOCUOUS;
+        final void setClearThreadLocals() {
+            config |= CLEAR_TLS;
         }
 
         static {
@@ -2253,7 +2253,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * @param interruptible true if return on interrupt
      * @return positive if quiescent, negative if interrupted, else 0
      */
-    final static int helpQuiescePool(ForkJoinPool pool, long nanos,
+    static final int helpQuiescePool(ForkJoinPool pool, long nanos,
                                      boolean interruptible) {
         Thread t; ForkJoinPool p; ForkJoinWorkerThread wt;
         if ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread &&
@@ -2895,9 +2895,10 @@ public class ForkJoinPool extends AbstractExecutorService {
      * @return the previous parallelism level.
      * @throws IllegalArgumentException if size is less than 1 or
      *         greater than the maximum supported by this pool.
-     * @throws IllegalStateException if this is the{@link #commonPool()} and
-     *         parallelism level was set by System property
-     *         {@systemProperty java.util.concurrent.ForkJoinPool.common.parallelism}.
+     * @throws UnsupportedOperationException this is the{@link
+     *         #commonPool()} and parallelism level was set by System
+     *         property {@systemProperty
+     *         java.util.concurrent.ForkJoinPool.common.parallelism}.
      * @throws SecurityException if a security manager exists and
      *         the caller is not permitted to modify threads
      *         because it does not hold {@link
@@ -2908,7 +2909,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         if (size < 1 || size > MAX_CAP)
             throw new IllegalArgumentException();
         if ((config & PRESET_SIZE) != 0)
-            throw new IllegalStateException("Cannot override System property");
+            throw new UnsupportedOperationException("Cannot override System property");
         checkPermission();
         return getAndSetParallelism(size);
     }
@@ -3496,6 +3497,54 @@ public class ForkJoinPool extends AbstractExecutorService {
      */
     public boolean awaitQuiescence(long timeout, TimeUnit unit) {
         return (helpQuiescePool(this, unit.toNanos(timeout), false) > 0);
+    }
+
+    /**
+     * Unless this is the {@link #commonPool()}, initiates an orderly
+     * shutdown in which previously submitted tasks are executed, but
+     * no new tasks will be accepted, and waits until all tasks have
+     * completed execution and the executor has terminated.
+     *
+     * <p> If already terminated, or this is the {@link
+     * #commonPool()}, this method has no effect on execution, and
+     * does not wait. Otherwise, if interrupted while waiting, this
+     * method stops all executing tasks as if by invoking {@link
+     * #shutdownNow()}. It then continues to wait until all actively
+     * executing tasks have completed. Tasks that were awaiting
+     * execution are not executed. The interrupt status will be
+     * re-asserted before this method returns.
+     *
+     * @throws SecurityException if a security manager exists and
+     *         shutting down this ExecutorService may manipulate
+     *         threads that the caller is not permitted to modify
+     *         because it does not hold {@link
+     *         java.lang.RuntimePermission}{@code ("modifyThread")},
+     *         or the security manager's {@code checkAccess} method
+     *         denies access.
+     * @since 19
+     */
+    @Override
+    public void close() {
+        if ((config & ISCOMMON) == 0) {
+            boolean terminated = tryTerminate(false, false);
+            if (!terminated) {
+                shutdown();
+                boolean interrupted = false;
+                while (!terminated) {
+                    try {
+                        terminated = awaitTermination(1L, TimeUnit.DAYS);
+                    } catch (InterruptedException e) {
+                        if (!interrupted) {
+                            shutdownNow();
+                            interrupted = true;
+                        }
+                    }
+                }
+                if (interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
     }
 
     /**
