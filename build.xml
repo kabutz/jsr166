@@ -226,9 +226,9 @@
     </sequential>
   </macrodef>
 
+  <defjtregtests v="17"/>
+  <defjtregtests v="18"/>
   <defjtregtests v="19"/>
-  <defjtregtests v="17"/>
-  <defjtregtests v="17"/>
 
   <!-- ant -Djtreg.flags=-timeoutFactor:4 -->
   <property name="jtreg.flags" value=""/>
