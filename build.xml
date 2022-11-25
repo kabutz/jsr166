@@ -91,6 +91,7 @@
   <defjdklocations v="17"/>
   <defjdklocations v="18"/>
   <defjdklocations v="19"/>
+  <defjdklocations v="20"/>
 
   <!-- Source locations -->
   <property name="src.dir"              location="${basedir}/src/main"/>
@@ -100,6 +101,7 @@
   <property name="jtreg17.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg18.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg19.src.dir"      location="${test.src.dir}/jtreg"/>
+  <property name="jtreg20.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg.src.dir"        location="${jtreg17.src.dir}"/>
   <property name="lib.dir"              location="${basedir}/lib"/>
   <property name="dist.dir"             location="${basedir}/dist"/>
@@ -116,8 +118,9 @@
   <!-- Canonical location of jdk docs root, to use with javadoc -Xdocrootparent flag -->
   <!-- Switched to https: in 2017-10 - JDK-8190312 -->
   <property name="java17.docroot.url" value="https://docs.oracle.com/en/java/javase/17/docs"/>
-  <property name="java18.docroot.url" value="https://download.java.net/java/early_access/jdk18/docs"/>
-  <property name="java19.docroot.url" value="https://download.java.net/java/early_access/jdk19/docs"/>
+  <property name="java18.docroot.url" value="https://docs.oracle.com/en/java/javase/18/docs"/>
+  <property name="java19.docroot.url" value="https://docs.oracle.com/en/java/javase/19/docs"/>
+  <property name="java20.docroot.url" value="https://download.java.net/java/early_access/jdk20/docs"/>
   <!-- Default jdk doc location (latest stable LTS release seems best) -->
   <property name="java.docroot.url"   value="${java17.docroot.url}"/>
 
@@ -125,6 +128,7 @@
   <property name="java17.api.url"     value="${java17.docroot.url}/api/"/>
   <property name="java18.api.url"     value="${java18.docroot.url}/api/"/>
   <property name="java19.api.url"     value="${java19.docroot.url}/api/"/>
+  <property name="java20.api.url"     value="${java20.docroot.url}/api/"/>
   <property name="java.api.url"       value="${java.docroot.url}/api/"/>
 
   <!-- Define the "jtreg" task -->
@@ -229,6 +233,7 @@
   <defjtregtests v="17"/>
   <defjtregtests v="18"/>
   <defjtregtests v="19"/>
+  <defjtregtests v="20"/>
 
   <!-- ant -Djtreg.flags=-timeoutFactor:4 -->
   <property name="jtreg.flags" value=""/>
