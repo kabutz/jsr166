@@ -136,7 +136,7 @@ public interface Future<V> {
     /**
      * Returns the computed result, without waiting.
      *
-     * <p> This method is for cases where the caller knows that the task has
+     * <p>This method is for cases where the caller knows that the task has
      * already completed successfully, for example when filtering a stream
      * of Future objects for the successful tasks and using a mapping
      * operation to obtain a stream of results.
@@ -180,7 +180,7 @@ public interface Future<V> {
     /**
      * Returns the exception thrown by the task, without waiting.
      *
-     * <p> This method is for cases where the caller knows that the task
+     * <p>This method is for cases where the caller knows that the task
      * has already completed with an exception.
      *
      * @implSpec

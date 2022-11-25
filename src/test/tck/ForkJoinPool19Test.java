@@ -41,6 +41,7 @@ public class ForkJoinPool19Test extends JSR166TestCase {
         assertEquals(3, p.setParallelism(2));
         p.shutdown();
     }
+
     /**
      * SetParallelism throws exception if argument out of bounds
      */
@@ -60,7 +61,7 @@ public class ForkJoinPool19Test extends JSR166TestCase {
         p.shutdown();
     }
 
- 
+
     /*
      * Some test methods adapted from RecursiveAction
      */

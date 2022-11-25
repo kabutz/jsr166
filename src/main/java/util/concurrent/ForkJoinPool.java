@@ -3505,7 +3505,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * no new tasks will be accepted, and waits until all tasks have
      * completed execution and the executor has terminated.
      *
-     * <p> If already terminated, or this is the {@link
+     * <p>If already terminated, or this is the {@link
      * #commonPool()}, this method has no effect on execution, and
      * does not wait. Otherwise, if interrupted while waiting, this
      * method stops all executing tasks as if by invoking {@link

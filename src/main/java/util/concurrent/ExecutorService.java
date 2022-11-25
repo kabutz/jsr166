@@ -356,13 +356,13 @@ public interface ExecutorService extends Executor, AutoCloseable {
      * executed, but no new tasks will be accepted. This method waits until all
      * tasks have completed execution and the executor has terminated.
      *
-     * <p> If interrupted while waiting, this method stops all executing tasks as
+     * <p>If interrupted while waiting, this method stops all executing tasks as
      * if by invoking {@link #shutdownNow()}. It then continues to wait until all
      * actively executing tasks have completed. Tasks that were awaiting
      * execution are not executed. The interrupt status will be re-asserted
      * before this method returns.
      *
-     * <p> If already terminated, invoking this method has no effect.
+     * <p>If already terminated, invoking this method has no effect.
      *
      * @implSpec
      * The default implementation invokes {@code shutdown()} and waits for tasks

@@ -355,7 +355,7 @@ public abstract class AtomicLongFieldUpdater<T> {
         private final Class<?> cclass;
         /** class holding the field */
         private final Class<T> tclass;
-        
+
         @SuppressWarnings({"deprecation", "removal"})
         CASUpdater(final Class<T> tclass, final String fieldName,
                    final Class<?> caller) {
@@ -497,7 +497,7 @@ public abstract class AtomicLongFieldUpdater<T> {
         private final Class<?> cclass;
         /** class holding the field */
         private final Class<T> tclass;
-        
+
         @SuppressWarnings({"deprecation", "removal"})
         LockedUpdater(final Class<T> tclass, final String fieldName,
                       final Class<?> caller) {

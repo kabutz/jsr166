@@ -415,7 +415,7 @@ public class JSR166TestCase extends TestCase {
             Policy.setPolicy(permissivePolicy());
             try {
                 System.setSecurityManager(new SecurityManager());
-            } catch(Throwable ok) {  // failure OK during deprecation
+            } catch (Throwable ok) {  // failure OK during deprecation
             }
         }
         for (int i = 0; i < suiteRuns; i++) {
