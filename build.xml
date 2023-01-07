@@ -92,6 +92,7 @@
   <defjdklocations v="18"/>
   <defjdklocations v="19"/>
   <defjdklocations v="20"/>
+  <defjdklocations v="21"/>
 
   <!-- Source locations -->
   <property name="src.dir"              location="${basedir}/src/main"/>
@@ -102,6 +103,7 @@
   <property name="jtreg18.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg19.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg20.src.dir"      location="${test.src.dir}/jtreg"/>
+  <property name="jtreg21.src.dir"      location="${test.src.dir}/jtreg"/>
   <property name="jtreg.src.dir"        location="${jtreg17.src.dir}"/>
   <property name="lib.dir"              location="${basedir}/lib"/>
   <property name="dist.dir"             location="${basedir}/dist"/>
@@ -121,6 +123,7 @@
   <property name="java18.docroot.url" value="https://docs.oracle.com/en/java/javase/18/docs"/>
   <property name="java19.docroot.url" value="https://docs.oracle.com/en/java/javase/19/docs"/>
   <property name="java20.docroot.url" value="https://download.java.net/java/early_access/jdk20/docs"/>
+  <property name="java21.docroot.url" value="https://download.java.net/java/early_access/jdk21/docs"/>
   <!-- Default jdk doc location (latest stable LTS release seems best) -->
   <property name="java.docroot.url"   value="${java17.docroot.url}"/>
 
@@ -129,6 +132,7 @@
   <property name="java18.api.url"     value="${java18.docroot.url}/api/"/>
   <property name="java19.api.url"     value="${java19.docroot.url}/api/"/>
   <property name="java20.api.url"     value="${java20.docroot.url}/api/"/>
+  <property name="java21.api.url"     value="${java21.docroot.url}/api/"/>
   <property name="java.api.url"       value="${java.docroot.url}/api/"/>
 
   <!-- Define the "jtreg" task -->
@@ -234,6 +238,7 @@
   <defjtregtests v="18"/>
   <defjtregtests v="19"/>
   <defjtregtests v="20"/>
+  <defjtregtests v="21"/>
 
   <!-- ant -Djtreg.flags=-timeoutFactor:4 -->
   <property name="jtreg.flags" value=""/>
