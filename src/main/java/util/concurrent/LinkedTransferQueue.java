@@ -282,7 +282,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      *    Wait for another thread to match node; instead cancelling if
      *    the current thread was interrupted or the wait timed out. To
      *    improve performance in common single-source / single-sink
-     *    usages when there are more tasks that cores, an initial
+     *    usages when there are more tasks than cores, an initial
      *    Thread.yield is tried when there is apparently only one
      *    waiter.  In other cases, waiters may help with some
      *    bookkeeping, then park/unpark.
